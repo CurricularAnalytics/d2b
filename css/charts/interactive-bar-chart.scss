@@ -1,0 +1,17 @@
+/*axisChart column specific styles*/
+.ad-interactive-bar-chart{
+	.ad-columns{
+		rect{
+			shape-rendering:crispEdges;
+			fill-opacity:0.8;
+			-webkit-transition: fill-opacity 0.25s; 
+	    transition: fill-opacity 0.25s;
+		}
+		rect:hover{
+			fill-opacity:1;
+		}
+	}
+} 
+
+
+

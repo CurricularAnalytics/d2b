@@ -1,0 +1,13 @@
+.ad-pie-chart{
+	.ad-arc{
+		path{
+			fill-opacity:0.8;
+			stroke:white;
+		}
+		text{
+			font-weight:bold;
+			pointer-events:none;
+			text-anchor:middle;
+		}
+	}
+}

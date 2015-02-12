@@ -1,0 +1,59 @@
+
+.ad-chart-layout{
+	color:$dark_main;
+	font-size:11pt;
+	.ad-chart-layout-title div{
+		background:$dark_main;
+		color:$lightest;
+		font-family:$alt1;
+		font-weight:thin;
+		padding:5px;
+		font-size:15pt;
+		text-align:center;
+		position:relative;
+		z-index:10;
+	}
+	.ad-chart-layout-right-notes,.ad-chart-layout-left-notes,.ad-chart-layout-footnote{
+		position:absolute;
+		font-size:11pt;
+//		overflow:scroll;
+		pointer-events:none;
+		overflow:hidden;
+	}
+	.ad-chart-layout-footnote{
+		width:100%;
+		margin-top:-10px;
+		font-style:italic;
+		
+		text-align:center;
+	}
+	.ad-chart-layout-footnote div{
+		padding:5px;
+	}
+	.ad-chart-layout-right-notes ul, .ad-chart-layout-left-notes ul{
+		padding:5px;
+	}
+	.ad-chart-layout-right-notes li, .ad-chart-layout-left-notes li{
+		border-bottom:1px solid #ddd;
+		padding-top:5px;
+	}
+
+	.ad-chart-layout-chart{
+		position:absolute;
+	}
+	
+}
+
+
+.ad-general-tooltip{
+	z-index:10000;
+	font-family:$main;
+	font-size:10pt;
+	position:absolute;
+	pointer-events:none;
+	border:2px solid $dark_main;
+	background:$lightest;
+	padding:5px;
+	border-radius:2px;
+	max-width:200px;
+}

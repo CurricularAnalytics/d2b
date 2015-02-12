@@ -1,0 +1,28 @@
+.ad-sankey-chart{
+	.ad-sankey{
+		.ad-sankey-links{
+			path{
+				fill:none;
+				stroke-opacity:0.6;
+				&:hover{
+					stroke-opacity:0.8;
+				}
+			}
+		}
+		.ad-sankey-nodes{
+			text{
+				font-size:10pt;
+				font-weight:bold;
+				pointer-events:none;
+			}
+			rect{
+				fill:$lightest;
+				stroke-width:2px;
+				stroke:$light;
+				&:hover{
+					stroke:$dark_main;
+				}
+			}
+		}
+	}
+}

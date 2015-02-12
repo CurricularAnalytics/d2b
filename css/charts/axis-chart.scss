@@ -1,0 +1,147 @@
+/*AD*/
+.ad-svg{
+	display: block;
+	font-family:'Droid Sans', Arial;
+	font-size:11pt;
+	fill:#333;
+}
+/*AD TOOLTIPS*/
+.ad-svg .ad-general-tooltip{
+	position:absolute;
+	pointer-events:none;
+}
+/*multiChart Controls*/
+.ad-svg .ad-set-controls-wrapper, .ad-svg .ad-display-chart{
+	display:block;
+}
+.ad-svg .ad-set-controls{
+	border:1px solid #cacaca;
+	border-radius:2px;
+	display:table;
+	margin:auto;	
+}
+.ad-svg .ad-set-controls .ad-set-control{
+	display:inline-block;
+	padding:5px 10px;
+	cursor:pointer;
+	font-size:13px;
+	color:#999;
+	border-right:1px solid #ccc;
+	background:#f1f1f1;
+}
+.ad-svg .ad-set-controls .ad-set-control:last-child{
+	border-right:0px solid #ccc;
+}
+.ad-svg .ad-set-controls .ad-set-control.selected{
+	-moz-box-shadow:inset 0px 0px 4px rgba(0,0,0,0.2);;
+	-webkit-box-shadow:inset 0px 0px 4px rgba(0,0,0,0.2);
+	box-shadow: inset 0px 0px 4px rgba(0,0,0,0.2);
+	background-color:#dedede;
+	color:#555;
+	font-weight:bold;
+}
+/*pieChart*/
+.ad-svg .ad-pie-chart g.ad-pie-slice path{
+	stroke-width:1px;
+	stroke:white;
+}
+/*axisChart*/
+.ad-svg .ad-axis path{
+	fill:none;
+	stroke:none;
+}
+.ad-svg .ad-axis text{
+	font-size:13px;
+}
+.ad-svg .ad-axis .tick line{
+  stroke: #ddd;
+}
+.ad-svg .ad-x-label text, .ad-svg .ad-y-label text{
+	font-size:15px;
+	font-weight:bold;
+	text-anchor:middle;
+}
+
+/*axisChart column specific styles*/
+.ad-svg .ad-bar-columns rect{
+	shape-rendering:crispEdges;
+	fill-opacity:0.65;
+	-webkit-transition: fill-opacity 0.25s; 
+    transition: fill-opacity 0.25s;
+}
+.ad-svg .ad-bar-columns rect:hover{
+	fill-opacity:0.8;    
+}
+
+.ad-svg .ad-area-columns path{
+	fill-opacity:0.25; 
+	stroke-width:1px;   
+	-webkit-transition: fill-opacity 0.25s, stroke-width 0.25s; 
+    transition: fill-opacity 0.25s, stroke-width 0.25s;
+}
+.ad-svg .ad-area-columns path:hover{
+	fill-opacity:0.5;   
+	stroke-width:1.5px;    
+}
+
+.ad-svg .ad-scatter-columns circle{
+	stroke-width:1px;
+	stroke:white;
+	stroke-opacity:1;
+	-webkit-transition: stroke-width 0.25s; 
+    transition: stroke-width 0.25s;
+}
+.ad-svg .ad-scatter-columns circle:hover{
+	stroke-width:1.5px;
+}
+.ad-svg .ad-line-columns path.ad-line{
+	stroke-width:2px;
+	fill:none;
+	-webkit-transition: stroke-width 0.25s; 
+  transition: stroke-width 0.25s;
+}
+.ad-svg .ad-line-columns path.ad-line:hover{
+	stroke-width:4px;
+}
+
+
+/*axisChart legend hover events*/
+.ad-area-columns g.ad-legend-mouseover path{
+	fill-opacity:0.5;   
+	stroke-width:1.5px;    
+}
+.ad-line-columns g.ad-legend-mouseover path.ad-line{
+	stroke-width:4px; 
+}
+.ad-bar-columns g.ad-legend-mouseover rect{
+	fill-opacity:0.8;     
+}
+.ad-scatter-columns g.ad-legend-mouseover circle{
+	stroke-width:1.5px; 
+}
+
+/*legend styles*/
+/*.ad-legend{
+	font-size:13px;
+}*/
+
+/*util styles*/
+.ad-checkbox-container path,.ad-checkbox-container rect{
+	cursor:pointer;
+	stroke-linejoin: miter;
+	fill:rgba(0,0,0,0);
+	stroke:#555;
+}
+.ad-checkbox-container{
+	cursor:pointer
+}
+.ad-checkbox-container text{
+	fill:#555;
+	text-anchor:start;
+}
+
+
+
+
+
+
