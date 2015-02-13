@@ -195,9 +195,23 @@ html, body, .ad-container {
   fill: #555;
   text-anchor: start; }
 
+.ad-sankey-chart .ad-sankey-labels {
+  font-size: 23px; }
+  .ad-sankey-chart .ad-sankey-labels .ad-sankey-label-source text {
+    text-anchor: start; }
+  .ad-sankey-chart .ad-sankey-labels .ad-sankey-label-destination text {
+    text-anchor: end; }
+.ad-sankey-chart .ad-sankey-column-headers .ad-sankey-column-header text {
+  text-anchor: middle;
+  font-weight: bold;
+  font-size: 16px; }
+.ad-sankey-chart .ad-sankey-column-headers .ad-sankey-column-header:first-child text {
+  text-anchor: start; }
+.ad-sankey-chart .ad-sankey-column-headers .ad-sankey-column-header:last-child text {
+  text-anchor: end; }
 .ad-sankey-chart .ad-sankey .ad-sankey-links path {
   fill: none;
-  stroke-opacity: 0.6; }
+  stroke-opacity: 0.5; }
   .ad-sankey-chart .ad-sankey .ad-sankey-links path:hover {
     stroke-opacity: 0.8; }
 .ad-sankey-chart .ad-sankey .ad-sankey-nodes text {
@@ -228,7 +242,7 @@ html, body, .ad-container {
 .ad-interactive-bar-chart .ad-columns rect:hover {
   fill-opacity: 1; }
 
-.ad-iframe {
+.ad-iframe-chart iframe {
   border: 0px; }
 
 .ad-dashboard .ad-header {

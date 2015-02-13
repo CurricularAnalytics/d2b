@@ -21,11 +21,16 @@ AD.CHARTS.sankeyChart = function(){
 	
 	var currentChartData = {
 				nodes:[],
-				links:[]
+				links:[],
+				// labels:{source:'',destination:''}
 			};
 	
 	var sankey;
 	var nodePadding = 30;
+	var nodeWidth = 15;
+	var layout = 20;
+	
+	var minLinkWidth = 1;
 	
 	var nodeXVals = [];
 	var nodeYVals = {};
@@ -73,8 +78,20 @@ AD.CHARTS.sankeyChart = function(){
 	};
 	
 	chart.nodePadding = function(value){
-		if(!arguments.length) return xFormat;
+		if(!arguments.length) return nodePadding;
 		nodePadding = value;
+		return chart;
+	};
+	
+	chart.layout = function(value){
+		if(!arguments.length) return layout;
+		layout = value;
+		return chart;
+	};
+	
+	chart.minLinkWidth = function(value){
+		if(!arguments.length) return minLinkWidth;
+		minLinkWidth = value;
 		return chart;
 	};
 	
@@ -108,6 +125,27 @@ AD.CHARTS.sankeyChart = function(){
 			.append('g')
 				.attr('class','ad-sankey-nodes');
 
+		selection.group.labels = selection.group
+			.append('g')
+				.attr('class','ad-sankey-labels');
+				
+		selection.group.labels.source = selection.group.labels
+			.append('g')
+				.attr('class','ad-sankey-label-source');
+				
+		selection.group.labels.source.text = selection.group.labels.source.append('text').attr('y',23);		
+				
+		selection.group.labels.destination = selection.group.labels
+			.append('g')
+				.attr('class','ad-sankey-label-destination');
+				
+		selection.group.labels.destination.text = selection.group.labels.destination.append('text').attr('y',23);
+
+		selection.group.columnHeaders = selection.group
+			.append('g')
+				.attr('class','ad-sankey-column-headers');
+		
+
 		//create axis containers
 		// selection.group.axes = selection.group
 		// 	.append('g')
@@ -137,13 +175,20 @@ AD.CHARTS.sankeyChart = function(){
 	chart.update = function(chartData){
 
 		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
+		if(chartData){
 			if(chartData.data){
+				console.log(chartData.data)
 				if(chartData.data.nodes){			
 					currentChartData.nodes = chartData.data.nodes;
 				}
 				if(chartData.data.links){
 					currentChartData.links = chartData.data.links;
+				}
+				if(chartData.data.labels){
+					currentChartData.labels = chartData.data.labels;
+				}
+				if(chartData.data.columnHeaders){
+					currentChartData.columnHeaders = chartData.data.columnHeaders;
 				}
 			}
 		}
@@ -154,6 +199,11 @@ AD.CHARTS.sankeyChart = function(){
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		
+		// if(currentChartData.columnHeaders){
+		// 	forcedMargin.right+=20;
+		// 	forcedMargin.left+=20;
+		// }
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 		
@@ -161,7 +211,7 @@ AD.CHARTS.sankeyChart = function(){
 			data:{
 				items:	d3
 									.set(currentChartData.nodes.map(function(d){
-											return d.colorKey;
+											return (d.colorKey)?d.colorKey:d.name;
 										}))
 									.values()
 									.map(function(d){return {label:d};})
@@ -170,20 +220,101 @@ AD.CHARTS.sankeyChart = function(){
 		horizontalLegend.width(innerWidth).update(legendData);
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 
+		var labelTransitions={
+			source:
+				selection.group.labels.source
+					.transition()
+						.duration(animationDuration),
+			destination:
+				selection.group.labels.destination
+					.transition()
+						.duration(animationDuration)
+		}
+
+		
+				
+		if(currentChartData.labels){
+			selection.group.labels
+					.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
+			if(currentChartData.labels.source){
+				labelTransitions.source
+						.style('opacity',1);
+				selection.group.labels.source.text.text(currentChartData.labels.source);
+			}else{
+				labelTransitions.source
+						.style('opacity',0);
+			}
+			if(currentChartData.labels.destination){
+				labelTransitions.destination
+						.style('opacity',1);
+				selection.group.labels.destination.text.text(currentChartData.labels.destination);
+			}else{
+				labelTransitions.destination
+						.style('opacity',0);
+			}
+		
+			labelTransitions.source
+					.attr('transform','translate('+0+','+0+')');
+			labelTransitions.destination
+					.attr('transform','translate('+innerWidth+','+0+')');
+		
+			forcedMargin.top += 35;
+
+		}else{
+			labelTransitions.source
+					.style('opacity',0);
+			labelTransitions.destination
+					.style('opacity',0);
+		}
+
+		var columnHeader;
+		var columnHeaderScale;
+		if(currentChartData.columnHeaders && currentChartData.columnHeaders.length > 0){
+			columnHeaderScale = d3.scale.linear()
+				.domain([0,currentChartData.columnHeaders.length-1])
+				.range([0,innerWidth-nodeWidth])
+			
+			selection.group.columnHeaders
+					.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
+			
+			columnHeader = selection.group.columnHeaders.selectAll('g.ad-sankey-column-header').data(currentChartData.columnHeaders);	
+			columnHeader.enter()
+				.append('g')
+					.attr('class','ad-sankey-column-header')
+				.append('text')
+					.attr('y',16)
+					.attr('x',function(d,i){
+						if(i == 0)
+							return -nodeWidth/2;
+						else if(i == currentChartData.columnHeaders.length-1)
+							return nodeWidth/2;
+					});
+			
+			columnHeader.select('text').text(function(d){return d;});	
+			columnHeader
+				.transition()
+					.duration(animationDuration)
+					.attr('transform',function(d,i){return 'translate('+(columnHeaderScale(i)+nodeWidth/2)+','+0+')'})
+					
+			forcedMargin.top += 25;
+		}
+
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
+		
+		
 		
 		selection.legend
 			.transition()
 				.duration(animationDuration)
-				.attr('transform','translate('+(innerWidth-horizontalLegend.computedWidth())/2+','+innerHeight+')')
+				.attr('transform','translate('+(forcedMargin.left+(innerWidth-horizontalLegend.computedWidth())/2)+','+(innerHeight+forcedMargin.top)+')')
 		
 		sankey = d3.sankey()
 				.size([innerWidth,innerHeight])
-				.nodeWidth(15)
+				.nodeWidth(nodeWidth)
 				.nodePadding(nodePadding)
 				.nodes(currentChartData.nodes)
 				.links(currentChartData.links)
-				.layout(20);
+				.layout(layout);
 		
 
 		var node = selection.group.sankey.nodes.selectAll('g.ad-sankey-node')
@@ -204,9 +335,6 @@ AD.CHARTS.sankeyChart = function(){
 				.text(function(d){return d.shortName;});
 
 		node
-				// .each(function(d){
-				// 	d.group = d3.select(this);
-				// })
 			.transition()
 				.duration(animationDuration)
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';});
@@ -253,14 +381,14 @@ AD.CHARTS.sankeyChart = function(){
 			.transition()
 				.duration(animationDuration)
 				.attr('d',sankey.link())
-				.style('stroke-width',function(d){return d.dy})
-				.style('stroke',function(d){return color(d[d.colorBy].colorKey)});
+				.style('stroke-width',function(d){return Math.max(d.dy,minLinkWidth)})
+				.style('stroke',function(d){return color((d[d.colorBy].colorKey)?d[d.colorBy].colorKey:d[d.colorBy].name)});
 
 		selection.svg
 				.attr('width',width)
 				.attr('height',height);
 				
-		selection.group
+		selection.group.sankey
 				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');		
 			
 

@@ -65,7 +65,7 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 			.append('div')
 				.attr('class','ad-chart-layout-chart');
 				
-		chartLayoutData.chartLayout.chart
+		chart
 			.selection(selection.container.chart)
 			.generate(chartLayoutData.chartData);			
 				
@@ -140,7 +140,6 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		chartMargin.bottom+=selection.container.footnote.node().getBoundingClientRect().height;
 		selection.container.footnote
 				.style('top',(height-chartMargin.bottom)+'px');
-				// .style('width',(width)+'px');
 		
 		if(!currentChartLayoutData.chartLayout.rightNotes || currentChartLayoutData.chartLayout.rightNotes.length < 1){
 			currentChartLayoutData.chartLayout.rightNotes = [];
@@ -183,7 +182,7 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 				.style('top',chartMargin.top+'px');
 				
 				
-		currentChartLayoutData.chartLayout.chart
+		chart
 				.width(width-chartMargin.left-chartMargin.right)
 				.height(height-chartMargin.top-chartMargin.bottom)
 				.animationDuration(animationDuration)
