@@ -1,8 +1,10 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 AD.UTILS.CHARTPAGE.chartLayout = function(){
 	var width = AD.CONSTANTS.DEFAULTWIDTH();
 	var height = AD.CONSTANTS.DEFAULTHEIGHT();
 	var selection;
-	var currentChartLayoutData;
+	var currentChartLayoutData = {chartLayout:{}};
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var chart;
 	var generateRequired = true;
@@ -29,11 +31,13 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 	chartLayout.selection = function(value){
 		if(!arguments.length) return selection;
 		selection = value;
+		generateRequired = true;
 		return chartLayout;
 	};
 	chartLayout.select = function(value){
 		if(!arguments.length) return selection;
 		selection = d3.select(value);
+		generateRequired = true;
 		return chartLayout;
 	};
 	chartLayout.animationDuration = function(value){
@@ -42,7 +46,32 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		return chartLayout;
 	};
 	
-	chartLayout.generate = function(chartLayoutData){
+	chartLayout.data = function(chartLayoutData, reset){
+		if(!arguments.length) return currentChartLayoutData;
+		if(reset){
+			currentChartLayoutData = {chartLayout:{}};
+			generateRequired = true;
+		}
+		// currentChartLayoutData.chartLayout = chartLayoutData.data.chartLayout
+		if(chartLayoutData.data.chartLayout.footnote)
+			currentChartLayoutData.chartLayout.footnote = chartLayoutData.data.chartLayout.footnote;
+		
+		if(chartLayoutData.data.chartLayout.rightNotes)
+			currentChartLayoutData.chartLayout.rightNotes = chartLayoutData.data.chartLayout.rightNotes;
+		
+		if(chartLayoutData.data.chartLayout.leftNotes)
+			currentChartLayoutData.chartLayout.leftNotes = chartLayoutData.data.chartLayout.leftNotes;
+		
+		if(chartLayoutData.data.chartLayout.title)
+			currentChartLayoutData.chartLayout.title = chartLayoutData.data.chartLayout.title;
+		
+		if(chartLayoutData.data.chartCallback)
+			currentChartLayoutData.chartCallback = chartLayoutData.data.chartCallback;
+		
+		return chartLayout;
+	};
+	
+	chartLayout.generate = function(callback){
 		
 		selection.selectAll('*').remove();
 
@@ -67,7 +96,7 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 				
 		chart
 			.selection(selection.container.chart)
-			.generate(chartLayoutData.chartData);			
+			.update(currentChartLayoutData.chartCallback);			
 				
 		selection.container.rightNotes = selection.container
 			.append('div')
@@ -100,24 +129,20 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		var tempAnimationDuration = animationDuration;
 		chartLayout
 			.animationDuration(0)
-			.update(chartLayoutData)
+			.update(callback)
 			.animationDuration(tempAnimationDuration);
 		
 		return chartLayout;
 	};
 	
-	chartLayout.update = function(chartLayoutData){
+	chartLayout.update = function(callback){
 		if(!selection)
 			return console.warn('chartLayout was not given a selection');
 		if(!chart)
 			return console.warn('chartLayout was not given a chart');
 
 		if(generateRequired)
-			chartLayout.generate(chartLayoutData);
-		
-		if(chartLayoutData)
-			currentChartLayoutData = chartLayoutData;
-
+			chartLayout.generate(callback);
 		var chartMargin = {
 			top:10,bottom:0,left:0,right:0
 		};
@@ -125,7 +150,6 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		selection.wrapper
 				.style('width',width+'px')
 				.style('height',height+'px')
-		
 		selection.container.title.div
 				.text(currentChartLayoutData.chartLayout.title)
 				.style('opacity','1');	
@@ -178,18 +202,21 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 				.style('opacity',0)
 				.remove();
 		selection.container.chart
-				.style('left',chartMargin.left+'px')
+				.style('left',(chartMargin.left+5)+'px')
 				.style('top',chartMargin.top+'px');
 				
-				
+		
 		chart
-				.width(width-chartMargin.left-chartMargin.right)
+				.width(width-chartMargin.left-chartMargin.right-10)
 				.height(height-chartMargin.top-chartMargin.bottom)
 				.animationDuration(animationDuration)
-				.update(currentChartLayoutData.chartData);
-
+				.update(currentChartLayoutData.chartCallback);
 				
 		d3.timer.flush();
+		
+		if(callback){
+			callback();
+		}
 		
 		return chartLayout;
 	};
@@ -203,14 +230,13 @@ AD.UTILS.chartPage = function(){
 	var currentPageData;
 	var computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var updateAnimation = 'forward';
+	var animationType = 'forward';
 
 	var init = function(){
 		var position = {};
-		if(updateAnimation == 'backward'){
+		if(animationType == 'backward'){
 			position.left = -width+'px';
 		}else{
-			// transform = 'translate('+(-width)+','+(computedHeight/2)+') scale(0) ';
 			position.left = width+'px';
 		}
 		selection.currentPage = selection
@@ -246,22 +272,28 @@ AD.UTILS.chartPage = function(){
 		animationDuration = value;
 		return page;
 	};
+	page.animationType = function(value){
+		if(!arguments.length) return animationType;
+		animationType = value;
+		return page;
+	};
 	
-	page.update = function(pageData,animation){
+	page.data = function(pageData, reset){
+		if(!arguments.length) return currentPageData;
+		newData = true;
+		currentPageData = pageData;
+		return page;
+	}
+	
+	page.update = function(callback){
 		if(!selection)
 			return console.warn('page was not given a selection');
 		var position = {};
-
-		if(animation){
-			updateAnimation = animation;
-		}else{
-			updateAnimation = 'forward';
-		}
-
-		if(pageData){
-			currentPageData = pageData;
+		
+		if(newData){
+			newData = false;
 			if(selection.currentPage){
-				if(updateAnimation == 'backward'){
+				if(animationType == 'backward'){
 					position.left = width+'px';
 				}else{
 					position.left = -width+'px';
@@ -275,7 +307,7 @@ AD.UTILS.chartPage = function(){
 			}
 			init();
 		}
-		
+
 		computedHeight = 0;
 		
 		selection.currentPage 
@@ -300,7 +332,7 @@ AD.UTILS.chartPage = function(){
 							.width(width*d.width)
 							.height(d.height)
 							.animationDuration(0)
-							.generate(d.chart.chartLayoutData);
+							.update(d.chart.chartLayoutData.chartCallback);
 					}
 				});
 
@@ -310,15 +342,18 @@ AD.UTILS.chartPage = function(){
 						d.chart.chartLayout
 								.animationDuration(animationDuration)
 								.width(width*d.width)
-								.update();
+								.update(d.chart.chartLayoutData.chartCallback);
 					}
 				})
 				.style('left',function(d){return (width * d.x)+'px'})
 				.style('top',function(d){return (d.y)+'px'});
+				
+		d3.timer.flush();
 
-
-
-
+		if(callback){
+			callback();
+		}
+		
 		return page;
 	};
 

@@ -1,3 +1,4 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 /*template chart*/
 AD.CHARTS.pieChart = function(){
@@ -20,10 +21,9 @@ AD.CHARTS.pieChart = function(){
 	
 	var color = AD.CONSTANTS.DEFAULTCOLOR();
 	
-	var currentChartData = {
-			};
+	var currentChartData = {};
 	
-	var xFormat = d3.format("");
+	var xFormat = function(value){return value};
 	
 	var donutRatio = 0;
 	
@@ -84,12 +84,38 @@ AD.CHARTS.pieChart = function(){
 		return chart;
 	};
 	
-	//generate chart
-	chart.generate = function(chartData) {
-		generateRequired = false;
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {};
+			generateRequired = true;
+		}
+		
+		if(chartData.data.values){
+			chartData.data.values.forEach(function(d,i){
+				if(!d.key){
+					d.key = Date.now()+i;
+				}
+			});
+			currentChartData.values = chartData.data.values;
 
-		currentChartData = {
-					};
+			pieTotal = d3.sum(currentChartData.values.map(function(d){return d.value;}));
+	
+			legendData = {
+				data:{
+					items:	currentChartData.values
+				}
+			};
+	
+			newData = true;
+		}
+		
+		return chart;
+	};
+	
+	//generate chart
+	chart.generate = function(callback) {
+		generateRequired = false;
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -114,7 +140,7 @@ AD.CHARTS.pieChart = function(){
 		horizontalLegend
 				.color(color)
 				.selection(selection.legend)
-				// .itemMouseover(function(d){
+				// .on('elementMouseover',function(d){
 				// 	console.log(d.path)
 				// 	// d.path
 				// 	// 		.transition()
@@ -122,7 +148,7 @@ AD.CHARTS.pieChart = function(){
 				// 	// 			.attr('transform','scale(1.01)')
 				// 	// 			.style('fill-opacity',0.9);
 				// })
-				// .itemMouseout(function(d){
+				// .on('elementMouseout',function(d){
 				// 	// d.path
 				// 	// 		.transition()
 				// 	// 			.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
@@ -134,40 +160,18 @@ AD.CHARTS.pieChart = function(){
 		var temp = animationDuration;
 		chart
 				.animationDuration(0)	
-				.update(chartData)
+				.update(callback)
 				.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			if(chartData.data.values){
-				chartData.data.values.forEach(function(d,i){
-					if(!d.key){
-						d.key = Date.now()+i;
-					}
-				});
-				currentChartData.values = chartData.data.values;
-
-				pieTotal = d3.sum(currentChartData.values.map(function(d){return d.value;}));
-				
-				legendData = {
-					data:{
-						items:	currentChartData.values
-					}
-				};
-				
-				newData = true;
-			}
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -175,7 +179,7 @@ AD.CHARTS.pieChart = function(){
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 		
 
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
@@ -190,7 +194,6 @@ AD.CHARTS.pieChart = function(){
 			.transition()
 				.duration(animationDuration)
 				.attr('transform','translate('+innerWidth/2+','+innerHeight/2+')');
-			
 		// currentChartData.values = pie(currentChartData.values);		
 		var arcGroup = selection.group.pie
 					.datum(currentChartData.values)	
@@ -216,7 +219,6 @@ AD.CHARTS.pieChart = function(){
 					d.path = d3.select(this);
 				});	
 		newArcGroup.append('text');
-
 		arcGroup.select('text')
 			.transition()
 				.duration(animationDuration)
@@ -291,8 +293,12 @@ AD.CHARTS.pieChart = function(){
 				
 		selection.group
 				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');		
-			
+				
+				
 		d3.timer.flush();		
+
+		if(callback)
+			callback();
 				
 		return chart;
 	};

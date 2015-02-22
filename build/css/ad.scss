@@ -7,6 +7,7 @@ $dark_main:#333333;
 $hover_dark:#555;
 $light:#bbb;
 $lightest:#eee;
+$note:#777;
 
 //fonts
 $main:"Droid Sans", Arial;
@@ -53,13 +54,17 @@ html, body, .ad-container {
 //		overflow:scroll;
 		pointer-events:none;
 		overflow:hidden;
+		color:$note;
+	}
+	.ad-chart-layout-right-notes,.ad-chart-layout-left-notes{
+		font-size:10pt;
 	}
 	.ad-chart-layout-footnote{
 		width:100%;
 		margin-top:-10px;
 		font-style:italic;
-		
 		text-align:center;
+		font-size:8pt;
 	}
 	.ad-chart-layout-footnote div{
 		padding:5px;
@@ -85,11 +90,17 @@ html, body, .ad-container {
 	font-size:10pt;
 	position:absolute;
 	pointer-events:none;
-	border:2px solid $dark_main;
+	border:1px solid #666;
 	background:$lightest;
-	padding:5px;
-	border-radius:2px;
-	max-width:200px;
+	padding: 5px 10px;
+//	border-radius:2px;
+	max-width:250px;
+
+	-webkit-box-shadow: 0 0 5px #555;
+	        box-shadow: 0 0 5px #555;	
+//  -webkit-box-shadow: 0 2px 3px #777;
+//  -moz-box-shadow:    0 2px 3px #777;
+//  box-shadow:         0 2px 3px #777;
 }
 /*AD*/
 .ad-svg{
@@ -299,6 +310,7 @@ html, body, .ad-container {
 			stroke:white;
 		}
 		text{
+			fill:white;
 			font-weight:bold;
 			pointer-events:none;
 			text-anchor:middle;
@@ -521,10 +533,12 @@ html, body, .ad-container {
 						fill-opacity:1;
 					}
 					.ad-breadcrumb-sub-section-group-section path{
-						fill:#555;
+						fill:$dark_main;
+						stroke:$light;
+						
 					}
 					.ad-breadcrumb-sub-section-group-section:hover path{
-						fill:#666;
+						fill:$hover_dark;
 					}
 					
 				}

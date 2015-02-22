@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<script src="./project/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="./project/vendor/js/vendor.js"></script>
+<script src="./project/build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="./project/build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var sankeyChart = new AD.CHARTS.sankeyChart();
+		
+		sankeyChart
+			.nodePadding(20)
+			.layout(0)
+			.xFormat({siPrefixed:false,separateThousands:true,units:{},precision:0});
+
+
+		var types = ["New Appointment", "Lecturer", "Principal Lecturer", "Senior Lecturer", "Assistant Professor", "Associate Professor", "Professor", "Distinguished Professor", "Resigned", "Retired", "Deceased"];
+
+		var data = {
+			// labels:{source:"Source",destination:"Expenditures"},
+			columnHeaders:["AY-2008","AY-2009","AY-2010","AY-2011","AY-2012","AY-2013"],
+			links:[],
+			nodes:[]
+		}
+
+
+		//node: {id:0,name:"State Appropriation",shortName:"State Appropriation",colorKey:"State Appropriation"}
+		//link: {source:0, target:6, value:19595476, colorBy:"source"}
+
+		var nodeSizes = {};
+
+		var nodesByColumn=[[],[],[],[],[],[]];
+
+
+		var i;
+		for(i=2008;i<2014;i++){
+			types.forEach(function(d,j){
+				source = d;
+				data.nodes.push({id:(i-2008)*types.length + j,name:d,shortName:d})
+				
+				nodesByColumn[i-2008].push((i-2008)*types.length+j)
+			});
+		}
+
+		var source,target;
+		var j,k;
+		var linkSize;
+		for(i=0;i<nodesByColumn.length-1;i++){
+			
+			for(j=0;j<nodesByColumn[i].length;j++){
+				
+				if(!nodeSizes[i+','+j])
+					nodeSizes[i+','+j]=Math.round(Math.random()*300+(nodesByColumn[i].length-j)*30);
+				for(k=j;k<nodesByColumn[i+1].length;k++){
+					if(k==nodesByColumn[i+1].length-1){
+						linkSize = nodeSizes[i+','+j];
+					}else{
+						linkSize = Math.round(Math.random()*nodeSizes[i+','+j]*0.25+nodeSizes[i+','+j]*0.75);
+					}
+					
+					if(!nodeSizes[(i+1)+','+k])
+						nodeSizes[(i+1)+','+k]=0;
+					
+					nodeSizes[i+','+j]-=linkSize;
+					nodeSizes[(i+1)+','+k]+=linkSize;
+					
+					data.links.push({source:nodesByColumn[i][j],target:nodesByColumn[i+1][k],value:linkSize,colorBy:"source"})
+					
+				}
+				
+			}
+			
+		}
+			
+		sankeyChart.data({data:data})
+		
+		var chartLayoutData = {
+			data:{
+				chartLayout:{
+					title:"Continuing Faculty Appointments",
+					footnote:"* (Excludes Research, Visiting, and Adjunct Faculty)"
+				}
+			}
+		}
+		
+		var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+		
+		chartLayout
+			.select('.sankey-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.chart(sankeyChart);
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+		
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'sankey-chart'></div> 
+
+</body>
+</html>

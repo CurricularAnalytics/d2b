@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 
 /*axis chart*/
 AD.CHARTS.axisChart = function(){
@@ -24,8 +26,8 @@ AD.CHARTS.axisChart = function(){
 	var horizontalLegend; 
 	var horizontalControls;
 	
-	var xFormat = d3.format("");
-	var yFormat = d3.format("");
+	var xFormat = function(value){return value};
+	var yFormat = function(value){return value};
 	
 	var controls = {
 				yAxisLock: {
@@ -199,7 +201,7 @@ AD.CHARTS.axisChart = function(){
 	
 	//legend hover functions for additional functionality (most of this is done through CSS)
 	var legendItemMouseover = {};
-	var legendItemMouseout= {};
+	var legendItemMouseout = {};
 	
 	legendItemMouseover.bar = function(){};
 	legendItemMouseover.scatter = function(d){ 
@@ -434,14 +436,44 @@ AD.CHARTS.axisChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {
+							columns: {},
+							labels:{x:'',y:''}
+						};
+			generateRequired = true;
+		}
+		
+		chartData.data.columns.forEach(function(d,i){
+			var c;
+			if(currentChartData.columns[d.label]){
+				c = currentChartData.columns[d.label];
+				c.data.values = d.values || c.data.values;
+				c.data.type = d.type || c.data.type;
+				c.replace = d.replace || false;
+				if(d.type)
+					c.newType = d.type.split(',')[0];
+				else
+					c.newType = c.oldType; 
+			}else{
+				c = currentChartData.columns[d.label] = {data:d, newType:d.type.split(',')[0], oldType:null};
+				if(!generateRequired){
+					c.svg = selection.group.columns[d.type.split(',')[0]+'_columns']
+						.append('g');
+				}
+			}
+		});	
+		if(chartData.data.labels)
+			currentChartData.labels = chartData.data.labels;
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-						columns: {},
-						labels:{x:'',y:''}
-					};
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -486,6 +518,11 @@ AD.CHARTS.axisChart = function(){
 					.attr('class','ad-'+d+'-columns');
 		})		
 		
+		for(key in currentChartData.columns){
+			currentChartData.columns[key].svg = selection.group.columns[currentChartData.columns[key].newType+'_columns']
+				.append('g');
+		}
+		
 		//create controls container		
 		selection.controls = selection.group
 			.append('g')	
@@ -495,7 +532,7 @@ AD.CHARTS.axisChart = function(){
 		horizontalControls = new AD.UTILS.CONTROLS.horizontalControls();
 		horizontalControls
 				.selection(selection.controls)
-				.onControlChange(function(d,i){
+				.on('elementChange',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
 				});		
@@ -510,13 +547,13 @@ AD.CHARTS.axisChart = function(){
 		horizontalLegend
 				.color(color)
 				.selection(selection.legend)
-				.itemMouseover(function(d,i){
+				.on('elementMouseover', function(d,i){
 					if(legendItemMouseover[d.data.newType]){
 						legendItemMouseover[d.data.newType](d); 
 						d.data.svg.classed('ad-legend-mouseover',true);
 					}
 				})
-				.itemMouseout(function(d,i){
+				.on('elementMouseout',function(d,i){
 					if(legendItemMouseover[d.data.newType]){
 						legendItemMouseout[d.data.newType](d); 
 						d.data.svg.classed('ad-legend-mouseover',false);
@@ -526,46 +563,18 @@ AD.CHARTS.axisChart = function(){
 		//auto update chart
 		var temp = animationDuration;
 		chart.animationDuration(0);		
-		chart.update(chartData);
+		chart.update(callback);
 		chart.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-		
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			chartData.data.columns.forEach(function(d,i){
-				var c;
-				if(currentChartData.columns[d.label]){
-					c = currentChartData.columns[d.label];
-					c.data.values = d.values || c.data.values;
-					c.data.type = d.type || c.data.type;
-					c.replace = d.replace || false;
-					if(d.type)
-						c.newType = d.type.split(',')[0];
-					else
-						c.newType = c.oldType; 
-				}else{
-					c = currentChartData.columns[d.label] = {data:d, newType:d.type.split(',')[0], oldType:null};
-
-					if(!generateRequired){
-						c.svg = selection.group.columns[d.type.split(',')[0]+'_columns']
-							.append('g');
-					}
-				}
-			});	
-			if(chartData.data.labels)
-				currentChartData.labels = chartData.data.labels;
-				
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -585,14 +594,14 @@ AD.CHARTS.axisChart = function(){
 								.sort(function(a,b){return a.label-b.label})
 			}
 		};
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 		
 		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
-		horizontalControls.width(innerWidth).update(controlsData);
+		horizontalControls.width(innerWidth).data(controlsData).update();
 		forcedMargin.top += horizontalControls.computedHeight();
 		
 		innerHeight = height - margin.top - margin.bottom - forcedMargin.top - forcedMargin.bottom;
@@ -662,10 +671,12 @@ AD.CHARTS.axisChart = function(){
 		yScale.scale.nice(5)
 		var xAxis = d3.svg.axis()
 				.scale(xScale.scale)
-				.orient('bottom');
+				.orient('bottom')
+				.tickFormat(xFormat);
 		var yAxis = d3.svg.axis()
 				.scale(yScale.scale)
-				.orient('left');
+				.orient('left')
+				.tickFormat(yFormat);
 
 		//initialize y-axes transition
 		selection.group.axes.y
@@ -793,9 +804,12 @@ AD.CHARTS.axisChart = function(){
 		maxAreaValues
 				.forEach(function(d){
 					selection.group.columns.area_columns.node().appendChild(d.column.svg.node());
-				});
+				});	
 				
 		d3.timer.flush();		
+		
+		if(callback)
+			callback();	
 				
 		return chart;
 	}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<script src="./project/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="./project/vendor/js/vendor.js"></script>
+<script src="./project/build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="./project/build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var pieChart = new AD.CHARTS.pieChart();
+		
+		pieChart
+			.select('.pie-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.donutRatio(0)
+			.xFormat({siPrefixed:false,separateThousands:true,units:{},precision:0});
+
+		pieChart
+			.data(
+				{
+					data:{
+						values:[
+							{label:'Freshmen',value:21031},
+							{label:'Sophomores',value:16093},
+							{label:'Juniors',value:9080},
+							{label:'Seniors',value:6577},
+							{label:'Graduate',value:5632}
+						]
+					}
+				}
+			)
+			.update(function(){console.log('done!')});
+
+		setTimeout(function(){
+			pieChart
+				.data(
+					{
+						data:{
+							values:[
+								{key:'Freshmen', label:'Freshmen',value:25031},
+								{key:'Sophomores', label:'Sophomores',value:12093},
+								{key:'Juniors', label:'Juniors',value:5080},
+								{key:'Seniors', label:'Seniors',value:4577},
+								{key:'Graduate', label:'Graduate',value:1632}
+							]
+						}
+					}
+				)
+				.update();
+		},2000);
+		setTimeout(function(){
+			pieChart
+				.data(
+					{
+						data:{
+							values:[
+								{key:'Freshmen', label:'Freshmen',value:5031},
+								{key:'Sophomores', label:'Sophomores',value:14093},
+								{key:'Juniors', label:'Juniors',value:8080},
+								{key:'Other Graduate', label:'Other Graduate',value:3031},
+								{key:'Seniors', label:'Seniors',value:9577},
+								{key:'Graduate', label:'Graduate',value:11632}
+							]
+						}
+					}
+				)
+				.update();
+		},4000);
+
+		$(window).resize(function(){
+			pieChart.height($(window).height()).width($(window).width()).update();
+		});
+		
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'pie-chart'></div> 
+
+</body>
+</html>

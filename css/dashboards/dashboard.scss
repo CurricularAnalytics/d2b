@@ -190,10 +190,12 @@
 						fill-opacity:1;
 					}
 					.ad-breadcrumb-sub-section-group-section path{
-						fill:#555;
+						fill:$dark_main;
+						stroke:$light;
+						
 					}
 					.ad-breadcrumb-sub-section-group-section:hover path{
-						fill:#666;
+						fill:$hover_dark;
 					}
 					
 				}

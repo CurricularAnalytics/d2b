@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 /*template chart*/
 AD.CHARTS.iframeChart = function(){
 	
@@ -50,25 +52,31 @@ AD.CHARTS.iframeChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {};
+			generateRequired = true;
+		}
+		
+		currentChartData = chartData.data;
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-					};
-
+		
 		//clean container
 		selection.selectAll('*').remove();
 
 		//create svg
-		selection.svg = selection
+		selection.div = selection
 			.append('div')
 				.attr('class','ad-iframe-chart ad-container');
-				
-		//create group container		
-		selection.group = selection.svg.append('g');
 
-		selection.group.iframe = selection.group
+		selection.div.iframe = selection.div
 			.append('iframe')
 				.attr('class','ad-iframe');
 
@@ -76,36 +84,31 @@ AD.CHARTS.iframeChart = function(){
 		var temp = animationDuration;
 		chart
 				.animationDuration(0)	
-				.update(chartData)
+				.update(callback)
 				.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			if(chartData.data){
-				currentChartData = chartData.data;
-			}
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 		
-		selection.group.iframe
+		selection.div.iframe
 				.attr('src',currentChartData.url)
 			.transition()
 				.duration(animationDuration)
 				.attr('width',width)
 				.attr('height',height);
-		
 
-		d3.timer.flush();		
+		d3.timer.flush();	
+
+		if(callback)
+			callback();	
 				
 		return chart;
 	};

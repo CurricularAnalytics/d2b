@@ -1,3 +1,4 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 /*template chart*/
 AD.CHARTS.templateChart = function(){
@@ -19,10 +20,9 @@ AD.CHARTS.templateChart = function(){
 	
 	var color = AD.CONSTANTS.DEFAULTCOLOR();
 	
-	var currentChartData = {
-			};
+	var currentChartData = {};
 	
-	var xFormat = d3.format("");
+	var xFormat = function(value){return value};
 	
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
@@ -64,12 +64,21 @@ AD.CHARTS.templateChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {};
+			generateRequired = true;
+		}
+		
+		currentChartData = chartData.data;
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-					};
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -99,23 +108,18 @@ AD.CHARTS.templateChart = function(){
 		var temp = animationDuration;
 		chart
 				.animationDuration(0)	
-				.update(chartData)
+				.update(callback)
 				.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			currentChartData = chartData;
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -132,7 +136,7 @@ AD.CHARTS.templateChart = function(){
 		// 							.map(function(d){return {label:d};})
 		// 	}
 		// };
-		// horizontalLegend.width(innerWidth).update(legendData);
+		// horizontalLegend.width(innerWidth).data(legendData).update();
 		// forcedMargin.bottom += horizontalLegend.computedHeight();
 
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
@@ -150,6 +154,9 @@ AD.CHARTS.templateChart = function(){
 				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');		
 			
 		d3.timer.flush();		
+		
+		if(callback)
+			callback();		
 				
 		return chart;
 	};

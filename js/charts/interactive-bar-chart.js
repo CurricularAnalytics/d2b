@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 
 /*axis chart*/
 AD.CHARTS.interactiveBarChart = function(){
@@ -88,7 +90,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				.attr(orientation.height,0)
 				.attr(orientation.y,dimensions[orientation.vertical])
 				.on('mouseover',function(d){
-					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+d.x+')</i></b> ',d.y)
+					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
 				})
 				.on('mouseout',function(d){
 					AD.UTILS.removeTooltip();
@@ -297,14 +299,43 @@ AD.CHARTS.interactiveBarChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {
+							columns: {},
+							labels:{x:'',y:''}
+						};
+			generateRequired = true;
+		}
+		
+		chartData.data.columns.forEach(function(d,i){
+			var c;
+			if(currentChartData.columns[d.label]){
+				c = currentChartData.columns[d.label];
+				c.data.values = d.values || c.data.values;
+				c.type = d.type;
+			}else{
+				c = currentChartData.columns[d.label] = {data:d, type:d.type};
+				if(!generateRequired){
+					c.svg = selection.group.columns
+						.append('g');
+				}
+			}
+			if(c.type == 'none'){
+				removeColumn(c);
+				delete currentChartData.columns[d.label];
+			}
+		});	
+		if(chartData.data.labels)
+			currentChartData.labels = chartData.data.labels;
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-						columns: {},
-						labels:{x:'',y:''}
-					};
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -343,6 +374,11 @@ AD.CHARTS.interactiveBarChart = function(){
 			.append('g')
 				.attr('class','ad-columns');
 				
+		for(key in currentChartData.columns){
+			currentChartData.columns[key].svg = selection.group.columns
+				.append('g');
+		}		
+				
 		//create controls container		
 		selection.controls = selection.group
 			.append('g')	
@@ -352,7 +388,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		horizontalControls = new AD.UTILS.CONTROLS.horizontalControls();
 		horizontalControls
 				.selection(selection.controls)
-				.onControlChange(function(d,i){
+				.on('elementChange',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
 				});		
@@ -367,7 +403,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		horizontalLegend
 				.color(color)
 				.selection(selection.legend)
-				.itemMouseover(function(d,i){
+				.on('elementMouseover',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/2)
@@ -378,7 +414,7 @@ AD.CHARTS.interactiveBarChart = function(){
 							.style('opacity',1);
 					// .classed('ad-legend-mouseover',true);
 				})
-				.itemMouseout(function(d,i){
+				.on('elementMouseout',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/4)
@@ -390,45 +426,18 @@ AD.CHARTS.interactiveBarChart = function(){
 		//auto update chart
 		var temp = animationDuration;
 		chart.animationDuration(0);		
-		chart.update(chartData);
+		chart.update(callback);
 		chart.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-		
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			chartData.data.columns.forEach(function(d,i){
-				var c;
-				if(currentChartData.columns[d.label]){
-					c = currentChartData.columns[d.label];
-					c.data.values = d.values || c.data.values;
-					c.type = d.type;
-				}else{
-					c = currentChartData.columns[d.label] = {data:d, type:d.type};
-
-					if(!generateRequired){
-						c.svg = selection.group.columns
-							.append('g');
-					}
-				}
-				if(c.type == 'none'){
-					removeColumn(c);
-					delete currentChartData.columns[d.label];
-				}
-			});	
-			if(chartData.data.labels)
-				currentChartData.labels = chartData.data.labels;
-				
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -460,14 +469,14 @@ AD.CHARTS.interactiveBarChart = function(){
 								.sort(function(a,b){return a.label-b.label})
 			}
 		};
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 		
 		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
-		horizontalControls.width(innerWidth).update(controlsData);
+		horizontalControls.width(innerWidth).data(controlsData).update();
 		forcedMargin.top += horizontalControls.computedHeight();
 		
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
@@ -667,6 +676,9 @@ AD.CHARTS.interactiveBarChart = function(){
 
 
 		d3.timer.flush();		
+			
+		if(callback)
+			callback();		
 				
 		return chart;
 	}

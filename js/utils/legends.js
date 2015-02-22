@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 /*LEGEND UTILITIES*/
 AD.createNameSpace("AD.UTILS.LEGENDS");
 AD.UTILS.LEGENDS.horizontalLegend = function(){
@@ -9,10 +11,14 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 	var computedWidth=0, computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	
-	var itemMouseover = function(){};
-	var itemMouseout = function(){};
-	var itemClick = function(){};
 	var scale = 5;
+
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){}
+	};
 
 	var legend = {};
 	
@@ -42,6 +48,11 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 		selection = value;
 		return legend;
 	};
+	legend.select = function(value){
+		if(!arguments.length) return selection;
+		selection = d3.select(value);
+		return legend;
+	};
 	legend.animationDuration = function(value){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
@@ -53,30 +64,33 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 		return legend;
 	};
 	
-	legend.itemMouseover = function(value){
-		if(!arguments.length) return itemMouseover;
-		itemMouseover = value;
-		return legend;
-	};
-	legend.itemMouseout = function(value){
-		if(!arguments.length) return itemMouseout;
-		itemMouseout = value;
-		return legend;
-	};
-	legend.itemClick = function(value){
-		if(!arguments.length) return itemClick;
-		itemClick = value;
+	legend.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
 		return legend;
 	};
 	
+	legend.data = function(legendData, reset){
+		if(!arguments.length) return currentLegendData;
+		currentLegendData = legendData;
+		return legend;
+	}
 	
-	
-	legend.update = function(legendData){
+	legend.update = function(callback){
 		if(!selection)
 			return console.warn('legend was not given a selection');
-
-		if(legendData)
-			currentLegendData = legendData;
 		
 		computedHeight = 0;
 		computedWidth = 0;
@@ -89,8 +103,21 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 				.append('g')
 					.attr('class','ad-legend-item')
 					.style('opacity',0)
-					.on('mouseover',itemMouseover)
-					.on('mouseout',itemMouseout);
+					.on('mouseover',function(d,i){
+						for(key in on.elementMouseover){
+							on.elementMouseover[key].call(this,d,i);
+						}
+					})
+					.on('mouseout',function(d,i){
+						for(key in on.elementMouseout){
+							on.elementMouseout[key].call(this,d,i);
+						}
+					})
+					.on('click',function(d,i){
+						for(key in on.elementClick){
+							on.elementClick[key].call(this,d,i);
+						}
+					});
 				
 			newItem.append('circle')
 					.attr('fill',function(d){return d.color || color(d.label);});
@@ -141,6 +168,10 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 			computedWidth = (item[0].length >= itemsPerRow)? maxItemLength * itemsPerRow : maxItemLength * item[0].length;
 					
 		}
+		
+		if(callback)
+			callback();
+		
 		return legend;
 	};
 

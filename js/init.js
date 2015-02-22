@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 //create root namespace
 var AD = AD || {};
 

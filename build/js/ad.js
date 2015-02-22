@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 //create root namespace
 var AD = AD || {};
 
@@ -31,6 +33,7 @@ AD.createNameSpace("AD.DASHBOARDS");
 AD.createNameSpace("AD.UTILS");
 /*AD UTILITIES*/
 AD.createNameSpace("AD.UTILS.CHARTPAGE");
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 /*AD constants*/
 AD.createNameSpace("AD.CONSTANTS");
@@ -44,26 +47,33 @@ AD.CONSTANTS.DEFAULTCOLOR = function(){ return d3.scale.category10(); };
 
 AD.CONSTANTS.ANIMATIONLENGTHS = function(){ return {normal:500,short:100,long:1000}; };
 
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 AD.UTILS.chartAdapter = function(type, chartData){
 	chartData.chart = new AD.CHARTS[type];
-	
 	if(!chartData.chartLayoutData)
 		chartData.chartLayoutData = {};
-	chartData.chartLayoutData.chart = chartData.chart;
-	chartData.chartLayoutData = {chartLayout: chartData.chartLayoutData, chartData:chartData.chartData};
 	chartData.chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
-	chartData.chartLayout.chart(chartData.chart);
+	chartData.chartLayout
+			.chart(chartData.chart)
+			.data(chartData.chartLayoutData);
+	
+	console.log(chartData.chartLayoutData)	
+			console.log('hi')	
+			
 	if(chartData.properties){
 		for(key in chartData.properties){
 			chartData.chart[key](chartData.properties[key]);
 		}
 	}
 }
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 AD.UTILS.CHARTPAGE.chartLayout = function(){
 	var width = AD.CONSTANTS.DEFAULTWIDTH();
 	var height = AD.CONSTANTS.DEFAULTHEIGHT();
 	var selection;
-	var currentChartLayoutData;
+	var currentChartLayoutData = {chartLayout:{}};
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var chart;
 	var generateRequired = true;
@@ -90,11 +100,13 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 	chartLayout.selection = function(value){
 		if(!arguments.length) return selection;
 		selection = value;
+		generateRequired = true;
 		return chartLayout;
 	};
 	chartLayout.select = function(value){
 		if(!arguments.length) return selection;
 		selection = d3.select(value);
+		generateRequired = true;
 		return chartLayout;
 	};
 	chartLayout.animationDuration = function(value){
@@ -103,7 +115,32 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		return chartLayout;
 	};
 	
-	chartLayout.generate = function(chartLayoutData){
+	chartLayout.data = function(chartLayoutData, reset){
+		if(!arguments.length) return currentChartLayoutData;
+		if(reset){
+			currentChartLayoutData = {chartLayout:{}};
+			generateRequired = true;
+		}
+		// currentChartLayoutData.chartLayout = chartLayoutData.data.chartLayout
+		if(chartLayoutData.data.chartLayout.footnote)
+			currentChartLayoutData.chartLayout.footnote = chartLayoutData.data.chartLayout.footnote;
+		
+		if(chartLayoutData.data.chartLayout.rightNotes)
+			currentChartLayoutData.chartLayout.rightNotes = chartLayoutData.data.chartLayout.rightNotes;
+		
+		if(chartLayoutData.data.chartLayout.leftNotes)
+			currentChartLayoutData.chartLayout.leftNotes = chartLayoutData.data.chartLayout.leftNotes;
+		
+		if(chartLayoutData.data.chartLayout.title)
+			currentChartLayoutData.chartLayout.title = chartLayoutData.data.chartLayout.title;
+		
+		if(chartLayoutData.data.chartCallback)
+			currentChartLayoutData.chartCallback = chartLayoutData.data.chartCallback;
+		
+		return chartLayout;
+	};
+	
+	chartLayout.generate = function(callback){
 		
 		selection.selectAll('*').remove();
 
@@ -128,7 +165,7 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 				
 		chart
 			.selection(selection.container.chart)
-			.generate(chartLayoutData.chartData);			
+			.update(currentChartLayoutData.chartCallback);			
 				
 		selection.container.rightNotes = selection.container
 			.append('div')
@@ -161,24 +198,20 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		var tempAnimationDuration = animationDuration;
 		chartLayout
 			.animationDuration(0)
-			.update(chartLayoutData)
+			.update(callback)
 			.animationDuration(tempAnimationDuration);
 		
 		return chartLayout;
 	};
 	
-	chartLayout.update = function(chartLayoutData){
+	chartLayout.update = function(callback){
 		if(!selection)
 			return console.warn('chartLayout was not given a selection');
 		if(!chart)
 			return console.warn('chartLayout was not given a chart');
 
 		if(generateRequired)
-			chartLayout.generate(chartLayoutData);
-		
-		if(chartLayoutData)
-			currentChartLayoutData = chartLayoutData;
-
+			chartLayout.generate(callback);
 		var chartMargin = {
 			top:10,bottom:0,left:0,right:0
 		};
@@ -186,7 +219,6 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		selection.wrapper
 				.style('width',width+'px')
 				.style('height',height+'px')
-		
 		selection.container.title.div
 				.text(currentChartLayoutData.chartLayout.title)
 				.style('opacity','1');	
@@ -239,18 +271,21 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 				.style('opacity',0)
 				.remove();
 		selection.container.chart
-				.style('left',chartMargin.left+'px')
+				.style('left',(chartMargin.left+5)+'px')
 				.style('top',chartMargin.top+'px');
 				
-				
+		
 		chart
-				.width(width-chartMargin.left-chartMargin.right)
+				.width(width-chartMargin.left-chartMargin.right-10)
 				.height(height-chartMargin.top-chartMargin.bottom)
 				.animationDuration(animationDuration)
-				.update(currentChartLayoutData.chartData);
-
+				.update(currentChartLayoutData.chartCallback);
 				
 		d3.timer.flush();
+		
+		if(callback){
+			callback();
+		}
 		
 		return chartLayout;
 	};
@@ -264,14 +299,13 @@ AD.UTILS.chartPage = function(){
 	var currentPageData;
 	var computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var updateAnimation = 'forward';
+	var animationType = 'forward';
 
 	var init = function(){
 		var position = {};
-		if(updateAnimation == 'backward'){
+		if(animationType == 'backward'){
 			position.left = -width+'px';
 		}else{
-			// transform = 'translate('+(-width)+','+(computedHeight/2)+') scale(0) ';
 			position.left = width+'px';
 		}
 		selection.currentPage = selection
@@ -307,22 +341,28 @@ AD.UTILS.chartPage = function(){
 		animationDuration = value;
 		return page;
 	};
+	page.animationType = function(value){
+		if(!arguments.length) return animationType;
+		animationType = value;
+		return page;
+	};
 	
-	page.update = function(pageData,animation){
+	page.data = function(pageData, reset){
+		if(!arguments.length) return currentPageData;
+		newData = true;
+		currentPageData = pageData;
+		return page;
+	}
+	
+	page.update = function(callback){
 		if(!selection)
 			return console.warn('page was not given a selection');
 		var position = {};
-
-		if(animation){
-			updateAnimation = animation;
-		}else{
-			updateAnimation = 'forward';
-		}
-
-		if(pageData){
-			currentPageData = pageData;
+		
+		if(newData){
+			newData = false;
 			if(selection.currentPage){
-				if(updateAnimation == 'backward'){
+				if(animationType == 'backward'){
 					position.left = width+'px';
 				}else{
 					position.left = -width+'px';
@@ -336,7 +376,7 @@ AD.UTILS.chartPage = function(){
 			}
 			init();
 		}
-		
+
 		computedHeight = 0;
 		
 		selection.currentPage 
@@ -361,7 +401,7 @@ AD.UTILS.chartPage = function(){
 							.width(width*d.width)
 							.height(d.height)
 							.animationDuration(0)
-							.generate(d.chart.chartLayoutData);
+							.update(d.chart.chartLayoutData.chartCallback);
 					}
 				});
 
@@ -371,20 +411,25 @@ AD.UTILS.chartPage = function(){
 						d.chart.chartLayout
 								.animationDuration(animationDuration)
 								.width(width*d.width)
-								.update();
+								.update(d.chart.chartLayoutData.chartCallback);
 					}
 				})
 				.style('left',function(d){return (width * d.x)+'px'})
 				.style('top',function(d){return (d.y)+'px'});
+				
+		d3.timer.flush();
 
-
-
-
+		if(callback){
+			callback();
+		}
+		
 		return page;
 	};
 
 	return page;
 }
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 /*CONTROLS UTILITIES*/
 AD.createNameSpace("AD.UTILS.CONTROLS");
 AD.UTILS.CONTROLS.checkbox = function(){
@@ -393,9 +438,17 @@ AD.UTILS.CONTROLS.checkbox = function(){
 	var computedWidth=0, computedHeight=0;
 	var currentCheckboxData = {label:'',state:false};
 	
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){},
+		elementChange:function(){}
+	};
+	
 	var checkbox = {};
 	
-	var onChange = function(){};
+	// var onChange = function(){};
 	
 	checkbox.scale = function(value){
 		if(!arguments.length) return scale;
@@ -418,18 +471,37 @@ AD.UTILS.CONTROLS.checkbox = function(){
 	checkbox.computedWidth = function(){
 		return computedWidth;
 	};
-	checkbox.onChange = function(value){
-		if(!arguments.length) return onChange;
-		onChange = value;
+	
+	checkbox.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
+		return checkbox;
+	};
+	
+	checkbox.data = function(checkboxData, reset){
+		if(!arguments.length) return currentCheckboxData;
+		currentCheckboxData = checkboxData;
 		return checkbox;
 	}
 	
-	checkbox.update = function(checkboxData){
+	
+	checkbox.update = function(callback){
 		
 		if(!selection)
 			return console.warn('checkbox was not given a selection');
-		if(checkboxData)
-			currentCheckboxData = checkboxData;
+		
 		if(!currentCheckboxData)
 			return console.warn('checkboxData is null');
 		
@@ -439,8 +511,23 @@ AD.UTILS.CONTROLS.checkbox = function(){
 				.attr('class','ad-checkbox-container')
 				.on('click',function(d,i){
 					currentCheckboxData.state = !currentCheckboxData.state;
-					onChange(d,i);
+					for(key in on.elementClick){
+						on.elementClick[key].call(this,d,i);
+					}
+					for(key in on.elementChange){
+						on.elementChange[key].call(this,d,i);
+					}
 					checkbox.update();
+				})
+				.on('mouseover',function(d,i){
+					for(key in on.elementMouseover){
+						on.elementMouseover[key].call(this,d,i);
+					}
+				})
+				.on('mouseout',function(d,i){
+					for(key in on.elementMouseout){
+						on.elementMouseout[key].call(this,d,i);
+					}
 				});
 		newCheckboxContainer
 			.append('rect')
@@ -480,6 +567,8 @@ AD.UTILS.CONTROLS.checkbox = function(){
 		computedWidth = labelLength + scale*2.1;
 		computedHeight = scale*2.5;
 
+		if(callback)
+			callback();
 		
 		return checkbox;
 	};
@@ -495,9 +584,15 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 	var computedWidth=0, computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	
-	var onControlChange = function(){};
-	
 	var scale = 5;
+	
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){},
+		elementChange:function(){}
+	};
 
 	var controls = {};
 	
@@ -528,19 +623,34 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 		return controls;
 	};
 	
-	controls.onControlChange = function(value){
-		if(!arguments.length) return onControlChange;
-		onControlChange = value;
+	controls.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
 		return controls;
 	};
 	
-	controls.update = function(controlsData){
+	controls.data = function(controlsData, reset){
+		if(!arguments.length) return currentControlsData;
+		currentControlsData = controlsData;
+		return controls;
+	}
+	
+	controls.update = function(callback){
 		if(!selection)
 			return console.warn('controls was not given a selection');
 
-		if(controlsData)
-			currentControlsData = controlsData;
-		
 		var xPadding = 3*scale;
 		var yPadding = scale;
 		computedHeight = 0;
@@ -551,12 +661,30 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 			
 			controls.enter()
 				.append('g')
-					// .style('opacity',0)
 					.attr('class','ad-control')
 					.each(function(d){
 						d.control = new AD.UTILS.CONTROLS[d.type]();
-						d.control.selection(d3.select(this));
-						d.control.onChange(onControlChange);
+						d.control.selection(d3.select(this))
+							.on('elementClick',function(d,i){
+								for(key in on.elementClick){
+									on.elementClick[key].call(this,d,i);
+								}
+							})
+							.on('elementChange',function(d,i){
+								for(key in on.elementChange){
+									on.elementChange[key].call(this,d,i);
+								}
+							})
+							.on('elementMouseover',function(d,i){
+								for(key in on.elementMouseover){
+									on.elementMouseover[key].call(this,d,i);
+								}
+							})
+							.on('elementMouseout',function(d,i){
+								for(key in on.elementMouseout){
+									on.elementMouseout[key].call(this,d,i);
+								}
+							});
 					});
 				
 
@@ -564,7 +692,7 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 			var maxControlHeight = 0;
 			controls.each(function(d){
 				
-				d.control.scale(scale).update(d.data);
+				d.control.scale(scale).data(d.data).update();
 				
 				if((computedWidth + d.control.computedWidth()) > maxWidth){
 					computedWidth = 0;
@@ -594,22 +722,21 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 					.style('opacity',0)
 					.remove();
 		}
+		
+		if(callback){
+			callback;
+		}
+		
 		return controls;
 	};
 
 	return controls;
 };
 
-
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 /*shapes*/
 AD.createNameSpace("AD.UTILS.SHAPES");
-// AD.UTILS.SHAPES.leftArrow = function(){
-// 	return {viewBox:"0 0 22.971 39.113", d:"M7.657,19.557L22.384,4.828c0.781-0.78,0.781-2.047,0-2.828L20.97,0.586c-0.781-0.781-2.047-0.781-2.828,0L0.585,18.143c-0.781,0.781-0.781,2.047,0,2.828l17.557,17.557c0.781,0.781,2.047,0.781,2.828,0l1.414-1.414c0.781-0.781,0.781-2.048,0-2.829L7.657,19.557z"};
-// }
-// AD.UTILS.SHAPES.rightArrow = function(){
-// 	return {viewBox:"0 0 22.971 39.113", d:"M22.385,18.143L4.828,0.586C4.047-0.195,2.781-0.195,2,0.586L0.586,2c-0.781,0.781-0.781,2.048,0,2.828l14.728,14.729L0.586,34.284c-0.781,0.781-0.781,2.048,0,2.829L2,38.527c0.781,0.781,2.047,0.781,2.828,0l17.557-17.557C23.166,20.189,23.166,18.924,22.385,18.143z"};
-// }
 
 
 /*tooltop utilities*/
@@ -737,6 +864,8 @@ function arcTween(transition, arc) {
 
 
 
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 /*LEGEND UTILITIES*/
 AD.createNameSpace("AD.UTILS.LEGENDS");
 AD.UTILS.LEGENDS.horizontalLegend = function(){
@@ -748,10 +877,14 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 	var computedWidth=0, computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	
-	var itemMouseover = function(){};
-	var itemMouseout = function(){};
-	var itemClick = function(){};
 	var scale = 5;
+
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){}
+	};
 
 	var legend = {};
 	
@@ -781,6 +914,11 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 		selection = value;
 		return legend;
 	};
+	legend.select = function(value){
+		if(!arguments.length) return selection;
+		selection = d3.select(value);
+		return legend;
+	};
 	legend.animationDuration = function(value){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
@@ -792,30 +930,33 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 		return legend;
 	};
 	
-	legend.itemMouseover = function(value){
-		if(!arguments.length) return itemMouseover;
-		itemMouseover = value;
-		return legend;
-	};
-	legend.itemMouseout = function(value){
-		if(!arguments.length) return itemMouseout;
-		itemMouseout = value;
-		return legend;
-	};
-	legend.itemClick = function(value){
-		if(!arguments.length) return itemClick;
-		itemClick = value;
+	legend.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
 		return legend;
 	};
 	
+	legend.data = function(legendData, reset){
+		if(!arguments.length) return currentLegendData;
+		currentLegendData = legendData;
+		return legend;
+	}
 	
-	
-	legend.update = function(legendData){
+	legend.update = function(callback){
 		if(!selection)
 			return console.warn('legend was not given a selection');
-
-		if(legendData)
-			currentLegendData = legendData;
 		
 		computedHeight = 0;
 		computedWidth = 0;
@@ -828,8 +969,21 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 				.append('g')
 					.attr('class','ad-legend-item')
 					.style('opacity',0)
-					.on('mouseover',itemMouseover)
-					.on('mouseout',itemMouseout);
+					.on('mouseover',function(d,i){
+						for(key in on.elementMouseover){
+							on.elementMouseover[key].call(this,d,i);
+						}
+					})
+					.on('mouseout',function(d,i){
+						for(key in on.elementMouseout){
+							on.elementMouseout[key].call(this,d,i);
+						}
+					})
+					.on('click',function(d,i){
+						for(key in on.elementClick){
+							on.elementClick[key].call(this,d,i);
+						}
+					});
 				
 			newItem.append('circle')
 					.attr('fill',function(d){return d.color || color(d.label);});
@@ -880,11 +1034,17 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 			computedWidth = (item[0].length >= itemsPerRow)? maxItemLength * itemsPerRow : maxItemLength * item[0].length;
 					
 		}
+		
+		if(callback)
+			callback();
+		
 		return legend;
 	};
 
 	return legend;
 };
+
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 
 /*axis chart*/
@@ -912,8 +1072,8 @@ AD.CHARTS.axisChart = function(){
 	var horizontalLegend; 
 	var horizontalControls;
 	
-	var xFormat = d3.format("");
-	var yFormat = d3.format("");
+	var xFormat = function(value){return value};
+	var yFormat = function(value){return value};
 	
 	var controls = {
 				yAxisLock: {
@@ -1087,7 +1247,7 @@ AD.CHARTS.axisChart = function(){
 	
 	//legend hover functions for additional functionality (most of this is done through CSS)
 	var legendItemMouseover = {};
-	var legendItemMouseout= {};
+	var legendItemMouseout = {};
 	
 	legendItemMouseover.bar = function(){};
 	legendItemMouseover.scatter = function(d){ 
@@ -1322,14 +1482,44 @@ AD.CHARTS.axisChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {
+							columns: {},
+							labels:{x:'',y:''}
+						};
+			generateRequired = true;
+		}
+		
+		chartData.data.columns.forEach(function(d,i){
+			var c;
+			if(currentChartData.columns[d.label]){
+				c = currentChartData.columns[d.label];
+				c.data.values = d.values || c.data.values;
+				c.data.type = d.type || c.data.type;
+				c.replace = d.replace || false;
+				if(d.type)
+					c.newType = d.type.split(',')[0];
+				else
+					c.newType = c.oldType; 
+			}else{
+				c = currentChartData.columns[d.label] = {data:d, newType:d.type.split(',')[0], oldType:null};
+				if(!generateRequired){
+					c.svg = selection.group.columns[d.type.split(',')[0]+'_columns']
+						.append('g');
+				}
+			}
+		});	
+		if(chartData.data.labels)
+			currentChartData.labels = chartData.data.labels;
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-						columns: {},
-						labels:{x:'',y:''}
-					};
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -1374,6 +1564,11 @@ AD.CHARTS.axisChart = function(){
 					.attr('class','ad-'+d+'-columns');
 		})		
 		
+		for(key in currentChartData.columns){
+			currentChartData.columns[key].svg = selection.group.columns[currentChartData.columns[key].newType+'_columns']
+				.append('g');
+		}
+		
 		//create controls container		
 		selection.controls = selection.group
 			.append('g')	
@@ -1383,7 +1578,7 @@ AD.CHARTS.axisChart = function(){
 		horizontalControls = new AD.UTILS.CONTROLS.horizontalControls();
 		horizontalControls
 				.selection(selection.controls)
-				.onControlChange(function(d,i){
+				.on('elementChange',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
 				});		
@@ -1398,13 +1593,13 @@ AD.CHARTS.axisChart = function(){
 		horizontalLegend
 				.color(color)
 				.selection(selection.legend)
-				.itemMouseover(function(d,i){
+				.on('elementMouseover', function(d,i){
 					if(legendItemMouseover[d.data.newType]){
 						legendItemMouseover[d.data.newType](d); 
 						d.data.svg.classed('ad-legend-mouseover',true);
 					}
 				})
-				.itemMouseout(function(d,i){
+				.on('elementMouseout',function(d,i){
 					if(legendItemMouseover[d.data.newType]){
 						legendItemMouseout[d.data.newType](d); 
 						d.data.svg.classed('ad-legend-mouseover',false);
@@ -1414,46 +1609,18 @@ AD.CHARTS.axisChart = function(){
 		//auto update chart
 		var temp = animationDuration;
 		chart.animationDuration(0);		
-		chart.update(chartData);
+		chart.update(callback);
 		chart.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-		
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			chartData.data.columns.forEach(function(d,i){
-				var c;
-				if(currentChartData.columns[d.label]){
-					c = currentChartData.columns[d.label];
-					c.data.values = d.values || c.data.values;
-					c.data.type = d.type || c.data.type;
-					c.replace = d.replace || false;
-					if(d.type)
-						c.newType = d.type.split(',')[0];
-					else
-						c.newType = c.oldType; 
-				}else{
-					c = currentChartData.columns[d.label] = {data:d, newType:d.type.split(',')[0], oldType:null};
-
-					if(!generateRequired){
-						c.svg = selection.group.columns[d.type.split(',')[0]+'_columns']
-							.append('g');
-					}
-				}
-			});	
-			if(chartData.data.labels)
-				currentChartData.labels = chartData.data.labels;
-				
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -1473,14 +1640,14 @@ AD.CHARTS.axisChart = function(){
 								.sort(function(a,b){return a.label-b.label})
 			}
 		};
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 		
 		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
-		horizontalControls.width(innerWidth).update(controlsData);
+		horizontalControls.width(innerWidth).data(controlsData).update();
 		forcedMargin.top += horizontalControls.computedHeight();
 		
 		innerHeight = height - margin.top - margin.bottom - forcedMargin.top - forcedMargin.bottom;
@@ -1550,10 +1717,12 @@ AD.CHARTS.axisChart = function(){
 		yScale.scale.nice(5)
 		var xAxis = d3.svg.axis()
 				.scale(xScale.scale)
-				.orient('bottom');
+				.orient('bottom')
+				.tickFormat(xFormat);
 		var yAxis = d3.svg.axis()
 				.scale(yScale.scale)
-				.orient('left');
+				.orient('left')
+				.tickFormat(yFormat);
 
 		//initialize y-axes transition
 		selection.group.axes.y
@@ -1681,15 +1850,19 @@ AD.CHARTS.axisChart = function(){
 		maxAreaValues
 				.forEach(function(d){
 					selection.group.columns.area_columns.node().appendChild(d.column.svg.node());
-				});
+				});	
 				
 		d3.timer.flush();		
+		
+		if(callback)
+			callback();	
 				
 		return chart;
 	}
 	
 	return chart;
 };
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 /*sankey chart*/
 AD.CHARTS.sankeyChart = function(){
@@ -1713,8 +1886,7 @@ AD.CHARTS.sankeyChart = function(){
 	
 	var currentChartData = {
 				nodes:[],
-				links:[],
-				// labels:{source:'',destination:''}
+				links:[]
 			};
 	
 	var sankey;
@@ -1727,7 +1899,7 @@ AD.CHARTS.sankeyChart = function(){
 	var nodeXVals = [];
 	var nodeYVals = {};
 	
-	var xFormat = d3.format("");
+	var xFormat = function(value){return value};
 	
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
@@ -1787,14 +1959,35 @@ AD.CHARTS.sankeyChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {
+							nodes:[],
+							links:[]
+						};
+			generateRequired = true;
+		}
+		
+		if(chartData.data.nodes){			
+			currentChartData.nodes = chartData.data.nodes;
+		}
+		if(chartData.data.links){
+			currentChartData.links = chartData.data.links;
+		}
+		if(chartData.data.labels){
+			currentChartData.labels = chartData.data.labels;
+		}
+		if(chartData.data.columnHeaders){
+			currentChartData.columnHeaders = chartData.data.columnHeaders;
+		}
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-						nodes:[],
-						links:[]
-					};
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -1857,37 +2050,18 @@ AD.CHARTS.sankeyChart = function(){
 		var temp = animationDuration;
 		chart
 				.animationDuration(0)	
-				.update(chartData)
+				.update(callback)
 				.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){
-			if(chartData.data){
-				console.log(chartData.data)
-				if(chartData.data.nodes){			
-					currentChartData.nodes = chartData.data.nodes;
-				}
-				if(chartData.data.links){
-					currentChartData.links = chartData.data.links;
-				}
-				if(chartData.data.labels){
-					currentChartData.labels = chartData.data.labels;
-				}
-				if(chartData.data.columnHeaders){
-					currentChartData.columnHeaders = chartData.data.columnHeaders;
-				}
-			}
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -1909,7 +2083,7 @@ AD.CHARTS.sankeyChart = function(){
 									.map(function(d){return {label:d};})
 			}
 		};
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 
 		var labelTransitions={
@@ -2086,11 +2260,15 @@ AD.CHARTS.sankeyChart = function(){
 
 		d3.timer.flush();		
 				
+		if(callback)
+			callback();		
+				
 		return chart;
 	};
 	
 	return chart;
 };
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 /*template chart*/
 AD.CHARTS.pieChart = function(){
@@ -2113,10 +2291,9 @@ AD.CHARTS.pieChart = function(){
 	
 	var color = AD.CONSTANTS.DEFAULTCOLOR();
 	
-	var currentChartData = {
-			};
+	var currentChartData = {};
 	
-	var xFormat = d3.format("");
+	var xFormat = function(value){return value};
 	
 	var donutRatio = 0;
 	
@@ -2177,12 +2354,38 @@ AD.CHARTS.pieChart = function(){
 		return chart;
 	};
 	
-	//generate chart
-	chart.generate = function(chartData) {
-		generateRequired = false;
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {};
+			generateRequired = true;
+		}
+		
+		if(chartData.data.values){
+			chartData.data.values.forEach(function(d,i){
+				if(!d.key){
+					d.key = Date.now()+i;
+				}
+			});
+			currentChartData.values = chartData.data.values;
 
-		currentChartData = {
-					};
+			pieTotal = d3.sum(currentChartData.values.map(function(d){return d.value;}));
+	
+			legendData = {
+				data:{
+					items:	currentChartData.values
+				}
+			};
+	
+			newData = true;
+		}
+		
+		return chart;
+	};
+	
+	//generate chart
+	chart.generate = function(callback) {
+		generateRequired = false;
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -2207,7 +2410,7 @@ AD.CHARTS.pieChart = function(){
 		horizontalLegend
 				.color(color)
 				.selection(selection.legend)
-				// .itemMouseover(function(d){
+				// .on('elementMouseover',function(d){
 				// 	console.log(d.path)
 				// 	// d.path
 				// 	// 		.transition()
@@ -2215,7 +2418,7 @@ AD.CHARTS.pieChart = function(){
 				// 	// 			.attr('transform','scale(1.01)')
 				// 	// 			.style('fill-opacity',0.9);
 				// })
-				// .itemMouseout(function(d){
+				// .on('elementMouseout',function(d){
 				// 	// d.path
 				// 	// 		.transition()
 				// 	// 			.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
@@ -2227,40 +2430,18 @@ AD.CHARTS.pieChart = function(){
 		var temp = animationDuration;
 		chart
 				.animationDuration(0)	
-				.update(chartData)
+				.update(callback)
 				.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			if(chartData.data.values){
-				chartData.data.values.forEach(function(d,i){
-					if(!d.key){
-						d.key = Date.now()+i;
-					}
-				});
-				currentChartData.values = chartData.data.values;
-
-				pieTotal = d3.sum(currentChartData.values.map(function(d){return d.value;}));
-				
-				legendData = {
-					data:{
-						items:	currentChartData.values
-					}
-				};
-				
-				newData = true;
-			}
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -2268,7 +2449,7 @@ AD.CHARTS.pieChart = function(){
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 		
 
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
@@ -2283,7 +2464,6 @@ AD.CHARTS.pieChart = function(){
 			.transition()
 				.duration(animationDuration)
 				.attr('transform','translate('+innerWidth/2+','+innerHeight/2+')');
-			
 		// currentChartData.values = pie(currentChartData.values);		
 		var arcGroup = selection.group.pie
 					.datum(currentChartData.values)	
@@ -2309,7 +2489,6 @@ AD.CHARTS.pieChart = function(){
 					d.path = d3.select(this);
 				});	
 		newArcGroup.append('text');
-
 		arcGroup.select('text')
 			.transition()
 				.duration(animationDuration)
@@ -2384,14 +2563,20 @@ AD.CHARTS.pieChart = function(){
 				
 		selection.group
 				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');		
-			
+				
+				
 		d3.timer.flush();		
+
+		if(callback)
+			callback();
 				
 		return chart;
 	};
 	
 	return chart;
 };
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 
 /*axis chart*/
 AD.CHARTS.interactiveBarChart = function(){
@@ -2482,7 +2667,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				.attr(orientation.height,0)
 				.attr(orientation.y,dimensions[orientation.vertical])
 				.on('mouseover',function(d){
-					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+d.x+')</i></b> ',d.y)
+					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
 				})
 				.on('mouseout',function(d){
 					AD.UTILS.removeTooltip();
@@ -2691,14 +2876,43 @@ AD.CHARTS.interactiveBarChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {
+							columns: {},
+							labels:{x:'',y:''}
+						};
+			generateRequired = true;
+		}
+		
+		chartData.data.columns.forEach(function(d,i){
+			var c;
+			if(currentChartData.columns[d.label]){
+				c = currentChartData.columns[d.label];
+				c.data.values = d.values || c.data.values;
+				c.type = d.type;
+			}else{
+				c = currentChartData.columns[d.label] = {data:d, type:d.type};
+				if(!generateRequired){
+					c.svg = selection.group.columns
+						.append('g');
+				}
+			}
+			if(c.type == 'none'){
+				removeColumn(c);
+				delete currentChartData.columns[d.label];
+			}
+		});	
+		if(chartData.data.labels)
+			currentChartData.labels = chartData.data.labels;
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-						columns: {},
-						labels:{x:'',y:''}
-					};
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -2737,6 +2951,11 @@ AD.CHARTS.interactiveBarChart = function(){
 			.append('g')
 				.attr('class','ad-columns');
 				
+		for(key in currentChartData.columns){
+			currentChartData.columns[key].svg = selection.group.columns
+				.append('g');
+		}		
+				
 		//create controls container		
 		selection.controls = selection.group
 			.append('g')	
@@ -2746,7 +2965,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		horizontalControls = new AD.UTILS.CONTROLS.horizontalControls();
 		horizontalControls
 				.selection(selection.controls)
-				.onControlChange(function(d,i){
+				.on('elementChange',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
 				});		
@@ -2761,7 +2980,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		horizontalLegend
 				.color(color)
 				.selection(selection.legend)
-				.itemMouseover(function(d,i){
+				.on('elementMouseover',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/2)
@@ -2772,7 +2991,7 @@ AD.CHARTS.interactiveBarChart = function(){
 							.style('opacity',1);
 					// .classed('ad-legend-mouseover',true);
 				})
-				.itemMouseout(function(d,i){
+				.on('elementMouseout',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/4)
@@ -2784,45 +3003,18 @@ AD.CHARTS.interactiveBarChart = function(){
 		//auto update chart
 		var temp = animationDuration;
 		chart.animationDuration(0);		
-		chart.update(chartData);
+		chart.update(callback);
 		chart.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-		
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			chartData.data.columns.forEach(function(d,i){
-				var c;
-				if(currentChartData.columns[d.label]){
-					c = currentChartData.columns[d.label];
-					c.data.values = d.values || c.data.values;
-					c.type = d.type;
-				}else{
-					c = currentChartData.columns[d.label] = {data:d, type:d.type};
-
-					if(!generateRequired){
-						c.svg = selection.group.columns
-							.append('g');
-					}
-				}
-				if(c.type == 'none'){
-					removeColumn(c);
-					delete currentChartData.columns[d.label];
-				}
-			});	
-			if(chartData.data.labels)
-				currentChartData.labels = chartData.data.labels;
-				
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -2854,14 +3046,14 @@ AD.CHARTS.interactiveBarChart = function(){
 								.sort(function(a,b){return a.label-b.label})
 			}
 		};
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 		
 		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
-		horizontalControls.width(innerWidth).update(controlsData);
+		horizontalControls.width(innerWidth).data(controlsData).update();
 		forcedMargin.top += horizontalControls.computedHeight();
 		
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
@@ -3061,12 +3253,17 @@ AD.CHARTS.interactiveBarChart = function(){
 
 
 		d3.timer.flush();		
+			
+		if(callback)
+			callback();		
 				
 		return chart;
 	}
 	
 	return chart;
 };
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 /*template chart*/
 AD.CHARTS.iframeChart = function(){
 	
@@ -3119,25 +3316,31 @@ AD.CHARTS.iframeChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {};
+			generateRequired = true;
+		}
+		
+		currentChartData = chartData.data;
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-					};
-
+		
 		//clean container
 		selection.selectAll('*').remove();
 
 		//create svg
-		selection.svg = selection
+		selection.div = selection
 			.append('div')
 				.attr('class','ad-iframe-chart ad-container');
-				
-		//create group container		
-		selection.group = selection.svg.append('g');
 
-		selection.group.iframe = selection.group
+		selection.div.iframe = selection.div
 			.append('iframe')
 				.attr('class','ad-iframe');
 
@@ -3145,42 +3348,39 @@ AD.CHARTS.iframeChart = function(){
 		var temp = animationDuration;
 		chart
 				.animationDuration(0)	
-				.update(chartData)
+				.update(callback)
 				.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){	
-			if(chartData.data){
-				currentChartData = chartData.data;
-			}
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 		
-		selection.group.iframe
+		selection.div.iframe
 				.attr('src',currentChartData.url)
 			.transition()
 				.duration(animationDuration)
 				.attr('width',width)
 				.attr('height',height);
-		
 
-		d3.timer.flush();		
+		d3.timer.flush();	
+
+		if(callback)
+			callback();	
 				
 		return chart;
 	};
 	
 	return chart;
 };
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 AD.DASHBOARDS.dashboard = function(){
 	
 	//define axisChart variables
@@ -3211,6 +3411,8 @@ AD.DASHBOARDS.dashboard = function(){
 		navigationHistory.array.push({category:value.category,section:value.section});
 	};
 	var current = {section:{}, category:{}};
+	
+	var resized = true;
 	
 	// var controls = {
 	// 		};
@@ -3343,15 +3545,15 @@ AD.DASHBOARDS.dashboard = function(){
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
 							path
-								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 5 0');
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0');
 						}).on('click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
 						})
-						.attr('transform',function(d,i){return 'translate(0,'+(32*(i+1)+1)+')';});		
+						.attr('transform',function(d,i){return 'translate(0,'+(34*(i+1))+')';});		
 				
 				//set dyExpanded to be the max size of the dropdown
-				_breadcrumb.dyExpanded = (32*(sectionBreadcrumb.size()+1)+1);
+				_breadcrumb.dyExpanded = (34*(sectionBreadcrumb.size()+5));
 				
 				//add triangle under sectionGroup breadcrumb
 				pathWidth += 15;
@@ -3473,11 +3675,7 @@ AD.DASHBOARDS.dashboard = function(){
 			.append('li')
 				.style('opacity',0)
 				.attr('class','ad-sub-section')
-				.on('click',function(d){
-					current.section = d;
-					navigationHistory.pushNew(current);
-					dashboard.update();
-				});
+				.on('click',changeCurrentSection);
 		
 		subSection
 				.text(function(d){return d.name})
@@ -3561,11 +3759,15 @@ AD.DASHBOARDS.dashboard = function(){
 			return changeCurrentCategory(d.categories[0]);
 		}
 	};
+	var ii=0;
 	var changeCurrentCategory = function(d){
 		current.category = d;
 		navigationHistory.pushNew(current);
-		// console.log(current.category.charts);
-		chartPage.update({data:current.category});
+		/////Work on proper push/pop/find state later
+		// history.pushState({},'','?category='+(current.category.name)+'&section='+(current.section.name))
+		chartPage
+				.animationType('forward')
+				.data({data:current.category}).update();
 		return dashboard.update();
 	};
 	
@@ -3590,6 +3792,7 @@ AD.DASHBOARDS.dashboard = function(){
 		width = value;
 		pageWidth = width - 200;
 		chartPage.width(pageWidth - 10);
+		resized = true;
 		return dashboard;
 	};
 
@@ -3622,11 +3825,25 @@ AD.DASHBOARDS.dashboard = function(){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
 		chartPage.animationDuration(animationDuration);
+		
 		return dashboard;
 	};
 
+	dashboard.data = function(dashboardData, reset){
+		if(!arguments.length) return animationDuration;
+		if(reset){
+			generateRequired = true;
+			currentDashboardData = {};
+		}
+		
+		currentDashboardData = dashboardData;
+		dashboardLayout(currentDashboardData);
+		
+		return dashboard;
+	}
+
 	//generate chart
-	dashboard.generate = function(dashboardData) {
+	dashboard.generate = function(callback) {
 		generateRequired = false;
 
 		//clean container
@@ -3697,34 +3914,33 @@ AD.DASHBOARDS.dashboard = function(){
 
 		selection.container.content.chartPage = selection.container.content
 			.append('div')
-				.attr('class','ad-dashboard-chart-page');
+				.attr('class','ad-dashboard-chart-page');		
 				
 		chartPage.selection(selection.container.content.chartPage);
+		
+		changeCurrentSection(currentDashboardData.dashboard.topSection);
 
 		//auto update dashboard
 		var temp = animationDuration;
-		dashboard.animationDuration(0);		
-		dashboard.update(dashboardData);
-		dashboard.animationDuration(temp);
+		// dashboard
+		// 		.animationDuration(0);
+		// 		update(dashboardData);
+		// 		animationDuration(temp);
+		dashboard.update(callback);
 
 		return dashboard;
 	};
 
 	//update chart
-	dashboard.update = function(dashboardData){
+	dashboard.update = function(callback){
 	
-		selection.container.content
-			.style('width',pageWidth+'px');
-	
-		if(dashboardData){
-			currentDashboardData = dashboardData;
-			dashboardLayout(currentDashboardData);
-			return changeCurrentSection(currentDashboardData.dashboard.topSection);
-		}
 		//if generate required call the generate method
 		if(generateRequired){
-			return dashboard.generate(currentDashboardData);
+			return dashboard.generate(callback);
 		}
+
+		selection.container.content
+			.style('width',pageWidth+'px');
 		
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
@@ -3749,7 +3965,9 @@ AD.DASHBOARDS.dashboard = function(){
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage.update({data:current.category});
+						chartPage
+								.animationType('forward')
+								.data({data:current.category}).update();
 						dashboard.update();
 					});
 		}
@@ -3765,7 +3983,9 @@ AD.DASHBOARDS.dashboard = function(){
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage.update({data:current.category}, 'backward');
+						chartPage
+								.animationType('backward')
+								.data({data:current.category}).update();
 						dashboard.update();
 					});
 		}
@@ -3779,9 +3999,18 @@ AD.DASHBOARDS.dashboard = function(){
 		updateBreadcrumbs();
 		updateSubSections();	
 		updateSubSectionGroups();	
-		chartPage.update();
+		
+		if(resized){
+			resized = false;
+			chartPage
+					.update();
+		}
 		
 		d3.timer.flush();
+		
+		if(callback){
+			callback();
+		}
 		
 		return dashboard;
 	};

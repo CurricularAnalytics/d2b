@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 /*CONTROLS UTILITIES*/
 AD.createNameSpace("AD.UTILS.CONTROLS");
 AD.UTILS.CONTROLS.checkbox = function(){
@@ -6,9 +8,17 @@ AD.UTILS.CONTROLS.checkbox = function(){
 	var computedWidth=0, computedHeight=0;
 	var currentCheckboxData = {label:'',state:false};
 	
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){},
+		elementChange:function(){}
+	};
+	
 	var checkbox = {};
 	
-	var onChange = function(){};
+	// var onChange = function(){};
 	
 	checkbox.scale = function(value){
 		if(!arguments.length) return scale;
@@ -31,18 +41,37 @@ AD.UTILS.CONTROLS.checkbox = function(){
 	checkbox.computedWidth = function(){
 		return computedWidth;
 	};
-	checkbox.onChange = function(value){
-		if(!arguments.length) return onChange;
-		onChange = value;
+	
+	checkbox.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
+		return checkbox;
+	};
+	
+	checkbox.data = function(checkboxData, reset){
+		if(!arguments.length) return currentCheckboxData;
+		currentCheckboxData = checkboxData;
 		return checkbox;
 	}
 	
-	checkbox.update = function(checkboxData){
+	
+	checkbox.update = function(callback){
 		
 		if(!selection)
 			return console.warn('checkbox was not given a selection');
-		if(checkboxData)
-			currentCheckboxData = checkboxData;
+		
 		if(!currentCheckboxData)
 			return console.warn('checkboxData is null');
 		
@@ -52,8 +81,23 @@ AD.UTILS.CONTROLS.checkbox = function(){
 				.attr('class','ad-checkbox-container')
 				.on('click',function(d,i){
 					currentCheckboxData.state = !currentCheckboxData.state;
-					onChange(d,i);
+					for(key in on.elementClick){
+						on.elementClick[key].call(this,d,i);
+					}
+					for(key in on.elementChange){
+						on.elementChange[key].call(this,d,i);
+					}
 					checkbox.update();
+				})
+				.on('mouseover',function(d,i){
+					for(key in on.elementMouseover){
+						on.elementMouseover[key].call(this,d,i);
+					}
+				})
+				.on('mouseout',function(d,i){
+					for(key in on.elementMouseout){
+						on.elementMouseout[key].call(this,d,i);
+					}
 				});
 		newCheckboxContainer
 			.append('rect')
@@ -93,6 +137,8 @@ AD.UTILS.CONTROLS.checkbox = function(){
 		computedWidth = labelLength + scale*2.1;
 		computedHeight = scale*2.5;
 
+		if(callback)
+			callback();
 		
 		return checkbox;
 	};
@@ -108,9 +154,15 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 	var computedWidth=0, computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	
-	var onControlChange = function(){};
-	
 	var scale = 5;
+	
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){},
+		elementChange:function(){}
+	};
 
 	var controls = {};
 	
@@ -141,19 +193,34 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 		return controls;
 	};
 	
-	controls.onControlChange = function(value){
-		if(!arguments.length) return onControlChange;
-		onControlChange = value;
+	controls.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
 		return controls;
 	};
 	
-	controls.update = function(controlsData){
+	controls.data = function(controlsData, reset){
+		if(!arguments.length) return currentControlsData;
+		currentControlsData = controlsData;
+		return controls;
+	}
+	
+	controls.update = function(callback){
 		if(!selection)
 			return console.warn('controls was not given a selection');
 
-		if(controlsData)
-			currentControlsData = controlsData;
-		
 		var xPadding = 3*scale;
 		var yPadding = scale;
 		computedHeight = 0;
@@ -164,12 +231,30 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 			
 			controls.enter()
 				.append('g')
-					// .style('opacity',0)
 					.attr('class','ad-control')
 					.each(function(d){
 						d.control = new AD.UTILS.CONTROLS[d.type]();
-						d.control.selection(d3.select(this));
-						d.control.onChange(onControlChange);
+						d.control.selection(d3.select(this))
+							.on('elementClick',function(d,i){
+								for(key in on.elementClick){
+									on.elementClick[key].call(this,d,i);
+								}
+							})
+							.on('elementChange',function(d,i){
+								for(key in on.elementChange){
+									on.elementChange[key].call(this,d,i);
+								}
+							})
+							.on('elementMouseover',function(d,i){
+								for(key in on.elementMouseover){
+									on.elementMouseover[key].call(this,d,i);
+								}
+							})
+							.on('elementMouseout',function(d,i){
+								for(key in on.elementMouseout){
+									on.elementMouseout[key].call(this,d,i);
+								}
+							});
 					});
 				
 
@@ -177,7 +262,7 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 			var maxControlHeight = 0;
 			controls.each(function(d){
 				
-				d.control.scale(scale).update(d.data);
+				d.control.scale(scale).data(d.data).update();
 				
 				if((computedWidth + d.control.computedWidth()) > maxWidth){
 					computedWidth = 0;
@@ -207,6 +292,11 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 					.style('opacity',0)
 					.remove();
 		}
+		
+		if(callback){
+			callback;
+		}
+		
 		return controls;
 	};
 

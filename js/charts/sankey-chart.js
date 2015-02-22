@@ -1,3 +1,4 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
 
 /*sankey chart*/
 AD.CHARTS.sankeyChart = function(){
@@ -21,8 +22,7 @@ AD.CHARTS.sankeyChart = function(){
 	
 	var currentChartData = {
 				nodes:[],
-				links:[],
-				// labels:{source:'',destination:''}
+				links:[]
 			};
 	
 	var sankey;
@@ -35,7 +35,7 @@ AD.CHARTS.sankeyChart = function(){
 	var nodeXVals = [];
 	var nodeYVals = {};
 	
-	var xFormat = d3.format("");
+	var xFormat = function(value){return value};
 	
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
@@ -95,14 +95,35 @@ AD.CHARTS.sankeyChart = function(){
 		return chart;
 	};
 	
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {
+							nodes:[],
+							links:[]
+						};
+			generateRequired = true;
+		}
+		
+		if(chartData.data.nodes){			
+			currentChartData.nodes = chartData.data.nodes;
+		}
+		if(chartData.data.links){
+			currentChartData.links = chartData.data.links;
+		}
+		if(chartData.data.labels){
+			currentChartData.labels = chartData.data.labels;
+		}
+		if(chartData.data.columnHeaders){
+			currentChartData.columnHeaders = chartData.data.columnHeaders;
+		}
+		
+		return chart;
+	};
+	
 	//generate chart
-	chart.generate = function(chartData) {
+	chart.generate = function(callback) {
 		generateRequired = false;
-
-		currentChartData = {
-						nodes:[],
-						links:[]
-					};
 
 		//clean container
 		selection.selectAll('*').remove();
@@ -165,37 +186,18 @@ AD.CHARTS.sankeyChart = function(){
 		var temp = animationDuration;
 		chart
 				.animationDuration(0)	
-				.update(chartData)
+				.update(callback)
 				.animationDuration(temp);
 		
 		return chart;
 	};
 	
 	//update chart
-	chart.update = function(chartData){
-
-		//if chartData is non-nil update the currentChartData information
-		if(chartData){
-			if(chartData.data){
-				console.log(chartData.data)
-				if(chartData.data.nodes){			
-					currentChartData.nodes = chartData.data.nodes;
-				}
-				if(chartData.data.links){
-					currentChartData.links = chartData.data.links;
-				}
-				if(chartData.data.labels){
-					currentChartData.labels = chartData.data.labels;
-				}
-				if(chartData.data.columnHeaders){
-					currentChartData.columnHeaders = chartData.data.columnHeaders;
-				}
-			}
-		}
+	chart.update = function(callback){
 		
 		//if generate required call the generate method
 		if(generateRequired){
-			return chart.generate(currentChartData);
+			return chart.generate(callback);
 		}
 
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -217,7 +219,7 @@ AD.CHARTS.sankeyChart = function(){
 									.map(function(d){return {label:d};})
 			}
 		};
-		horizontalLegend.width(innerWidth).update(legendData);
+		horizontalLegend.width(innerWidth).data(legendData).update();
 		forcedMargin.bottom += horizontalLegend.computedHeight();
 
 		var labelTransitions={
@@ -393,6 +395,9 @@ AD.CHARTS.sankeyChart = function(){
 			
 
 		d3.timer.flush();		
+				
+		if(callback)
+			callback();		
 				
 		return chart;
 	};

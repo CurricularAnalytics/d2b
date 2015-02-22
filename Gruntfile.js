@@ -12,6 +12,18 @@ module.exports = function(grunt){
 	      }
 	    }
 	  },
+	  uglify: {
+	    dest: {
+		    options: {
+		      stripBanners: true,
+		      banner: '/*! Copyright 2014 - <%= grunt.template.today("yyyy") %> Kevin Warne All rights reserved.*/',
+		      mangle: true
+		    },
+	      files: {
+	        'build/js/ad.min.js': ['build/js/ad.js']
+	      }
+	    }
+	  },
 	  concat: {
 	    vendor: {
 	      src: ['bower_components/d3/d3.min.js'],
@@ -61,7 +73,7 @@ module.exports = function(grunt){
 		  },
 		  js: {
 		    files: ['js/**/*.js'],
-		    tasks: ['concat:js'],
+		    tasks: ['concat:js','uglify'],
 		    options: {
 		      spawn: false,
 		    },
@@ -79,7 +91,7 @@ module.exports = function(grunt){
 				options: {
 					livereload:1337,
 					port: 9000,
-					base: '..',
+					base: '.',
 					open: {
 						target: 'http://localhost:9000/'
 					}
@@ -88,9 +100,10 @@ module.exports = function(grunt){
 		},
 	});
 	
+	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-sass');
 	grunt.loadNpmTasks('grunt-contrib-connect');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.registerTask('default',['concat','sass','connect','watch']);
+	grunt.registerTask('default',['concat','sass','uglify','connect','watch']);
 };

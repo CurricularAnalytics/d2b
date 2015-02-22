@@ -1,3 +1,5 @@
+/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
 AD.DASHBOARDS.dashboard = function(){
 	
 	//define axisChart variables
@@ -28,6 +30,8 @@ AD.DASHBOARDS.dashboard = function(){
 		navigationHistory.array.push({category:value.category,section:value.section});
 	};
 	var current = {section:{}, category:{}};
+	
+	var resized = true;
 	
 	// var controls = {
 	// 		};
@@ -160,15 +164,15 @@ AD.DASHBOARDS.dashboard = function(){
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
 							path
-								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 5 0');
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0');
 						}).on('click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
 						})
-						.attr('transform',function(d,i){return 'translate(0,'+(32*(i+1)+1)+')';});		
+						.attr('transform',function(d,i){return 'translate(0,'+(34*(i+1))+')';});		
 				
 				//set dyExpanded to be the max size of the dropdown
-				_breadcrumb.dyExpanded = (32*(sectionBreadcrumb.size()+1)+1);
+				_breadcrumb.dyExpanded = (34*(sectionBreadcrumb.size()+5));
 				
 				//add triangle under sectionGroup breadcrumb
 				pathWidth += 15;
@@ -290,11 +294,7 @@ AD.DASHBOARDS.dashboard = function(){
 			.append('li')
 				.style('opacity',0)
 				.attr('class','ad-sub-section')
-				.on('click',function(d){
-					current.section = d;
-					navigationHistory.pushNew(current);
-					dashboard.update();
-				});
+				.on('click',changeCurrentSection);
 		
 		subSection
 				.text(function(d){return d.name})
@@ -378,11 +378,15 @@ AD.DASHBOARDS.dashboard = function(){
 			return changeCurrentCategory(d.categories[0]);
 		}
 	};
+	var ii=0;
 	var changeCurrentCategory = function(d){
 		current.category = d;
 		navigationHistory.pushNew(current);
-		// console.log(current.category.charts);
-		chartPage.update({data:current.category});
+		/////Work on proper push/pop/find state later
+		// history.pushState({},'','?category='+(current.category.name)+'&section='+(current.section.name))
+		chartPage
+				.animationType('forward')
+				.data({data:current.category}).update();
 		return dashboard.update();
 	};
 	
@@ -407,6 +411,7 @@ AD.DASHBOARDS.dashboard = function(){
 		width = value;
 		pageWidth = width - 200;
 		chartPage.width(pageWidth - 10);
+		resized = true;
 		return dashboard;
 	};
 
@@ -439,11 +444,25 @@ AD.DASHBOARDS.dashboard = function(){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
 		chartPage.animationDuration(animationDuration);
+		
 		return dashboard;
 	};
 
+	dashboard.data = function(dashboardData, reset){
+		if(!arguments.length) return animationDuration;
+		if(reset){
+			generateRequired = true;
+			currentDashboardData = {};
+		}
+		
+		currentDashboardData = dashboardData;
+		dashboardLayout(currentDashboardData);
+		
+		return dashboard;
+	}
+
 	//generate chart
-	dashboard.generate = function(dashboardData) {
+	dashboard.generate = function(callback) {
 		generateRequired = false;
 
 		//clean container
@@ -514,34 +533,33 @@ AD.DASHBOARDS.dashboard = function(){
 
 		selection.container.content.chartPage = selection.container.content
 			.append('div')
-				.attr('class','ad-dashboard-chart-page');
+				.attr('class','ad-dashboard-chart-page');		
 				
 		chartPage.selection(selection.container.content.chartPage);
+		
+		changeCurrentSection(currentDashboardData.dashboard.topSection);
 
 		//auto update dashboard
 		var temp = animationDuration;
-		dashboard.animationDuration(0);		
-		dashboard.update(dashboardData);
-		dashboard.animationDuration(temp);
+		// dashboard
+		// 		.animationDuration(0);
+		// 		update(dashboardData);
+		// 		animationDuration(temp);
+		dashboard.update(callback);
 
 		return dashboard;
 	};
 
 	//update chart
-	dashboard.update = function(dashboardData){
+	dashboard.update = function(callback){
 	
-		selection.container.content
-			.style('width',pageWidth+'px');
-	
-		if(dashboardData){
-			currentDashboardData = dashboardData;
-			dashboardLayout(currentDashboardData);
-			return changeCurrentSection(currentDashboardData.dashboard.topSection);
-		}
 		//if generate required call the generate method
 		if(generateRequired){
-			return dashboard.generate(currentDashboardData);
+			return dashboard.generate(callback);
 		}
+
+		selection.container.content
+			.style('width',pageWidth+'px');
 		
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
@@ -566,7 +584,9 @@ AD.DASHBOARDS.dashboard = function(){
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage.update({data:current.category});
+						chartPage
+								.animationType('forward')
+								.data({data:current.category}).update();
 						dashboard.update();
 					});
 		}
@@ -582,7 +602,9 @@ AD.DASHBOARDS.dashboard = function(){
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage.update({data:current.category}, 'backward');
+						chartPage
+								.animationType('backward')
+								.data({data:current.category}).update();
 						dashboard.update();
 					});
 		}
@@ -596,9 +618,18 @@ AD.DASHBOARDS.dashboard = function(){
 		updateBreadcrumbs();
 		updateSubSections();	
 		updateSubSectionGroups();	
-		chartPage.update();
+		
+		if(resized){
+			resized = false;
+			chartPage
+					.update();
+		}
 		
 		d3.timer.flush();
+		
+		if(callback){
+			callback();
+		}
 		
 		return dashboard;
 	};
