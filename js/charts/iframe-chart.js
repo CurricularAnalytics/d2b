@@ -19,6 +19,13 @@ AD.CHARTS.iframeChart = function(){
 	var currentChartData = {
 			};
 	
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){}
+	};
+	
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 	
@@ -52,13 +59,31 @@ AD.CHARTS.iframeChart = function(){
 		return chart;
 	};
 	
+	chart.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
+		return chart;
+	};
+	
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return currentChartData;
 		if(reset){
 			currentChartData = {};
-			generateRequired = true;
 		}
-		
+
+		generateRequired = true;	
 		currentChartData = chartData.data;
 		
 		return chart;
@@ -78,7 +103,8 @@ AD.CHARTS.iframeChart = function(){
 
 		selection.div.iframe = selection.div
 			.append('iframe')
-				.attr('class','ad-iframe');
+				.attr('class','ad-iframe')
+				.attr('src',currentChartData.url);
 
 		//auto update chart
 		var temp = animationDuration;
@@ -99,7 +125,6 @@ AD.CHARTS.iframeChart = function(){
 		}
 		
 		selection.div.iframe
-				.attr('src',currentChartData.url)
 			.transition()
 				.duration(animationDuration)
 				.attr('width',width)

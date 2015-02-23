@@ -25,6 +25,13 @@ AD.CHARTS.pieChart = function(){
 	
 	var xFormat = function(value){return value};
 	
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){}
+	};
+	
 	var donutRatio = 0;
 	
 	var r = Math.min(innerHeight,innerWidth)/2;
@@ -81,6 +88,24 @@ AD.CHARTS.pieChart = function(){
 	chart.donutRatio = function(value){
 		if(!arguments.length) return donutRatio;
 		donutRatio = value;
+		return chart;
+	};
+	
+	chart.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
 		return chart;
 	};
 	

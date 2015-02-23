@@ -35,6 +35,13 @@ AD.CHARTS.sankeyChart = function(){
 	var nodeXVals = [];
 	var nodeYVals = {};
 	
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){}
+	};
+	
 	var xFormat = function(value){return value};
 	
 	/*DEFINE CHART OBJECT AND MEMBERS*/
@@ -92,6 +99,24 @@ AD.CHARTS.sankeyChart = function(){
 	chart.minLinkWidth = function(value){
 		if(!arguments.length) return minLinkWidth;
 		minLinkWidth = value;
+		return chart;
+	};
+	
+	chart.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+		
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+		
 		return chart;
 	};
 	
