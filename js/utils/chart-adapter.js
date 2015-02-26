@@ -1,4 +1,4 @@
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 AD.UTILS.chartAdapter = function(type, chartData){
 	chartData.chart = new AD.CHARTS[type];
@@ -8,10 +8,7 @@ AD.UTILS.chartAdapter = function(type, chartData){
 	chartData.chartLayout
 			.chart(chartData.chart)
 			.data(chartData.chartLayoutData);
-	
-	console.log(chartData.chartLayoutData)	
-			console.log('hi')	
-			
+
 	if(chartData.properties){
 		for(key in chartData.properties){
 			chartData.chart[key](chartData.properties[key]);

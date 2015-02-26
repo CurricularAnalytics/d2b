@@ -1,4 +1,4 @@
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*LEGEND UTILITIES*/
 AD.createNameSpace("AD.UTILS.LEGENDS");
@@ -84,7 +84,7 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 	
 	legend.data = function(legendData, reset){
 		if(!arguments.length) return currentLegendData;
-		currentLegendData = legendData;
+		currentLegendData = legendData.data;
 		return legend;
 	}
 	
@@ -95,9 +95,9 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 		computedHeight = 0;
 		computedWidth = 0;
 		
-		if(currentLegendData.data.items.length > 0){
-			
-			var item = selection.selectAll('g.ad-legend-item').data(currentLegendData.data.items, function(d){return d.label;});
+		if(currentLegendData.items.length > 0){
+			var item = selection.selectAll('g.ad-legend-item')
+					.data(currentLegendData.items, function(d){return d.label;});
 			
 			var newItem = item.enter()
 				.append('g')

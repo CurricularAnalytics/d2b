@@ -1,4 +1,6 @@
-
+.ad-pointer-element{
+	cursor:pointer;
+}
 .ad-chart-layout{
 	color:$dark_main;
 	font-size:11pt;
@@ -45,9 +47,14 @@
 	.ad-chart-layout-chart{
 		position:absolute;
 	}
-	
+
 }
 
+.ad-breadcrumb{
+	path{
+		fill:$lightest;
+	}
+}
 
 .ad-general-tooltip{
 	z-index:10000;
@@ -62,7 +69,7 @@
 	max-width:250px;
 
 	-webkit-box-shadow: 0 0 5px #555;
-	        box-shadow: 0 0 5px #555;	
+	        box-shadow: 0 0 5px #555;
 //  -webkit-box-shadow: 0 2px 3px #777;
 //  -moz-box-shadow:    0 2px 3px #777;
 //  box-shadow:         0 2px 3px #777;

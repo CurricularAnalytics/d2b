@@ -1,4 +1,4 @@
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
 AD.CHARTS.iframeChart = function(){

@@ -1,4 +1,4 @@
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 AD.DASHBOARDS.dashboard = function(){
 	
@@ -164,7 +164,7 @@ AD.DASHBOARDS.dashboard = function(){
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
 							path
-								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0');
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0 Z');
 						}).on('click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
@@ -222,7 +222,7 @@ AD.DASHBOARDS.dashboard = function(){
 			path
 				.transition()
 					.duration(animationDuration)
-					.attr('d','M 0 0 L '+(startIndent)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+endIndent)+' 15 L '+pathWidth+' 0 L 5 0');
+					.attr('d','M 0 0 L '+(startIndent)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+endIndent)+' 15 L '+pathWidth+' 0 L 5 0 Z');
 			this.dx = pathWidth;
 		});	
 		

@@ -33,7 +33,9 @@ html, body, .ad-container {
 		padding:0px;
 	}
 }
-
+.ad-pointer-element{
+	cursor:pointer;
+}
 .ad-chart-layout{
 	color:$dark_main;
 	font-size:11pt;
@@ -80,9 +82,14 @@ html, body, .ad-container {
 	.ad-chart-layout-chart{
 		position:absolute;
 	}
-	
+
 }
 
+.ad-breadcrumb{
+	path{
+		fill:$lightest;
+	}
+}
 
 .ad-general-tooltip{
 	z-index:10000;
@@ -97,11 +104,12 @@ html, body, .ad-container {
 	max-width:250px;
 
 	-webkit-box-shadow: 0 0 5px #555;
-	        box-shadow: 0 0 5px #555;	
+	        box-shadow: 0 0 5px #555;
 //  -webkit-box-shadow: 0 2px 3px #777;
 //  -moz-box-shadow:    0 2px 3px #777;
 //  box-shadow:         0 2px 3px #777;
 }
+
 /*AD*/
 .ad-svg{
 	display: block;
@@ -251,62 +259,45 @@ html, body, .ad-container {
 
 
 .ad-sankey-chart{
-	.ad-sankey-labels{
-		font-size:23px;
-		.ad-sankey-label-source text{
-			text-anchor:start;
-		}
-		.ad-sankey-label-destination text{
-			text-anchor:end;
-		}
-	}
-	.ad-sankey-column-headers{
-		.ad-sankey-column-header{
-			text{
-				text-anchor:middle;
-				font-weight:bold;
-//				font-family:"Oswald";
-				font-size:16px;
-			}
-		}
-		.ad-sankey-column-header:first-child text{
-			text-anchor:start;
-		}
-		.ad-sankey-column-header:last-child text{
-			text-anchor:end;
-		}
-	}
-	.ad-sankey{
-		.ad-sankey-links{
-			path{
-				fill:none;
-				-webkit-transition: stroke-opacity 0.25s; 
-			    transition: stroke-opacity 0.25s;
-				stroke-opacity:0.5;
-				&:hover{
-					stroke-opacity:0.8;
-				}
-			}
-		}
-		.ad-sankey-nodes{
-			text{
-				font-size:10pt;
-				font-weight:bold;
-				pointer-events:none;
-			}
-			rect{
-				fill:$lightest;
-				stroke-width:2px;
-				stroke:$light;
-				-webkit-transition: stroke 0.25s; 
-			    transition: stroke 0.25s;
-				&:hover{
-					stroke:$dark_main;
-				}
-			}
-		}
-	}
+  .ad-sankey-labels{
+    font-size: 17pt;
+    .ad-sankey-label-source text{
+      text-anchor:start;
+    }
+    .ad-sankey-label-destination text{
+      text-anchor:end;
+    }
+  }
+  .ad-sankey{
+    .ad-sankey-links{
+      path{
+        fill:none;
+        stroke-opacity:0.7;
+        &:hover{
+          stroke-opacity:0.9;
+        }
+      }
+    }
+    .ad-sankey-nodes{
+      text{
+        font-size:10pt;
+        font-weight:bold;
+        pointer-events:none;
+      }
+    }
+    .ad-sankey-nodes{
+      rect{
+        fill:$lightest;
+        stroke-width:2px;
+        stroke:$light;
+        &:hover{
+          stroke:$dark_main
+        }
+      }
+    }
+  }
 }
+
 .ad-pie-chart{
 	.ad-arc{
 		path{
@@ -344,6 +335,26 @@ html, body, .ad-container {
 		border:0px;
 	}
 }
+.ad-sunburst-chart{
+	.ad-sunburst{
+		.ad-sunburst-arcs{
+			// cursor:pointer;
+			path{
+				fill-opacity:0.9;
+				stroke:white;
+				stroke-width:1;
+				-webkit-transition: fill-opacity 0.25s;
+			    transition: fill-opacity 0.25s;
+				&:hover{
+					fill-opacity:1;
+					stroke:white;
+				}
+			}
+
+		}
+	}
+}
+
 
 .ad-dashboard{
 	

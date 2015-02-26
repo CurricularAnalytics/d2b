@@ -1,0 +1,19 @@
+.ad-sunburst-chart{
+	.ad-sunburst{
+		.ad-sunburst-arcs{
+			// cursor:pointer;
+			path{
+				fill-opacity:0.9;
+				stroke:white;
+				stroke-width:1;
+				-webkit-transition: fill-opacity 0.25s;
+			    transition: fill-opacity 0.25s;
+				&:hover{
+					fill-opacity:1;
+					stroke:white;
+				}
+			}
+
+		}
+	}
+}

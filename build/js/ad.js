@@ -1,4 +1,4 @@
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 //create root namespace
 var AD = AD || {};
@@ -33,7 +33,7 @@ AD.createNameSpace("AD.DASHBOARDS");
 AD.createNameSpace("AD.UTILS");
 /*AD UTILITIES*/
 AD.createNameSpace("AD.UTILS.CHARTPAGE");
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*AD constants*/
 AD.createNameSpace("AD.CONSTANTS");
@@ -43,11 +43,11 @@ AD.CONSTANTS.DEFAULTWIDTH = function(){ return 960; };
 AD.CONSTANTS.DEFAULTHEIGHT = function(){ return 540; };
 AD.CONSTANTS.DEFAULTMARGIN = function(){ return {left:0,right:0,top:0,bottom:0}; };
 AD.CONSTANTS.DEFAULTFORCEDMARGIN = function(){ return {left:30, bottom:20, right:30, top:20}; };
-AD.CONSTANTS.DEFAULTCOLOR = function(){ return d3.scale.category10(); };
+AD.CONSTANTS.DEFAULTCOLOR = function(){ return d3.scale.category20c(); };
 
 AD.CONSTANTS.ANIMATIONLENGTHS = function(){ return {normal:500,short:100,long:1000}; };
 
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 AD.UTILS.chartAdapter = function(type, chartData){
 	chartData.chart = new AD.CHARTS[type];
@@ -57,17 +57,15 @@ AD.UTILS.chartAdapter = function(type, chartData){
 	chartData.chartLayout
 			.chart(chartData.chart)
 			.data(chartData.chartLayoutData);
-	
-	console.log(chartData.chartLayoutData)	
-			console.log('hi')	
-			
+
 	if(chartData.properties){
 		for(key in chartData.properties){
 			chartData.chart[key](chartData.properties[key]);
 		}
 	}
 }
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 AD.UTILS.CHARTPAGE.chartLayout = function(){
 	var width = AD.CONSTANTS.DEFAULTWIDTH();
@@ -428,7 +426,7 @@ AD.UTILS.chartPage = function(){
 
 	return page;
 }
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*CONTROLS UTILITIES*/
 AD.createNameSpace("AD.UTILS.CONTROLS");
@@ -733,7 +731,7 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 	return controls;
 };
 
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*shapes*/
 AD.createNameSpace("AD.UTILS.SHAPES");
@@ -864,7 +862,7 @@ function arcTween(transition, arc) {
 
 
 
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*LEGEND UTILITIES*/
 AD.createNameSpace("AD.UTILS.LEGENDS");
@@ -950,7 +948,7 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 	
 	legend.data = function(legendData, reset){
 		if(!arguments.length) return currentLegendData;
-		currentLegendData = legendData;
+		currentLegendData = legendData.data;
 		return legend;
 	}
 	
@@ -961,9 +959,9 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 		computedHeight = 0;
 		computedWidth = 0;
 		
-		if(currentLegendData.data.items.length > 0){
-			
-			var item = selection.selectAll('g.ad-legend-item').data(currentLegendData.data.items, function(d){return d.label;});
+		if(currentLegendData.items.length > 0){
+			var item = selection.selectAll('g.ad-legend-item')
+					.data(currentLegendData.items, function(d){return d.label;});
 			
 			var newItem = item.enter()
 				.append('g')
@@ -1044,7 +1042,669 @@ AD.UTILS.LEGENDS.horizontalLegend = function(){
 	return legend;
 };
 
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+AD.UTILS.breadcrumbs = function(){
+	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH();
+	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var selection;
+	var currentBreadcrumbsData = {items:[]};
+	var computedWidth=0, computedHeight=0;
+	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+
+	var scale = 5;
+
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){}
+	};
+
+	var breadcrumbs = {};
+
+	breadcrumbs.width = function(value){
+		if(!arguments.length) return maxWidth;
+		maxWidth = value;
+		return breadcrumbs;
+	};
+	breadcrumbs.computedHeight = function(){
+		return computedHeight;
+	};
+	breadcrumbs.computedWidth = function(){
+		return computedWidth;
+	};
+	breadcrumbs.selection = function(value){
+		if(!arguments.length) return selection;
+		selection = value;
+		return breadcrumbs;
+	};
+	breadcrumbs.scale = function(value){
+		if(!arguments.length) return scale;
+		scale = value;
+		return breadcrumbs;
+	};
+	breadcrumbs.animationDuration = function(value){
+		if(!arguments.length) return animationDuration;
+		animationDuration = value;
+		return breadcrumbs;
+	};
+
+	breadcrumbs.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+
+		return breadcrumbs;
+	};
+
+	breadcrumbs.data = function(breadcrumbsData, reset){
+		if(!arguments.length) return currentBreadcrumbsData;
+		currentBreadcrumbsData = breadcrumbsData.data;
+		return breadcrumbs;
+	}
+
+	breadcrumbs.update = function(callback){
+		if(!selection)
+			return console.warn('breadcrumbs was not given a selection');
+
+		if(callback){
+			callback;
+		}
+
+		selection.breadcrumb = selection.selectAll('g.ad-breadcrumb').data(currentBreadcrumbsData.items, function(d){return (d.key)? d.key : i;});
+
+		var newBreadcrumbs = selection.breadcrumb.enter()
+			.append('g')
+				.attr('class','ad-breadcrumb')
+				.style('opacity',0);
+
+		newBreadcrumbs.append('path');
+		newBreadcrumbs.append('text');
+
+		var breadcrumbIndentSize = scale;
+		var padding = scale;
+		var breadcrumbHeight = scale * 4;
+		selection.breadcrumb.text = selection.breadcrumb.select('text')
+				.text(function(d){return d.label;})
+				.attr('x',padding+breadcrumbIndentSize)
+				.attr('y',scale*2.9)
+				.style('font-size',scale*2.5+'px');
+		selection.breadcrumb.path = selection.breadcrumb.select('path');
+
+		var bcOffset = 0;
+		selection.breadcrumb.each(function(d,i){
+			var bc = d3.select(this);
+			bc.text = bc.select('text');
+			bc.path = bc.select('path')
+			var pathWidth = bc.text.node().getComputedTextLength() + padding*2 + breadcrumbIndentSize;
+
+			var leftIndent = breadcrumbIndentSize
+			var rightIndent = breadcrumbIndentSize;
+
+
+			if(i==0){
+				leftIndent = 0;
+			}
+			if(i==selection.breadcrumb.size()-1){
+				rightIndent = 0;
+			}
+
+			bc.path
+				.transition()
+					.duration(animationDuration/2)
+					.attr('d','M 0 0 L '+(leftIndent)+' '+breadcrumbHeight/2+' L 0 '+breadcrumbHeight+' L '+pathWidth+' '+breadcrumbHeight+' L '+(pathWidth+rightIndent)+' '+breadcrumbHeight/2+' L '+pathWidth+' 0 L 0 0 Z');
+
+
+			bc
+				.transition()
+					.duration(animationDuration/2)
+					.style('opacity',1)
+					.attr('transform','translate('+(bcOffset)+',0)');
+
+			bcOffset+=breadcrumbIndentSize + pathWidth;
+
+
+
+		});
+
+		computedHeight = breadcrumbHeight;
+
+		selection.breadcrumb.exit()
+			.transition()
+				.duration(animationDuration/4)
+				.style('opacity',0)
+				.remove();
+
+		return breadcrumbs;
+	};
+
+	return breadcrumbs;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*sunburst chart*/
+AD.CHARTS.sunburstChart = function(){
+
+	//define axisChart variables
+	var width = AD.CONSTANTS.DEFAULTWIDTH(),
+			height = AD.CONSTANTS.DEFAULTHEIGHT();
+
+	var innerHeight = height, innerWidth = width;
+
+	var generateRequired = true; //using some methods may require the chart to be redrawn
+
+	var selection = d3.select('body'); //default selection of the HTML body
+
+	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+
+	var horizontalLegend = new AD.UTILS.LEGENDS.horizontalLegend();
+	var breadcrumbs = new AD.UTILS.breadcrumbs();
+	breadcrumbs.scale(6)
+
+	var color = AD.CONSTANTS.DEFAULTCOLOR();
+
+	var currentChartData = {};
+	var partitionData;
+	var currentRoot;
+
+	// var newData = true;
+
+	var xFormat = function(value){return value};
+
+	var partition = d3.layout.partition()
+	    .value(function(d) { return d.size; });
+
+	var arc = d3.svg.arc()
+			    .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, d.start)); })
+			    .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, d.end)); })
+			    .innerRadius(function(d) { return Math.max(0, d.inner); })
+			    .outerRadius(function(d) { return Math.max(0, d.outer); });
+
+	var y = {
+				children: d3.scale.pow().exponent(0.8),
+				parents: d3.scale.linear()
+			};
+
+	var radius = {};
+
+	var x = d3.scale.linear()
+    .range([0, 2 * Math.PI]);
+
+	//init event object
+	var on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){}
+	};
+
+	// private methods
+
+	var getAncestors = function(node) {
+	  var path = [];
+	  var current = node;
+
+	  while (current.parent) {
+	    path.unshift(current);
+	    current = current.parent;
+	  }
+    path.unshift(current);
+
+	  return path;
+	};
+
+	var arcFill = function(d) {
+
+		// if(d.color_style == "Independent")
+		// 	return color(d.name)
+		// else if(d.color_style == "Custom")
+		// 	return d.color
+
+		var sequence = getAncestors(d).reverse();
+		for(i=0;i<sequence.length;i++){
+			if(sequence[i].top){
+				return d3.rgb(color(sequence[i].name)).brighter(i*0.5);
+			}
+		}
+		return color(d.name)
+	};
+
+	var arcMouseover = function(d) {
+
+	  // selection.group.sunburst.arcs.arc.style('opacity',0.3);
+		// var e_select, e = d;
+
+		var sequence = getAncestors(d);
+		// console.log(sequence)
+
+		selection.group.sunburst.arcs.arc.filter(function(node) {
+	                return (sequence.indexOf(node) >= 0);
+	              })
+			.transition()
+				.duration(animationDuration/7)
+				.style('opacity',1)
+		selection.group.sunburst.arcs.arc.filter(function(node) {
+	                return (sequence.indexOf(node) < 0);
+	              })
+			.transition()
+				.duration(animationDuration/7)
+				.style('opacity',0.4)
+
+		updateBreadcrumbs(sequence);
+
+	};
+
+	var sunburstMouseout = function(d) {
+		resetBreadcrumbs();
+	  selection.group.sunburst.arcs.arc
+			.transition()
+				.duration(animationDuration/5)
+				.style('opacity',1);
+	};
+
+	var arcTweenZoom = function(d){
+				currentRoot = d;
+				updateArcs();
+
+	};
+
+	var getZoomParentDomain = function(d){
+		var cur = d;
+		var domain = [1,0];
+		do{
+			if(domain[0] > cur.y)
+				domain[0] = cur.y;
+			if(domain[1] < cur.y + cur.dy)
+				domain[1] = cur.y + cur.dy;
+			cur = cur.parent;
+		}while(cur);
+		return domain;
+	};
+	var getZoomChildDomain = function(d, domain){
+		if(!domain){domain = [1,0];}
+		else{
+			if(domain[0] > d.y)
+				domain[0] = d.y;
+			if(domain[1] < d.y + d.dy)
+				domain[1] = d.y + d.dy;
+		}
+
+		if(d.children){
+			d.children.forEach(function(child){
+				return getZoomChildDomain(child,domain);
+			});
+		}
+
+		return domain;
+
+	};
+
+	var updateArcs = function(){
+
+				var sequence = getAncestors(currentRoot);
+				var paths = {};
+
+				paths.parents = selection.group.sunburst.arcs.arc.path
+					.filter(function(node) {
+		        return (sequence.indexOf(node) >= 0);
+		      });
+
+
+				x.domain([currentRoot.x,currentRoot.x + currentRoot.dx]);
+				y.parents.domain(getZoomParentDomain(currentRoot));
+				y.children.domain(getZoomChildDomain(currentRoot));
+
+				var yDomain = {};
+
+				paths.parents.each(function(d){
+						this.newArc = {
+							start: x(d.x),
+							end: x(d.x + d.dx),
+							inner: y.parents(d.y),
+							outer: y.parents(d.y + d.dy)
+						};
+						if(!this.oldArc){
+							this.oldArc = {
+								start: 0,
+								end: 0,
+								inner: this.newArc.inner,
+								outer: this.newArc.outer
+							};
+						}
+				});
+
+
+				paths.children = selection.group.sunburst.arcs.arc.path
+					.filter(function(node) {
+						return (sequence.indexOf(node) < 0);
+					});
+
+				paths.children.each(function(d){
+
+					this.newArc = {
+						start: x(d.x),
+						end: x(d.x + d.dx),
+						inner: y.children(d.y),
+						outer: y.children(d.y + d.dy)
+					};
+
+					if(!this.oldArc){
+						this.oldArc = {
+							start: 0,
+							end: 0,
+							inner: this.newArc.inner,
+							outer: this.newArc.outer
+						};
+					}
+				});
+
+
+				selection.group.sunburst.arcs.arc.exit().select('path')
+					.each(function(d) {
+						this.newArc = {
+							start: 0,
+							end: 0,
+							inner: this.oldArc.inner,
+							outer: this.oldArc.outer
+						};
+					})
+					.transition()
+						.duration(animationDuration*1.5)
+						.attrTween("d", arcTween)
+						.each("end",function(d){this.parentNode.remove()})
+						.remove();
+
+
+			var pathTransition = selection.group.sunburst.arcs.arc.path
+				.transition()
+					.duration(animationDuration*1.5)
+					.attrTween("d", arcTween);
+
+
+
+			pathTransition
+				.each("end",function(d) {
+					this.oldArc = this.newArc;
+				});
+
+	};
+
+
+	var arcTween = function(d){
+		var interpolator = d3.interpolate(this.oldArc,this.newArc)
+		function tween(t){
+			b = interpolator(t);
+			return arc(b);
+		}
+		return tween;
+	};
+
+	var resetBreadcrumbs = function(){
+		var breadcrumbsData = {
+			data:{
+				items: []
+			}
+		};
+		breadcrumbs.data(breadcrumbsData).update();
+	};
+
+	var updateBreadcrumbs = function(sequence){
+		var breadcrumbsData = {
+			data:{
+				items: sequence.map(function(d,i){return {label:d.name, key:i+','+d.name, data:d};})
+			}
+		};
+		breadcrumbs.data(breadcrumbsData).update();
+
+		breadcrumbsSelection = breadcrumbs.selection();
+		breadcrumbsSelection.breadcrumb.path
+			.attr('stroke-width',2)
+			.attr('stroke',function(d){return arcFill(d.data);});
+
+	};
+
+	/*DEFINE CHART OBJECT AND MEMBERS*/
+	var chart = {};
+
+	//members that will set the regenerate flag
+	chart.select = function(value){
+		selection = d3.select(value);
+		generateRequired = true;
+		return chart;
+	};
+	chart.selection = function(value){
+		if(!arguments.length) return selection;
+		selection = value;
+		generateRequired = true;
+		return chart;
+	};
+	//methods that require update
+	chart.width = function(value){
+		if(!arguments.length) return width;
+		width = value;
+		return chart;
+	};
+	chart.height = function(value){
+		if(!arguments.length) return height;
+		height = value;
+		return chart;
+	};
+
+	chart.animationDuration = function(value){
+		if(!arguments.length) return animationDuration;
+		animationDuration = value;
+		horizontalLegend.animationDuration(animationDuration);
+		return chart;
+	};
+
+	chart.xFormat = function(value){
+		if(!arguments.length) return xFormat;
+		xFormat = AD.UTILS.numberFormat(value);
+		return chart;
+	};
+
+	chart.on = function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return on[key[0]][key[1]];
+			else
+				return on[key[0]]['default'];
+		};
+
+		if(key[1])
+			on[key[0]][key[1]] = value;
+		else
+			on[key[0]]['default'] = value;
+
+		return chart;
+	};
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return currentChartData;
+		if(reset){
+			currentChartData = {};
+			generateRequired = true;
+		}
+
+		currentChartData = chartData.data;
+
+		partitionData = partition.nodes(currentChartData.partition);
+
+		// newData = true;
+		currentRoot =currentChartData.partition;
+		return chart;
+	};
+
+	//generate chart
+	chart.generate = function(callback) {
+		generateRequired = false;
+
+		//clean container
+		selection.selectAll('*').remove();
+
+		//create svg
+		selection.svg = selection
+			.append('svg')
+				.attr('class','ad-sunburst-chart ad-svg ad-container');
+
+		//create group container
+		selection.group = selection.svg.append('g');
+
+		selection.group.sunburst = selection.group
+			.append('g')
+				.attr('class','ad-sunburst')
+				.on('mouseout', sunburstMouseout);
+
+
+		selection.group.sunburst.arcs = selection.group.sunburst
+			.append('g')
+				.attr('class','ad-sunburst-arcs');
+
+		selection.group.sunburst.tooltip = selection.group.sunburst
+			.append('g')
+				.attr('class','ad-sunburst-tooltip');
+
+		//create legend container
+		selection.group.legend = selection.group
+			.append('g')
+				.attr('class','ad-legend');
+
+		//create breadcrumbs container
+		selection.group.breadcrumbs = selection.group
+			.append('g')
+				.attr('class','ad-sunburst-breadcrumbs');
+
+		//intialize new legend
+		horizontalLegend
+				.color(color)
+				.selection(selection.group.legend);
+
+		//intialize new legend
+		breadcrumbs
+				.selection(selection.group.breadcrumbs);
+
+		//auto update chart
+		var temp = animationDuration;
+		chart
+				.animationDuration(0)
+				.update(callback)
+				.animationDuration(temp);
+
+		return chart;
+	};
+
+	//update chart
+	chart.update = function(callback){
+
+		//if generate required call the generate method
+		if(generateRequired){
+			return chart.generate(callback);
+		}
+
+		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+
+		selection.svg
+			.transition()
+				.duration(animationDuration)
+				.attr('width',width)
+				.attr('height',height);
+
+		innerWidth = width - forcedMargin.right - forcedMargin.left;
+
+		var topNodes = partitionData.filter(function(d){return d.top;});
+
+		var legendData = {
+			data:{
+				items: d3
+								.set(topNodes.map(function(d){return d.name;}))
+								.values()
+								.map(function(d){return {label:d};})
+			}
+		};
+
+		horizontalLegend.width(innerWidth).data(legendData).update();
+		forcedMargin.bottom += horizontalLegend.computedHeight();
+
+		selection.group.breadcrumbs
+			.transition()
+				.duration(animationDuration)
+				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
+
+		breadcrumbs.width(innerWidth).update();
+		forcedMargin.top += breadcrumbs.computedHeight();
+
+		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
+
+		selection.group.legend
+			.transition()
+				.duration(animationDuration)
+				.attr('transform','translate('+(forcedMargin.left+(innerWidth-horizontalLegend.computedWidth())/2)+','+(innerHeight+forcedMargin.top)+')');
+
+		selection.group.sunburst
+			.transition()
+				.duration(animationDuration)
+				.attr('transform','translate('+(forcedMargin.left+innerWidth/2)+','+(forcedMargin.top+innerHeight/2)+')');
+
+
+		radius.outer = Math.min(innerWidth,innerHeight)/2-20;
+		radius.inner = radius.outer/3;
+
+		y.children.range([radius.inner + 0.17 * (radius.outer - radius.inner), radius.outer]);
+		y.parents.range([radius.inner, radius.inner + 0.13 * (radius.outer - radius.inner)]);
+
+	  selection.group.sunburst.arcs.arc = selection.group.sunburst.arcs.selectAll("g.sunburst-arc")
+		    .data(partitionData,function(d){return getAncestors(d).map(function(d){return d.name}).join('-');})
+		// sunburst_mouseout();
+		var newArcs =	selection.group.sunburst.arcs.arc.enter().append("g")
+			.attr('class','sunburst-arc');
+			// .style('opacity',0)
+
+		var newPaths = newArcs.append("path")
+				.on('mouseover',arcMouseover);
+
+
+		selection.group.sunburst.arcs.arc
+			.transition()
+				.duration(animationDuration)
+				.style('opacity',1);
+
+
+		selection.group.sunburst.arcs.arc.path = selection.group.sunburst.arcs.arc.select('path')
+				.style('fill',arcFill);
+
+		selection.group.sunburst.arcs.arc.path
+			// .filter(function(d){return (d.children)? true:false;})
+				.on('click',arcTweenZoom)
+				.classed('ad-pointer-element',true);
+
+		updateArcs();
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 
 /*axis chart*/
@@ -1887,7 +2547,7 @@ AD.CHARTS.axisChart = function(){
 	
 	return chart;
 };
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*sankey chart*/
 AD.CHARTS.sankeyChart = function(){
@@ -2318,7 +2978,7 @@ AD.CHARTS.sankeyChart = function(){
 	
 	return chart;
 };
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
 AD.CHARTS.pieChart = function(){
@@ -2650,7 +3310,7 @@ AD.CHARTS.pieChart = function(){
 	
 	return chart;
 };
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 
 /*axis chart*/
@@ -3362,7 +4022,7 @@ AD.CHARTS.interactiveBarChart = function(){
 	
 	return chart;
 };
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
 AD.CHARTS.iframeChart = function(){
@@ -3504,7 +4164,7 @@ AD.CHARTS.iframeChart = function(){
 	
 	return chart;
 };
-/* Copyright 2014 - 2015 Kevin Warne All rights reserved. */
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 AD.DASHBOARDS.dashboard = function(){
 	
@@ -3670,7 +4330,7 @@ AD.DASHBOARDS.dashboard = function(){
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
 							path
-								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0');
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0 Z');
 						}).on('click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
@@ -3728,7 +4388,7 @@ AD.DASHBOARDS.dashboard = function(){
 			path
 				.transition()
 					.duration(animationDuration)
-					.attr('d','M 0 0 L '+(startIndent)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+endIndent)+' 15 L '+pathWidth+' 0 L 5 0');
+					.attr('d','M 0 0 L '+(startIndent)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+endIndent)+' 15 L '+pathWidth+' 0 L 5 0 Z');
 			this.dx = pathWidth;
 		});	
 		

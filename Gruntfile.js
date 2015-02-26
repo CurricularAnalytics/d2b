@@ -1,5 +1,5 @@
 module.exports = function(grunt){
-	
+
 	// Project configuration.
 	grunt.initConfig({
 	  sass: {                              // Task
@@ -16,7 +16,7 @@ module.exports = function(grunt){
 	    dest: {
 		    options: {
 		      stripBanners: true,
-		      banner: '/*! Copyright 2014 - <%= grunt.template.today("yyyy") %> Kevin Warne All rights reserved.*/',
+		      banner: '/* Copyright © 2013-<%= grunt.template.today("yyyy") %> Academic Dashboards, All Rights Reserved. */',
 		      mangle: true
 		    },
 	      files: {
@@ -36,22 +36,25 @@ module.exports = function(grunt){
 							'js/utils/controls.js',
 							'js/utils/general.js',
 							'js/utils/legends.js',
+							'js/utils/breadcrumbs.js',
+							'js/charts/sunburst-chart.js',
 							'js/charts/axis-chart.js',
 							'js/charts/sankey-chart.js',
-							'js/charts/pie-chart.js', 
-							'js/charts/interactive-bar-chart.js', 
-							'js/charts/iframe-chart.js', 
+							'js/charts/pie-chart.js',
+							'js/charts/interactive-bar-chart.js',
+							'js/charts/iframe-chart.js',
 							'js/dashboards/dashboard.js',
 							'js/d3_extensions/sankey.js'],
 	      dest: 'build/js/ad.js',
 	    },
 	    css: {
 	      src: ['css/init.scss','css/utils.scss',
-							'css/charts/axis-chart.scss', 
+							'css/charts/axis-chart.scss',
 							'css/charts/sankey-chart.scss',
 							'css/charts/pie-chart.scss',
 							'css/charts/interactive-bar-chart.scss',
 							'css/charts/iframe-chart.scss',
+							'css/charts/sunburst-chart.scss',
 							'css/charts/general.scss',
 							'css/dashboards/dashboard.scss'],
 	      dest: 'build/css/ad.scss',
@@ -73,14 +76,14 @@ module.exports = function(grunt){
 		  },
 		  js: {
 		    files: ['js/**/*.js'],
-		    tasks: ['concat:js','uglify'],
+		    tasks: ['concat:css','sass','concat:js','uglify'],
 		    options: {
 		      spawn: false,
 		    },
 		  },
 		  css: {
 		    files: ['css/**/*.scss'],
-		    tasks: ['concat:css','sass'],
+		    tasks: ['concat:css','sass','concat:js','uglify'],
 		    options: {
 		      spawn: false,
 		    },
@@ -99,7 +102,7 @@ module.exports = function(grunt){
 			}
 		},
 	});
-	
+
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-sass');
 	grunt.loadNpmTasks('grunt-contrib-connect');
