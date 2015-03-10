@@ -53,9 +53,9 @@ html, body, .ad-container {
 	.ad-chart-layout-right-notes,.ad-chart-layout-left-notes,.ad-chart-layout-footnote{
 		position:absolute;
 		font-size:11pt;
-//		overflow:scroll;
 		pointer-events:none;
 		overflow:hidden;
+		// overflow:scroll;
 		color:$note;
 	}
 	.ad-chart-layout-right-notes,.ad-chart-layout-left-notes{
@@ -76,7 +76,7 @@ html, body, .ad-container {
 	}
 	.ad-chart-layout-right-notes li, .ad-chart-layout-left-notes li{
 		border-bottom:1px solid #ddd;
-		padding-top:5px;
+		padding-bottom:5px;
 	}
 
 	.ad-chart-layout-chart{
@@ -97,12 +97,15 @@ html, body, .ad-container {
 	font-size:10pt;
 	position:absolute;
 	pointer-events:none;
-	border:1px solid #666;
-	background:$lightest;
+	// border:1px solid #666;
+	// background:$lightest;
+	// background:$dark_main;
+	background:rgba(0,0,0,0.75);
+	color:$lightest;
 	padding: 5px 10px;
-//	border-radius:2px;
+	border-radius:1px;
 	max-width:250px;
-
+	// opacity:0.1;
 	-webkit-box-shadow: 0 0 5px #555;
 	        box-shadow: 0 0 5px #555;
 //  -webkit-box-shadow: 0 2px 3px #777;
@@ -268,6 +271,22 @@ html, body, .ad-container {
       text-anchor:end;
     }
   }
+  .ad-sankey-column-headers{
+    .ad-sankey-column-header{
+      text{
+        text-anchor: middle;
+        font-weight: bold;
+        font-size: 16px;
+      }
+      &:first-child text{
+        text-anchor: start;
+      }
+      &:last-child text{
+        text-anchor: end;
+      }
+    }
+  }
+
   .ad-sankey{
     .ad-sankey-links{
       path{
@@ -335,6 +354,53 @@ html, body, .ad-container {
 		border:0px;
 	}
 }
+.ad-multi-chart-buttons-wrapper{
+  height:45px;
+  text-align:center;
+  padding-top:10px;
+	width:100%;
+  ul.ad-buttons{
+    margin-left:5px;
+    margin-right:5px;
+		padding:0px;
+		margin-top:0px;
+    background:#f8f8f8;
+    display:inline-block;
+    white-space:nowrap;
+		border-radius:2px;
+    border:1px solid $dark_main;
+    li{
+			border-right:1px solid $dark_main;
+			cursor:pointer;
+			font-family:"Droid Sans";
+      display:inline-block;
+      padding:7px 10px;
+      color:#777;
+      &.ad-selected{
+        box-shadow: inset 0px 2px 4px $light;
+      }
+      &.ad-selected{
+        background:$lightest;
+        color:$dark_main;
+      }
+      &:hover{
+        background:$lightest;
+      }
+			&:last-child{
+				border-right:0px;
+			}
+    }
+  }
+}
+
+.ad-multi-chart{
+	.ad-multi-chart-chart{
+		position:absolute;
+		top:50px;
+		left:0px;
+	}
+}
+
 .ad-sunburst-chart{
 	.ad-sunburst{
 		.ad-sunburst-arcs{
@@ -353,6 +419,131 @@ html, body, .ad-container {
 
 		}
 	}
+	.ad-sunburst-tooltip{
+		text{
+			text-anchor:middle;
+			tspan:first-child{
+				font-size:12pt;
+				font-weight:bold;
+			}
+			tspan:last-child{
+				font-size:16pt;
+			}
+		}
+	}
+}
+
+.ad-bubble-chart-buttons-wrapper{
+  height:55px;
+  text-align:center;
+  padding-top:10px;
+  ul.ad-buttons{
+    margin-left:5px;
+    margin-right:5px;
+    background:#f8f8f8;
+    display:inline-block;
+    white-space:nowrap;
+    ul{
+      margin:0px;
+      display: inline-block;
+      border-right:1px solid $dark_main;
+      cursor:pointer;
+      &:last-child{
+        border-right:0px;
+      }
+
+
+
+      li{
+        // display:inline-block;
+        color:#777;
+        &.ad-selected{
+          background:$lightest;
+          color:$dark_main;
+        }
+        &:hover{
+          background:$lightest;
+        }
+      }
+      li.ad-button{
+        padding:7px 10px;
+        &.ad-selected{
+          box-shadow: inset 0px 2px 4px $light;
+        }
+      }
+      li.ad-color-button{
+        padding:1px 10px;
+        border-top:1px solid $dark_main;
+        &.ad-selected{
+          box-shadow: inset 0px -1px 4px $light;
+        }
+      };
+
+    }
+    border-radius:2px;
+    border:1px solid $dark_main;
+  }
+
+}
+.ad-bubble-chart{
+  .ad-bubbles{
+    .ad-bubble{
+      circle{
+        stroke-width:1px;
+        stroke:$dark_main;
+        fill-opacity:0.85;
+      	// -webkit-transition: fill-opacity 0.25s, stroke 0.25s;
+        //   transition: fill-opacity 0.25s, stroke 0.25s;
+        &:hover{
+          stroke-width:2px;
+          stroke:black !important;
+          fill-opacity:1;
+        }
+      }
+
+    }
+  }
+  .tick text{
+    font-size:9pt;
+    fill:$dark_main;
+  }
+  .ad-groups-axis{
+    pointer-events:none;
+    path{
+      fill:none;
+    }
+    .tick{
+      line{
+          pointer-events:none;
+          stroke-dasharray: 6,4;
+          stroke-width:0.5px;
+          stroke:$light;
+      }
+    }
+  }
+  .ad-change-axis-legend{
+    pointer-events:none;
+    path{
+      fill:none;
+    }
+    .tick{
+      line{
+          stroke-dasharray: 6,4;
+        stroke-width:1px;
+        stroke:$light;
+      }
+    }
+  }
+  .ad-groups{
+    pointer-events:none;
+    .ad-group-title{
+      text-anchor:middle;
+    }
+    .ad-group-total{
+      font-weight:bold;
+      text-anchor:middle;
+    }
+  }
 }
 
 

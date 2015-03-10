@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+
+		// var controlsSvg = d3.select('.controls').append('svg').attr('width',$(window).width());
+		// var controlsG = controlsSvg.append('g').attr('transform','translate(0,5)')
+		//
+		// var controls = new AD.UTILS.horizontalControls();
+		// controls.selection(controlsG).scale(10).width($(window).width()).update([{type:'checkbox', visible:true,label:'control 1',data:{label:'control 1',state:true}},{type:'checkbox', visible:true,label:'control 2',data:{label:'control 2',state:true}},{type:'checkbox', visible:true,label:'control 3',data:{label:'control 3',state:true}},{type:'checkbox', visible:true,label:'control 4',data:{label:'control 4',state:true}},{type:'checkbox', visible:true,label:'control 5',data:{label:'control 5',state:true}}])
+
+
+
+		var axisChart = new AD.CHARTS.axisChart();
+		axisChart
+			.select('.axis-chart')
+			.width($(window).width())
+			.legendOrientation('bottom')
+			.height($(window).height())
+			.margin({top:0,bottom:0,left:0,right:0})
+			.controls({
+				yAxisLock: {
+					visible: false,
+					maxStacked: 780,
+					maxNonStacked: 312
+				},
+				stacking: { //only for bar charts
+					visible: false,
+					enabled:true
+				},
+				hideLegend: {
+					visible: true
+				}
+			});
+
+		axisChart
+			.xScale({type: 'ordinal'})
+			// .xFormat({units:{before:'$'},separatedThousands:true})
+			// .yFormat({units:{before:'$'},prefixed:true})
+			// .yScale({type: 'linear'})
+		axisChart
+			.data(
+				{data:{
+					labels:{
+						x:'Template x label',
+						y:'Template y label'
+					},
+					columns:[
+						{
+							label:'data 1',
+							type:'area,spline',
+							values:[
+								{x:'x1',y:67},
+								{x:'x2',y:211},
+								{x:'x3',y:346},
+								{x:'x4',y:113}
+							]
+						},
+						{
+							label:'data 2',
+							type:'line,basis',
+							values:[
+								{x:'x1',y:100},
+								{x:'x3',y:11},
+								{x:'x4',y:130}
+							]
+						},
+						{
+							label:'data 3',
+							type:'area,cardinal-open',
+							values:[
+								{x:'x1',y:110},
+								{x:'x4',y:20}
+							]
+						},
+						{
+							label:'data 4',
+							type:'bar',
+							values:[
+								{x:'x1',y:105},
+								{x:'x2',y:611},
+								{x:'x4',y:211}
+							]
+						},
+						{
+							label:'data 5',
+							type:'scatter',
+							values:[
+								{x:'x1',y:37},
+								{x:'x2',y:111},
+								{x:'x3',y:146},
+								{x:'x4',y:213}
+							]
+						},
+						{
+							label:'data 6',
+							type:'bar',
+							values:[
+								{x:'x1',y:200},
+								{x:'x2',y:143},
+								{x:'x3',y:46},
+								{x:'x4',y:128}
+							]
+						}
+					]
+				}
+			}
+			)
+			.update();
+
+		setTimeout(function(){
+			var newAxisChartData = {
+				data:{
+					columns:[
+						{
+							label:'data 1',
+							type:'line'
+						}
+					]
+				}
+			};
+			axisChart.data(newAxisChartData).update;
+
+			axisChart.controls({
+				yAxisLock: {
+					visible: false,
+					maxStacked: 780,
+					maxNonStacked: 312
+				},
+				stacking: { //only for bar charts
+					visible: true,
+					enabled:false
+				}
+			});
+
+			axisChart.update();
+
+			setTimeout(function(){
+				var newAxisChartData = {
+					data:{
+						columns:[
+							{
+								label:'data 1',
+								type:'line',
+								values:[
+									{x:'x1',y:47},
+									{x:'x2',y:111},
+									{x:'x3',y:746},
+									{x:'x4',y:213},
+									{x:'x5',y:113}
+								]
+							},
+							{
+								label:'data 6',
+								type:'bar',
+								values:[
+									{x:'x2',y:143},
+									{x:'x3',y:46},
+									{x:'x4',y:128}
+								]
+							}
+						]
+					}
+				};
+				axisChart.data(newAxisChartData).update();
+				setTimeout(function(){
+					var newAxisChartData = {
+						data:{
+							columns:[
+								{
+									label:'data 4',
+									type:'none'
+								},
+								{
+									label:'data 1',
+									type:'line,basis',
+									replace:true,
+									values:[
+										{x:'x1',y:47},
+										{x:'x2',y:111},
+										{x:'x3',y:746},
+										{x:'x4',y:213},
+										{x:'x5',y:113}
+									]
+								}
+							]
+						}
+					};
+
+					axisChart.controls({
+						yAxisLock: {
+							visible: true,
+							enabled: true,
+							maxStacked: 780,
+							maxNonStacked: 312
+						},
+						stacking: { //only for bar charts
+							visible: true,
+							enabled:false
+						}
+					});
+
+					axisChart.data(newAxisChartData).update();
+					setTimeout(function(){
+						var newAxisChartData = {
+							data:{
+								columns:[
+									{
+										label:'data 1',
+										values:[
+											{x:'x1',y:87},
+											{x:'x2',y:111},
+											{x:'x3',y:546},
+											{x:'x4',y:313},
+											{x:'x5',y:713}
+										]
+									},
+									{
+										label:'data 2',
+										type:'none'
+									}
+								]
+							}
+						};
+						axisChart.data(newAxisChartData).update();
+						setTimeout(function(){
+							var newAxisChartData = {
+								data:{
+									columns:[
+										{
+											label:'data 1',
+											type:'area,basis',
+											values:[
+												{x:'x1',y:87},
+												{x:'x2',y:111},
+												{x:'x3',y:546},
+												{x:'x4',y:313},
+												{x:'x5',y:713}
+											]
+										},
+										{
+											label:'data 2',
+											type:'area',
+											values:[
+												{x:'x1',y:100},
+												{x:'x3',y:11},
+												{x:'x4',y:130}
+											]
+										},
+										{
+											label:'data 9',
+											type:'area',
+											values:[
+												{x:'x1',y:500},
+												{x:'x3',y:51},
+												{x:'x4',y:230}
+											]
+										}
+									]
+								}
+							};
+							axisChart.data(newAxisChartData).update();
+
+						},2000)
+					},2000)
+				},2000)
+			},2000)
+		},2000)
+
+
+		var axisChart2 = new AD.CHARTS.axisChart();
+		axisChart2
+			.select('.axis-chart2')
+			.width($(window).width())
+			.height($(window).height())
+			// .legendOrientation('left')
+			.margin({top:0,bottom:0,left:0,right:0})
+			.controls({
+				yAxisLock: {
+					visible: false,
+					maxStacked: 780,
+					maxNonStacked: 312
+				},
+				stacking: { //only for bar charts
+					visible: false,
+					enabled:true
+				}
+			});
+		axisChart2.data({
+			data: {
+				labels:{
+					x:'Template x label',
+					y:'Template y label'
+				},
+				columns: [
+					{
+						label:'data 1',
+						type:'line',
+						values:[
+							{x:1,y:320},
+							{x:2,y:210},
+							{x:3,y:430}
+						]
+					},
+					{
+						label:'data 7',
+						type:'area,cardinal',
+						values:[
+							{x:1,y:320},
+							{x:2,y:210},
+							{x:3,y:330}
+						]
+					},
+					{
+						label:'data 2',
+						type:'area,cardinal',
+						values:[
+							{x:1,y:100},
+							{x:3,y:11},
+							{x:4,y:130}
+						]
+					},
+					{
+						label:'data 8',
+						type:'area,cardinal',
+						values:[
+							{x:1,y:600},
+							{x:3,y:25},
+							{x:4,y:230}
+						]
+					},
+					{
+						label:'data 4',
+						type:'bar',
+						values:[
+							{x:1,y:198},
+							{x:2,y:140},
+							{x:3,y:132},
+							{x:4,y:211}
+						]
+					},
+					{
+						label:'data 5',
+						type:'bar',
+						values:[
+							{x:1,y:198},
+							{x:2,y:140},
+							{x:3,y:132},
+							{x:4,y:211}
+						]
+					},
+					{
+						label:'data 6',
+						type:'bar',
+						values:[
+							{x:1,y:198},
+							{x:2,y:140},
+							{x:3,y:132},
+							{x:4,y:211}
+						]
+					},
+				]
+			}
+		}).update();
+		//
+		// setTimeout(function(){
+		// 		axisChart.controls({
+		// 			yAxisLock: {
+		// 				visible: true,
+		// 				maxStacked: 780,
+		// 				maxNonStacked: 312
+		// 			},
+		// 			stacking: { //only for bar charts
+		// 				visible: true,
+		// 				enabled:false
+		// 			}
+		// 		}).xScale({type:'ordinal'});
+		//
+		// 		axisChart.update({
+		// 			data: {
+		// 				columns: [
+		// 					{
+		// 						label:'data 1',
+		// 						type:'line',
+		// 						values:[
+		// 							{x:'1',y:320},
+		// 							{x:'2',y:210},
+		// 							{x:'3',y:430}
+		// 						]
+		// 					},
+		// 					{
+		// 						label:'data 7',
+		// 						type:'area,cardinal',
+		// 						values:[
+		// 							{x:'1',y:320},
+		// 							{x:'2',y:210},
+		// 							{x:3,y:330}
+		// 						]
+		// 					},
+		// 					{
+		// 						label:'data 2',
+		// 						type:'area,cardinal',
+		// 						values:[
+		// 							{x:'1',y:100},
+		// 							{x:'3',y:11},
+		// 							{x:'4',y:130}
+		// 						]
+		// 					},
+		// 					{
+		// 						label:'data 8',
+		// 						type:'area,cardinal',
+		// 						values:[
+		// 							{x:'1',y:600},
+		// 							{x:'3',y:25},
+		// 							{x:'4',y:230}
+		// 						]
+		// 					},
+		// 					{
+		// 						label:'data 4',
+		// 						type:'bar',
+		// 						values:[
+		// 							{x:'1',y:198},
+		// 							{x:'2',y:140},
+		// 							{x:'3',y:132},
+		// 							{x:'4',y:211}
+		// 						]
+		// 					},
+		// 					{
+		// 						label:'data 5',
+		// 						type:'bar',
+		// 						values:[
+		// 							{x:'1',y:198},
+		// 							{x:'2',y:140},
+		// 							{x:'3',y:132},
+		// 							{x:'4',y:211}
+		// 						]
+		// 					},
+		// 					{
+		// 						label:'data 6',
+		// 						type:'bar',
+		// 						values:[
+		// 							{x:'1',y:198},
+		// 							{x:'2',y:140},
+		// 							{x:'3',y:132},
+		// 							{x:'4',y:211}
+		// 						]
+		// 					},
+		// 				]
+		// 			}
+		// 		});
+		//
+		// 		// axisChart.update();
+		// },2000);
+
+		//
+		// axisChart.stacked();
+		// axisChart.yAxisLocked();
+
+		$(window).resize(function(){
+			axisChart.height($(window).height()).width($(window).width()).update();
+			axisChart2.height($(window).height()).width($(window).width()).update();
+
+			// controlsSvg.attr('width',$(window).width());
+			// controls.width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'axis-chart'></div>
+<div class = 'axis-chart2'></div>
+
+</body>
+</html>

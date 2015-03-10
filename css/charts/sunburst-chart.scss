@@ -16,4 +16,16 @@
 
 		}
 	}
+	.ad-sunburst-tooltip{
+		text{
+			text-anchor:middle;
+			tspan:first-child{
+				font-size:12pt;
+				font-weight:bold;
+			}
+			tspan:last-child{
+				font-size:16pt;
+			}
+		}
+	}
 }

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var sankeyChart = new AD.CHARTS.sankeyChart();
+
+		var headers = ["Column 1", "Column 2", "Column 3", "Column 4", "Column 5", "Column 6", "Column 7", "Column 8", ]
+
+		var nodes = [
+			[
+				{id:0,name:"Node 0,0",shortName:"Node 0,0",colorKey:"Node 0,0",key:"Node 0,0"},
+				{id:1,name:"Node 0,1",shortName:"Node 0,1",colorKey:"Node 0,1",key:"Node 0,1"},
+				{id:2,name:"Node 0,2",shortName:"Node 0,2",colorKey:"Node 0,2",key:"Node 0,2"}
+			],
+			[
+				{id:3,name:"Node 1,0",shortName:"Node 1,0",colorKey:"Node 1,0",key:"Node 1,0"},
+				{id:4,name:"Node 1,1",shortName:"Node 1,1",colorKey:"Node 1,1",key:"Node 1,1"},
+				{id:5,name:"Node 1,2",shortName:"Node 1,2",colorKey:"Node 1,2",key:"Node 1,2"}
+			],
+			[
+				{id:6,name:"Node 2,0",shortName:"Node 2,0",colorKey:"Node 2,0",key:"Node 2,0"},
+				{id:7,name:"Node 2,1",shortName:"Node 2,1",colorKey:"Node 2,1",key:"Node 2,1"},
+				{id:8,name:"Node 2,2",shortName:"Node 2,2",colorKey:"Node 2,2",key:"Node 2,2"}
+			],
+			[
+				{id:9,name:"Node 3,0",shortName:"Node 3,0",colorKey:"Node 3,0",key:"Node 3,0"},
+				{id:10,name:"Node 3,1",shortName:"Node 3,1",colorKey:"Node 3,1",key:"Node 3,1"},
+				{id:11,name:"Node 3,2",shortName:"Node 3,2",colorKey:"Node 3,2",key:"Node 3,2"}
+			],
+			[
+				{id:12,name:"Node 4,0",shortName:"Node 4,0",colorKey:"Node 4,0",key:"Node 4,0"},
+				{id:13,name:"Node 4,1",shortName:"Node 4,1",colorKey:"Node 4,1",key:"Node 4,1"},
+				{id:14,name:"Node 4,2",shortName:"Node 4,2",colorKey:"Node 4,2",key:"Node 4,2"}
+			],
+			[
+				{id:15,name:"Node 5,0",shortName:"Node 5,0",colorKey:"Node 5,0",key:"Node 5,0"},
+				{id:16,name:"Node 5,1",shortName:"Node 5,1",colorKey:"Node 5,1",key:"Node 5,1"},
+				{id:17,name:"Node 5,2",shortName:"Node 5,2",colorKey:"Node 5,2",key:"Node 5,2"}
+			],
+			[
+				{id:18,name:"Node 6,0",shortName:"Node 6,0",colorKey:"Node 6,0",key:"Node 6,0"},
+				{id:19,name:"Node 6,1",shortName:"Node 6,1",colorKey:"Node 6,1",key:"Node 6,1"},
+				{id:20,name:"Node 6,2",shortName:"Node 6,2",colorKey:"Node 6,2",key:"Node 6,2"}
+			],
+			[
+				{id:21,name:"Node 7,0",shortName:"Node 7,0",colorKey:"Node 7,0",key:"Node 7,0"},
+				{id:22,name:"Node 7,1",shortName:"Node 7,1",colorKey:"Node 7,1",key:"Node 7,1"},
+				{id:23,name:"Node 7,2",shortName:"Node 7,2",colorKey:"Node 7,2",key:"Node 7,2"}
+			]
+		]
+		var links = [
+			[
+				{source:0, target:3, key:"0,0", value:19595476, colorBy:"source"},
+				{source:1, target:5, key:"0,1", value:19595476, colorBy:"source"},
+				{source:2, target:4, key:"0,2", value:19595476, colorBy:"source"},
+				{source:1, target:3, key:"0,3", value:19595476, colorBy:"source"},
+				{source:2, target:5, key:"0,4", value:19595476, colorBy:"source"},
+				{source:0, target:4, key:"0,5", value:19595476, colorBy:"source"},
+				{source:2, target:3, key:"0,6", value:19595476, colorBy:"source"},
+				{source:1, target:5, key:"0,7", value:19595476, colorBy:"source"},
+				{source:0, target:4, key:"0,8", value:19595476, colorBy:"source"}
+			],
+			[
+				{source:3, target:8, key:"1,0", value:19595476, colorBy:"source"},
+				{source:4, target:7, key:"1,1", value:19595476, colorBy:"source"},
+				{source:5, target:6, key:"1,2", value:19595476, colorBy:"source"},
+				{source:5, target:8, key:"1,3", value:19595476, colorBy:"source"},
+				{source:3, target:7, key:"1,4", value:19595476, colorBy:"source"},
+				{source:4, target:6, key:"1,5", value:19595476, colorBy:"source"},
+				{source:3, target:8, key:"1,6", value:19595476, colorBy:"source"},
+				{source:4, target:7, key:"1,7", value:19595476, colorBy:"source"},
+				{source:5, target:6, key:"1,8", value:19595476, colorBy:"source"}
+			],
+			[
+				{source:6, target:9, key:"2,0", value:19595476, colorBy:"source"},
+				{source:7, target:10, key:"2,1", value:19595476, colorBy:"source"},
+				{source:8, target:11, key:"2,2", value:19595476, colorBy:"source"},
+				{source:6, target:9, key:"2,3", value:19595476, colorBy:"source"},
+				{source:7, target:10, key:"2,4", value:19595476, colorBy:"source"},
+				{source:8, target:11, key:"2,5", value:19595476, colorBy:"source"},
+				{source:6, target:9, key:"2,6", value:19595476, colorBy:"source"},
+				{source:7, target:10, key:"2,7", value:19595476, colorBy:"source"},
+				{source:8, target:11, key:"2,8", value:19595476, colorBy:"source"}
+			],
+			[
+				{source:10, target:13, key:"3,0", value:19595476, colorBy:"source"},
+				{source:9, target:12, key:"3,1", value:19595476, colorBy:"source"},
+				{source:11, target:14, key:"3,2", value:19595476, colorBy:"source"},
+				{source:9, target:13, key:"3,3", value:19595476, colorBy:"source"},
+				{source:10, target:12, key:"3,4", value:19595476, colorBy:"source"},
+				{source:11, target:14, key:"3,5", value:19595476, colorBy:"source"},
+				{source:9, target:13, key:"3,6", value:19595476, colorBy:"source"},
+				{source:11, target:12, key:"3,7", value:19595476, colorBy:"source"},
+				{source:10, target:14, key:"3,8", value:19595476, colorBy:"source"}
+			],
+			[
+				{source:12, target:16, key:"4,0", value:19595476, colorBy:"source"},
+				{source:13, target:15, key:"4,1", value:19595476, colorBy:"source"},
+				{source:14, target:17, key:"4,2", value:19595476, colorBy:"source"},
+				{source:12, target:16, key:"4,3", value:19595476, colorBy:"source"},
+				{source:12, target:15, key:"4,4", value:19595476, colorBy:"source"},
+				{source:13, target:17, key:"4,5", value:19595476, colorBy:"source"},
+				{source:14, target:16, key:"4,6", value:19595476, colorBy:"source"},
+				{source:13, target:15, key:"4,7", value:19595476, colorBy:"source"},
+				{source:14, target:17, key:"4,8", value:19595476, colorBy:"source"}
+			],
+			[
+				{source:15, target:18, key:"5,0", value:19595476, colorBy:"source"},
+				{source:16, target:19, key:"5,1", value:19595476, colorBy:"source"},
+				{source:17, target:20, key:"5,2", value:19595476, colorBy:"source"},
+				{source:15, target:18, key:"5,3", value:19595476, colorBy:"source"},
+				{source:16, target:19, key:"5,4", value:19595476, colorBy:"source"},
+				{source:17, target:20, key:"5,5", value:19595476, colorBy:"source"},
+				{source:15, target:18, key:"5,6", value:19595476, colorBy:"source"},
+				{source:16, target:19, key:"5,7", value:19595476, colorBy:"source"},
+				{source:17, target:20, key:"5,8", value:19595476, colorBy:"source"}
+			],
+			[
+				{source:18, target:23, key:"6,0", value:19595476, colorBy:"source"},
+				{source:19, target:22, key:"6,1", value:19595476, colorBy:"source"},
+				{source:19, target:21, key:"6,2", value:19595476, colorBy:"source"},
+				{source:20, target:23, key:"6,3", value:19595476, colorBy:"source"},
+				{source:19, target:22, key:"6,4", value:19595476, colorBy:"source"},
+				{source:20, target:21, key:"6,5", value:19595476, colorBy:"source"},
+				{source:18, target:23, key:"6,6", value:19595476, colorBy:"source"},
+				{source:18, target:22, key:"6,7", value:19595476, colorBy:"source"},
+				{source:20, target:21, key:"6,8", value:19595476, colorBy:"source"}
+			]
+		]
+
+		var firstColumn = 0;
+		var columnsShown = 4;
+
+		sankeyChart
+			.select('.sankey-chart')
+			.width($(window).width())
+			.height($(window).height()-20)
+			.nodePadding(150)
+			.xFormat({siPrefixed:true,separateThousands:false,units:{before:"$"},precision:4});
+
+		var pan = function(){
+			var linksToShow = [];
+			linksToShow = linksToShow.concat.apply(linksToShow, links.slice(firstColumn, firstColumn + columnsShown-1));
+
+			var nodesToShow = [];
+			nodesToShow = nodesToShow.concat.apply(nodesToShow, nodes.slice(firstColumn, firstColumn + columnsShown));
+
+			linksToShow = $.extend(true,[],linksToShow);
+			nodesToShow = $.extend(true,[],nodesToShow);
+
+			var nodeIds = nodesToShow.map(function(d){return d.id});
+			var minNodeId = d3.min(nodeIds);
+
+			linksToShow.forEach(function(d){d.source -= minNodeId;d.target -= minNodeId;});
+			nodesToShow.forEach(function(d){d.id -= minNodeId;});
+
+			sankeyChart
+				.data(
+					{
+						data:{
+							columnHeaders:headers.slice(firstColumn,firstColumn+columnsShown),
+							links:linksToShow,
+							nodes:nodesToShow
+					}
+				}
+			).update();
+		};
+
+		pan();
+
+		$(".back").click(function(){
+			firstColumn = Math.max(0,firstColumn-1);
+			pan();
+		});
+		$(".forward").click(function(){
+			firstColumn = Math.min(nodes.length-columnsShown-1,firstColumn+1);
+			pan();
+		});
+
+		$(window).resize(function(){
+			sankeyChart.height($(window).height()-20).width($(window).width()).update(function(){console.log("resized!")});
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div style = 'margin-top:20px;' class = 'sankey-chart'></div>
+<div style = 'border:2px solid #333;padding:5px;font-size:15pt;font-weight:bold;cursor:pointer;position:absolute;top:0;left:0;' class = 'back'>back</div>
+<div style = 'border:2px solid #333;padding:5px;font-size:15pt;font-weight:bold;cursor:pointer;position:absolute;top:0px;left:60px;'  class = 'forward'>forward</div>
+
+</body>
+</html>

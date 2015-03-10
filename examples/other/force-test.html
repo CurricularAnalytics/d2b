@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+    var nodes = [];
+    for(var i=0;i<15;i++){
+      nodes.push({type:0,label:i,radius:Math.random()*50});
+      nodes.push({type:1,label:i,radius:Math.random()*50});
+      nodes.push({type:2,label:i,radius:Math.random()*50});
+      nodes.push({type:3,label:i,radius:Math.random()*50});
+    }
+
+
+    // var force = d3.layout.force()
+    //     .nodes(nodes)
+    //     .links([])
+    //     .gravity(0)
+    //     // .charge(function(d){return -Math.pow(d.radius,2.0)/15;})
+    //     .charge(function(d){return -d.radius})
+    //     .size([1000,1000]);
+
+    function tick(e){
+      var k = e.alpha * 0.05;
+      nodes.forEach(function(o, i) {
+        o.y += (foci[o.type].y - o.y) * k;
+        o.x += (foci[o.type].x - o.x) * k;
+      });
+      circle
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+    }
+
+
+    var foci = [
+      {x:300, y:300, force: d3.layout.force()
+          .nodes(nodes.filter(function(d){return d.type == 0;}))
+          .links([])
+          .gravity(0)
+          .charge(function(d){return -Math.pow(d.radius,2.0)/4;})
+          .size([1000,1000])
+          .on('tick', tick)},
+      {x:300, y:600, force: d3.layout.force()
+          .nodes(nodes.filter(function(d){return d.type == 1;}))
+          .links([])
+          .gravity(0)
+          .charge(function(d){return -Math.pow(d.radius,2.0)/4;})
+          .size([1000,1000])
+          .on('tick', tick)},
+      {x:600, y:300, force: d3.layout.force()
+          .nodes(nodes.filter(function(d){return d.type == 2;}))
+          .links([])
+          .gravity(0)
+          .charge(function(d){return -Math.pow(d.radius,2.0)/4;})
+          .size([1000,1000])
+          .on('tick', tick)},
+      {x:600, y:600, force: d3.layout.force()
+          .nodes(nodes.filter(function(d){return d.type == 3;}))
+          .links([])
+          .gravity(0)
+          .charge(function(d){return -Math.pow(d.radius,2.0)/4;})
+          .size([1000,1000])
+          .on('tick', tick)}
+      ]
+
+    var container = d3.select('.force');
+    var circle = container.selectAll('circle').data(nodes);
+
+
+    circle.enter()
+      .append('circle')
+        .attr('r',function(d){return d.radius;})
+        .style('fill','red')
+        .style('stroke-width','1px')
+        .style('stroke','black')
+        // .attr('cx',function(){return 200+Math.random()*500;})
+        // .attr('cy',function(){return 200+Math.random()*500;})
+
+    foci.forEach(function(d){
+      d.force.start();
+    })
+
+
+    var focus = container.selectAll('circle.focus').data(foci);
+    focus.enter()
+      .append('circle')
+        .attr('r',10)
+        .attr('cx', function(d){return d.x;})
+        .attr('cy', function(d){return d.y;})
+
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<!-- <div class='randomize-button'style = 'position:absolute;top:0;left:0;padding:10px;border:2px solid black;'>Randomize!</div> -->
+<svg class = 'force' width = '1000', height = '1000'></svg>
+
+</body>
+</html>

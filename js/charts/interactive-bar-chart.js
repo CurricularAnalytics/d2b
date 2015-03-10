@@ -3,55 +3,56 @@
 
 /*axis chart*/
 AD.CHARTS.interactiveBarChart = function(){
-	
+
 	//define axisChart variables
 	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();		
-	
+			height = AD.CONSTANTS.DEFAULTHEIGHT();
+
 	var innerHeight = height, innerWidth = width;
-	var dimensions = {horizontal:innerWidth, vertical:innerHeight};		
-			
+	var dimensions = {horizontal:innerWidth, vertical:innerHeight};
+
 	var xScale = {type: 'linear', scale: d3.scale.linear(), domain:'auto'},
-			yScale = {type: 'linear', scale: d3.scale.linear(), domain:'auto'};		
-			
+			yScale = {type: 'linear', scale: d3.scale.linear(), domain:'auto'};
+
 	var scales = {
 		horizontal:xScale,
 		vertical:yScale
-	}		
-			
-	var xBand; //used for the bar width in barCharts		
-			
-	var generateRequired = true; //using some methods may require the chart to be redrawn		
-				
+	}
+
+	var xBand; //used for the bar width in barCharts
+
+	var generateRequired = true; //using some methods may require the chart to be redrawn
+
 	var selection = d3.select('body'); //default selection of the HTML body
-	
+
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
-	
-	var horizontalLegend; 
-	var horizontalControls;
-	
+
+	var legend = new AD.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
+			legendOrientation = 'bottom';
+
 	var xFormat = function(value){return value};
 	var yFormat = function(value){return value};
-	
+
 	//init event object
 	var on = {
 		elementMouseover:function(){},
 		elementMouseout:function(){},
 		elementClick:function(){}
 	};
-	
+
 	var orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
-	
+
 	var controls = {
 				yAxisLock: {
 					label: "Lock Y-Axis",
 					type: "checkbox",
-					visible: false, 
+					visible: false,
 					enabled: false,
 					maxStacked:AD.CONSTANTS.DEFAULTHEIGHT(),
 					maxNonStacked:AD.CONSTANTS.DEFAULTHEIGHT()
-				}, 
+				},
 				stacking: {
 					label: "Stack Bars",
 					type: "checkbox",
@@ -63,18 +64,24 @@ AD.CHARTS.interactiveBarChart = function(){
 					type: "checkbox",
 					visible: false,
 					enabled:false
+				},
+				hideLegend: {
+					label: "Hide Legend",
+					type: "checkbox",
+					visible: false,
+					enabled: false
 				}
 			};
-	
+
 	var color = AD.CONSTANTS.DEFAULTCOLOR();
-	
+
 	var currentChartData = {
 				columns: {},
 				labels:{x:'',y:''}
 			};
-	
+
 	/*COLUMN METHODS*/
-	
+
 	// remove the column (fade out)
 	var removeColumn = function(column){
 		var columnToBeRemoved = column.svg;
@@ -85,10 +92,10 @@ AD.CHARTS.interactiveBarChart = function(){
 				.each('end',function(){
 					columnToBeRemoved.remove();
 				});
-				
+
 		return;
 	}
-	
+
 	var updateColumn = function(column){
 		var bar = column.svg.selectAll('rect').data(column.data.values, function(d){return d.x});
 		bar.enter().append('rect')
@@ -96,18 +103,18 @@ AD.CHARTS.interactiveBarChart = function(){
 				.style('opacity',0)
 				.attr(orientation.height,0)
 				.attr(orientation.y,dimensions[orientation.vertical])
-				.on('mouseover',function(d){
+				.on('mouseover.ad-mouseover',function(d){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
 				})
-				.on('mouseout',function(d){
+				.on('mouseout.ad-mouseout',function(d){
 					AD.UTILS.removeTooltip();
 				});
-		
+
 		bar
 				.style('fill', color(column.data.label))
 				// .style('stroke-width','0.6px')
 				.style('opacity',1);
-		
+
 		bar.transition()
 				.duration(animationDuration)
 				.attr(orientation.x,function(d){return d.xPos;})
@@ -115,8 +122,8 @@ AD.CHARTS.interactiveBarChart = function(){
 				.attr(orientation.width,function(d){return d[orientation.width];})
 				.attr(orientation.height,function(d){return d[orientation.height];})
 				// .style('stroke', color(column.data.label));
-				
-		bar.exit()		
+
+		bar.exit()
 			.transition()
 				.duration(animationDuration)
 				.style('opacity',0)
@@ -124,7 +131,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				.attr(orientation.y,dimensions.vertical)
 				.remove();
 	};
-	
+
 	//offset correction for ordinal axis
 	var offsetPointX = function(){
 		if(xScale.type == 'ordinal')
@@ -132,15 +139,15 @@ AD.CHARTS.interactiveBarChart = function(){
 		else
 			return 0;
 	}
-	
+
 	//compute bar positions for all bar columns (stacked vs grouped)
 	var computeBarPositions = function(columns){
 		var xBand;
 		var barWidth;
 		var xBandDefault = innerWidth/(columns.length * 2);
-		
+
 		var yVals = {};
-		
+
 		if(controls.stacking.enabled){
 			if(xScale.type == 'ordinal'){
 				xBand = scales[orientation.horizontal].scale.rangeBand();
@@ -148,10 +155,10 @@ AD.CHARTS.interactiveBarChart = function(){
 			}else{
 				xBand = -xBandDefault*2.5;
 				barWidth = xBandDefault;
-			}	
+			}
 			columns.forEach(function(column,i){
 				column.data.values.forEach(function(bar){
-					
+
 					if(controls.horizontal.enabled){
 						bar[orientation.height] = scales[orientation.vertical].scale(bar.y);
 						yVals[bar.x] = yVals[bar.x] || 0;
@@ -169,7 +176,7 @@ AD.CHARTS.interactiveBarChart = function(){
 					}
 				});
 			});
-		}else{ 
+		}else{
 			if(xScale.type == 'ordinal'){
 				xBand = d3.scale.ordinal()
 						.domain(columns.map(function(c){return c.data.label}))
@@ -178,7 +185,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				xBand = d3.scale.ordinal()
 						.domain(columns.map(function(c){return c.data.label}))
 						.rangeRoundBands([-xBandDefault/2, xBandDefault/2], 0.05, 0.3);
-			}	
+			}
 			barWidth = xBand.rangeBand();
 			columns.forEach(function(column,i){
 				column.data.values.forEach(function(bar){
@@ -197,20 +204,20 @@ AD.CHARTS.interactiveBarChart = function(){
 			});
 		}
 	};
-	
+
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
-	
+
 	//members that will set the regenerate flag
 	chart.select = function(value){
 		selection = d3.select(value);
-		generateRequired = true;	
+		generateRequired = true;
 		return chart;
 	};
 	chart.selection = function(value){
 		if(!arguments.length) return selection;
 		selection = value;
-		generateRequired = true;	
+		generateRequired = true;
 		return chart;
 	};
 	chart.xScale = function(value){
@@ -218,16 +225,16 @@ AD.CHARTS.interactiveBarChart = function(){
 		xScale.type = value.type;
 		xScale.domain = value.domain;
 		generateRequired = true;
-		
+
 		if(value.type == 'linear'){
 			xScale.scale = d3.scale.linear();
 		}else if(value.type == 'ordinal'){
 			xScale.scale = d3.scale.ordinal();
 		}
-		
+
 		if(!value.domain)
 			xScale.domain = 'auto';
-		
+
 		return chart;
 	};
 	chart.yScale = function(value){
@@ -235,19 +242,19 @@ AD.CHARTS.interactiveBarChart = function(){
 		yScale.type = value.type;
 		yScale.domain = value.domain;
 		generateRequired = true;
-		
+
 		if(value.type == 'linear'){
 			yScale.scale = d3.scale.linear();
 		}else if(value.type == 'ordinal'){
 			yScale.scale = d3.scale.ordinal();
 		}
-		
+
 		if(!value.domain)
 			yScale.domain = 'auto';
-		
+
 		return chart;
 	};
-	
+
 	//methods that require update
 	chart.width = function(value){
 		if(!arguments.length) return width;
@@ -259,13 +266,13 @@ AD.CHARTS.interactiveBarChart = function(){
 		height = value;
 		return chart;
 	};
-	
+
 	// chart.horizontal = function(value){
 	// 	if(!arguments.length) return controls.horizontal.enabled;
 	// 	controls.horizontal.enabled = value;
 	// 	return chart;
 	// }
-	
+
 	chart.controls = function(value){
 		if(!arguments.length) return controls;
 		if(value.yAxisLock){
@@ -273,28 +280,30 @@ AD.CHARTS.interactiveBarChart = function(){
 			controls.yAxisLock.enabled = (value.yAxisLock.enabled != null)? value.yAxisLock.enabled:controls.yAxisLock.enabled;
 			controls.yAxisLock.maxStacked = (value.yAxisLock.maxStacked != null)? value.yAxisLock.maxStacked:controls.yAxisLock.maxStacked;
 			controls.yAxisLock.maxNonStacked = (value.yAxisLock.maxNonStacked != null)? value.yAxisLock.maxNonStacked:controls.yAxisLock.maxNonStacked;
-		}	
-		
+		}
 		if(value.stacking){
 			controls.stacking.visible = (value.stacking.visible != null)? value.stacking.visible:controls.stacking.visible;
 			controls.stacking.enabled = (value.stacking.enabled != null)? value.stacking.enabled:controls.stacking.enabled;
-		}	
-		
+		}
 		if(value.horizontal){
 			controls.horizontal.visible = (value.horizontal.visible != null)? value.horizontal.visible:controls.horizontal.visible;
 			controls.horizontal.enabled = (value.horizontal.enabled != null)? value.horizontal.enabled:controls.horizontal.enabled;
-		}	
+		}
+		if(value.hideLegend){
+			controls.hideLegend.visible = (value.hideLegend.visible != null)? value.hideLegend.visible:controls.hideLegend.visible;
+			controls.hideLegend.enabled = (value.hideLegend.enabled != null)? value.hideLegend.enabled:controls.hideLegend.enabled;
+		}
 		return chart;
 	};
 	chart.animationDuration = function(value){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
-		horizontalLegend.animationDuration(animationDuration);
+		legend.animationDuration(animationDuration);
 		horizontalControls.animationDuration(animationDuration);
 		return chart;
 	};
-	
-	
+
+
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
 		xFormat = AD.UTILS.numberFormat(value);
@@ -305,7 +314,13 @@ AD.CHARTS.interactiveBarChart = function(){
 		yFormat = AD.UTILS.numberFormat(value);
 		return chart;
 	};
-	
+
+	chart.legendOrientation = function(value){
+		if(!arguments.length) return legendOrientation;
+		legendOrientation = value;
+		return chart;
+	};
+
 	chart.on = function(key, value){
 		key = key.split('.');
 		if(!arguments.length) return on;
@@ -315,15 +330,15 @@ AD.CHARTS.interactiveBarChart = function(){
 			else
 				return on[key[0]]['default'];
 		};
-		
+
 		if(key[1])
 			on[key[0]][key[1]] = value;
 		else
 			on[key[0]]['default'] = value;
-		
+
 		return chart;
 	};
-	
+
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return currentChartData;
 		if(reset){
@@ -333,7 +348,7 @@ AD.CHARTS.interactiveBarChart = function(){
 						};
 			generateRequired = true;
 		}
-		
+
 		chartData.data.columns.forEach(function(d,i){
 			var c;
 			if(currentChartData.columns[d.label]){
@@ -351,13 +366,13 @@ AD.CHARTS.interactiveBarChart = function(){
 				removeColumn(c);
 				delete currentChartData.columns[d.label];
 			}
-		});	
+		});
 		if(chartData.data.labels)
 			currentChartData.labels = chartData.data.labels;
-		
+
 		return chart;
 	};
-	
+
 	//generate chart
 	chart.generate = function(callback) {
 		generateRequired = false;
@@ -369,8 +384,8 @@ AD.CHARTS.interactiveBarChart = function(){
 		selection.svg = selection
 			.append('svg')
 				.attr('class','ad-interactive-bar-chart ad-svg ad-container');
-				
-		//create group container		
+
+		//create group container
 		selection.group = selection.svg.append('g');
 
 		//create axis containers
@@ -386,11 +401,11 @@ AD.CHARTS.interactiveBarChart = function(){
 		selection.group.axes.xLabel = selection.group.axes
 			.append('g')
 				.attr('class','ad-x-label')
-			.append('text');		
+			.append('text');
 		selection.group.axes.yLabel = selection.group.axes
 			.append('g')
 				.attr('class','ad-y-label')
-			.append('text');		
+			.append('text');
 
 
 
@@ -398,37 +413,35 @@ AD.CHARTS.interactiveBarChart = function(){
 		selection.group.columns = selection.group
 			.append('g')
 				.attr('class','ad-columns');
-				
+
 		for(key in currentChartData.columns){
 			currentChartData.columns[key].svg = selection.group.columns
 				.append('g');
-		}		
-				
-		//create controls container		
+		}
+
+		//create controls container
 		selection.controls = selection.group
-			.append('g')	
+			.append('g')
 				.attr('class','ad-controls');
-				
+
 		//intialize new controls
-		horizontalControls = new AD.UTILS.CONTROLS.horizontalControls();
 		horizontalControls
 				.selection(selection.controls)
 				.on('elementChange',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
-				});		
-				
-		//create legend container		
+				});
+
+		//create legend container
 		selection.legend = selection.group
-			.append('g')	
+			.append('g')
 				.attr('class','ad-legend');
-		
+
 		//intialize new legend
-		horizontalLegend = new AD.UTILS.LEGENDS.horizontalLegend();
-		horizontalLegend
+		legend
 				.color(color)
 				.selection(selection.legend)
-				.on('elementMouseover',function(d,i){
+				.on('elementMouseover.ad-mouseover',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/2)
@@ -439,7 +452,7 @@ AD.CHARTS.interactiveBarChart = function(){
 							.style('opacity',1);
 					// .classed('ad-legend-mouseover',true);
 				})
-				.on('elementMouseout',function(d,i){
+				.on('elementMouseout.ad-mouseout',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/4)
@@ -447,19 +460,19 @@ AD.CHARTS.interactiveBarChart = function(){
 					// d.data.svg.classed('ad-legend-mouseover',false);
 				});
 
-				
+
 		//auto update chart
 		var temp = animationDuration;
-		chart.animationDuration(0);		
+		chart.animationDuration(0);
 		chart.update(callback);
 		chart.animationDuration(temp);
-		
+
 		return chart;
 	};
-	
+
 	//update chart
 	chart.update = function(callback){
-		
+
 		//if generate required call the generate method
 		if(generateRequired){
 			return chart.generate(callback);
@@ -468,7 +481,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
 		forcedMargin.bottom += 20;
 		forcedMargin.left += 20;
-		
+
 		if(controls.horizontal.enabled){
 			scales = {
 					horizontal:yScale,
@@ -484,36 +497,76 @@ AD.CHARTS.interactiveBarChart = function(){
 		}
 
 		var columns = AD.UTILS.getValues(currentChartData.columns);
-		
+
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
-		
-		var legendData = {
-			data:{
-				items:columns
-								.map(function(d){return {label:d.data.label,data:d};})
-								.sort(function(a,b){return a.label-b.label})
-			}
-		};
-		horizontalLegend.width(innerWidth).data(legendData).update();
-		forcedMargin.bottom += horizontalLegend.computedHeight();
-		
+
+		if(controls.hideLegend.enabled){
+			var legendData = {data:{items:[]}};
+		}else{
+			var legendData = {
+				data:{
+					items:columns
+									.filter(function(d){return d.newType != 'none';})
+									.map(function(d){return {label:d.data.label,type:d.newType,data:d};})
+									.sort(function(a,b){return a.label-b.label})
+				}
+			};
+		}
+		legend.width(innerWidth).data(legendData).update();
+
 		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
 		horizontalControls.width(innerWidth).data(controlsData).update();
 		forcedMargin.top += horizontalControls.computedHeight();
-		
+
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
-		
+
+		//reposition the controls
+		selection.controls
+			.transition()
+				.duration(animationDuration)
+				.attr('transform','translate('+((forcedMargin.left) + innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10+(forcedMargin.top))+')');
+				// .attr('transform','translate('+(innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10)+')');
+
+
+		if(legendOrientation == 'right' || legendOrientation == 'left'){
+			legend.orientation('vertical').height(innerHeight).update();
+		}
+		else{
+			legend.orientation('horizontal').width(innerWidth).update();
+		}
+
+		var legendTranslation;
+		if(legendOrientation == 'right')
+			legendTranslation = 'translate('+(forcedMargin.left+innerWidth-legend.computedWidth())+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
+		else if(legendOrientation == 'left')
+			legendTranslation = 'translate('+(forcedMargin.left)+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
+		else if(legendOrientation == 'top')
+			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(forcedMargin.top-20)+')';
+		else
+			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(25+innerHeight+forcedMargin.top-legend.computedHeight())+')';
+
+		selection.legend
+			.transition()
+				.duration(animationDuration)
+				.attr('transform',legendTranslation);
+
+		if(legendOrientation == 'right' || legendOrientation == 'left')
+			forcedMargin[legendOrientation] += legend.computedWidth() + 30;
+		else
+			forcedMargin[legendOrientation] += legend.computedHeight();
+
+		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
+		innerWidth = width - forcedMargin.right - forcedMargin.left;
+
 		dimensions = {horizontal:innerWidth, vertical:innerHeight};
-		
+
 		//gather x and y values to find domain
 		var xVals = [];
 		var yVals = [];
-		
 
-		
 	  var yValsStackedBars = {};
 		if(controls.stacking.enabled){
 			columns.forEach(function(column,i){
@@ -536,9 +589,9 @@ AD.CHARTS.interactiveBarChart = function(){
 				}
 			});
 		}
-		
+
 		var domains = {};
-		
+
 		if(scales[orientation.horizontal].type == 'ordinal'){
 			scales[orientation.horizontal].scale.rangeRoundBands([0, dimensions[orientation.horizontal]], .1);
 			domains[orientation.horizontal] = AD.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
@@ -563,24 +616,24 @@ AD.CHARTS.interactiveBarChart = function(){
 		else{
 			scales[orientation.horizontal].scale.domain(scales[orientation.horizontal].domain);
 		}
-		
+
 		if(scales[orientation.vertical].domain == 'auto')
 			scales[orientation.vertical].scale.domain(domains[orientation.vertical]);
 		else
 			scales[orientation.vertical].scale.domain(scales[orientation.vertical].domain);
-		
+
 		if(controls.horizontal.enabled){
 			// scales[orientation.horizontal].scale.domain(scales[orientation.horizontal].scale.domain().reverse());
 			scales[orientation.vertical].scale.domain(scales[orientation.vertical].scale.domain().reverse());
 		}
-		
-		
-		//resize svg		
+
+
+		//resize svg
 		selection.svg
 				.attr('width',width)
-				.attr('height',height);		
-				
-		//create x and y axes		
+				.attr('height',height);
+
+		//create x and y axes
 		scales[orientation.vertical].scale.nice(5)
 		var axes = {
 			x:d3.svg.axis()
@@ -592,22 +645,22 @@ AD.CHARTS.interactiveBarChart = function(){
 				.orient(orientation.left)
 				.tickFormat(yFormat)
 		};
-		
+
 		//initialize y-axes transition
 		selection.group.axes[orientation.y]
 			.transition()
 				.duration(animationDuration)
 				.call(axes[orientation.y]);
-		
+
 		//find the longest y-axis tick text
 		var longestTick = 0;
 		selection.group.axes[orientation.y].selectAll('.tick text').each(function(){
 			if(longestTick < this.getComputedTextLength())
 				longestTick = this.getComputedTextLength();
-		})		
-		
+		})
+
 		forcedMargin.left += longestTick;
-		
+
 		//resize the width based on the longest tick text
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
@@ -627,12 +680,12 @@ AD.CHARTS.interactiveBarChart = function(){
 				scales.horizontal.scale.rangeRoundBands([0, dimensions.horizontal], .1);
 			}
 		}
-	
-	
+
+
 	  //set tickSize for grid
 		axes.x.tickSize(-dimensions[orientation.vertical])
 		axes.y.tickSize(-dimensions[orientation.horizontal]);
-				
+
 		//transition x-axis
 		selection.group.axes[orientation.x]
 			.transition()
@@ -671,26 +724,12 @@ AD.CHARTS.interactiveBarChart = function(){
 			      // .attr('transform', 'translate('+(-35)+','+(innerHeight/2)+'),rotate(-90)')
 				.text(currentChartData.labels[orientation.y]);
 
-		//reposition the legend
-		selection.legend
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+(forcedMargin.left + (innerWidth - horizontalLegend.computedWidth())/2)+','+(innerHeight+25+(forcedMargin.top))+')');
-				// .attr('transform','translate('+(innerWidth - horizontalLegend.computedWidth())/2+','+(innerHeight+25)+')');
-
-		//reposition the controls
-		selection.controls
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+((forcedMargin.left) + innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10+(forcedMargin.top))+')');
-				// .attr('transform','translate('+(innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10)+')');
-
 		selection.group.columns
 			.transition()
 				.duration(animationDuration)
 				.attr('transform','translate('+ (forcedMargin.left) +','+ (forcedMargin.top) +')');
 				// .attr('transform','translate('+ (0) +','+ (0) +')');
-				
+
 
 		//calculate positions
 		computeBarPositions(columns);
@@ -700,13 +739,13 @@ AD.CHARTS.interactiveBarChart = function(){
 		});
 
 
-		d3.timer.flush();		
-			
+		d3.timer.flush();
+
 		if(callback)
-			callback();		
-				
+			callback();
+
 		return chart;
 	}
-	
+
 	return chart;
 };

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+
+		var interactiveBarChart = new AD.CHARTS.interactiveBarChart();
+		interactiveBarChart
+			.select('.interactive-bar-chart')
+			.width($(window).width())
+			.height($(window).height())
+			// .legendOrientation('left')
+			.controls({
+				yAxisLock: {
+					visible: true,
+					maxStacked: 780,
+					maxNonStacked: 312
+				},
+				stacking: { //only for bar charts
+					visible: true,
+					enabled:true
+				},
+				horizontal: {
+					visible:true,
+					enabled:true
+				},
+				hideLegend:{
+					visible:true
+				}
+			});
+
+		interactiveBarChart
+			.xScale({type: 'ordinal'})
+			// .xFormat({units:{before:'$'},separatedThousands:true})
+			// .yFormat({units:{before:'$'},prefixed:true})
+			// .yScale({type: 'linear',domain: [0,900]})
+
+		interactiveBarChart
+			.data(
+				{data:{
+					labels:{
+						x:'Template x label',
+						y:'Template y label'
+					},
+					columns:[
+						{
+							label:'data 1',
+							values:[
+								// {x:'freshmen',y:67},
+								{x:'sophmores',y:211},
+								{x:'juniors',y:346},
+								{x:'seniors',y:113}
+							]
+						},
+						{
+							label:'data 2',
+							values:[
+								{x:'freshmen',y:100},
+								{x:'juniors',y:11},
+								{x:'seniors',y:130}
+							]
+						},
+						{
+							label:'data 3',
+							values:[
+								{x:'freshmen',y:110},
+								{x:'seniors',y:20}
+							]
+						},
+						{
+							label:'data 4',
+							values:[
+								{x:'freshmen',y:105},
+								{x:'sophmores',y:611},
+								{x:'seniors',y:211}
+							]
+						},
+						{
+							label:'data 5',
+							values:[
+								{x:'freshmen',y:37},
+								{x:'sophmores',y:111},
+								{x:'juniors',y:146},
+								{x:'seniors',y:213}
+							]
+						},
+						{
+							label:'data 6',
+							values:[
+								{x:'freshmen',y:200},
+								{x:'sophmores',y:143},
+								{x:'juniors',y:46},
+								{x:'seniors',y:128}
+							]
+						}
+					]
+				}
+			}
+			).update();
+
+		setTimeout(function(){
+			interactiveBarChart.data(
+				{data:{
+									labels:{
+										x:'Template x label',
+										y:'Template y label'
+									},
+									columns:[
+										{
+											label:'data 1',
+											type:'none'
+										}
+									]
+								}
+							}
+			).update(function(){console.log("done!")})
+			// interactiveBarChart.horizontal(true).update();
+		},2000);
+
+
+		//
+		// setTimeout(function(){
+		// 	var newAxisChartData = {
+		// 		data:{
+		// 			columns:[
+		// 				{
+		// 					label:'data 1',
+		// 					type:'line'
+		// 				}
+		// 			]
+		// 		}
+		// 	};
+		// 	axisChart.update(newAxisChartData);
+		//
+		// 	axisChart.controls({
+		// 		yAxisLock: {
+		// 			visible: false,
+		// 			maxStacked: 780,
+		// 			maxNonStacked: 312
+		// 		},
+		// 		stacking: { //only for bar charts
+		// 			visible: true,
+		// 			enabled:false
+		// 		}
+		// 	});
+		//
+		// 	axisChart.update();
+		//
+		// 	setTimeout(function(){
+		// 		var newAxisChartData = {
+		// 			data:{
+		// 				columns:[
+		// 					{
+		// 						label:'data 1',
+		// 						type:'line',
+		// 						values:[
+		// 							{x:'freshmen',y:47},
+		// 							{x:'sophmores',y:111},
+		// 							{x:'juniors',y:746},
+		// 							{x:'Seniors',y:213},
+		// 							{x:'x5',y:113}
+		// 						]
+		// 					},
+		// 					{
+		// 						label:'data 6',
+		// 						type:'bar',
+		// 						values:[
+		// 							{x:'sophmores',y:143},
+		// 							{x:'juniors',y:46},
+		// 							{x:'Seniors',y:128}
+		// 						]
+		// 					}
+		// 				]
+		// 			}
+		// 		};
+		// 		axisChart.update(newAxisChartData);
+		// 		setTimeout(function(){
+		// 			var newAxisChartData = {
+		// 				data:{
+		// 					columns:[
+		// 						{
+		// 							label:'data 4',
+		// 							type:'none'
+		// 						},
+		// 						{
+		// 							label:'data 1',
+		// 							type:'line,basis',
+		// 							replace:true,
+		// 							values:[
+		// 								{x:'freshmen',y:47},
+		// 								{x:'sophmores',y:111},
+		// 								{x:'juniors',y:746},
+		// 								{x:'Seniors',y:213},
+		// 								{x:'x5',y:113}
+		// 							]
+		// 						}
+		// 					]
+		// 				}
+		// 			};
+		//
+		// 			axisChart.controls({
+		// 				yAxisLock: {
+		// 					visible: true,
+		// 					enabled: true,
+		// 					maxStacked: 780,
+		// 					maxNonStacked: 312
+		// 				},
+		// 				stacking: { //only for bar charts
+		// 					visible: true,
+		// 					enabled:false
+		// 				}
+		// 			});
+		//
+		// 			axisChart.update(newAxisChartData);
+		// 			setTimeout(function(){
+		// 				var newAxisChartData = {
+		// 					data:{
+		// 						columns:[
+		// 							{
+		// 								label:'data 1',
+		// 								values:[
+		// 									{x:'freshmen',y:87},
+		// 									{x:'sophmores',y:111},
+		// 									{x:'juniors',y:546},
+		// 									{x:'Seniors',y:313},
+		// 									{x:'x5',y:713}
+		// 								]
+		// 							},
+		// 							{
+		// 								label:'data 2',
+		// 								type:'none'
+		// 							}
+		// 						]
+		// 					}
+		// 				};
+		// 				axisChart.update(newAxisChartData);
+		// 				setTimeout(function(){
+		// 					var newAxisChartData = {
+		// 						data:{
+		// 							columns:[
+		// 								{
+		// 									label:'data 1',
+		// 									type:'area,basis',
+		// 									values:[
+		// 										{x:'freshmen',y:87},
+		// 										{x:'sophmores',y:111},
+		// 										{x:'juniors',y:546},
+		// 										{x:'Seniors',y:313},
+		// 										{x:'x5',y:713}
+		// 									]
+		// 								},
+		// 								{
+		// 									label:'data 2',
+		// 									type:'area',
+		// 									values:[
+		// 										{x:'freshmen',y:100},
+		// 										{x:'juniors',y:11},
+		// 										{x:'Seniors',y:130}
+		// 									]
+		// 								}
+		// 							]
+		// 						}
+		// 					};
+		// 					axisChart.update(newAxisChartData);
+		//
+		// 				},2000)
+		// 			},2000)
+		// 		},2000)
+		// 	},2000)
+		// },2000)
+
+		$(window).resize(function(){
+			interactiveBarChart.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'interactive-bar-chart'></div>
+
+</body>
+</html>

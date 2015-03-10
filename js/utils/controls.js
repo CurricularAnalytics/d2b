@@ -79,7 +79,7 @@ AD.UTILS.CONTROLS.checkbox = function(){
 		var newCheckboxContainer = checkboxContainer.enter()
 			.append('g')
 				.attr('class','ad-checkbox-container')
-				.on('click',function(d,i){
+				.on('click.ad-click',function(d,i){
 					currentCheckboxData.state = !currentCheckboxData.state;
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i);
@@ -89,12 +89,12 @@ AD.UTILS.CONTROLS.checkbox = function(){
 					}
 					checkbox.update();
 				})
-				.on('mouseover',function(d,i){
+				.on('mouseover.ad-mouseover',function(d,i){
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i);
 					}
 				})
-				.on('mouseout',function(d,i){
+				.on('mouseout.ad-mouseout',function(d,i){
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i);
 					}
@@ -235,7 +235,7 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 					.each(function(d){
 						d.control = new AD.UTILS.CONTROLS[d.type]();
 						d.control.selection(d3.select(this))
-							.on('elementClick',function(d,i){
+							.on('elementClick.ad-click',function(d,i){
 								for(key in on.elementClick){
 									on.elementClick[key].call(this,d,i);
 								}
@@ -245,12 +245,12 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 									on.elementChange[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseover',function(d,i){
+							.on('elementMouseover.ad-mouseover',function(d,i){
 								for(key in on.elementMouseover){
 									on.elementMouseover[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseout',function(d,i){
+							.on('elementMouseout.ad-mouseout',function(d,i){
 								for(key in on.elementMouseout){
 									on.elementMouseout[key].call(this,d,i);
 								}

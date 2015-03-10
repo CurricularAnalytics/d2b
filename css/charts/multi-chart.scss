@@ -1,0 +1,46 @@
+.ad-multi-chart-buttons-wrapper{
+  height:45px;
+  text-align:center;
+  padding-top:10px;
+	width:100%;
+  ul.ad-buttons{
+    margin-left:5px;
+    margin-right:5px;
+		padding:0px;
+		margin-top:0px;
+    background:#f8f8f8;
+    display:inline-block;
+    white-space:nowrap;
+		border-radius:2px;
+    border:1px solid $dark_main;
+    li{
+			border-right:1px solid $dark_main;
+			cursor:pointer;
+			font-family:"Droid Sans";
+      display:inline-block;
+      padding:7px 10px;
+      color:#777;
+      &.ad-selected{
+        box-shadow: inset 0px 2px 4px $light;
+      }
+      &.ad-selected{
+        background:$lightest;
+        color:$dark_main;
+      }
+      &:hover{
+        background:$lightest;
+      }
+			&:last-child{
+				border-right:0px;
+			}
+    }
+  }
+}
+
+.ad-multi-chart{
+	.ad-multi-chart-chart{
+		position:absolute;
+		top:50px;
+		left:0px;
+	}
+}

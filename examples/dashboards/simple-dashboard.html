@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<!-- <script src="//localhost:1337/livereload.js"></script> -->
+<script>
+	$(document).ready(function(){
+		var dashboard = new AD.DASHBOARDS.dashboard();
+
+		dashboard
+				// .animationDuration(0)
+				.palette({primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"})
+				.width($(window).width())
+				.select('.dashboard');
+
+		d3.json('./simple-dashboard.json',function(data){
+			dashboard.data(data).update();
+		});
+
+		$(window).resize(function(){
+			dashboard
+					.width($(window).width())
+					.update();
+		});
+
+	})
+</script>
+<style>
+.dashboard{
+/*	padding:10px;*/
+	height:100%;
+}
+body{
+	margin:0px;
+	background-image:url(./images/bg_filter.png);
+}
+</style>
+<body>
+	<div class = 'dashboard'></div>
+</body>
+</html>

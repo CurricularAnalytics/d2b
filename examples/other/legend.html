@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var legend = new AD.UTILS.LEGENDS.legend();
+
+		var container = d3.select('.legend')
+			.append('svg')
+				.attr('width',$(window).width())
+				.attr('height',$(window).height());
+
+		var legendSvg = container
+			.append('g');
+
+		legend
+			.selection(legendSvg)
+			.width($(window).width())
+			.on('elementMouseover',function(d,i){
+				console.log('moused over!');
+			})
+			.on('elementMouseover.second',function(d,i){
+				console.log('moused over second!');
+			})
+			.on('elementMouseout',function(d,i){
+				console.log('moused out!');
+			})
+			.on('elementClick',function(d,i){
+				console.log('clicked!');
+			});
+
+		legend.update({
+			data:{
+				items:[
+					{label:'legend item 1'},
+					{label:'legend item 2'},
+					{label:'legend item 3'},
+					{label:'legend item 4'},
+					{label:'legend item 5'},
+					{label:'legend item 6'},
+					{label:'legend item 7'},
+					{label:'legend item 8'},
+					{label:'legend item 9'},
+					{label:'legend item 10'}
+				]
+			}
+		});
+
+
+		legendSvg
+				.attr('transform','translate('+($(window).width() - legend.computedWidth() + 10)/2+',-10)');
+
+		$(window).resize(function(){
+			container
+				.attr('width',$(window).width())
+				.attr('height',$(window).height());
+			legend.width($(window).width()).update();
+
+			legendSvg
+				.transition()
+					.duration(500)
+					.attr('transform','translate('+($(window).width() - legend.computedWidth() + 10)/2+',-10)');
+
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'legend'></div>
+
+</body>
+</html>

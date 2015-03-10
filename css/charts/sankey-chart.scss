@@ -8,6 +8,22 @@
       text-anchor:end;
     }
   }
+  .ad-sankey-column-headers{
+    .ad-sankey-column-header{
+      text{
+        text-anchor: middle;
+        font-weight: bold;
+        font-size: 16px;
+      }
+      &:first-child text{
+        text-anchor: start;
+      }
+      &:last-child text{
+        text-anchor: end;
+      }
+    }
+  }
+
   .ad-sankey{
     .ad-sankey-links{
       path{

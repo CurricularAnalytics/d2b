@@ -11,31 +11,31 @@ AD.UTILS.createGeneralTooltip = function(elem, heading, content){
 			.attr('class','ad-general-tooltip')
 			.html(heading+': '+content)
 			.style('opacity',0);
-	
+
 	adGeneralTooltip
 		.transition()
 			.duration(50)
 			.style('opacity',1);
 	var scroll = AD.UTILS.scrollOffset();
-	
+
 	var bodyWidth = body.node().getBoundingClientRect().width;
 	// console.log(bodyWidth)
 	var pos = {left:0,top:0};
-	
-	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)? 
-								scroll.left+d3.event.clientX+10 : 
+
+	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
+								scroll.left+d3.event.clientX+10 :
 								scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 	pos.top = scroll.top+d3.event.clientY-10;
-			
-	AD.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);	
+
+	AD.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
 	elem.on('mousemove',function(){
 		scroll = AD.UTILS.scrollOffset();
 
-		pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)? 
-		scroll.left+d3.event.clientX+10 : 
+		pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
+		scroll.left+d3.event.clientX+10 :
 									scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 		pos.top = scroll.top+d3.event.clientY-10;
-	
+
 		AD.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
 	});
 	return adGeneralTooltip;
@@ -52,8 +52,8 @@ AD.UTILS.moveTooltip = function(tooltip, x, y, duration){
 			.style('opacity',1)
 			.style('top',y+'px')
 			.style('left',x+'px');
-			
-	d3.timer.flush();				
+
+	d3.timer.flush();
 };
 
 /*extra utilities*/
@@ -83,11 +83,73 @@ AD.UTILS.AXISCHARTS.getDomainOrdinal = function(values){
 };
 
 /*Formating Utilities*/
+AD.UTILS.niceFormat = function(value, precision){
+	if(!precision)
+		precision = 0;
+	var format = d3.format("."+precision+"f");
+	absValue = Math.abs(value);
+	if(isNaN(value)){
+		return value;
+	}else{
+		if(absValue < Math.pow(10,3))
+			return format(absValue);
+		else if(absValue < Math.pow(10,6))
+			return format(absValue/Math.pow(10,3))+' thousand';
+		else if(absValue < Math.pow(10,9))
+			return format(absValue/Math.pow(10,6))+' million';
+		else if(absValue < Math.pow(10,12))
+			return format(absValue/Math.pow(10,9))+' billion';
+		else if(absValue < Math.pow(10,15))
+			return format(absValue/Math.pow(10,12))+' trillion';
+		else if(absValue < Math.pow(10,18))
+			return format(absValue/Math.pow(10,15))+' quadrillion';
+		else if(absValue < Math.pow(10,21))
+			return format(absValue/Math.pow(10,18))+' quintillion';
+		else if(absValue < Math.pow(10,24))
+			return format(absValue/Math.pow(10,21))+' sextillion';
+		else if(absValue < Math.pow(10,27))
+			return format(absValue/Math.pow(10,24))+' septillion';
+		else if(absValue < Math.pow(10,30))
+			return format(absValue/Math.pow(10,27))+' octillion';
+		else if(absValue < Math.pow(10,33))
+			return format(absValue/Math.pow(10,30))+' nonillion';
+		else if(absValue < Math.pow(10,36))
+			return format(absValue/Math.pow(10,33))+' decillion';
+		else if(absValue < Math.pow(10,39))
+			return format(absValue/Math.pow(10,36))+' undecillion';
+		else if(absValue < Math.pow(10,42))
+			return format(absValue/Math.pow(10,39))+' duodecillion';
+		else if(absValue < Math.pow(10,45))
+			return format(absValue/Math.pow(10,42))+' tredecillion';
+		else if(absValue < Math.pow(10,48))
+			return format(absValue/Math.pow(10,45))+' quattuordecillion';
+		else if(absValue < Math.pow(10,51))
+			return format(absValue/Math.pow(10,48))+' quindecillion';
+		else if(absValue < Math.pow(10,54))
+			return format(absValue/Math.pow(10,51))+' sexdecillion';
+		else if(absValue < Math.pow(10,57))
+			return format(absValue/Math.pow(10,54))+' septendecillion';
+		else if(absValue < Math.pow(10,60))
+			return format(absValue/Math.pow(10,57))+' octdecillion';
+		else if(absValue < Math.pow(10,63))
+			return format(absValue/Math.pow(10,60))+' novemdecillion';
+		else if(absValue < Math.pow(10,303))
+			return format(absValue/Math.pow(10,63))+' vigintillion';
+		else
+			return format(absValue/Math.pow(10,303))+' centillion';
+	}
+}
+
 AD.UTILS.numberFormat = function(preferences){
 	var formatString = "";
 	var format;
-	
-	if(preferences.siPrefixed){
+	var units = {
+		before:(preferences.units.before)?preferences.units.before:"",
+		after:(preferences.units.after)?preferences.units.after:"",
+	}
+	if(preferences.nice){
+		return function(value){return units.before + AD.UTILS.niceFormat(value, preferences.precision) + units.after};
+	}else if(preferences.siPrefixed){
 		if(preferences.precision>-1){
 			formatString += "."+preferences.precision;
 		}
@@ -100,14 +162,10 @@ AD.UTILS.numberFormat = function(preferences){
 			formatString += "."+preferences.precision+"f";
 		}
 	}
-	
+
 	format = d3.format(formatString)
-	
+
 	return function(value){
-		var units = {
-			before:(preferences.units.before)?preferences.units.before:"",
-			after:(preferences.units.after)?preferences.units.after:"",
-		}
 		if(isNaN(value))
 			return units.before+value+units.after;
 		else
@@ -115,9 +173,33 @@ AD.UTILS.numberFormat = function(preferences){
 	}
 };
 
+AD.UTILS.textWrap = function(text, width) {
+  text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+      }
+    }
+  });
+};
+
 
 /*Custom Tweens*/
-function arcTween(transition, arc) {
+var arcTween = function(transition, arc) {
 	transition.attrTween("d",function(d){
 	  var i = d3.interpolate(this._current, d);
 	  this._current = d;
@@ -125,6 +207,4 @@ function arcTween(transition, arc) {
 	    return arc(i(t));
 	  };
 	})
-}
-
-
+};

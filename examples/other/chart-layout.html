@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var axisChart = new AD.CHARTS.axisChart();
+		axisChart
+			.controls({
+				yAxisLock: {
+					visible: false,
+					maxStacked: 780,
+					maxNonStacked: 312
+				},
+				stacking: { //only for bar charts
+					visible: false,
+					enabled:true
+				}
+			})
+			.xScale({type: 'ordinal'});
+
+
+		var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+		chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.chart(axisChart)
+				.select('.chart-layout');
+
+		axisChart.data({data:{
+					labels:{
+						x:'Template x label',
+						y:'Template y label'
+					},
+					columns:[
+						{
+							label:'data 1',
+							type:'area,spline',
+							values:[
+								{x:'x1',y:67},
+								{x:'x2',y:211},
+								{x:'x3',y:346},
+								{x:'x4',y:113}
+							]
+						},
+						{
+							label:'data 2',
+							type:'line,basis',
+							values:[
+								{x:'x1',y:100},
+								{x:'x3',y:11},
+								{x:'x4',y:130}
+							]
+						},
+						{
+							label:'data 3',
+							type:'area,cardinal-open',
+							values:[
+								{x:'x1',y:110},
+								{x:'x4',y:20}
+							]
+						},
+						{
+							label:'data 4',
+							type:'bar',
+							values:[
+								{x:'x1',y:105},
+								{x:'x2',y:611},
+								{x:'x4',y:211}
+							]
+						},
+						{
+							label:'data 5',
+							type:'scatter',
+							values:[
+								{x:'x1',y:37},
+								{x:'x2',y:111},
+								{x:'x3',y:146},
+								{x:'x4',y:213}
+							]
+						},
+						{
+							label:'data 6',
+							type:'bar',
+							values:[
+								{x:'x1',y:200},
+								{x:'x2',y:143},
+								{x:'x3',y:46},
+								{x:'x4',y:128}
+							]
+						}
+					]
+			}}
+		);
+
+
+		var chartLayoutData = {
+			"data":
+			{
+				"chartLayout":{
+					"title":"Here is the title of the chart",
+					"footnote":"* This is something important to note for the chart",
+					"source":["Office of Institutional Analytics", "Student Data Mart", "Fall 2013"],
+					"leftNotes":["Here is a note on the left side of the chart", "And Another"],
+					"rightNotes":["Here is a note on the right side of the chart", "And Another"]
+				}
+			}
+		};
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'chart-layout'></div>
+</body>
+</html>

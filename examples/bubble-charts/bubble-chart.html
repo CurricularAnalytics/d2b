@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var chart = new AD.CHARTS.bubbleChart();
+
+		chart
+			// .select('.bubble-chart')
+			// .width($(window).width())
+			// .height($(window).height())
+			.xFormat({nice:true,siPrefixed:false,units:{after:' students'}, separateThousands:false,precision:0})
+			// .sort(null)
+			// .legendOrientation('left')
+			.controls({sortByChange:{visible:true},hideLegend:{visible:true},colorByChange:{visible:true}})
+			.on('elementClick',function(d,i){
+				console.log(d)
+			});
+
+		var chartData  = {
+	"groupings":[{"label":"All Majors", "description":""},{"label":"College", "description":"", "default_color_grouping":true},{"label":"Department", "description":"", "hideLegend":true},{"label":"STEM", "description":""}],
+	"nodes":[
+		{"label":"Electrical Engineering", "key":"Electrical Engineering", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Electrical and Computer Engineering", "STEM"]},
+		{"label":"Computer Engineering", "key":"Computer Engineering", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Electrical and Computer Engineering", "STEM"]},
+		{"label":"Mechanical Engineering", "key":"Mechanical Engineering", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Mechanical Engineering", "STEM"]},
+		{"label":"Computer Science", "key":"Computer Science", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Computer Science", "STEM"]},
+		{"label":"Nuclear Engineering", "key":"Nuclear Engineering", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Nuclear Engineering", "STEM"]},
+		{"label":"Chemical Engineering", "key":"Chemical Engineering", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Chemical & Biological Engineering", "STEM"]},
+		{"label":"Civil Engineering", "key":"Civil Engineering", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Civil Engineering", "STEM"]},
+		{"label":"Architecture", "key":"Architecture", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Architecture & Planning", "Architecture", null]},
+		{"label":"Environmental Design", "key":"Environmental Design", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Architecture & Planning", "Environmental Design", null]},
+		{"label":"American Studies", "key":"American Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "American Studies", null]},
+		{"label":"English", "key":"English", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "English", null]},
+		{"label":"English-Philosophy", "key":"English-Philosophy", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "English", null]},
+		{"label":"African American Studies", "key":"African American Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"African Studies", "key":"African Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"French", "key":"French", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"German", "key":"German", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"Portuguese", "key":"Portuguese", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"Russian", "key":"Russian", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"Russian Studies", "key":"Russian Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"Spanish", "key":"Spanish", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+		{"label":"History", "key":"History", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "History", null]},
+		{"label":"Women Studies", "key":"Women Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Humanities", "Women Studies", null]},
+		{"label":"Asrophysics", "key":"Asrophysics", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Physics & Astronomy", "STEM"]},
+		{"label":"Physics", "key":"Physics", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Physics & Astronomy", "STEM"]},
+		{"label":"Physics & Astrophysics", "key":"Physics & Astrophysics", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Physics & Astronomy", "STEM"]},
+		{"label":"Environmental Sciences", "key":"Environmental Sciences", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Environmental Sciences", "STEM"]},
+		{"label":"Geography", "key":"Geography", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Geography", "STEM"]},
+		{"label":"Statistics", "key":"Statistics", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Statistics", "STEM"]},
+		{"label":"Anthropology", "key":"Anthropology", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Anthropology", null]},
+		{"label":"Communications", "key":"Communications", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Communications", null]},
+		{"label":"Journalism & Mass Communications", "key":"Journalism & Mass Communications", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Communications", null]},
+		{"label":"Mass Communications", "key":"Mass Communications", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Communications", null]},
+		{"label":"Linguistics", "key":"Linguistics", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Linguistics", null]},
+		{"label":"Political Science", "key":"Political Science", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Political Science", null]},
+		{"label":"Psychology", "key":"Psychology", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Psychology", null]},
+		{"label":"Speech & Hearing Sciences", "key":"Speech & Hearing Sciences", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Speech & Hearing Sciences", null]},
+		{"label":"Signed Language Interpretating", "key":"Signed Language Interpretating", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Signed Language Interpretating", null]},
+		{"label":"Sociology", "key":"Sociology", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Sociology", null]},
+		{"label":"Art Education", "key":"Art Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Educational Specialties", null]},
+		{"label":"Special Education", "key":"Special Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Educational Specialties", null]},
+		{"label":"Athletic Training", "key":"Athletic Training", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+		{"label":"Exercise Science", "key":"Exercise Science", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+		{"label":"Health Education", "key":"Health Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+		{"label":"Physical Education Teacher Education", "key":"Physical Education Teacher Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+		{"label":"Sport Administration", "key":"Sport Administration", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+		{"label":"Counselor Education", "key":"Counselor Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+		{"label":"Early Childhood Multicultural Education", "key":"Early Childhood Multicultural Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+		{"label":"Educational Psychology", "key":"Educational Psychology", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+		{"label":"Family Studies", "key":"Family Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+		{"label":"Nutrition", "key":"Nutrition", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+		{"label":"Language, Literacy, and Sociocultural Studies", "key":"Language, Literacy, and Sociocultural Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Language, Literacy, and Sociocultural Studies", null]},
+		{"label":"Educational Linguistics", "key":"Educational Linguistics", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Language, Literacy, and Sociocultural Studies", null]},
+		{"label":"Elementary Education", "key":"Elementary Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+		{"label":"Secondary Education", "key":"Secondary Education", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+		{"label":"Educational Leadership", "key":"Educational Leadership", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+		{"label":"Teacher Education Graduate Degrees and Post Master's Certificates", "key":"Teacher Education Graduate Degrees and Post Master's Certificates", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+		{"label":"Online MA in Education Program", "key":"Online MA in Education Program", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+		{"label":"Medical Laboratory Sciences", "key":"Medical Laboratory Sciences", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Medical Laboratory Sciences", "STEM"]},
+		{"label":"Nuclear Medical Imaging", "key":"Nuclear Medical Imaging", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Nuclear Medical Imaging", "STEM"]},
+		{"label":"Physician Assistant Studies", "key":"Physician Assistant Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Physician Assistant Studies", "STEM"]},
+		{"label":"Radiography", "key":"Radiography", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Radiography", "STEM"]},
+		{"label":"University Studies", "key":"University Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "University College", "University Studies", null]},
+		{"label":"Native American Studies", "key":"Native American Studies", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "University College", "Native American Studies", null]},
+		{"label":"Biology", "key":"Biology", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Biology", "STEM"]},
+		{"label":"Chemistry", "key":"Chemistry", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Chemistry", "STEM"]},
+		{"label":"Math", "key":"Math", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Mathematics", "STEM"]},
+		{"label":"Criminology", "key":"Criminology", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Arts and Sciences Social Sciences", "Criminology", null]},
+		{"label":"Art", "key":"Art", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Art & Art History", null]},
+		{"label":"Art History", "key":"Art History", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Art & Art History", null]},
+		{"label":"Dance", "key":"Dance", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Theatre & Dance", null]},
+		{"label":"Theatre", "key":"Theatre", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Theatre & Dance", null]},
+		{"label":"Music", "key":"Music", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Music", null]},
+		{"label":"Media Arts", "key":"Media Arts", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Cinematic Arts", null]},
+		{"label":"Emergency Medical Services", "key":"Emergency Medical Services", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Emergency Medicine", null]},
+		{"label":"Dental Hygiene", "key":"Dental Hygiene", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Dental", null]},
+		{"label":"Nursing", "key":"Nursing", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Nursing", "Nursing", null]},
+		{"label":"Doctor of Pharmacy", "key":"Doctor of Pharmacy", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Pharmacy", "Doctor of Pharmacy", null]}
+	]
+}
+console.log(JSON.stringify(chartData))
+
+		chart
+			.data({data:chartData});//.update();
+
+		var chartLayoutData = {
+			data:{
+				chartLayout:{
+					title:"Continuing Faculty Appointments",
+					footnote:"* (Excludes Research, Visiting, and Adjunct Faculty)",
+					// rightNotes:["Here is a note on the right side of the chart","Notice, the chart is balanced with the legend residing on the left hand side","And one final note.."],
+					// leftNotes:["Here is a note on the left side of the chart","Notice, the chart is balanced with the legend residing on the right hand side","And one final note.."]
+				}
+			}
+		}
+
+		var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+
+		chartLayout
+			.select('.bubble-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.chart(chart);
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	// 	setTimeout(function(){
+	// 		// chartData.nodes[0].key += '1';
+	// 		chartData.nodes = chartData.nodes.slice(0,Math.round(chartData.nodes.length/2))
+	//
+	// chart
+	// 	.data({data:chartData}).update();
+	// 	},2000);
+	//
+	//
+	// 	setTimeout(function(){
+	// 		chartData.nodes = chartData.nodes.concat(
+	// 			[{"label":"Music", "key":"Music", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Music", null]},
+	// 			{"label":"Media Arts", "key":"Media Arts", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Fine Arts", "Cinematic Arts", null]},
+	// 			{"label":"Emergency Medical Services", "key":"Emergency Medical Services", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Emergency Medicine", null]},
+	// 			{"label":"Dental Hygiene", "key":"Dental Hygiene", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Medicine", "Dental", null]},
+	// 			{"label":"Nursing", "key":"Nursing", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Nursing", "Nursing", null]},
+	// 			{"label":"Doctor of Pharmacy", "key":"Doctor of Pharmacy", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Pharmacy", "Doctor of Pharmacy", null]}]
+	// 		)
+	//
+	// 		// chartData.nodes = [		{"label":"Electrical Engineering", "key":"Electrical Engineering1", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Electrical and Computer Engineering", "STEM"]},
+	// 		// 		{"label":"Computer Engineering", "key":"Computer Engineering1", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Electrical and Computer Engineering", "STEM"]},
+	// 		// 		{"label":"Mechanical Engineering", "key":"Mechanical Engineering1", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Mechanical Engineering", "STEM"]},
+	// 		// 		{"label":"Computer Science", "key":"Computer Science1", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Computer Science", "STEM"]},
+	// 		// 		{"label":"Nuclear Engineering", "key":"Nuclear Engineering", "value": Math.round(Math.random()*100+25), "change": (Math.random()-0.5)*0.6,"enrollments":["UNM", "Engineering", "Nuclear Engineering", "STEM"]}]
+	//
+	// 		chart
+	// 			.data({data:chartData}).update();
+	// 	},4000);
+
+		// $(".randomize-button").click(function(){
+		//
+		// 	var current = chartData.partition;
+		//
+		// 	var changeChildValues = function(d){
+		// 		if(d.children){
+		// 				d.children.forEach(function(child){
+		// 					changeChildValues(child);
+		// 				});
+		// 		}else{
+		// 				d.size += Math.random()*2000-1300;
+		// 				d.size = Math.max(0,d.size);
+		// 		}
+		// 	};
+		//
+		// 	changeChildValues(current);
+		// 	chart
+		// 		.data({data:chartData}).update();
+		//
+		// });
+
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<!-- <div class='randomize-button'style = 'position:absolute;top:0;left:0;padding:10px;border:2px solid black;'>Randomize!</div> -->
+<div class = 'bubble-chart'></div>
+
+</body>
+</html>

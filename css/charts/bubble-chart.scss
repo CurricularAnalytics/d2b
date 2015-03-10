@@ -1,0 +1,112 @@
+.ad-bubble-chart-buttons-wrapper{
+  height:55px;
+  text-align:center;
+  padding-top:10px;
+  ul.ad-buttons{
+    margin-left:5px;
+    margin-right:5px;
+    background:#f8f8f8;
+    display:inline-block;
+    white-space:nowrap;
+    ul{
+      margin:0px;
+      display: inline-block;
+      border-right:1px solid $dark_main;
+      cursor:pointer;
+      &:last-child{
+        border-right:0px;
+      }
+
+
+
+      li{
+        // display:inline-block;
+        color:#777;
+        &.ad-selected{
+          background:$lightest;
+          color:$dark_main;
+        }
+        &:hover{
+          background:$lightest;
+        }
+      }
+      li.ad-button{
+        padding:7px 10px;
+        &.ad-selected{
+          box-shadow: inset 0px 2px 4px $light;
+        }
+      }
+      li.ad-color-button{
+        padding:1px 10px;
+        border-top:1px solid $dark_main;
+        &.ad-selected{
+          box-shadow: inset 0px -1px 4px $light;
+        }
+      };
+
+    }
+    border-radius:2px;
+    border:1px solid $dark_main;
+  }
+
+}
+.ad-bubble-chart{
+  .ad-bubbles{
+    .ad-bubble{
+      circle{
+        stroke-width:1px;
+        stroke:$dark_main;
+        fill-opacity:0.85;
+      	// -webkit-transition: fill-opacity 0.25s, stroke 0.25s;
+        //   transition: fill-opacity 0.25s, stroke 0.25s;
+        &:hover{
+          stroke-width:2px;
+          stroke:black !important;
+          fill-opacity:1;
+        }
+      }
+
+    }
+  }
+  .tick text{
+    font-size:9pt;
+    fill:$dark_main;
+  }
+  .ad-groups-axis{
+    pointer-events:none;
+    path{
+      fill:none;
+    }
+    .tick{
+      line{
+          pointer-events:none;
+          stroke-dasharray: 6,4;
+          stroke-width:0.5px;
+          stroke:$light;
+      }
+    }
+  }
+  .ad-change-axis-legend{
+    pointer-events:none;
+    path{
+      fill:none;
+    }
+    .tick{
+      line{
+          stroke-dasharray: 6,4;
+        stroke-width:1px;
+        stroke:$light;
+      }
+    }
+  }
+  .ad-groups{
+    pointer-events:none;
+    .ad-group-title{
+      text-anchor:middle;
+    }
+    .ad-group-total{
+      font-weight:bold;
+      text-anchor:middle;
+    }
+  }
+}

@@ -8,7 +8,7 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var chart;
 	var generateRequired = true;
-	
+
 
 	var chartLayout = {};
 
@@ -17,7 +17,7 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		chart = value;
 		generateRequired = true;
 		return chartLayout;
-	};	
+	};
 	chartLayout.width = function(value){
 		if(!arguments.length) return width;
 		width = value;
@@ -45,7 +45,7 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		animationDuration = value;
 		return chartLayout;
 	};
-	
+
 	chartLayout.data = function(chartLayoutData, reset){
 		if(!arguments.length) return currentChartLayoutData;
 		if(reset){
@@ -55,86 +55,85 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		// currentChartLayoutData.chartLayout = chartLayoutData.data.chartLayout
 		if(chartLayoutData.data.chartLayout.footnote)
 			currentChartLayoutData.chartLayout.footnote = chartLayoutData.data.chartLayout.footnote;
-		
+
 		if(chartLayoutData.data.chartLayout.rightNotes)
 			currentChartLayoutData.chartLayout.rightNotes = chartLayoutData.data.chartLayout.rightNotes;
-		
+
 		if(chartLayoutData.data.chartLayout.leftNotes)
 			currentChartLayoutData.chartLayout.leftNotes = chartLayoutData.data.chartLayout.leftNotes;
-		
+
 		if(chartLayoutData.data.chartLayout.title)
 			currentChartLayoutData.chartLayout.title = chartLayoutData.data.chartLayout.title;
-		
+
 		if(chartLayoutData.data.chartCallback)
 			currentChartLayoutData.chartCallback = chartLayoutData.data.chartCallback;
-		
+
 		return chartLayout;
 	};
-	
+
 	chartLayout.generate = function(callback){
-		
+
 		selection.selectAll('*').remove();
 
 		selection.wrapper = selection
 			.append('div')
 				.attr('class','ad-chart-layout-wrapper');
-		
+
 		selection.container = selection.wrapper
 			.append('div')
 				.attr('class','ad-chart-layout ad-container');
-		
+
 		selection.container.title = selection.container
 			.append('div')
 				.attr('class','ad-chart-layout-title');
 
 		selection.container.title.div = selection.container.title
 			.append('div');
-				
+
 		selection.container.chart = selection.container
 			.append('div')
 				.attr('class','ad-chart-layout-chart');
-				
+
 		chart
-			.selection(selection.container.chart)
-			.update(currentChartLayoutData.chartCallback);			
-				
+			.selection(selection.container.chart);
+
 		selection.container.rightNotes = selection.container
 			.append('div')
 				.attr('class','ad-chart-layout-right-notes');
-				
-		selection.container.rightNotes.ul = selection.container.rightNotes		
+
+		selection.container.rightNotes.ul = selection.container.rightNotes
 			.append('ul');
-				
+
 		selection.container.leftNotes = selection.container
 			.append('div')
 				.attr('class','ad-chart-layout-left-notes');
-				
-		selection.container.leftNotes.ul = selection.container.leftNotes		
+
+		selection.container.leftNotes.ul = selection.container.leftNotes
 			.append('ul');
-			
+
 		selection.container.footnote = selection.container
 			.append('div')
 				.attr('class','ad-chart-layout-footnote');
 		selection.container.footnote.div = selection.container.footnote
 			.append('div');
-				
+
 		selection.container.source = selection.container
 			.append('div')
 				.attr('class','ad-chart-layout-source')
 			.append('ul');
-				
-		
+
+
 		generateRequired = false;
-		
+
 		var tempAnimationDuration = animationDuration;
 		chartLayout
 			.animationDuration(0)
 			.update(callback)
 			.animationDuration(tempAnimationDuration);
-		
+
 		return chartLayout;
 	};
-	
+
 	chartLayout.update = function(callback){
 		if(!selection)
 			return console.warn('chartLayout was not given a selection');
@@ -146,78 +145,103 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		var chartMargin = {
 			top:10,bottom:0,left:0,right:0
 		};
-		
+
 		selection.wrapper
 				.style('width',width+'px')
 				.style('height',height+'px')
 		selection.container.title.div
 				.text(currentChartLayoutData.chartLayout.title)
-				.style('opacity','1');	
+				.style('opacity','1');
 		if(currentChartLayoutData.chartLayout.title){
 			chartMargin.top+=selection.container.title.node().getBoundingClientRect().height;
 		}else{
 			selection.container.title.div.style('opacity','0');
 		}
-		
+
 		selection.container.footnote.div.text(currentChartLayoutData.chartLayout.footnote);
-		
+
 		chartMargin.bottom+=selection.container.footnote.node().getBoundingClientRect().height;
 		selection.container.footnote
 				.style('top',(height-chartMargin.bottom)+'px');
-		
+
 		if(!currentChartLayoutData.chartLayout.rightNotes || currentChartLayoutData.chartLayout.rightNotes.length < 1){
 			currentChartLayoutData.chartLayout.rightNotes = [];
 		}else{
 			chartMargin.right+=width * 0.2+5;
-		}		
-		selection.container.rightNotes
-				.style('width',width*0.2+'px')
-				.style('height',(height-chartMargin.top-chartMargin.bottom)+'px')
-				.style('left',width*0.8-5+'px');
+		}
 		var rightNote = selection.container.rightNotes.ul.selectAll('li.ad-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
 		rightNote.enter()
 			.append('li')
-				.attr('class','ad-chart-layout-note');
-		rightNote
-				.text(function(d){return d});
+				.attr('class','ad-chart-layout-note')
+			.append('div');
+
+		var rightNotesHeight = 0;
+		rightNote.select('div')
+				.text(function(d){return d})
+				.each(function(d){rightNotesHeight += this.getBoundingClientRect().height;});
+
 		rightNote.exit()
 				.style('opacity',0)
 				.remove();
-				
+
+		// var rightNotesHeight = selection.container.rightNotes.ul.node().getBoundingClientRect().height;
+		selection.container.rightNotes
+				.style('width',width*0.2+'px')
+				.style('height',height-chartMargin.top+'px')
+				.style('left',width*0.8-5+'px');
+				// .style('top',(height-rightNotesHeight)/2+'px');
+
+		rightNote
+			.style('padding-top',Math.max(10,(height - rightNotesHeight)/(1.8*rightNote.size()))+'px');
+
+
+
+
 		if(!currentChartLayoutData.chartLayout.leftNotes || currentChartLayoutData.chartLayout.leftNotes.length < 1){
 			currentChartLayoutData.chartLayout.leftNotes = [];
 		}else{
 			chartMargin.left+=width * 0.2;
-		}		
-		selection.container.leftNotes
-				.style('width',width*0.2+'px')
-				.style('height',(height-chartMargin.top-chartMargin.bottom)+'px');
+		}
+
 		var leftNote = selection.container.leftNotes.ul.selectAll('li.ad-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
 		leftNote.enter()
 			.append('li')
 				.attr('class','ad-chart-layout-note');
 		leftNote
-				.text(function(d){return d});		
+				.text(function(d){return d});
 		leftNote.exit()
 				.style('opacity',0)
 				.remove();
+
+
+		var leftNotesHeight = selection.container.leftNotes.ul.node().getBoundingClientRect().height;
+		selection.container.leftNotes
+				.style('width',width*0.2+'px')
+				// .style('height',leftNotesHeight+'px')
+				.style('top',(height-leftNotesHeight)/2+'px');
+
+
+		var chartWidth = width-chartMargin.left-chartMargin.right-10,
+				chartHeight = height-chartMargin.top-chartMargin.bottom;
+
 		selection.container.chart
 				.style('left',(chartMargin.left+5)+'px')
-				.style('top',chartMargin.top+'px');
-				
-		
+				.style('top',chartMargin.top+'px')
+				.style('width',chartWidth+'px')
+				.style('height',chartHeight+'px');
+
 		chart
-				.width(width-chartMargin.left-chartMargin.right-10)
-				.height(height-chartMargin.top-chartMargin.bottom)
+				.width(chartWidth)
+				.height(chartHeight)
 				.animationDuration(animationDuration)
 				.update(currentChartLayoutData.chartCallback);
-				
+
 		d3.timer.flush();
-		
+
 		if(callback){
 			callback();
 		}
-		
+
 		return chartLayout;
 	};
 
@@ -277,19 +301,19 @@ AD.UTILS.chartPage = function(){
 		animationType = value;
 		return page;
 	};
-	
+
 	page.data = function(pageData, reset){
 		if(!arguments.length) return currentPageData;
 		newData = true;
 		currentPageData = pageData;
 		return page;
 	}
-	
+
 	page.update = function(callback){
 		if(!selection)
 			return console.warn('page was not given a selection');
 		var position = {};
-		
+
 		if(newData){
 			newData = false;
 			if(selection.currentPage){
@@ -298,24 +322,15 @@ AD.UTILS.chartPage = function(){
 				}else{
 					position.left = -width+'px';
 				}
-				selection.currentPage
-					.transition()
-						.duration(animationDuration)
-						.style('opacity',0)
-						.style('left',position.left)
-						.remove();
+				selection.oldPage = selection.currentPage;
 			}
 			init();
 		}
 
 		computedHeight = 0;
-		
-		selection.currentPage 
-			.transition()
-				.duration(animationDuration)
-				.style('opacity',1)
-				.style('left',0+'px');
-		
+
+
+
 		if(!currentPageData.data.charts || currentPageData.data.charts.length < 1){
 			return console.warn('chart page was not provided any charts')
 		}
@@ -347,13 +362,27 @@ AD.UTILS.chartPage = function(){
 				})
 				.style('left',function(d){return (width * d.x)+'px'})
 				.style('top',function(d){return (d.y)+'px'});
-				
+
+		if(selection.oldPage){
+			selection.oldPage
+				.transition()
+					.duration(animationDuration)
+					.style('opacity',0)
+					.style('left',position.left)
+					.remove();
+		}
+		selection.currentPage
+			.transition()
+				.duration(animationDuration)
+				.style('opacity',1)
+				.style('left',0+'px');
+
 		d3.timer.flush();
 
 		if(callback){
 			callback();
 		}
-		
+
 		return page;
 	};
 

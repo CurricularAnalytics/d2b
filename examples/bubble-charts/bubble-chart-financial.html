@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var chart = new AD.CHARTS.bubbleChart();
+
+		chart
+			// .legendOrientation('left')
+			.xFormat({nice:true,siPrefixed:false,units:{before:'$'}, separateThousands:false,precision:1})
+			.controls({sortByChange:{visible:true},hideLegend:{visible:true},colorByChange:{visible:true}})
+
+		var chartData  =
+		{
+			"groupings":[{label:"University of New Mexico", "description":""}, {label:"Budget Sectors", "description":"", "default_color_grouping":true}],
+			"nodes":[
+				{label:"Academic Affairs Monitoring", value:120931.16, change:0.250661599, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Anderson Schools of Management ASM", value:19000610.59, change:0.039270371, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Assoc. VP Student Life (ACD)", value:15752360.68, change:0.026103648, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Associate VP for Facilities Mgmt", value:0, change:0, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Associate VP Student Services", value:6469293.59, change:0.050543855, enrollments:["UNM", "Academic Affairs"]},
+				{label:"College of Arts Sciences A S", value:79072541.99, change:0.070373744, enrollments:["UNM", "Academic Affairs"]},
+				{label:"College of Education COE", value:18415682.66, change:0.023560741, enrollments:["UNM", "Academic Affairs"]},
+				{label:"College of Fine Arts CFA", value:17938522.67, change:0.034623405, enrollments:["UNM", "Academic Affairs"]},
+				{label:"College of Nursing", value:11108857.39, change:0.01422906, enrollments:["UNM", "Academic Affairs"]},
+				{label:"College of Pharmacy", value:15285566.28, change:0.041067319, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Continuing Education Cont Ed", value:5645978.95, change:-0.340977176, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Controller", value:44207985.14, change:-0.013716292, enrollments:["UNM", "Administration"]},
+				{label:"EVP Admin Independent Offices", value:221097218.7, change:0.134599947, enrollments:["UNM", "Administration"]},
+				{label:"EVP Administration", value:12542830.24, change:0.04336146, enrollments:["UNM", "Administration"]},
+				{label:"Extended University Ext Univ", value:9644327.95, change:0.039058798, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Gallup Branch", value:8750.23, change:1, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Government & Community Relations", value:732989.04, change:0.46271523, enrollments:["UNM", "Administration"]},
+				{label:"Honors College", value:1701510.05, change:0.195262667, enrollments:["UNM", "Academic Affairs"]},
+				{label:"HS Library and  Informatics Center", value:6467440.1, change:0.060499183, enrollments:["UNM", "Academic Affairs"]},
+				{label:"HSC VP Research", value:7321761.65, change:0.113592858, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Human Resources HR", value:7889144.7, change:-0.125263302, enrollments:["UNM", "Administration"]},
+				{label:"Information Technologies", value:65168379.94, change:0.098960926, enrollments:["UNM", "Administration"]},
+				{label:"Information Technology Services", value:40697.39, change:126.1793438, enrollments:["UNM", "Administration"]},
+				{label:"Intercollegiate Athletics", value:63731165.48, change:0.024408295, enrollments:["UNM", "Administration"]},
+				{label:"LosAlamos Branch", value:0, change:0, enrollments:["UNM", "Academic Affairs"]},
+				{label:"President Admin Indpnt Office", value:6668943.43, change:-0.059668938, enrollments:["UNM", "President"]},
+				{label:"Provost Administrative Units", value:26566947.78, change:0.05567771, enrollments:["UNM", "Administration"]},
+				{label:"School of Architecture Planning", value:5110569.5, change:-0.005672154, enrollments:["UNM", "Academic Affairs"]},
+				{label:"School of Engineering", value:22057218.5, change:0.091426453, enrollments:["UNM", "Academic Affairs"]},
+				{label:"School of Law LAW", value:18157279.17, change:0.015847833, enrollments:["UNM", "Academic Affairs"]},
+				{label:"School of Medicine", value:612832938.9, change:0.071376, enrollments:["UNM", "HSC"]},
+				{label:"School of Public Administration", value:1688733.21, change:0.157827066, enrollments:["UNM", "Academic Affairs"]},
+				{label:"University College UC", value:2608527.67, change:-0.03829305, enrollments:["UNM", "Academic Affairs"]},
+				{label:"University Libraries", value:17750122.42, change:0.006416308, enrollments:["UNM", "Academic Affairs"]},
+				{label:"UNM Medical Group", value:0, change:-1, enrollments:["UNM", "HSC"]},
+				{label:"UNM West and Branch Initiatives", value:1171053.89, change:0.313825935, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Valencia County Branch", value:5958.66, change:22.81178069, enrollments:["UNM", "Academic Affairs"]},
+				{label:"Vice President for Research", value:11622477.95, change:-0.098263861, enrollments:["UNM", "Academic Affairs"]},
+				{label:"VP Division of Enrollment Mgmt", value:98339826.12, change:0.072023531, enrollments:["UNM", "Academic Affairs"]},
+				{label:"VP for Equity & Inclusion", value:975314.95, change:0.009747428, enrollments:["UNM", "Academic Affairs"]},
+				{label:"VP HSC Administration", value:86814998.24, change:0.081965395, enrollments:["UNM", "HSC"]},
+				{label:"VP Institutional Adv College", value:558322.02, change:-0.641718639, enrollments:["UNM", "Academic Affairs"]},
+				{label:"VP Institutional Support Services", value:223854191.3, change:-0.031553167, enrollments:["UNM", "Administration"]},
+				{label:"VP Student Affairs Administration", value:2332243.11, change:0.113071499, enrollments:["UNM", "Administration"]},
+				{label:"VP Student Affairs Indpndnt Dept ID", value:18967009.03, change:0.029386935, enrollments:["UNM", "Academic Affairs"]}
+			]
+		}
+
+
+
+		chart
+			.data({data:chartData});//.update();
+
+		var chartLayoutData = {
+			data:{
+				chartLayout:{
+					title:"UNM's Budget Breakdown",
+					footnote:"Try sorting by change to see how the budget has adjusted over the past year",
+				}
+			}
+		}
+
+		var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+
+		chartLayout
+			.select('.bubble-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.chart(chart);
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<!-- <div class='randomize-button'style = 'position:absolute;top:0;left:0;padding:10px;border:2px solid black;'>Randomize!</div> -->
+<div class = 'bubble-chart'></div>
+
+</body>
+</html>

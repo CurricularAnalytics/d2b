@@ -1,0 +1,2928 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var chart = new AD.CHARTS.sunburstChart();
+
+		chart
+			.select('.sunburst-chart')
+			// .width($(window).width())
+			// .height($(window).height())
+			.xFormat({siPrefixed:false,units:{}, separateThousands:true,precision:0})
+			// .sort(null)
+			.legendOrientation('left')
+			.controls({sort:{visible:true},invert:{visible:true},hideLegend:{visible:true}})
+
+											chartData  = {
+												partition: {
+															"name": "University of New Mexico",
+															"top": "true",
+															"children": [
+																	{
+																			"name": "Architecture and Planning",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Architecture and Planning",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 291,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 184,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "Arts and Sciences",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Humanities",
+																							// "top": "true",
+																							"children": [
+																									{
+																											"name": "African American Studies",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 7,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "AS American Studies",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 24,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 54,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Chicano Hispano Mexicano Studies Program(CHMS)",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 7,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "English",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 398,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 96,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Foreign Languages Literatures",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 148,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 31,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "History",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 227,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 76,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Individual Family & Community Education (IFCE)",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 25,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Philosophy",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 89,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 34,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Religious Studies Program",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 28,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Spanish & Portuguese",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 112,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 58,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Women Studies",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 13,
+																															"top": true
+																													}
+																											]
+																									}
+																							]
+																					},
+																					{
+																							"name": "Natural Sciences",
+																							// "top": "true",
+																							"children": [
+																									{
+																											"name": "Biology",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 1712,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 119,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Chemistry",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 209,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 55,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Earth & Planetary Sciences",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 235,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 54,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Geography",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 55,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 22,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Mathematics & Statistics",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 175,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 91,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Physics & Astrophysics",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 165,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 129,
+																															"top": true
+																													}
+																											]
+																									}
+																							]
+																					},
+																					{
+																							"name": "Social Sciences",
+																							// "top": "true",
+																							"children": [
+																									{
+																											"name": "Anthropology",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 255,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 122,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Communications & Journalism",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 726,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 50,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Economics",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 175,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 45,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Linguistics",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 135,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 65,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Political Science",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 380,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 37,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Psychology",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 1686,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 78,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Sociology",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 1023,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 40,
+																															"top": true
+																													}
+																											]
+																									},
+																									{
+																											"name": "Speech & Hearing Sciences",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 151,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 55,
+																															"top": true
+																													}
+																											]
+																									}
+																							]
+																					},
+																					{
+																							"name": "Interdisciplinary",
+																							// "top": "true",
+																							"children": [
+																									{
+																											"name": "Interdisciplinary",
+																											"children": [
+																													{
+																															"name": "Undergraduate",
+																															"size": 659,
+																															"top": true
+																													},
+																													{
+																															"name": "Graduate",
+																															"size": 20,
+																															"top": true
+																													}
+																											]
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "Education",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Education Leadership Program (ELOL)",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 1,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 50,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Educational Specialties",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 128,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 196,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Individual Family & Community Education (IFCE)",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 495,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 168,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Language Literacy Sociocultural",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 3,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 181,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Physical Performance & Development",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 736,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 153,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Teacher Education",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 785,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 197,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Theatre & Dance",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 2,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Undefined",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 2,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "Engineering",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Interdisciplinary",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 1355,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 261,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Chemical & Nuclear Engineering",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 178,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 27,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Civil Engineering",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 123,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 55,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Computer Sciences",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 171,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 196,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Electrical & Computer Engineering",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 224,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 115,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Mechanical Engineering",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 264,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 88,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "undefined",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 1,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "Fine Arts",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Interdisciplinary",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 165,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Art & Art History",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 421,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 81,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Media Arts",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 166,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Music",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 233,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 87,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Theatre & Dance",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 188,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 9,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "School of Law",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Law Administration",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 349,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "Medicine",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Biomedical Science",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 91,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Doctor of Medicine Program",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 118,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Public Health",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 38,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Physicians Assistant Program",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 35,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Orthopaedics Physical Therapy",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 89,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Pediatrics Occupational Therapy",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 75,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Surgery Dental Services",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 156,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 21,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Emergency Medicine",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 213,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Radiology",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 89,
+																											"top": true
+																									}
+																							]
+																					},
+													                {
+													                    "name": "Pathology Medical Lab Sciences",
+													                    "children": [
+													                        {
+													                            "name": "Undergraduate",
+													                            "size": 136,
+													                            "top": true
+													                        },
+																									{
+																											"name": "Graduate",
+																											"size": 2,
+																											"top": true
+																									}
+													                    ]
+													                }
+																			]
+																	},
+																	{
+																			"name": "Management",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Management",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 2517,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 568,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "Non-Degree",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Graduate",
+																							"size": 1617,
+																							"color_style": "Custom",
+																							"color": "#DAEDF1"
+																					}
+																			]
+																	},
+																	{
+																			"name": "Nursing",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Nursing",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 1090,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 148,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "Pharmacy",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Pharmacy",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 209,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 14,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "University College",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Provost Branch Campuses",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 3,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "University College",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 823,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "undefined",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 6,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Water Resources Program",
+																							"children": [
+																									{
+																											"name": "Graduate",
+																											"size": 45,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "University Libraries",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Organizational Learning and Instructional Development",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 27,
+																											"top": true
+																									},
+																									{
+																											"name": "Graduate",
+																											"size": 156,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	},
+																	{
+																			"name": "University Studies",
+																			"top": "true",
+																			"children": [
+																					{
+																							"name": "Interdisciplinary",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 22,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Native American Studies",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 6,
+																											"top": true
+																									}
+																							]
+																					},
+																					{
+																							"name": "Univesrity Studies",
+																							"children": [
+																									{
+																											"name": "Undergraduate",
+																											"size": 738,
+																											"top": true
+																									}
+																							]
+																					}
+																			]
+																	}
+															]
+													}
+										}
+
+		chart
+			.data({data:chartData}).update();
+
+		var chartLayoutData = {
+			data:{
+				chartLayout:{
+					title:"Continuing Faculty Appointments",
+					footnote:"* (Excludes Research, Visiting, and Adjunct Faculty)",
+					rightNotes:["Here is a note on the right side of the chart","Notice, the chart is balanced with the legend residing on the left hand side","And one final note.."],
+					// leftNotes:["Here is a note on the left side of the chart","Notice, the chart is balanced with the legend residing on the right hand side","And one final note.."]
+				}
+			}
+		}
+
+		var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+
+		chartLayout
+			.select('.sunburst-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.chart(chart);
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+		//
+		// setTimeout(function(){
+		// 	chartData  = {
+		// 		partition: {
+		// 					"name": "University of New Mexico",
+		// 					"top": "true",
+		// 					"children": [
+		// 							{
+		// 									"name": "Architecture and Planning",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Architecture and Planning",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 291,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 184,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "Arts and Sciences",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Humanities",
+		// 													// "top": "true",
+		// 													"children": [
+		// 															{
+		// 																	"name": "African American Studies",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 7,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "AS American Studies",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 24,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 54,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Chicano Hispano Mexicano Studies Program(CHMS)",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 7,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "English",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 398,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 96,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Foreign Languages Literatures",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 148,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 31,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "History",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 227,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 76,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Individual Family & Community Education (IFCE)",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 25,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Philosophy",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 89,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 34,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Religious Studies Program",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 28,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Spanish & Portuguese",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 112,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 58,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Women Studies",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 13,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Social Sciences",
+		// 													// "top": "true",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Anthropology",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 255,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 122,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Communications & Journalism",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 726,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 50,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Economics",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 175,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 45,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Linguistics",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 135,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 65,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Political Science",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 380,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 37,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Psychology",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 1686,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 78,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Sociology",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 1023,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 40,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															},
+		// 															{
+		// 																	"name": "Speech & Hearing Sciences",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 151,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 55,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Interdisciplinary",
+		// 													// "top": "true",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Interdisciplinary",
+		// 																	"children": [
+		// 																			{
+		// 																					"name": "Undergraduate",
+		// 																					"size": 659,
+		// 																					"top": true
+		// 																			},
+		// 																			{
+		// 																					"name": "Graduate",
+		// 																					"size": 20,
+		// 																					"top": true
+		// 																			}
+		// 																	]
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "Education",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Education Leadership Program (ELOL)",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 1,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 50,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Educational Specialties",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 128,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 196,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Individual Family & Community Education (IFCE)",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 495,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 168,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Language Literacy Sociocultural",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 3,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 181,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Physical Performance & Development",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 736,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 153,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Teacher Education",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 785,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 197,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Theatre & Dance",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 2,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Undefined",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 2,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "Engineering",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Interdisciplinary",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 1355,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 261,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Chemical & Nuclear Engineering",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 178,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 27,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Civil Engineering",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 123,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 55,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Computer Sciences",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 171,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 196,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Electrical & Computer Engineering",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 224,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 115,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Mechanical Engineering",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 264,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 88,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "undefined",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 1,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "Fine Arts",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Interdisciplinary",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 165,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Art & Art History",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 421,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 81,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Media Arts",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 166,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Music",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 233,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 87,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Theatre & Dance",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 188,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 9,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "School of Law",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Law Administration",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 349,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "Management",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Management",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 2517,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 568,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "Non-Degree",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Graduate",
+		// 													"size": 1617,
+		// 													"color_style": "Custom",
+		// 													"color": "#DAEDF1"
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "Nursing",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Nursing",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 1090,
+		// 																	"top": true
+		// 															},
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 148,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "University College",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Provost Branch Campuses",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 3,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "University College",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 823,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "undefined",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 6,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Water Resources Program",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Graduate",
+		// 																	"size": 45,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							},
+		// 							{
+		// 									"name": "University Studies",
+		// 									"top": "true",
+		// 									"children": [
+		// 											{
+		// 													"name": "Interdisciplinary",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 22,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Native American Studies",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 6,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											},
+		// 											{
+		// 													"name": "Univesrity Studies",
+		// 													"children": [
+		// 															{
+		// 																	"name": "Undergraduate",
+		// 																	"size": 738,
+		// 																	"top": true
+		// 															}
+		// 													]
+		// 											}
+		// 									]
+		// 							}
+		// 					]
+		// 			}
+		// }
+		//
+		// chart
+		// 	.data({data:chartData}).update();
+		//
+		// },2000);
+		//
+		//
+		//
+		//
+		// 		setTimeout(function(){
+		//
+		// 			chartData  = {
+		// 				partition: {
+		// 							"name": "University of New Mexico",
+		// 							"top": "true",
+		// 							"children": [
+		// 									{
+		// 											"name": "Architecture and Planning",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Architecture and Planning",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 291,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 184,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Arts and Sciences",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Humanities",
+		// 															// "top": "true",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "African American Studies",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 7,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "AS American Studies",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 24,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 54,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Chicano Hispano Mexicano Studies Program(CHMS)",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 7,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "English",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 398,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 96,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Foreign Languages Literatures",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 148,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 31,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "History",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 227,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 76,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Individual Family & Community Education (IFCE)",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 25,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Philosophy",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 89,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 34,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Religious Studies Program",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 28,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Spanish & Portuguese",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 112,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 58,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Women Studies",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 13,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Natural Sciences",
+		// 															// "top": "true",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Biology",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 1712,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 119,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Chemistry",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 209,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 55,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Earth & Planetary Sciences",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 235,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 54,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Geography",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 55,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 22,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Mathematics & Statistics",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 175,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 91,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Physics & Astrophysics",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 165,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 129,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Social Sciences",
+		// 															// "top": "true",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Anthropology",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 255,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 122,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Communications & Journalism",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 726,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 50,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Economics",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 175,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 45,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Linguistics",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 135,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 65,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Political Science",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 380,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 37,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Psychology",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 1686,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 78,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Sociology",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 1023,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 40,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	},
+		// 																	{
+		// 																			"name": "Speech & Hearing Sciences",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 151,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 55,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Interdisciplinary",
+		// 															// "top": "true",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Interdisciplinary",
+		// 																			"children": [
+		// 																					{
+		// 																							"name": "Undergraduate",
+		// 																							"size": 659,
+		// 																							"top": true
+		// 																					},
+		// 																					{
+		// 																							"name": "Graduate",
+		// 																							"size": 20,
+		// 																							"top": true
+		// 																					}
+		// 																			]
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Education",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Education Leadership Program (ELOL)",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 1,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 50,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Educational Specialties",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 128,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 196,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Individual Family & Community Education (IFCE)",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 495,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 168,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Language Literacy Sociocultural",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 3,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 181,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Physical Performance & Development",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 736,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 153,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Teacher Education",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 785,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 197,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Theatre & Dance",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 2,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Undefined",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 2,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Engineering",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Interdisciplinary",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 1355,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 261,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Chemical & Nuclear Engineering",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 178,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 27,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Civil Engineering",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 123,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 55,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Computer Sciences",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 171,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 196,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Electrical & Computer Engineering",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 224,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 115,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Mechanical Engineering",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 264,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 88,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "undefined",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 1,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Fine Arts",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Interdisciplinary",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 165,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Art & Art History",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 421,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 81,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Media Arts",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 166,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Music",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 233,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 87,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Theatre & Dance",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 188,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 9,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "School of Law",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Law Administration",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 349,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Medicine",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Biomedical Science",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 91,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Doctor of Medicine Program",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 118,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Public Health",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 38,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Physicians Assistant Program",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 35,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Orthopaedics Physical Therapy",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 89,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Pediatrics Occupational Therapy",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 75,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Surgery Dental Services",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 156,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 21,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Emergency Medicine",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 213,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Radiology",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 89,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Pathology Medical Lab Sciences",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 136,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 2,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Management",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Management",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 2517,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 568,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Non-Degree",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Graduate",
+		// 															"size": 1617,
+		// 															"color_style": "Custom",
+		// 															"color": "#DAEDF1"
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Nursing",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Nursing",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 1090,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 148,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "Pharmacy",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Pharmacy",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 209,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 14,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "University College",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Provost Branch Campuses",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 3,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "University College",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 823,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "undefined",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 6,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Water Resources Program",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 45,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "University Libraries",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Organizational Learning and Instructional Development",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 27,
+		// 																			"top": true
+		// 																	},
+		// 																	{
+		// 																			"name": "Graduate",
+		// 																			"size": 156,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									},
+		// 									{
+		// 											"name": "University Studies",
+		// 											"top": "true",
+		// 											"children": [
+		// 													{
+		// 															"name": "Interdisciplinary",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 22,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Native American Studies",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 6,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													},
+		// 													{
+		// 															"name": "Univesrity Studies",
+		// 															"children": [
+		// 																	{
+		// 																			"name": "Undergraduate",
+		// 																			"size": 738,
+		// 																			"top": true
+		// 																	}
+		// 															]
+		// 													}
+		// 											]
+		// 									}
+		// 							]
+		// 					}
+		// 		}
+		//
+		// 		chart
+		// 			.data({data:chartData}).update();
+		//
+		// 		},4000);
+
+
+		$(".randomize-button").click(function(){
+
+			var current = chartData.partition;
+
+			var changeChildValues = function(d){
+				if(d.children){
+						d.children.forEach(function(child){
+							changeChildValues(child);
+						});
+				}else{
+						d.size += Math.random()*2000-1300;
+						d.size = Math.max(0,d.size);
+				}
+			};
+
+			changeChildValues(current);
+			chart
+				.data({data:chartData}).update();
+
+		});
+
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<!-- <div class='randomize-button'style = 'position:absolute;top:0;left:0;padding:10px;border:2px solid black;'>Randomize!</div> -->
+<div class = 'sunburst-chart'></div>
+
+</body>
+</html>
