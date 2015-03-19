@@ -133,7 +133,7 @@ html, body, .ad-container {
 	border:1px solid #cacaca;
 	border-radius:2px;
 	display:table;
-	margin:auto;	
+	margin:auto;
 }
 .ad-svg .ad-set-controls .ad-set-control{
 	display:inline-block;
@@ -181,29 +181,29 @@ html, body, .ad-container {
 .ad-svg .ad-bar-columns rect{
 	shape-rendering:crispEdges;
 	fill-opacity:0.65;
-	-webkit-transition: fill-opacity 0.25s; 
+	-webkit-transition: fill-opacity 0.25s;
     transition: fill-opacity 0.25s;
 }
 .ad-svg .ad-bar-columns rect:hover{
-	fill-opacity:0.8;    
+	fill-opacity:0.8;
 }
 
 .ad-svg .ad-area-columns path{
-	fill-opacity:0.25; 
-	stroke-width:1px;   
-	-webkit-transition: fill-opacity 0.25s, stroke-width 0.25s; 
+	fill-opacity:0.25;
+	stroke-width:1px;
+	-webkit-transition: fill-opacity 0.25s, stroke-width 0.25s;
     transition: fill-opacity 0.25s, stroke-width 0.25s;
 }
 .ad-svg .ad-area-columns path:hover{
-	fill-opacity:0.5;   
-	stroke-width:1.5px;    
+	fill-opacity:0.5;
+	stroke-width:1.5px;
 }
 
 .ad-svg .ad-scatter-columns circle{
 	stroke-width:1px;
 	stroke:white;
 	stroke-opacity:1;
-	-webkit-transition: stroke-width 0.25s; 
+	-webkit-transition: stroke-width 0.25s;
     transition: stroke-width 0.25s;
 }
 .ad-svg .ad-scatter-columns circle:hover{
@@ -212,7 +212,7 @@ html, body, .ad-container {
 .ad-svg .ad-line-columns path.ad-line{
 	stroke-width:2px;
 	fill:none;
-	-webkit-transition: stroke-width 0.25s; 
+	-webkit-transition: stroke-width 0.25s;
   transition: stroke-width 0.25s;
 }
 .ad-svg .ad-line-columns path.ad-line:hover{
@@ -222,17 +222,17 @@ html, body, .ad-container {
 
 /*axisChart legend hover events*/
 .ad-area-columns g.ad-legend-mouseover path{
-	fill-opacity:0.5;   
-	stroke-width:1.5px;    
+	fill-opacity:0.5;
+	stroke-width:1.5px;
 }
 .ad-line-columns g.ad-legend-mouseover path.ad-line{
-	stroke-width:4px; 
+	stroke-width:4px;
 }
 .ad-bar-columns g.ad-legend-mouseover rect{
-	fill-opacity:0.8;     
+	fill-opacity:0.8;
 }
 .ad-scatter-columns g.ad-legend-mouseover circle{
-	stroke-width:1.5px; 
+	stroke-width:1.5px;
 }
 
 /*legend styles*/
@@ -254,12 +254,6 @@ html, body, .ad-container {
 	fill:#555;
 	text-anchor:start;
 }
-
-
-
-
-
-
 
 .ad-sankey-chart{
   .ad-sankey-labels{
@@ -331,6 +325,7 @@ html, body, .ad-container {
 		}
 	}
 }
+
 /*axisChart column specific styles*/
 .ad-interactive-bar-chart{
 	.ad-columns{
@@ -348,6 +343,16 @@ html, body, .ad-container {
 
 
 
+
+.ad-guage-chart{
+	path{
+		fill-opacity:0.8;
+	}
+	text{
+		text-anchor:middle;
+	}
+
+}
 
 .ad-iframe-chart{
 	iframe{
@@ -395,9 +400,9 @@ html, body, .ad-container {
 
 .ad-multi-chart{
 	.ad-multi-chart-chart{
-		position:absolute;
-		top:50px;
-		left:0px;
+		// position:absolute;
+		// top:50px;
+		// left:0px;
 	}
 }
 
@@ -421,6 +426,7 @@ html, body, .ad-container {
 	}
 	.ad-sunburst-tooltip{
 		text{
+			pointer-events:none;
 			text-anchor:middle;
 			tspan:first-child{
 				font-size:12pt;
@@ -451,11 +457,7 @@ html, body, .ad-container {
       &:last-child{
         border-right:0px;
       }
-
-
-
       li{
-        // display:inline-block;
         color:#777;
         &.ad-selected{
           background:$lightest;

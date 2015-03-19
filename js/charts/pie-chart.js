@@ -31,11 +31,7 @@ AD.CHARTS.pieChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var donutRatio = 0;
 
@@ -334,7 +330,7 @@ AD.CHARTS.pieChart = function(){
 		arcPathTransition.each("end",function(d){
 			var elem = d3.select(this);
 			elem
-					.on('mouseover.ad-mouseover',function(d){
+					.on('mouseover.ad-mouseover',function(d,i){
 						elem
 							.transition()
 								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
@@ -342,14 +338,25 @@ AD.CHARTS.pieChart = function(){
 								.style('fill-opacity',0.9);
 
 						AD.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
+						for(key in on.elementMouseover){
+							on.elementMouseover[key].call(this,d,i,'arc');
+						}
 					})
-					.on('mouseout.ad-mouseout',function(d){
+					.on('mouseout.ad-mouseout',function(d,i){
 						elem
 							.transition()
 								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1)')
 								.style('fill-opacity','')
 						AD.UTILS.removeTooltip();
+						for(key in on.elementMouseout){
+							on.elementMouseout[key].call(this,d,i,'arc');
+						}
+					})
+					.on('click.ad-click',function(d,i){
+						for(key in on.elementClick){
+							on.elementClick[key].call(this,d,i,'arc');
+						}
 					});
 		});
 

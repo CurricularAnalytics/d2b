@@ -74,11 +74,7 @@ AD.CHARTS.sunburstChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	// private methods
 
@@ -191,7 +187,7 @@ AD.CHARTS.sunburstChart = function(){
 		}while(cur);
 		return domain;
 	};
-	
+
 	var getZoomChildDomain = function(d, domain){
 		if(!domain){domain = [1,0];}
 		else{
@@ -656,7 +652,22 @@ AD.CHARTS.sunburstChart = function(){
 		// sunburst_mouseout();
 		var newArcs =	selection.group.sunburst.arcs.arc.enter().append("g")
 			.attr('class','sunburst-arc')
-			.style('opacity',0);
+			.style('opacity',0)
+			.on('mouseover.ad-mouseover',function(d,i){
+				for(key in on.elementMouseover){
+					on.elementMouseover[key].call(this,d,i,'arc');
+				}
+			})
+			.on('mouseout.ad-mouseout',function(d,i){
+				for(key in on.elementMouseout){
+					on.elementMouseout[key].call(this,d,i,'arc');
+				}
+			})
+			.on('click.ad-click',function(d,i){
+				for(key in on.elementClick){
+					on.elementClick[key].call(this,d,i,'arc');
+				}
+			});
 
 		var newPaths = newArcs.append("path")
 				.on('mouseover.ad-mouseover',arcMouseover);

@@ -18,6 +18,7 @@
 	}
 	.ad-sunburst-tooltip{
 		text{
+			pointer-events:none;
 			text-anchor:middle;
 			tspan:first-child{
 				font-size:12pt;

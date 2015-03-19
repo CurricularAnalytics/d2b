@@ -8,7 +8,7 @@
 	$(document).ready(function(){
 
 		var pieChart = new AD.CHARTS.pieChart();
-
+		console.log(pieChart)
 		pieChart
 			.select('.pie-chart')
 			.width($(window).width())
@@ -30,6 +30,7 @@
 					}
 				}
 			)
+			// .on('elementMouseout',function(d,i,type){console.log(type)})
 			.update(function(){console.log('done!')});
 
 		setTimeout(function(){

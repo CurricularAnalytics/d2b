@@ -19,21 +19,25 @@
 
 		legend
 			.selection(legendSvg)
-			.width($(window).width())
-			.on('elementMouseover',function(d,i){
-				console.log('moused over!');
-			})
-			.on('elementMouseover.second',function(d,i){
-				console.log('moused over second!');
-			})
-			.on('elementMouseout',function(d,i){
-				console.log('moused out!');
-			})
-			.on('elementClick',function(d,i){
-				console.log('clicked!');
-			});
+			.height($(window).height())
+			// .width($(window).width())
+			.orientation('vertical')
+			.scale(5)
+			.padding(20)
+			// .on('elementMouseover',function(d,i){
+			// 	console.log('moused over!');
+			// })
+			// .on('elementMouseover.second',function(d,i){
+			// 	console.log('moused over second!');
+			// })
+			// .on('elementMouseout',function(d,i){
+			// 	console.log('moused out!');
+			// })
+			// .on('elementClick',function(d,i){
+			// 	console.log('clicked!');
+			// });
 
-		legend.update({
+		legend.data({
 			data:{
 				items:[
 					{label:'legend item 1'},
@@ -48,23 +52,24 @@
 					{label:'legend item 10'}
 				]
 			}
-		});
+		}).update();
 
 
-		legendSvg
-				.attr('transform','translate('+($(window).width() - legend.computedWidth() + 10)/2+',-10)');
+
+		d3.select('.block').style('top',legend.computedHeight()+'px');
+		d3.select('.block2').style('left',legend.computedWidth()+'px');
 
 		$(window).resize(function(){
 			container
 				.attr('width',$(window).width())
 				.attr('height',$(window).height());
-			legend.width($(window).width()).update();
+			legend
+				.height($(window).height())
+				// .width($(window).width())
+				.update();
 
-			legendSvg
-				.transition()
-					.duration(500)
-					.attr('transform','translate('+($(window).width() - legend.computedWidth() + 10)/2+',-10)');
-
+			d3.select('.block').style('top',legend.computedHeight()+'px');
+			d3.select('.block2').style('left',legend.computedWidth()+'px');
 		});
 
 	})
@@ -72,6 +77,8 @@
 
 <body style='margin:0px;'>
 <div class = 'legend'></div>
+<div style='background:red;width:10px;height:10px;position:absolute;left:0px' class = 'block'></div>
+<div style='background:red;width:10px;height:10px;position:absolute;top:0px' class = 'block2'></div>
 
 </body>
 </html>

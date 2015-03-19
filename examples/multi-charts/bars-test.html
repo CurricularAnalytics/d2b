@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var multiChart = new AD.CHARTS.multiChart();
+
+		multiChart
+			.select('.multi-chart');
+
+		multiChart
+			.data(
+				{
+					data:{
+						charts:[
+							{
+								label:"2011-12",
+								key:"2011-12",
+								type:"interactiveBarChart",
+								properties:{
+									controls: {
+										horizontal: {
+											visible:false,
+											enabled:true
+										},
+										yAxisLock: {
+											enabled: true,
+											maxStacked: 150,
+											maxNonStacked: 100
+										}
+									},
+									xScale:{type: 'ordinal'},
+									yFormat:{units:{after:'%'}}
+								},
+								data:{
+									data:{
+										labels:{
+											x:'College',
+											y:'Percentage'
+										},
+										columns:[{"label":"4-Year Accepted Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":16.67},{"x":"College of Arts and Sciences","y":17.81}]}]
+									}
+								}
+							},
+
+							{
+								label:"2012-13",
+								key:"2012-13",
+								type:"interactiveBarChart",
+								properties:{
+									controls: {
+										horizontal: {
+											visible:false,
+											enabled:true
+										},
+										yAxisLock: {
+											enabled: true,
+											maxStacked: 150,
+											maxNonStacked: 100
+										}
+									},
+									xScale:{type: 'ordinal'},
+									yFormat:{units:{after:'%'}}
+								},
+								data:{
+									data:{
+										labels:{
+											x:'College',
+											y:'Percentage'
+										},
+										columns:[{"label":"4-Year Accepted Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":18.65},{"x":"College of Arts and Sciences","y":16.95},{"x":"College of Education","y":13.61},{"x":"College of Fine Arts","y":17.39},{"x":"College of Nursing","y":18.03},{"x":"College of Pharmacy","y":31.91},{"x":"School of Arch. and Planning","y":8.06},{"x":"School of Engineering","y":11.37},{"x":"School of Medicine","y":2.67},{"x":"University College","y":4.33}]},{"label":"5-Year Accepted Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":45.26},{"x":"College of Arts and Sciences","y":45.29},{"x":"College of Education","y":42.52},{"x":"College of Fine Arts","y":40.22},{"x":"College of Nursing","y":28.69},{"x":"College of Pharmacy","y":48.94},{"x":"School of Arch. and Planning","y":37.1},{"x":"School of Engineering","y":38.86},{"x":"School of Medicine","y":17.33},{"x":"University College","y":11.42}]},{"label":"6-Year Accepted Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":52.91},{"x":"College of Arts and Sciences","y":54.63},{"x":"College of Education","y":52.38},{"x":"College of Fine Arts","y":51.09},{"x":"College of Nursing","y":31.97},{"x":"College of Pharmacy","y":48.94},{"x":"School of Arch. and Planning","y":56.45},{"x":"School of Engineering","y":48.82},{"x":"School of Medicine","y":25.33},{"x":"University College","y":14.57}]},{"label":"4-Year Intended Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":7.66},{"x":"College of Arts and Sciences","y":7.09},{"x":"College of Education","y":2.52},{"x":"College of Fine Arts","y":9.09},{"x":"College of Nursing","y":7.35},{"x":"College of Pharmacy","y":10.71},{"x":"School of Arch. and Planning","y":3.23},{"x":"School of Engineering","y":0.39},{"x":"School of Medicine","y":0.0},{"x":"University College","y":0.11}]},{"label":"5-Year Intended Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":20.16},{"x":"College of Arts and Sciences","y":16.78},{"x":"College of Education","y":10.69},{"x":"College of Fine Arts","y":16.08},{"x":"College of Nursing","y":9.56},{"x":"College of Pharmacy","y":14.29},{"x":"School of Arch. and Planning","y":9.68},{"x":"School of Engineering","y":1.95},{"x":"School of Medicine","y":1.02},{"x":"University College","y":0.22}]},{"label":"6-Year Intended Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":22.58},{"x":"College of Arts and Sciences","y":19.24},{"x":"College of Education","y":13.84},{"x":"College of Fine Arts","y":19.58},{"x":"College of Nursing","y":10.29},{"x":"College of Pharmacy","y":14.29},{"x":"School of Arch. and Planning","y":14.52},{"x":"School of Engineering","y":3.89},{"x":"School of Medicine","y":1.02},{"x":"University College","y":0.22}]}]
+									}
+								}
+							},
+							{
+								label:"2013-14",
+								key:"2013-14",
+								type:"interactiveBarChart",
+								properties:{
+									controls: {
+										horizontal: {
+											visible:false,
+											enabled:true
+										},
+										yAxisLock: {
+											enabled: true,
+											maxStacked: 150,
+											maxNonStacked: 100
+										}
+									},
+									xScale:{type: 'ordinal'},
+									yFormat:{units:{after:'%'}}
+								},
+								data:{
+									data:{
+										labels:{
+											x:'College',
+											y:'Percentage'
+										},
+										columns:[{"label":"4-Year Accepted Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":16.67},{"x":"College of Arts and Sciences","y":17.81},{"x":"College of Education","y":14.53},{"x":"College of Fine Arts","y":10.0},{"x":"College of Nursing","y":15.08},{"x":"College of Pharmacy","y":35.71},{"x":"School of Arch. and Planning","y":12.5},{"x":"School of Engineering","y":10.27},{"x":"School of Medicine","y":3.3},{"x":"Unclassified","y":0.0},{"x":"University College","y":7.18},{"x":"University Studies","y":0.0}]},{"label":"5-Year Accepted Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":37.92},{"x":"College of Arts and Sciences","y":43.46},{"x":"College of Education","y":44.44},{"x":"College of Fine Arts","y":33.18},{"x":"College of Nursing","y":23.81},{"x":"College of Pharmacy","y":46.43},{"x":"School of Arch. and Planning","y":35.94},{"x":"School of Engineering","y":29.46},{"x":"School of Medicine","y":18.68},{"x":"Unclassified","y":0.0},{"x":"University College","y":19.49},{"x":"University Studies","y":0.0}]},{"label":"6-Year Accepted Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":48.31},{"x":"College of Arts and Sciences","y":53.78},{"x":"College of Education","y":52.99},{"x":"College of Fine Arts","y":45.0},{"x":"College of Nursing","y":27.78},{"x":"College of Pharmacy","y":51.79},{"x":"School of Arch. and Planning","y":51.56},{"x":"School of Engineering","y":44.64},{"x":"School of Medicine","y":29.67},{"x":"Unclassified","y":0.0},{"x":"University College","y":22.56},{"x":"University Studies","y":16.13}]},{"label":"4-Year Intended Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":11.9},{"x":"College of Arts and Sciences","y":6.95},{"x":"College of Education","y":5.66},{"x":"College of Fine Arts","y":6.18},{"x":"College of Nursing","y":5.93},{"x":"College of Pharmacy","y":7.59},{"x":"School of Arch. and Planning","y":7.5},{"x":"School of Engineering","y":0.0},{"x":"School of Medicine","y":2.33},{"x":"University College","y":0.3}]},{"label":"5-Year Intended Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":20.41},{"x":"College of Arts and Sciences","y":14.62},{"x":"College of Education","y":13.21},{"x":"College of Fine Arts","y":11.8},{"x":"College of Nursing","y":8.89},{"x":"College of Pharmacy","y":11.39},{"x":"School of Arch. and Planning","y":17.5},{"x":"School of Engineering","y":1.0},{"x":"School of Medicine","y":3.49},{"x":"University College","y":0.44}]},{"label":"6-Year Intended Major Graduation Rate","values":[{"x":"Anderson Schools of Management","y":26.87},{"x":"College of Arts and Sciences","y":17.33},{"x":"College of Education","y":14.62},{"x":"College of Fine Arts","y":16.85},{"x":"College of Nursing","y":11.11},{"x":"College of Pharmacy","y":11.39},{"x":"School of Arch. and Planning","y":21.25},{"x":"School of Engineering","y":1.33},{"x":"School of Medicine","y":6.98},{"x":"University College","y":0.59}]}]
+									}
+								}
+							}
+						]
+					}
+				}
+			)
+			.on('elementClick',function(d,i,type){
+				console.log(type);
+			})
+			// .on('elementMouseover',function(d,i,type){
+			// 	// console.log(this)
+			// 	d3.select(this).style('opacity',0.2)
+			// })
+			// .on('elementMouseout',function(d,i,type){
+			// 	d3.select(this).style('opacity','')
+			// })
+
+			var chartLayoutData = {
+				data:{
+					chartLayout:{
+						title:"UNM Revenue"
+					}
+				}
+			}
+
+			var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+
+			chartLayout
+				.select('.multi-chart')
+				.width($(window).width())
+				.height($(window).height())
+				.chart(multiChart);
+
+			chartLayout
+				.data(chartLayoutData).update();
+
+			$(window).resize(function(){
+				chartLayout.height($(window).height()).width($(window).width()).update();
+			});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'multi-chart'></div>
+
+</body>
+</html>

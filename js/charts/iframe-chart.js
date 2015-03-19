@@ -20,11 +20,7 @@ AD.CHARTS.iframeChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};

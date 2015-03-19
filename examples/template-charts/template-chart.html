@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var templateChart = new AD.CHARTS.templateChart();
+
+		templateChart
+			.select('.template-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.legendOrientation('top')
+			.controls({'hideLegend':{'enabled':false,'visible':true}})
+			.update();
+
+		$(window).resize(function(){
+			templateChart.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'template-chart'></div>
+</body>
+</html>

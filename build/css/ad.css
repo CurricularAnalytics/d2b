@@ -255,6 +255,11 @@ html, body, .ad-container {
 .ad-interactive-bar-chart .ad-columns rect:hover {
   fill-opacity: 1; }
 
+.ad-guage-chart path {
+  fill-opacity: 0.8; }
+.ad-guage-chart text {
+  text-anchor: middle; }
+
 .ad-iframe-chart iframe {
   border: 0px; }
 
@@ -290,11 +295,6 @@ html, body, .ad-container {
       .ad-multi-chart-buttons-wrapper ul.ad-buttons li:last-child {
         border-right: 0px; }
 
-.ad-multi-chart .ad-multi-chart-chart {
-  position: absolute;
-  top: 50px;
-  left: 0px; }
-
 .ad-sunburst-chart .ad-sunburst .ad-sunburst-arcs path {
   fill-opacity: 0.9;
   stroke: white;
@@ -305,6 +305,7 @@ html, body, .ad-container {
     fill-opacity: 1;
     stroke: white; }
 .ad-sunburst-chart .ad-sunburst-tooltip text {
+  pointer-events: none;
   text-anchor: middle; }
   .ad-sunburst-chart .ad-sunburst-tooltip text tspan:first-child {
     font-size: 12pt;

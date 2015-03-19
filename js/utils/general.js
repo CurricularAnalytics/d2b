@@ -202,9 +202,30 @@ AD.UTILS.textWrap = function(text, width) {
 var arcTween = function(transition, arc) {
 	transition.attrTween("d",function(d){
 	  var i = d3.interpolate(this._current, d);
-	  this._current = d;
+	  // this._current = d;
 	  return function(t) {
+		  this._current = i(t);
 	    return arc(i(t));
 	  };
 	})
 };
+
+
+/*Events*/
+AD.UTILS.bind = function(mainKey, elements, _, data, index, type){
+	for(key in _.on[mainKey]){
+		_.on[mainKey][key].call(elements,data,index,type);
+	}
+}
+AD.UTILS.bindElementEvents = function(elements, _, type){
+	elements
+			.on('mouseover.ad-element-mouseover',function(d,i){
+				AD.UTILS.bind('elementMouseover', elements, _, d, i, type)
+			})
+			.on('mouseout.ad-element-mouseout',function(d,i){
+				AD.UTILS.bind('elementMouseout', elements, _, d, i, type)
+			})
+			.on('click.ad-element-click',function(d,i){
+				AD.UTILS.bind('elementClick', elements, _, d, i, type)
+			});
+}

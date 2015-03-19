@@ -36,11 +36,7 @@ AD.CHARTS.interactiveBarChart = function(){
 	var yFormat = function(value){return value};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 
@@ -103,11 +99,22 @@ AD.CHARTS.interactiveBarChart = function(){
 				.style('opacity',0)
 				.attr(orientation.height,0)
 				.attr(orientation.y,dimensions[orientation.vertical])
-				.on('mouseover.ad-mouseover',function(d){
+				.on('mouseover.ad-mouseover',function(d,i){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
+					for(key in on.elementMouseover){
+						on.elementMouseover[key].call(this,d,i,'bar');
+					}
 				})
-				.on('mouseout.ad-mouseout',function(d){
+				.on('mouseout.ad-mouseout',function(d,i){
 					AD.UTILS.removeTooltip();
+					for(key in on.elementMouseout){
+						on.elementMouseout[key].call(this,d,i,'bar');
+					}
+				})
+				.on('click.ad-click',function(d,i){
+					for(key in on.elementClick){
+						on.elementClick[key].call(this,d,i,'bar');
+					}
 				});
 
 		bar
@@ -224,7 +231,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		if(!arguments.length) return xScale;
 		xScale.type = value.type;
 		xScale.domain = value.domain;
-		generateRequired = true;
+		// generateRequired = true;
 
 		if(value.type == 'linear'){
 			xScale.scale = d3.scale.linear();
@@ -241,7 +248,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		if(!arguments.length) return yScale;
 		yScale.type = value.type;
 		yScale.domain = value.domain;
-		generateRequired = true;
+		// generateRequired = true;
 
 		if(value.type == 'linear'){
 			yScale.scale = d3.scale.linear();
@@ -369,7 +376,6 @@ AD.CHARTS.interactiveBarChart = function(){
 		});
 		if(chartData.data.labels)
 			currentChartData.labels = chartData.data.labels;
-
 		return chart;
 	};
 
@@ -556,7 +562,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		if(legendOrientation == 'right' || legendOrientation == 'left')
 			forcedMargin[legendOrientation] += legend.computedWidth() + 30;
 		else
-			forcedMargin[legendOrientation] += legend.computedHeight();
+			forcedMargin[legendOrientation] += legend.computedHeight() + 10;
 
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
 		innerWidth = width - forcedMargin.right - forcedMargin.left;

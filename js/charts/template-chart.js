@@ -3,30 +3,43 @@
 /*template chart*/
 AD.CHARTS.templateChart = function(){
 
-	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	//private store
+	var $$ = {};
 
-	var innerHeight = height, innerWidth = width;
-
-	var generateRequired = true; //using some methods may require the chart to be redrawn
-
-	var selection = d3.select('body'); //default selection of the HTML body
-
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
-
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
-			legendOrientation = 'bottom';
-
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
-
-	var currentChartData = {};
-
-	var xFormat = function(value){return value};
-
-	var controls = {
+	//user set width
+	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	//legend OBJ
+	$$.legend = new AD.UTILS.LEGENDS.legend();
+	//legend orientation 'top', 'bottom', 'left', or 'right'
+	$$.legendOrientation = 'bottom';
+	//legend data
+	$$.legendData = {data:{items:[]}};
+	//controls OBJ
+	$$.controls = new AD.UTILS.CONTROLS.horizontalControls();
+	//controls data
+	$$.controlsData = {
 				hideLegend: {
 					label: "Hide Legend",
 					type: "checkbox",
@@ -35,145 +48,61 @@ AD.CHARTS.templateChart = function(){
 				}
 			};
 
-	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
-
-	/*DEFINE CHART OBJECT AND MEMBERS*/
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
-
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		legend.animationDuration(animationDuration);
-		return chart;
-	};
-
-	chart.xFormat = function(value){
-		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
-		return chart;
-	};
-
-	chart.legendOrientation = function(value){
-		if(!arguments.length) return legendOrientation;
-		legendOrientation = value;
-		return chart;
-	};
-
-	chart.controls = function(value){
-		if(!arguments.length) return controls;
-		if(value.hideLegend){
-			controls.hideLegend.visible = (value.hideLegend.visible != null)? value.hideLegend.visible:controls.hideLegend.visible;
-			controls.hideLegend.enabled = (value.hideLegend.enabled != null)? value.hideLegend.enabled:controls.hideLegend.enabled;
-		}
-
-		return chart;
-	};
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	//chart setters
+	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+		$$.legend.animationDuration($$.animationDuration);
+		$$.controls.animationDuration($$.animationDuration);
+	});
+	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {};
-			generateRequired = true;
+			$$.currentChartData = {};
 		}
 
-		currentChartData = chartData.data;
+		$$.currentChartData = chartData.data;
 
 		return chart;
 	};
 
-	//generate chart
+	//chart generate
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
-		//clean container
-		selection.selectAll('*').remove();
+		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
+		AD.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
-		//create svg
-		selection.svg = selection
-			.append('svg')
-				.attr('class','ad-template-chart ad-svg ad-container');
+		//init legend properties
+		$$.legend
+				.color($$.color)
+				.selection($$.selection.legend);
 
-		//create group container
-		selection.group = selection.svg.append('g');
-
-		selection.group.template = selection.group
-			.append('g')
-				.attr('class','ad-template');
-		// //create legend container
-		selection.legend = selection.group
-			.append('g')
-				.attr('class','ad-legend');
-
-		//create controls container
-		selection.controls = selection.group
-			.append('g')
-				.attr('class','ad-controls');
-
-
-		horizontalControls
-				.selection(selection.controls)
+		//init control properties
+		$$.controls
+				.selection($$.selection.controls)
 				.on('elementChange',function(d,i){
-					controls[d.key].enabled = d.state;
-					if(d.key == 'sort' || d.key == 'hideLegend'){
-						newData = true;
-					}
+					$$.controlsData[d.key].enabled = d.state;
 					chart.update();
 				});
 
-		// //intialize new legend
-		legend
-				.color(color)
-				.selection(selection.legend);
+		//init main chart container
+		$$.selection.main = $$.selection.group
+			.append('g')
+				.attr('class','ad-main-chart');
 
 		//auto update chart
-		var temp = animationDuration;
+		var temp = $$.animationDuration;
 		chart
 				.animationDuration(0)
 				.update(callback)
@@ -182,71 +111,48 @@ AD.CHARTS.templateChart = function(){
 		return chart;
 	};
 
-	//update chart
+	//chart update
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		//init forcedMargin
+		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
 
-		innerWidth = width - forcedMargin.right - forcedMargin.left;
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
 
-		// if(controls.hideLegend.enabled){
-		// 	var legendData = {data:{items:[]}};
-		// }else{
-		// 	var legendData = {
-		// 		data:{
-		// 			items:	d3
-		// 								.set(currentChartData.nodes.map(function(d){
-		// 										return d.colorKey;
-		// 									}))
-		// 								.values()
-		// 								.map(function(d){return {label:d};})
-		// 		}
-		// 	};
-		// }
+		//update dimensions to the conform to the padded SVG:G
+		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
+		//update controls viz
+		AD.UTILS.CHARTS.HELPERS.updateControls($$);
 
-		// if(legendOrientation == 'right' || legendOrientation == 'left'){
-		// 	legend.orientation('vertical').data(legendData).height(innerHeight).update();
-		// }
-		// else{
-		// 	legend.orientation('horizontal').data(legendData).width(innerWidth).update();
-		// }
-		//
-		// var legendTranslation;
-		// if(legendOrientation == 'right')
-		// 	legendTranslation = 'translate('+(forcedMargin.left+innerWidth-legend.computedWidth())+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		// else if(legendOrientation == 'left')
-		// 	legendTranslation = 'translate('+(forcedMargin.left)+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		// else if(legendOrientation == 'top')
-		// 	legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+forcedMargin.top+')';
-		// else
-		// 	legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(innerHeight+forcedMargin.top-legend.computedHeight())+')';
-		//
-		// selection.group.legend
-		// 	.transition()
-		// 		.duration(animationDuration)
-		// 		.attr('transform',legendTranslation);
-		//
-		// if(legendOrientation == 'right' || legendOrientation == 'left')
-		// 	forcedMargin[legendOrientation] += legend.computedWidth();
-		// else
-		// 	forcedMargin[legendOrientation] += legend.computedHeight();
-		//
-		// innerHeight = height - forcedMargin.top - forcedMargin.bottom;
-		// innerWidth = width - forcedMargin.left - forcedMargin.right;
+		//set legend data and update legend viz
+		if($$.controlsData.hideLegend.enabled){
+			$$.legendData = {data:{items:[]}};
+		}else{
+			//----replace array with a custom legend builder
+			$$.legendData.data.items = [{'label':'item 1'},{'label':'item 2'},{'label':'item 3'},{'label':'item 4'},{'label':'item 5'},{'label':'item 6'}]
+		}
+		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
 
-		selection.svg
-				.attr('width',width)
-				.attr('height',height);
+		$$.selection.main
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
-		selection.group
-				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
+		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		//----chart code goes here!
+		//----use innerHeight/innerWidth as the context dimensions and use forcedMargin.|left, right, top, or bottom| as the current positioning margin
 
 		d3.timer.flush();
 

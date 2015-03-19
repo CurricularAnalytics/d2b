@@ -4,6 +4,7 @@
 AD.createNameSpace("AD.UTILS.LEGENDS");
 AD.UTILS.LEGENDS.legend = function(){
 	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH(), maxHeight = AD.CONSTANTS.DEFAULTHEIGHT();
+	var innerMaxHeight, innerMaxWidth;
 	var items = [];
 	var color = AD.CONSTANTS.DEFAULTCOLOR();
 	var selection;
@@ -11,7 +12,7 @@ AD.UTILS.LEGENDS.legend = function(){
 	var computedWidth=0, computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var orientation = 'horizontal';
-
+	var padding = 5;
 
 	var scale = 5;
 
@@ -27,6 +28,11 @@ AD.UTILS.LEGENDS.legend = function(){
 	legend.items = function(value){
 		if(!arguments.length) return items;
 		items = value;
+		return legend;
+	};
+	legend.padding = function(value){
+		if(!arguments.length) return padding;
+		padding = value;
 		return legend;
 	};
 	legend.width = function(value){
@@ -110,6 +116,9 @@ AD.UTILS.LEGENDS.legend = function(){
 		computedHeight = 0;
 		computedWidth = 0;
 
+		innerMaxHeight = maxHeight - padding*2;
+		innerMaxWidth = maxWidth - padding*2;
+
 
 		var item = selection.selectAll('g.ad-legend-item')
 				.data(currentLegendData.items, function(d){return d.label;});
@@ -148,31 +157,38 @@ AD.UTILS.LEGENDS.legend = function(){
 				.attr('x',scale*2)
 				.attr('y',scale);
 
+		var xCurrent = scale + padding;
+		var yCurrent = scale + padding;
+		var maxItemLength = 0;
+		var maxY = 0;
+
 		if(currentLegendData.items.length > 0){
 
 			if(orientation == 'vertical'){
 
-				var xCurrent = 0;
-				var yCurrent = 0;
-				var maxItemLength = 0;
+
 				item
 					.transition()
 						.duration(animationDuration)
 						.style('opacity',1)
 						.attr('transform',function(d,i){
 							var position = 'translate('+xCurrent+','+yCurrent+')';
+
+							if(yCurrent > maxY)
+								maxY = yCurrent
+
 							yCurrent += scale*4;
 							maxItemLength = Math.max(maxItemLength,d3.select(this).select('text').node().getComputedTextLength());
-							if(yCurrent > maxHeight){
-								yCurrent = 0;
+							if(yCurrent + scale > innerMaxHeight){
+								yCurrent = scale + padding;
 								xCurrent += maxItemLength + scale * 6;
 								maxItemLength = 0;
 							}
 							return position;
 						});
 
-				computedWidth = xCurrent + maxItemLength + scale * 6;
-				computedHeight = (xCurrent==0)? yCurrent : maxHeight;
+				computedWidth = xCurrent + maxItemLength + scale*2 + padding;
+				computedHeight = maxY + scale + padding;
 
 			}else{
 
@@ -183,17 +199,15 @@ AD.UTILS.LEGENDS.legend = function(){
 						maxItemLength = length;
 				})
 				maxItemLength += scale*6;
-				var itemsPerRow = Math.floor(maxWidth/maxItemLength);
+				var itemsPerRow = Math.floor((innerMaxWidth+3*scale)/maxItemLength);
 
-				var xCurrent = 0;
-				var yCurrent = 0;
 				item
 					.transition()
 						.duration(animationDuration)
 						.style('opacity',1)
 						.attr('transform',function(d,i){
-							if(i%itemsPerRow == 0){
-								xCurrent = 0;
+							if(i%itemsPerRow == 0 && i > 0){
+								xCurrent = scale + padding;
 								yCurrent += scale*4
 							}
 							var position = 'translate('+xCurrent+','+yCurrent+')';
@@ -201,13 +215,15 @@ AD.UTILS.LEGENDS.legend = function(){
 							return position;
 						});
 
-				computedHeight = yCurrent;
-				computedWidth = (item[0].length >= itemsPerRow)? maxItemLength * itemsPerRow : maxItemLength * item[0].length;
+				computedHeight = yCurrent + scale + padding;
+				computedWidth = (item.size() > itemsPerRow)?
+															maxItemLength * itemsPerRow - 3*scale + padding*2
+															:
+															maxItemLength * item.size() - 3*scale + padding*2;
 
 			}
 
 		}
-
 		item.exit()
 			.transition()
 				.duration(animationDuration)

@@ -16,7 +16,7 @@
 			.xFormat({nice:true,siPrefixed:false,units:{after:' students'}, separateThousands:false,precision:0})
 			// .sort(null)
 			// .legendOrientation('left')
-			.controls({sortByChange:{visible:true},hideLegend:{visible:true},colorByChange:{visible:true}})
+			.controls({sortByChange:{visible:true, enabled:true},hideLegend:{visible:true},colorByChange:{visible:true}})
 			.on('elementClick',function(d,i){
 				console.log(d)
 			});

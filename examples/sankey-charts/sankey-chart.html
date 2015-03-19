@@ -7,13 +7,13 @@
 <script>
 	$(document).ready(function(){
 
-		var sankeyChart = new AD.CHARTS.sankeyChart();
+		var sankeyChart = AD.CHARTS.sankeyChart();
 
 		sankeyChart
 			.select('.sankey-chart')
 			.width($(window).width())
 			.height($(window).height())
-			// .legendOrientation('left')
+			.legendOrientation('left')
 			.controls({hideLegend:{visible:true}})
 			.xFormat({siPrefixed:true,separateThousands:false,units:{before:"$"},precision:4});
 
@@ -66,7 +66,73 @@
 						]
 				}
 			}
-		).update();
+		)
+		// .on('elementMouseout', function(){d3.select(this).style('opacity',0.5)})
+		// .on('elementMouseover', function(){console.log('hi')})
+		.on('elementClick', function(){console.log('hi')})
+		.update();
+// console.log(sankeyChart.on('elementClick'))
+
+		var sankeyChart2 = AD.CHARTS.sankeyChart();
+
+		sankeyChart2
+			.select('.sankey-chart2')
+			.width($(window).width())
+			.height($(window).height())
+			.controls({hideLegend:{visible:true}})
+			.xFormat({siPrefixed:true,separateThousands:false,units:{before:"$"},precision:4});
+
+		sankeyChart2
+			.data(
+				{
+					data:{
+						labels:{source:"Source",destination:"Expenditures"},
+						links:[
+							{source:0, target:6, value:19595476, colorBy:'source'},
+							{source:0, target:7, value:4074464, colorBy:'source'},
+							{source:0, target:8, value:164936060, colorBy:'source'},
+							{source:1, target:8, value:134007480, colorBy:'source'},
+							{source:1, target:9, value:3464088, colorBy:'source'},
+							{source:2, target:10, value:21000000, colorBy:'source'},
+							{source:3, target:8, value:126006, colorBy:'source'},
+							{source:3, target:11, value:8102863, colorBy:'source'},
+							{source:4, target:8, value:2310071, colorBy:'source'},
+							{source:5, target:8, value:254624, colorBy:'source'},
+							{source:5, target:12, value:850000, colorBy:'source'},
+							{source:8, target:13, value:170411956, colorBy:'target'},
+							{source:8, target:14, value:37093519, colorBy:'target'},
+							{source:8, target:15, value:33221061, colorBy:'target'},
+							{source:8, target:16, value:35735864, colorBy:'target'},
+							{source:8, target:17, value:17281907, colorBy:'target'},
+							{source:8, target:18, value:1809376, colorBy:'target'},
+							{source:8, target:19, value:6080558, colorBy:'target'}
+						],
+						nodes:[
+							{id:0,name:"State Appropriation",shortName:"State Appropriation",colorKey:"State Appropriation"},
+							{id:1,name:"Tuition",shortName:"Tuition",colorKey:"Tuition"},
+							{id:2,name:"Indirect Costs",shortName:"Indirect Costs",colorKey:"Indirect Costs"},
+							{id:3,name:"State Land & Permanent Fund",shortName:"State Land & Permanent Fund",colorKey:"State Land & Permanent Fund"},
+							{id:4,name:"Interest, Reserves & Misc. Fees",shortName:"Interest, Reserves & Misc. Fees",colorKey:"Interest, Reserves & Misc. Fees"},
+							{id:5,name:"Winrock Endowment",shortName:"Winrock Endowment",colorKey:"Winrock Endowment"},
+							{id:20,name:"Transfer to HSC Instructional Programs",shortName:"Transfer to HSC Instructional Programs",colorKey:"State Appropriation"},
+							{id:21,name:"Scholarship Transfer",shortName:"Scholarship Transfer",colorKey:"State Appropriation"},
+							{id:8,name:"I&G Pooled Revenue",shortName:"I&G Pooled Revenue"},
+							{id:9,name:"Bad Dept Allowance & Credit Card Fees",shortName:"Bad Dept Allowance & Credit Card Fees",colorKey:"Tuition"},
+							{id:10,name:"Transfer to Research",shortName:"Transfer to Research",colorKey:"Indirect Costs"},
+							{id:11,name:"Transfer to BR&R",shortName:"Transfer to BR&R",colorKey:"State Land & Permanent Fund"},
+							{id:12,name:"Transfer to Student Aid",shortName:"Transfer to Student Aid",colorKey:"Winrock Endowment"},
+							{id:13,name:"Instruction",shortName:"Instruction",colorKey:"Education and Related Expenses"},
+							{id:14,name:"Operations and Maint.",shortName:"Operations and Maint.",colorKey:"Non Educational"},
+							{id:15,name:"Academic Support",shortName:"Academic Support",colorKey:"Education and Related Expenses"},
+							{id:16,name:"Institutional Support",shortName:"Institutional Support",colorKey:"Non Educational"},
+							{id:17,name:"Student Services",shortName:"Student Services",colorKey:"Education and Related Expenses"},
+							{id:18,name:"Plant-Capital",shortName:"Plant-Capital",colorKey:"Non Educational"},
+							{id:19,name:"Student Aid",shortName:"Student Aid",colorKey:"Education and Related Expenses"}
+						]
+				}
+			}
+		)
+		.on('elementClick', function(){d3.select(this).style('opacity',0.5)}).update();
 
 		$(window).resize(function(){
 			sankeyChart.height($(window).height()).width($(window).width()).update(function(){console.log("resized!")});
@@ -77,6 +143,7 @@
 
 <body style='margin:0px;'>
 <div class = 'sankey-chart'></div>
+<div class = 'sankey-chart2'></div>
 
 </body>
 </html>

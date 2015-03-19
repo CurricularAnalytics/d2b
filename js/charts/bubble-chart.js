@@ -497,12 +497,14 @@ AD.CHARTS.bubbleChart = function(){
 				.duration(animationDuration)
 				.attr('r',function(d){return radius(d.value);});
 
-		current.groups.forEach(function(d){
-			// d.force.stop();
-			d.nodeElements = selection.group.bubbles.bubble.filter(function(b){
-				return b.group == d && b.enrollments[current.grouping.index];
-			})
-		});
+		if(current.groups){
+			current.groups.forEach(function(d){
+				// d.force.stop();
+				d.nodeElements = selection.group.bubbles.bubble.filter(function(b){
+					return b.group == d && b.enrollments[current.grouping.index];
+				})
+			});
+		}
 
 		if(controls.colorByChange.enabled){
 			circleTransition

@@ -19,6 +19,8 @@ AD.DASHBOARDS.dashboard = function(){
 
   var chartPage = new AD.UTILS.chartPage();
 
+	var sectionsByKey = {};
+
 	var navigationHistory = {};
 	navigationHistory.array = [];
 	navigationHistory.position = -1;
@@ -57,6 +59,8 @@ AD.DASHBOARDS.dashboard = function(){
 	};
 	var traverseSections = function(position,sections,sectionGroup){
 		sections.forEach(function(section){
+			if(section.key)
+				sectionsByKey[section.key] = section;
 			traverseCategories(section.categories);
 			section.position = position.concat([{section:section, sectionGroup: sectionGroup}]);
 			if(section.sections)
@@ -74,6 +78,12 @@ AD.DASHBOARDS.dashboard = function(){
 	var dashboardLayout = function(data){
 		for(chart in data.dashboard.charts){
 			AD.UTILS.chartLayoutAdapter(data.dashboard.charts[chart].type,data.dashboard.charts[chart]);
+
+			//if chart element has a section reference, update to that section
+			data.dashboard.charts[chart].chart.on('elementClick',function(d,i,type){
+				if(d.sectionRefrence)
+					changeCurrentSection(sectionsByKey[d.sectionRefrence]);
+			});
 		}
 		traverseSections([],[data.dashboard.topSection]);
 	};

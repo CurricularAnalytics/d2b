@@ -2,7 +2,6 @@
 
 /*multi chart*/
 AD.CHARTS.multiChart = function(){
-
 	//define multiChart variables
 	var width = AD.CONSTANTS.DEFAULTWIDTH(),
 			height = AD.CONSTANTS.DEFAULTHEIGHT();
@@ -39,6 +38,7 @@ AD.CHARTS.multiChart = function(){
 		for(key in on.elementClick){
 			on.elementClick[key].call(this,d,i,'chart-button');
 		}
+		// console.log(current.chart)
 		chart.update();
 	};
 	var buttonMouseover = function(d,i){
@@ -110,11 +110,11 @@ AD.CHARTS.multiChart = function(){
 			adChart = current.chart.chart;
 			adChart
 				.selection(selection.chartWrapper.chart)
-				.data(current.chart.data);
+				.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
 		}else if(current.chart != previous.chart){
 			if(current.chart.type == previous.chart.type){
 				adChart
-					.data(current.chart.data);
+					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
 			}else{
 				selection.chartWrapper.chart
 					.transition()
@@ -131,7 +131,7 @@ AD.CHARTS.multiChart = function(){
 				adChart = current.chart.chart;
 				adChart
 					.selection(selection.chartWrapper.chart)
-					.data(current.chart.data);
+					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
 
 				selection.chartWrapper.chart
 					.transition()
@@ -251,6 +251,7 @@ AD.CHARTS.multiChart = function(){
 			.append('ul')
 				.attr('class','ad-buttons');
 
+		// selection.style('position','relative');
 		selection.chartWrapper = selection
 			.append('div')
 				.attr('class','ad-multi-chart ad-container');

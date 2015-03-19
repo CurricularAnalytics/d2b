@@ -1,7 +1,14 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
+//TODO: ADD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
+//TODO: ATTACH ALL PRIVATE VARIABLES/MEHTODS TO BE STORED ON THE PRIVATE STORE '_'
+
 /*sankey chart*/
 AD.CHARTS.sankeyChart = function(){
+
+	//private
+	var _ = {};
+	_.on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	//define axisChart variables
 	var width = AD.CONSTANTS.DEFAULTWIDTH(),
@@ -47,11 +54,7 @@ AD.CHARTS.sankeyChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	// var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var xFormat = function(value){return value};
 
@@ -128,23 +131,25 @@ AD.CHARTS.sankeyChart = function(){
 		return chart;
 	};
 
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
+	// chart.on = function(key, value){
+	// 	key = key.split('.');
+	// 	if(!arguments.length) return on;
+	// 	else if(arguments.length == 1){
+	// 		if(key[1])
+	// 			return on[key[0]][key[1]];
+	// 		else
+	// 			return on[key[0]]['default'];
+	// 	};
+	//
+	// 	if(key[1])
+	// 		on[key[0]][key[1]] = value;
+	// 	else
+	// 		on[key[0]]['default'] = value;
+	//
+	// 	return chart;
+	// };
 
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	chart.on = AD.UTILS.CHARTS.MEMBERS.on(chart, _);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return currentChartData;
@@ -442,23 +447,13 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('class','ad-sankey-node')
 				.on('mouseover.ad-mouseover',function(d,i){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i,'node');
-					}
 				})
 				.on('mouseout.ad-mouseout',function(d,i){
 					AD.UTILS.removeTooltip();
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i,'node');
-					}
-				})
-				.on('click.ad-click',function(d,i){
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,'node');
-					}
 				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
-				.style('opacity',0);
+				.style('opacity',0)
+				.call(AD.UTILS.bindElementEvents, _, 'node');
 		newNode.append('rect');
 		newNode.append('text');
 
@@ -471,11 +466,12 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',1);
 
-		node.select('rect')
+		node
+			.select('rect')
 			.transition()
 				.duration(animationDuration)
 				.attr('width',sankey.nodeWidth())
-				.attr('height',function(d){return d.dy;});
+				.attr('height',function(d){return Math.max(0,d.dy);});
 		nodeText
 			.transition()
 				.duration(animationDuration)
@@ -498,22 +494,14 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('class','ad-sankey-link')
 				.on('mouseover.ad-mouseover',function(d,i){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i,'link');
-					}
 				})
 				.on('mouseout.ad-mouseout',function(d,i){
 					AD.UTILS.removeTooltip();
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i,'link');
-					}
 				})
-				.on('click.ad-click',function(d,i){
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,'link');
-					}
-				})
-				.style('opacity',0);
+				.style('opacity',0)
+				.call(AD.UTILS.bindElementEvents, _, 'link');
+
+		// console.log(newLink)
 		newLink.append('path');
 		newLink.append('text');
 
@@ -534,7 +522,8 @@ AD.CHARTS.sankeyChart = function(){
 				.duration(animationDuration)
 				.style('opacity',1);
 
-		link.select('path')
+		link
+			.select('path')
 				.style('stroke',function(d){
 						return (d.colorBy)?
 										color((d[d.colorBy].colorKey)?

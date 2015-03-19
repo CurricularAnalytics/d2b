@@ -31,11 +31,7 @@ AD.CHARTS.axisChart = function(){
 	var yFormat = function(value){return value};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var controls = {
 				yAxisLock: {

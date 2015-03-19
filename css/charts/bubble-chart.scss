@@ -16,11 +16,7 @@
       &:last-child{
         border-right:0px;
       }
-
-
-
       li{
-        // display:inline-block;
         color:#777;
         &.ad-selected{
           background:$lightest;

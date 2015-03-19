@@ -34,41 +34,26 @@ AD.createNameSpace("AD.UTILS");
 /*AD UTILITIES*/
 AD.createNameSpace("AD.UTILS.CHARTPAGE");
 
-// AD.createNameSpace("AD.UTILS.CHARTS");
-// AD.UTILS.CHARTS.onHelper = function(){
-//   var _self = this;
-//   return function(key, value){
-// 		key = key.split('.');
-// 		if(!arguments.length) return _self.on;
-// 		else if(arguments.length == 1){
-// 			if(key[1])
-// 				return _self.on[key[0]][key[1]];
-// 			else
-// 				return _self.on[key[0]]['default'];
-// 		};
-//
-// 		if(key[1])
-//       _self.on[key[0]][key[1]] = value;
-// 		else
-//       _self.on[key[0]]['default'] = value;
-//
-// 		return _self.chart;
-// 	};
-// };
-
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*AD constants*/
 AD.createNameSpace("AD.CONSTANTS");
 
-AD.CONSTANTS.DEFAULTPALETTE = {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"}
-AD.CONSTANTS.DEFAULTWIDTH = function(){ return 960; };
-AD.CONSTANTS.DEFAULTHEIGHT = function(){ return 540; };
-AD.CONSTANTS.DEFAULTMARGIN = function(){ return {left:0,right:0,top:0,bottom:0}; };
-AD.CONSTANTS.DEFAULTFORCEDMARGIN = function(){ return {left:30, bottom:20, right:30, top:20}; };
-AD.CONSTANTS.DEFAULTCOLOR = function(){ return d3.scale.category10(); };
-
-AD.CONSTANTS.ANIMATIONLENGTHS = function(){ return {normal:500,short:100,long:1000}; };
+AD.CONSTANTS = {
+  DEFAULTPALETTE: {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"},
+  DEFAULTWIDTH: function(){ return 960; },
+  DEFAULTHEIGHT: function(){ return 540; },
+  DEFAULTMARGIN: function(){ return {left:0,right:0,top:0,bottom:0}; },
+  DEFAULTFORCEDMARGIN: function(){ return {left:30, bottom:20, right:30, top:20}; },
+  DEFAULTCOLOR: function(){ return d3.scale.category10(); },
+  DEFAULTEVENTS: function(){ return {
+                            		elementMouseover:function(){},
+                            		elementMouseout:function(){},
+                            		elementClick:function(){}
+                            	};
+                },
+  ANIMATIONLENGTHS: function(){ return {normal:500,short:100,long:1000}; }
+}
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -503,7 +488,7 @@ AD.UTILS.CONTROLS.checkbox = function(){
 	var selection;
 	var computedWidth=0, computedHeight=0;
 	var currentCheckboxData = {label:'',state:false};
-	
+
 	//init event object
 	var on = {
 		elementMouseover:function(){},
@@ -511,11 +496,11 @@ AD.UTILS.CONTROLS.checkbox = function(){
 		elementClick:function(){},
 		elementChange:function(){}
 	};
-	
+
 	var checkbox = {};
-	
+
 	// var onChange = function(){};
-	
+
 	checkbox.scale = function(value){
 		if(!arguments.length) return scale;
 		scale = value;
@@ -530,14 +515,14 @@ AD.UTILS.CONTROLS.checkbox = function(){
 		if(!arguments.length) return currentCheckboxData.state;
 		currentCheckboxData.state = value;
 		return checkbox.update();
-	};	
+	};
 	checkbox.computedHeight = function(){
 		return computedHeight;
 	};
 	checkbox.computedWidth = function(){
 		return computedWidth;
 	};
-	
+
 	checkbox.on = function(key, value){
 		key = key.split('.');
 		if(!arguments.length) return on;
@@ -547,30 +532,30 @@ AD.UTILS.CONTROLS.checkbox = function(){
 			else
 				return on[key[0]]['default'];
 		};
-		
+
 		if(key[1])
 			on[key[0]][key[1]] = value;
 		else
 			on[key[0]]['default'] = value;
-		
+
 		return checkbox;
 	};
-	
+
 	checkbox.data = function(checkboxData, reset){
 		if(!arguments.length) return currentCheckboxData;
 		currentCheckboxData = checkboxData;
 		return checkbox;
 	}
-	
-	
+
+
 	checkbox.update = function(callback){
-		
+
 		if(!selection)
 			return console.warn('checkbox was not given a selection');
-		
+
 		if(!currentCheckboxData)
 			return console.warn('checkboxData is null');
-		
+
 		var checkboxContainer = selection.selectAll('g.ad-checkbox-container').data([currentCheckboxData]);
 		var newCheckboxContainer = checkboxContainer.enter()
 			.append('g')
@@ -578,10 +563,10 @@ AD.UTILS.CONTROLS.checkbox = function(){
 				.on('click.ad-click',function(d,i){
 					currentCheckboxData.state = !currentCheckboxData.state;
 					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i);
+						on.elementClick[key].call(this,d,i,'checkbox');
 					}
 					for(key in on.elementChange){
-						on.elementChange[key].call(this,d,i);
+						on.elementChange[key].call(this,d,i,'checkbox');
 					}
 					checkbox.update();
 				})
@@ -600,20 +585,20 @@ AD.UTILS.CONTROLS.checkbox = function(){
 				.attr('rx',1);
 		newCheckboxContainer
 			.append('path');
-				
-		newCheckboxContainer		
+
+		newCheckboxContainer
 			.append('text')
 				.text(function(d){return d.label;});
-		
+
 		var label = checkboxContainer.select('text')
 				.attr('y',scale*2.1)
 				.style('font-size',scale*2.5+'px');
-				
+
 		var labelLength = label.node().getComputedTextLength();
-		
+
 		var padding = scale;
-		labelLength += padding;	
-		
+		labelLength += padding;
+
 		var checkboxTranslate = 'translate('+labelLength+',0)';
 		var check = checkboxContainer.select('path')
 				.attr('transform',checkboxTranslate)
@@ -629,18 +614,18 @@ AD.UTILS.CONTROLS.checkbox = function(){
 				.attr('height',scale*2.1+'px')
 				.attr('transform',checkboxTranslate)
 				.style('stroke-width',0.4*scale);
-	
+
 		computedWidth = labelLength + scale*2.1;
 		computedHeight = scale*2.5;
 
 		if(callback)
 			callback();
-		
+
 		return checkbox;
 	};
-	
+
 	return checkbox;
-	
+
 }
 AD.UTILS.CONTROLS.horizontalControls = function(){
 	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH();
@@ -649,9 +634,9 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 	var currentControlsData;
 	var computedWidth=0, computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	
+
 	var scale = 5;
-	
+
 	//init event object
 	var on = {
 		elementMouseover:function(){},
@@ -661,7 +646,7 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 	};
 
 	var controls = {};
-	
+
 	controls.width = function(value){
 		if(!arguments.length) return maxWidth;
 		maxWidth = value;
@@ -688,7 +673,7 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 		animationDuration = value;
 		return controls;
 	};
-	
+
 	controls.on = function(key, value){
 		key = key.split('.');
 		if(!arguments.length) return on;
@@ -698,21 +683,21 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 			else
 				return on[key[0]]['default'];
 		};
-		
+
 		if(key[1])
 			on[key[0]][key[1]] = value;
 		else
 			on[key[0]]['default'] = value;
-		
+
 		return controls;
 	};
-	
+
 	controls.data = function(controlsData, reset){
 		if(!arguments.length) return currentControlsData;
 		currentControlsData = controlsData;
 		return controls;
 	}
-	
+
 	controls.update = function(callback){
 		if(!selection)
 			return console.warn('controls was not given a selection');
@@ -721,10 +706,10 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 		var yPadding = scale;
 		computedHeight = 0;
 		computedWidth = 0;
-		
+
 		if(currentControlsData.length > 0){
 			var controls = selection.selectAll('g.ad-control').data(currentControlsData,function(d){return d.label+','+d.type;});
-			
+
 			controls.enter()
 				.append('g')
 					.attr('class','ad-control')
@@ -752,35 +737,38 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 								}
 							});
 					});
-				
 
-			
+
+
 			var maxControlHeight = 0;
+			var maxControlRowWidth = 0;
 			controls.each(function(d){
-				
+
 				d.control.scale(scale).data(d.data).update();
-				
+
 				if((computedWidth + d.control.computedWidth()) > maxWidth){
 					computedWidth = 0;
 					computedHeight += maxControlHeight + yPadding;
 					maxControlHeight = 0;
 				}
-				
+
 				d3.select(this)
-					// .transition()
-					// 	.duration(animationDuration)
+					.transition()
+						.duration(animationDuration)
 						.style('opacity',1)
 						.attr('transform','translate('+computedWidth+','+computedHeight+')');
-				computedWidth += d.control.computedWidth() + xPadding;	
-						
+				computedWidth += d.control.computedWidth() + xPadding;
+
 				if(maxControlHeight < d.control.computedHeight()){
 					maxControlHeight = d.control.computedHeight();
 				}
+				if(maxControlRowWidth < computedWidth){
+					maxControlRowWidth = computedWidth;
+				}
 			});
 
-			computedWidth -= xPadding;
+			computedWidth = maxControlRowWidth - xPadding;
 
-				
 			computedHeight += maxControlHeight;
 			controls.exit()
 				.transition()
@@ -788,11 +776,11 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 					.style('opacity',0)
 					.remove();
 		}
-		
+
 		if(callback){
 			callback;
 		}
-		
+
 		return controls;
 	};
 
@@ -1003,12 +991,33 @@ AD.UTILS.textWrap = function(text, width) {
 var arcTween = function(transition, arc) {
 	transition.attrTween("d",function(d){
 	  var i = d3.interpolate(this._current, d);
-	  this._current = d;
+	  // this._current = d;
 	  return function(t) {
+		  this._current = i(t);
 	    return arc(i(t));
 	  };
 	})
 };
+
+
+/*Events*/
+AD.UTILS.bind = function(mainKey, elements, _, data, index, type){
+	for(key in _.on[mainKey]){
+		_.on[mainKey][key].call(elements,data,index,type);
+	}
+}
+AD.UTILS.bindElementEvents = function(elements, _, type){
+	elements
+			.on('mouseover.ad-element-mouseover',function(d,i){
+				AD.UTILS.bind('elementMouseover', elements, _, d, i, type)
+			})
+			.on('mouseout.ad-element-mouseout',function(d,i){
+				AD.UTILS.bind('elementMouseout', elements, _, d, i, type)
+			})
+			.on('click.ad-element-click',function(d,i){
+				AD.UTILS.bind('elementClick', elements, _, d, i, type)
+			});
+}
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -1016,6 +1025,7 @@ var arcTween = function(transition, arc) {
 AD.createNameSpace("AD.UTILS.LEGENDS");
 AD.UTILS.LEGENDS.legend = function(){
 	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH(), maxHeight = AD.CONSTANTS.DEFAULTHEIGHT();
+	var innerMaxHeight, innerMaxWidth;
 	var items = [];
 	var color = AD.CONSTANTS.DEFAULTCOLOR();
 	var selection;
@@ -1023,7 +1033,7 @@ AD.UTILS.LEGENDS.legend = function(){
 	var computedWidth=0, computedHeight=0;
 	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var orientation = 'horizontal';
-
+	var padding = 5;
 
 	var scale = 5;
 
@@ -1039,6 +1049,11 @@ AD.UTILS.LEGENDS.legend = function(){
 	legend.items = function(value){
 		if(!arguments.length) return items;
 		items = value;
+		return legend;
+	};
+	legend.padding = function(value){
+		if(!arguments.length) return padding;
+		padding = value;
 		return legend;
 	};
 	legend.width = function(value){
@@ -1122,6 +1137,9 @@ AD.UTILS.LEGENDS.legend = function(){
 		computedHeight = 0;
 		computedWidth = 0;
 
+		innerMaxHeight = maxHeight - padding*2;
+		innerMaxWidth = maxWidth - padding*2;
+
 
 		var item = selection.selectAll('g.ad-legend-item')
 				.data(currentLegendData.items, function(d){return d.label;});
@@ -1160,31 +1178,38 @@ AD.UTILS.LEGENDS.legend = function(){
 				.attr('x',scale*2)
 				.attr('y',scale);
 
+		var xCurrent = scale + padding;
+		var yCurrent = scale + padding;
+		var maxItemLength = 0;
+		var maxY = 0;
+
 		if(currentLegendData.items.length > 0){
 
 			if(orientation == 'vertical'){
 
-				var xCurrent = 0;
-				var yCurrent = 0;
-				var maxItemLength = 0;
+
 				item
 					.transition()
 						.duration(animationDuration)
 						.style('opacity',1)
 						.attr('transform',function(d,i){
 							var position = 'translate('+xCurrent+','+yCurrent+')';
+
+							if(yCurrent > maxY)
+								maxY = yCurrent
+
 							yCurrent += scale*4;
 							maxItemLength = Math.max(maxItemLength,d3.select(this).select('text').node().getComputedTextLength());
-							if(yCurrent > maxHeight){
-								yCurrent = 0;
+							if(yCurrent + scale > innerMaxHeight){
+								yCurrent = scale + padding;
 								xCurrent += maxItemLength + scale * 6;
 								maxItemLength = 0;
 							}
 							return position;
 						});
 
-				computedWidth = xCurrent + maxItemLength + scale * 6;
-				computedHeight = (xCurrent==0)? yCurrent : maxHeight;
+				computedWidth = xCurrent + maxItemLength + scale*2 + padding;
+				computedHeight = maxY + scale + padding;
 
 			}else{
 
@@ -1195,17 +1220,15 @@ AD.UTILS.LEGENDS.legend = function(){
 						maxItemLength = length;
 				})
 				maxItemLength += scale*6;
-				var itemsPerRow = Math.floor(maxWidth/maxItemLength);
+				var itemsPerRow = Math.floor((innerMaxWidth+3*scale)/maxItemLength);
 
-				var xCurrent = 0;
-				var yCurrent = 0;
 				item
 					.transition()
 						.duration(animationDuration)
 						.style('opacity',1)
 						.attr('transform',function(d,i){
-							if(i%itemsPerRow == 0){
-								xCurrent = 0;
+							if(i%itemsPerRow == 0 && i > 0){
+								xCurrent = scale + padding;
 								yCurrent += scale*4
 							}
 							var position = 'translate('+xCurrent+','+yCurrent+')';
@@ -1213,13 +1236,15 @@ AD.UTILS.LEGENDS.legend = function(){
 							return position;
 						});
 
-				computedHeight = yCurrent;
-				computedWidth = (item[0].length >= itemsPerRow)? maxItemLength * itemsPerRow : maxItemLength * item[0].length;
+				computedHeight = yCurrent + scale + padding;
+				computedWidth = (item.size() > itemsPerRow)?
+															maxItemLength * itemsPerRow - 3*scale + padding*2
+															:
+															maxItemLength * item.size() - 3*scale + padding*2;
 
 			}
 
 		}
-
 		item.exit()
 			.transition()
 				.duration(animationDuration)
@@ -1385,6 +1410,156 @@ AD.UTILS.breadcrumbs = function(){
 	return breadcrumbs;
 };
 
+AD.createNameSpace("AD.UTILS.CHARTS.MEMBERS");
+
+AD.UTILS.CHARTS.MEMBERS.on = function(chart, _, callback){
+  return function(key, value){
+		key = key.split('.');
+		if(!arguments.length) return _.on;
+		else if(arguments.length == 1){
+			if(key[1])
+				return _.on[key[0]][key[1]];
+			else
+				return _.on[key[0]]['default'];
+		};
+
+		if(key[1])
+      _.on[key[0]][key[1]] = value;
+		else
+      _.on[key[0]]['default'] = value;
+
+    if(callback)
+      callback();
+
+		return chart;
+	};
+};
+
+AD.UTILS.CHARTS.MEMBERS.select = function(chart, _, callback){
+  return function(value){
+
+    _.selection = d3.select(value);
+    if(callback)
+      callback();
+		return chart;
+  }
+};
+
+AD.UTILS.CHARTS.MEMBERS.prop = function(chart, _, property, callback){
+  return function(value){
+    if(!arguments.length) return _[property];
+    _[property] = value;
+    if(callback)
+      callback();
+    return chart;
+  }
+};
+
+AD.UTILS.CHARTS.MEMBERS.format = function(chart, _, property, callback){
+  return function(value){
+    if(!arguments.length) return _[property];
+    _.xFormat = AD.UTILS.numberFormat(value);
+    if(callback)
+      callback();
+    return chart;
+  }
+};
+
+AD.UTILS.CHARTS.MEMBERS.controls = function(chart, _, callback){
+  return function(value){
+    if(!arguments.length) return _.controlsData;
+    for(control in value){
+      for(controlProp in value[control]){
+        _.controlsData[control][controlProp] = value[control][controlProp];
+      }
+    }
+    if(callback)
+      callback();
+    return chart;
+  }
+};
+
+AD.createNameSpace("AD.UTILS.CHARTS.HELPERS");
+AD.UTILS.CHARTS.HELPERS.updateLegend = function(_){
+  if(_.legendOrientation == 'right' || _.legendOrientation == 'left'){
+    _.legend.orientation('vertical').data(_.legendData).height(_.innerHeight).update();
+  }
+  else{
+    _.legend.orientation('horizontal').data(_.legendData).width(_.innerWidth).update();
+  }
+
+  var legendTranslation;
+  if(_.legendOrientation == 'right')
+    legendTranslation = 'translate('+(_.forcedMargin.left+_.innerWidth-_.legend.computedWidth())+','+((_.innerHeight-_.legend.computedHeight())/2+_.forcedMargin.top)+')';
+  else if(_.legendOrientation == 'left')
+    legendTranslation = 'translate('+(_.forcedMargin.left)+','+((_.innerHeight-_.legend.computedHeight())/2+_.forcedMargin.top)+')';
+  else if(_.legendOrientation == 'top')
+    legendTranslation = 'translate('+(_.forcedMargin.left+(_.innerWidth-_.legend.computedWidth())/2)+','+_.forcedMargin.top+')';
+  else
+    legendTranslation = 'translate('+(_.forcedMargin.left+(_.innerWidth-_.legend.computedWidth())/2)+','+(_.innerHeight+_.forcedMargin.top-_.legend.computedHeight())+')';
+
+  _.selection.legend
+    .transition()
+      .duration(_.animationDuration)
+      .attr('transform',legendTranslation);
+
+  if(_.legendOrientation == 'right' || _.legendOrientation == 'left')
+    _.forcedMargin[_.legendOrientation] += _.legend.computedWidth();
+  else
+    _.forcedMargin[_.legendOrientation] += _.legend.computedHeight();
+
+  _.innerHeight = _.outerHeight - _.forcedMargin.top - _.forcedMargin.bottom;
+  _.innerWidth = _.outerHeight - _.forcedMargin.left - _.forcedMargin.right;
+};
+AD.UTILS.CHARTS.HELPERS.updateControls = function(_){
+  var controlsData = AD.UTILS.getValues(_.controlsData).filter(function(d){return d.visible;});
+  controlsData.map(function(d){
+    d.data = {state:d.enabled, label:d.label, key:d.key};
+  });
+  _.controls.data(controlsData).width(_.innerWidth).update();
+
+  //reposition the controls
+  _.selection.controls
+    .transition()
+      .duration(_.animationDuration)
+      .attr('transform','translate('+(_.forcedMargin.left + _.innerWidth - _.controls.computedWidth())+','+_.forcedMargin.top+')');
+
+  _.forcedMargin.top += _.controls.computedHeight();
+  _.innerHeight = _.outerHeight - _.forcedMargin.top - _.forcedMargin.bottom;
+
+};
+AD.UTILS.CHARTS.HELPERS.updateDimensions = function(_){
+	_.outerWidth = _.outerWidth - _.forcedMargin.right - _.forcedMargin.left;
+	_.outerHeight = _.outerHeight - _.forcedMargin.top - _.forcedMargin.bottom;
+	_.forcedMargin = {top:0,bottom:0,left:0,right:0};
+	_.innerWidth = _.outerWidth;
+	_.innerHeight = _.outerHeight;
+};
+AD.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_){
+  //clean container
+  _.selection.selectAll('*').remove();
+
+  //create svg
+  _.selection.svg = _.selection
+    .append('svg')
+      .attr('class','ad-template-chart ad-svg ad-container');
+
+  //create group container
+  _.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+  _.selection.group = _.selection.svg.append('g')
+      .attr('transform','translate('+_.forcedMargin.left+','+_.forcedMargin.top+')');
+
+  //create legend container
+  _.selection.legend = _.selection.group
+    .append('g')
+      .attr('class','ad-legend');
+
+  //create controls container
+  _.selection.controls = _.selection.group
+    .append('g')
+      .attr('class','ad-controls');
+};
+
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*sunburst chart*/
@@ -1461,11 +1636,7 @@ AD.CHARTS.sunburstChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	// private methods
 
@@ -1578,7 +1749,7 @@ AD.CHARTS.sunburstChart = function(){
 		}while(cur);
 		return domain;
 	};
-	
+
 	var getZoomChildDomain = function(d, domain){
 		if(!domain){domain = [1,0];}
 		else{
@@ -2043,7 +2214,22 @@ AD.CHARTS.sunburstChart = function(){
 		// sunburst_mouseout();
 		var newArcs =	selection.group.sunburst.arcs.arc.enter().append("g")
 			.attr('class','sunburst-arc')
-			.style('opacity',0);
+			.style('opacity',0)
+			.on('mouseover.ad-mouseover',function(d,i){
+				for(key in on.elementMouseover){
+					on.elementMouseover[key].call(this,d,i,'arc');
+				}
+			})
+			.on('mouseout.ad-mouseout',function(d,i){
+				for(key in on.elementMouseout){
+					on.elementMouseout[key].call(this,d,i,'arc');
+				}
+			})
+			.on('click.ad-click',function(d,i){
+				for(key in on.elementClick){
+					on.elementClick[key].call(this,d,i,'arc');
+				}
+			});
 
 		var newPaths = newArcs.append("path")
 				.on('mouseover.ad-mouseover',arcMouseover);
@@ -2576,12 +2762,14 @@ AD.CHARTS.bubbleChart = function(){
 				.duration(animationDuration)
 				.attr('r',function(d){return radius(d.value);});
 
-		current.groups.forEach(function(d){
-			// d.force.stop();
-			d.nodeElements = selection.group.bubbles.bubble.filter(function(b){
-				return b.group == d && b.enrollments[current.grouping.index];
-			})
-		});
+		if(current.groups){
+			current.groups.forEach(function(d){
+				// d.force.stop();
+				d.nodeElements = selection.group.bubbles.bubble.filter(function(b){
+					return b.group == d && b.enrollments[current.grouping.index];
+				})
+			});
+		}
 
 		if(controls.colorByChange.enabled){
 			circleTransition
@@ -3051,11 +3239,7 @@ AD.CHARTS.axisChart = function(){
 	var yFormat = function(value){return value};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var controls = {
 				yAxisLock: {
@@ -3908,8 +4092,15 @@ AD.CHARTS.axisChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
+//TODO: ADD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
+//TODO: ATTACH ALL PRIVATE VARIABLES/MEHTODS TO BE STORED ON THE PRIVATE STORE '_'
+
 /*sankey chart*/
 AD.CHARTS.sankeyChart = function(){
+
+	//private
+	var _ = {};
+	_.on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	//define axisChart variables
 	var width = AD.CONSTANTS.DEFAULTWIDTH(),
@@ -3955,11 +4146,7 @@ AD.CHARTS.sankeyChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	// var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var xFormat = function(value){return value};
 
@@ -4036,23 +4223,25 @@ AD.CHARTS.sankeyChart = function(){
 		return chart;
 	};
 
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
+	// chart.on = function(key, value){
+	// 	key = key.split('.');
+	// 	if(!arguments.length) return on;
+	// 	else if(arguments.length == 1){
+	// 		if(key[1])
+	// 			return on[key[0]][key[1]];
+	// 		else
+	// 			return on[key[0]]['default'];
+	// 	};
+	//
+	// 	if(key[1])
+	// 		on[key[0]][key[1]] = value;
+	// 	else
+	// 		on[key[0]]['default'] = value;
+	//
+	// 	return chart;
+	// };
 
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	chart.on = AD.UTILS.CHARTS.MEMBERS.on(chart, _);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return currentChartData;
@@ -4350,23 +4539,13 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('class','ad-sankey-node')
 				.on('mouseover.ad-mouseover',function(d,i){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i,'node');
-					}
 				})
 				.on('mouseout.ad-mouseout',function(d,i){
 					AD.UTILS.removeTooltip();
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i,'node');
-					}
-				})
-				.on('click.ad-click',function(d,i){
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,'node');
-					}
 				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
-				.style('opacity',0);
+				.style('opacity',0)
+				.call(AD.UTILS.bindElementEvents, _, 'node');
 		newNode.append('rect');
 		newNode.append('text');
 
@@ -4379,11 +4558,12 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',1);
 
-		node.select('rect')
+		node
+			.select('rect')
 			.transition()
 				.duration(animationDuration)
 				.attr('width',sankey.nodeWidth())
-				.attr('height',function(d){return d.dy;});
+				.attr('height',function(d){return Math.max(0,d.dy);});
 		nodeText
 			.transition()
 				.duration(animationDuration)
@@ -4406,22 +4586,14 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('class','ad-sankey-link')
 				.on('mouseover.ad-mouseover',function(d,i){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i,'link');
-					}
 				})
 				.on('mouseout.ad-mouseout',function(d,i){
 					AD.UTILS.removeTooltip();
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i,'link');
-					}
 				})
-				.on('click.ad-click',function(d,i){
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,'link');
-					}
-				})
-				.style('opacity',0);
+				.style('opacity',0)
+				.call(AD.UTILS.bindElementEvents, _, 'link');
+
+		// console.log(newLink)
 		newLink.append('path');
 		newLink.append('text');
 
@@ -4442,7 +4614,8 @@ AD.CHARTS.sankeyChart = function(){
 				.duration(animationDuration)
 				.style('opacity',1);
 
-		link.select('path')
+		link
+			.select('path')
 				.style('stroke',function(d){
 						return (d.colorBy)?
 										color((d[d.colorBy].colorKey)?
@@ -4508,11 +4681,7 @@ AD.CHARTS.pieChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var donutRatio = 0;
 
@@ -4811,7 +4980,7 @@ AD.CHARTS.pieChart = function(){
 		arcPathTransition.each("end",function(d){
 			var elem = d3.select(this);
 			elem
-					.on('mouseover.ad-mouseover',function(d){
+					.on('mouseover.ad-mouseover',function(d,i){
 						elem
 							.transition()
 								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
@@ -4819,14 +4988,25 @@ AD.CHARTS.pieChart = function(){
 								.style('fill-opacity',0.9);
 
 						AD.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
+						for(key in on.elementMouseover){
+							on.elementMouseover[key].call(this,d,i,'arc');
+						}
 					})
-					.on('mouseout.ad-mouseout',function(d){
+					.on('mouseout.ad-mouseout',function(d,i){
 						elem
 							.transition()
 								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1)')
 								.style('fill-opacity','')
 						AD.UTILS.removeTooltip();
+						for(key in on.elementMouseout){
+							on.elementMouseout[key].call(this,d,i,'arc');
+						}
+					})
+					.on('click.ad-click',function(d,i){
+						for(key in on.elementClick){
+							on.elementClick[key].call(this,d,i,'arc');
+						}
 					});
 		});
 
@@ -4898,11 +5078,7 @@ AD.CHARTS.interactiveBarChart = function(){
 	var yFormat = function(value){return value};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	var orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 
@@ -4965,11 +5141,22 @@ AD.CHARTS.interactiveBarChart = function(){
 				.style('opacity',0)
 				.attr(orientation.height,0)
 				.attr(orientation.y,dimensions[orientation.vertical])
-				.on('mouseover.ad-mouseover',function(d){
+				.on('mouseover.ad-mouseover',function(d,i){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
+					for(key in on.elementMouseover){
+						on.elementMouseover[key].call(this,d,i,'bar');
+					}
 				})
-				.on('mouseout.ad-mouseout',function(d){
+				.on('mouseout.ad-mouseout',function(d,i){
 					AD.UTILS.removeTooltip();
+					for(key in on.elementMouseout){
+						on.elementMouseout[key].call(this,d,i,'bar');
+					}
+				})
+				.on('click.ad-click',function(d,i){
+					for(key in on.elementClick){
+						on.elementClick[key].call(this,d,i,'bar');
+					}
 				});
 
 		bar
@@ -5086,7 +5273,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		if(!arguments.length) return xScale;
 		xScale.type = value.type;
 		xScale.domain = value.domain;
-		generateRequired = true;
+		// generateRequired = true;
 
 		if(value.type == 'linear'){
 			xScale.scale = d3.scale.linear();
@@ -5103,7 +5290,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		if(!arguments.length) return yScale;
 		yScale.type = value.type;
 		yScale.domain = value.domain;
-		generateRequired = true;
+		// generateRequired = true;
 
 		if(value.type == 'linear'){
 			yScale.scale = d3.scale.linear();
@@ -5231,7 +5418,6 @@ AD.CHARTS.interactiveBarChart = function(){
 		});
 		if(chartData.data.labels)
 			currentChartData.labels = chartData.data.labels;
-
 		return chart;
 	};
 
@@ -5418,7 +5604,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		if(legendOrientation == 'right' || legendOrientation == 'left')
 			forcedMargin[legendOrientation] += legend.computedWidth() + 30;
 		else
-			forcedMargin[legendOrientation] += legend.computedHeight();
+			forcedMargin[legendOrientation] += legend.computedHeight() + 10;
 
 		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
@@ -5614,6 +5800,266 @@ AD.CHARTS.interactiveBarChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
+/*guage chart*/
+AD.CHARTS.guageChart = function(){
+
+	//private store
+	var $$ = {};
+
+	//user set width
+	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+
+
+	$$.arc = d3.svg.arc()
+		.innerRadius(0)
+		.outerRadius(0)
+    .startAngle(function(d, i){return d.start;})
+    .endAngle(function(d, i){return d.end;});
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return $$.currentChartData;
+		if(reset){
+			$$.currentChartData = {};
+		}
+
+		$$.currentChartData = chartData.data;
+
+		return chart;
+	};
+
+	//chart generate
+	chart.generate = function(callback) {
+		$$.generateRequired = false;
+
+
+		//clean container
+	  $$.selection.selectAll('*').remove();
+
+	  //create svg
+	  $$.selection.svg = $$.selection
+	    .append('svg')
+	      .attr('class','ad-template-chart ad-svg ad-container');
+
+	  //create group container
+	  $$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	  $$.selection.group = $$.selection.svg.append('g')
+	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+
+		//init main chart container
+		$$.selection.main = $$.selection.group
+			.append('g')
+				.attr('class','ad-guage-chart');
+
+		$$.selection.arcs = $$.selection.main.append('g');
+
+
+		$$.selection.arcHeader = $$.selection.main
+			.append('text')
+				.attr('class','ad-guage-arc-header');
+
+		$$.selection.arcLabels = $$.selection.main
+			.append('g')
+						.attr('class','ad-guage-arc-labels');
+
+		$$.selection.arcLabels.start = $$.selection.arcLabels.append('text')
+				.attr('y', 20)
+				.text('0%');
+		$$.selection.arcLabels.end = $$.selection.arcLabels.append('text')
+				.attr('y', 20)
+				.text('100%');
+		$$.selection.arcLabels.percent = $$.selection.arcLabels
+			.append('text')
+				.attr('class', 'ad-guage-arc-percent')
+				.text('0%');
+
+		// $$.selection.arcs.filled = $$.selection.arcs.append('path');
+		// $$.selection.arcs.empty = $$.selection.arcs.append('path');
+
+		//auto update chart
+		var temp = $$.animationDuration;
+		chart
+				.animationDuration(0)
+				.update(callback)
+				.animationDuration(temp);
+
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+
+		//if generate required call the generate method
+		if($$.generateRequired){
+			return chart.generate(callback);
+		}
+
+		//init forcedMargin
+		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
+
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
+
+		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+
+
+		var radius = {
+					current:{outer:Math.min($$.outerHeight * 2 - 160, $$.outerWidth)/2},
+					previous:{inner:$$.arc.innerRadius(),outer:$$.arc.outerRadius()}
+				};
+		radius.current.inner = 0.8 * radius.current.outer;
+
+		$$.arc
+			.innerRadius(radius.current.inner)
+			.outerRadius(radius.current.outer);
+
+		var data = [];
+		var percent = 0;
+		if($$.currentChartData.percent){
+			percent = $$.currentChartData.percent;
+			data = [
+				{start: -Math.PI/2, end:Math.PI*$$.currentChartData.percent-Math.PI/2, color: 'rgb(193,0,55)'},
+				{start: Math.PI*$$.currentChartData.percent-Math.PI/2, end:Math.PI/2, color: '#ddd'}
+			]
+		}else if($$.currentChartData.value && $$.currentChartData.total){
+			percent = $$.currentChartData.value/$$.currentChartData.total;
+			data = [
+				{start: -Math.PI/2, end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2, color: 'rgb(193,0,55)'},
+				{start: Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2, end:Math.PI/2, color: '#ddd'}
+			]
+		}
+
+		$$.selection.arcs.arc = $$.selection.arcs.selectAll('g').data(data);
+
+		$$.selection.arcs.arc.enter()
+			.append('g')
+			.append('path')
+				.attr('d', $$.arc)
+				.style('fill', function(d){return d.color;})
+				.each(function(d){
+					this._current = {start:d.start, end:d.end};
+					this._radiusCurrent = {inner:radius.current.inner, outer:radius.current.outer};
+				});
+
+		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
+			.transition()
+				.duration($$.animationDuration)
+				.attrTween('d', function(d){
+					var _self = this;
+					var i = d3.interpolate(_self._current, {start: d.start, end: d.end});
+					var r = d3.interpolate(_self._radiusCurrent, {inner:radius.current.inner, outer:radius.current.outer});
+					return function(t) {
+						_self._current = i(t);
+						_self._currentRadius = r(t);
+						$$.arc
+							.innerRadius(_self._currentRadius.inner)
+							.outerRadius(_self._currentRadius.outer);
+						return $$.arc(_self._current);
+					};
+				})
+				.style('fill', function(d){return d.color;})
+				.attr('class', 'ad-arc');
+
+		// $$.selection.main
+			// .transition()
+			// 	.duration($$.animationDuration)
+	    //   .attr('transform','translate('+$$.outerWidth+','+$$.outerHeight+')');
+
+
+		$$.selection.arcs
+			.transition()
+				.duration($$.animationDuration)
+	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-40)+')');
+
+		$$.selection.arcLabels
+			.transition()
+				.duration($$.animationDuration)
+	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-40)+')');
+
+		$$.selection.arcLabels.percent
+			.transition()
+				.duration($$.animationDuration)
+				.tween("text", function(d) {
+					var _self = this;
+					if(!_self._current)
+						_self._current = 0;
+	        var i = d3.interpolate(_self._current, percent);
+	        return function(t) {
+						_self._current = i(t);
+						_self.textContent = d3.format('%')(i(t));
+	        };
+		    })
+				.attr('font-size', radius.current.inner * 0.5 + 'px');
+
+		$$.selection.arcLabels.start
+			.transition()
+				.duration($$.animationDuration)
+				.attr('x', -(radius.current.outer - (radius.current.outer-radius.current.inner)/2));
+		$$.selection.arcLabels.end
+			.transition()
+				.duration($$.animationDuration)
+				.attr('x', (radius.current.outer - (radius.current.outer-radius.current.inner)/2));
+
+
+		$$.selection.arcHeader
+				.text($$.currentChartData.label)
+			.transition()
+				.duration($$.animationDuration)
+				.attr('x',$$.outerWidth/2)
+				.attr('y',20);
+
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
 /*iframe chart*/
 AD.CHARTS.iframeChart = function(){
 
@@ -5634,11 +6080,7 @@ AD.CHARTS.iframeChart = function(){
 			};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	var on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
@@ -5758,7 +6200,6 @@ AD.CHARTS.iframeChart = function(){
 
 /*multi chart*/
 AD.CHARTS.multiChart = function(){
-
 	//define multiChart variables
 	var width = AD.CONSTANTS.DEFAULTWIDTH(),
 			height = AD.CONSTANTS.DEFAULTHEIGHT();
@@ -5795,6 +6236,7 @@ AD.CHARTS.multiChart = function(){
 		for(key in on.elementClick){
 			on.elementClick[key].call(this,d,i,'chart-button');
 		}
+		// console.log(current.chart)
 		chart.update();
 	};
 	var buttonMouseover = function(d,i){
@@ -5866,11 +6308,11 @@ AD.CHARTS.multiChart = function(){
 			adChart = current.chart.chart;
 			adChart
 				.selection(selection.chartWrapper.chart)
-				.data(current.chart.data);
+				.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
 		}else if(current.chart != previous.chart){
 			if(current.chart.type == previous.chart.type){
 				adChart
-					.data(current.chart.data);
+					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
 			}else{
 				selection.chartWrapper.chart
 					.transition()
@@ -5887,7 +6329,7 @@ AD.CHARTS.multiChart = function(){
 				adChart = current.chart.chart;
 				adChart
 					.selection(selection.chartWrapper.chart)
-					.data(current.chart.data);
+					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
 
 				selection.chartWrapper.chart
 					.transition()
@@ -6007,6 +6449,7 @@ AD.CHARTS.multiChart = function(){
 			.append('ul')
 				.attr('class','ad-buttons');
 
+		// selection.style('position','relative');
 		selection.chartWrapper = selection
 			.append('div')
 				.attr('class','ad-multi-chart ad-container');
@@ -6057,6 +6500,173 @@ AD.CHARTS.multiChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
+/*template chart*/
+AD.CHARTS.templateChart = function(){
+
+	//private store
+	var $$ = {};
+
+	//user set width
+	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	//legend OBJ
+	$$.legend = new AD.UTILS.LEGENDS.legend();
+	//legend orientation 'top', 'bottom', 'left', or 'right'
+	$$.legendOrientation = 'bottom';
+	//legend data
+	$$.legendData = {data:{items:[]}};
+	//controls OBJ
+	$$.controls = new AD.UTILS.CONTROLS.horizontalControls();
+	//controls data
+	$$.controlsData = {
+				hideLegend: {
+					label: "Hide Legend",
+					type: "checkbox",
+					visible: false,
+					enabled: false
+				}
+			};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+		$$.legend.animationDuration($$.animationDuration);
+		$$.controls.animationDuration($$.animationDuration);
+	});
+	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return $$.currentChartData;
+		if(reset){
+			$$.currentChartData = {};
+		}
+
+		$$.currentChartData = chartData.data;
+
+		return chart;
+	};
+
+	//chart generate
+	chart.generate = function(callback) {
+		$$.generateRequired = false;
+
+		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
+		AD.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+
+		//init legend properties
+		$$.legend
+				.color($$.color)
+				.selection($$.selection.legend);
+
+		//init control properties
+		$$.controls
+				.selection($$.selection.controls)
+				.on('elementChange',function(d,i){
+					$$.controlsData[d.key].enabled = d.state;
+					chart.update();
+				});
+
+		//init main chart container
+		$$.selection.main = $$.selection.group
+			.append('g')
+				.attr('class','ad-main-chart');
+
+		//auto update chart
+		var temp = $$.animationDuration;
+		chart
+				.animationDuration(0)
+				.update(callback)
+				.animationDuration(temp);
+
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+
+		//if generate required call the generate method
+		if($$.generateRequired){
+			return chart.generate(callback);
+		}
+
+		//init forcedMargin
+		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
+
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
+
+		//update dimensions to the conform to the padded SVG:G
+		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		//update controls viz
+		AD.UTILS.CHARTS.HELPERS.updateControls($$);
+
+		//set legend data and update legend viz
+		if($$.controlsData.hideLegend.enabled){
+			$$.legendData = {data:{items:[]}};
+		}else{
+			//----replace array with a custom legend builder
+			$$.legendData.data.items = [{'label':'item 1'},{'label':'item 2'},{'label':'item 3'},{'label':'item 4'},{'label':'item 5'},{'label':'item 6'}]
+		}
+		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
+
+		$$.selection.main
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
+
+		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		//----chart code goes here!
+		//----use innerHeight/innerWidth as the context dimensions and use forcedMargin.|left, right, top, or bottom| as the current positioning margin
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
 AD.DASHBOARDS.dashboard = function(){
 
 	//define axisChart variables
@@ -6075,6 +6685,8 @@ AD.DASHBOARDS.dashboard = function(){
 	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
 
   var chartPage = new AD.UTILS.chartPage();
+
+	var sectionsByKey = {};
 
 	var navigationHistory = {};
 	navigationHistory.array = [];
@@ -6114,6 +6726,8 @@ AD.DASHBOARDS.dashboard = function(){
 	};
 	var traverseSections = function(position,sections,sectionGroup){
 		sections.forEach(function(section){
+			if(section.key)
+				sectionsByKey[section.key] = section;
 			traverseCategories(section.categories);
 			section.position = position.concat([{section:section, sectionGroup: sectionGroup}]);
 			if(section.sections)
@@ -6131,6 +6745,12 @@ AD.DASHBOARDS.dashboard = function(){
 	var dashboardLayout = function(data){
 		for(chart in data.dashboard.charts){
 			AD.UTILS.chartLayoutAdapter(data.dashboard.charts[chart].type,data.dashboard.charts[chart]);
+
+			//if chart element has a section reference, update to that section
+			data.dashboard.charts[chart].chart.on('elementClick',function(d,i,type){
+				if(d.sectionRefrence)
+					changeCurrentSection(sectionsByKey[d.sectionRefrence]);
+			});
 		}
 		traverseSections([],[data.dashboard.topSection]);
 	};

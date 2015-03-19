@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var guageChart = new AD.CHARTS.guageChart();
+
+		guageChart
+			.select('.guage-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.data({data:{percent:0.4, label:'4-Year Accepted Major'}})
+			.update();
+
+		setTimeout(function(){
+			guageChart
+				.data({data:{percent:0.6, label:'4-Year Accepted Major'}})
+				.update();
+		},2000);
+
+		$(window).resize(function(){
+			guageChart.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+<style>
+</style>
+<body style='margin:0px;'>
+	<div class = 'guage-chart'></div>
+</body>
+</html>
