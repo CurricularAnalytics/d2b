@@ -334,7 +334,6 @@ AD.UTILS.chartPage = function(){
 		if(!currentPageData.data.charts || currentPageData.data.charts.length < 1){
 			return console.warn('chart page was not provided any charts')
 		}
-
 		var chartLayout = selection.currentPage.selectAll('div.ad-page-chart-layout').data(currentPageData.data.charts);
 
 		var newChartLayout = chartLayout.enter()

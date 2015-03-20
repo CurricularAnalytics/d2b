@@ -30,6 +30,7 @@ AD.CHARTS.guageChart = function(){
 	$$.xFormat = function(value){return value};
 	//event object
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.percentFormat = AD.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
 
 	$$.arc = d3.svg.arc()
@@ -142,7 +143,7 @@ AD.CHARTS.guageChart = function(){
 
 
 		var radius = {
-					current:{outer:Math.min($$.outerHeight * 2 - 160, $$.outerWidth)/2},
+					current:{outer:Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2},
 					previous:{inner:$$.arc.innerRadius(),outer:$$.arc.outerRadius()}
 				};
 		radius.current.inner = 0.8 * radius.current.outer;
@@ -151,33 +152,96 @@ AD.CHARTS.guageChart = function(){
 			.innerRadius(radius.current.inner)
 			.outerRadius(radius.current.outer);
 
+		//Set the data for the filled and empty arcs either by:
+		//	-using the user supplied percent
+		//	-calculating the percent with the value and total amounts
+		//	-defaulting the percen to 0
 		var data = [];
 		var percent = 0;
 		if($$.currentChartData.percent){
 			percent = $$.currentChartData.percent;
 			data = [
-				{start: -Math.PI/2, end:Math.PI*$$.currentChartData.percent-Math.PI/2, color: 'rgb(193,0,55)'},
-				{start: Math.PI*$$.currentChartData.percent-Math.PI/2, end:Math.PI/2, color: '#ddd'}
-			]
+				{
+					percent: percent,
+					start: -Math.PI/2,
+					end:Math.PI*$$.currentChartData.percent-Math.PI/2,
+					color: 'rgb(193,0,55)',
+					filled:true
+				},
+				{
+					percent: percent,
+					start: Math.PI*$$.currentChartData.percent-Math.PI/2,
+					end:Math.PI/2,
+					color: '#ddd',
+					filled:false
+				}
+			];
 		}else if($$.currentChartData.value && $$.currentChartData.total){
 			percent = $$.currentChartData.value/$$.currentChartData.total;
 			data = [
-				{start: -Math.PI/2, end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2, color: 'rgb(193,0,55)'},
-				{start: Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2, end:Math.PI/2, color: '#ddd'}
-			]
+				{
+					percent: percent,
+					start: -Math.PI/2,
+					end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
+					color: 'rgb(193,0,55)',
+					filled:true
+				},
+				{
+					percent: percent,
+					start: Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
+					end:Math.PI/2, color: '#ddd', filled:false
+				}
+			];
+		}else{
+			percent = 0;
+			data = [
+				{
+					percent: percent,
+					start:-Math.PI/2,
+					end:-Math.PI/2,
+					color:"rgb(193, 0, 55)",
+					filled:true
+				},
+				{
+					percent: percent,
+					start:-Math.PI/2,
+					end:Math.PI/2,
+					color:"#ddd",
+					filled : false
+				}
+			];
 		}
 
 		$$.selection.arcs.arc = $$.selection.arcs.selectAll('g').data(data);
 
-		$$.selection.arcs.arc.enter()
+		var newArc = $$.selection.arcs.arc.enter()
 			.append('g')
+		newArc
 			.append('path')
 				.attr('d', $$.arc)
 				.style('fill', function(d){return d.color;})
 				.each(function(d){
 					this._current = {start:d.start, end:d.end};
 					this._radiusCurrent = {inner:radius.current.inner, outer:radius.current.outer};
-				});
+				})
+		newArc.filter(function(d){return d.filled;})
+				.on('mouseover.ad-mouseover',function(d,i){
+					var arc = d3.select(this);
+					arc
+						.transition()
+							.duration($$.animationDuration/4)
+							.attr('transform','scale(1.05)');
+					AD.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
+				})
+				.on('mouseout.ad-mouseout',function(d,i){
+					var arc = d3.select(this);
+					arc
+						.transition()
+							.duration($$.animationDuration/4)
+							.attr('transform','scale(1)');
+					AD.UTILS.removeTooltip();
+				})
+				.call(AD.UTILS.bindElementEvents, $$, 'arc');
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
 			.transition()
@@ -188,10 +252,10 @@ AD.CHARTS.guageChart = function(){
 					var r = d3.interpolate(_self._radiusCurrent, {inner:radius.current.inner, outer:radius.current.outer});
 					return function(t) {
 						_self._current = i(t);
-						_self._currentRadius = r(t);
+						_self._radiusCurrent = r(t);
 						$$.arc
-							.innerRadius(_self._currentRadius.inner)
-							.outerRadius(_self._currentRadius.outer);
+							.innerRadius(_self._radiusCurrent.inner)
+							.outerRadius(_self._radiusCurrent.outer);
 						return $$.arc(_self._current);
 					};
 				})
@@ -207,12 +271,12 @@ AD.CHARTS.guageChart = function(){
 		$$.selection.arcs
 			.transition()
 				.duration($$.animationDuration)
-	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-40)+')');
+	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-10)+')');
 
 		$$.selection.arcLabels
 			.transition()
 				.duration($$.animationDuration)
-	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-40)+')');
+	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-10)+')');
 
 		$$.selection.arcLabels.percent
 			.transition()

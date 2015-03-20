@@ -588,6 +588,7 @@ AD.DASHBOARDS.dashboard = function(){
 					.classed('ad-innactive',true)
 					.on('click.ad-click',function(){});
 		}else{
+			// console.log(current.category)
 			selection.container.header.navigation.arrows.right
 					.classed('ad-innactive',false)
 					.on('click.ad-click',function(){

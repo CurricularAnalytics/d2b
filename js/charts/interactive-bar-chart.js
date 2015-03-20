@@ -98,7 +98,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				.attr('class','ad-bar-rect')
 				.style('opacity',0)
 				.attr(orientation.height,0)
-				.attr(orientation.y,dimensions[orientation.vertical])
+				.attr(orientation.y,(controls.horizontal.enabled)? 0:dimensions.vertical)
 				.on('mouseover.ad-mouseover',function(d,i){
 					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
 					for(key in on.elementMouseover){
@@ -135,7 +135,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				.duration(animationDuration)
 				.style('opacity',0)
 				.attr(orientation.height,0)
-				.attr(orientation.y,dimensions.vertical)
+				.attr(orientation.y,(controls.horizontal.enabled)? 0:dimensions.vertical)
 				.remove();
 	};
 

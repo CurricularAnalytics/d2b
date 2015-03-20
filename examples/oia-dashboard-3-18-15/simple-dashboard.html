@@ -2,7 +2,7 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/ad.min.js"></script>
+<script src="../../build/js/ad.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <!-- <script src="//localhost:1337/livereload.js"></script> -->
 <script>
@@ -35,7 +35,7 @@
 			//event object
 			$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 
-			// $$.
+			$$.guageScale = d3.scale.ordinal();
 
 			/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 			var chart = {};
@@ -103,24 +103,82 @@
 				$$.outerWidth = $$.width;
 				$$.outerHeight = $$.height;
 
+				var domain = [];
+				for(var i=0;i<$$.currentChartData.guages.length;i++){
+					domain.push(i);
+				}
+
+				$$.guageScale
+					.domain(domain)
+					.rangeBands([0, $$.outerWidth]);
+
+
+
+				if($$.outerHeight * 0.25 > $$.guageScale.rangeBand()/2)
+					var guageHeight = $$.guageScale.rangeBand()/2;
+				else
+					var guageHeight = $$.outerHeight * 0.25;
+
+				guageHeight = Math.max(130, guageHeight);
+
+				var internalChartHeight = $$.outerHeight - guageHeight;
+
+
 				//init svg dimensions
 				$$.selection.guages
 					.transition()
 						.duration($$.animationDuration)
-					.style('background','red')
-						.style('width',$$.width+'px')
-						.style('height',$$.height * 0.2+'px');
+					// .style('background','red')
+						.style('width',$$.outerWidth+'px')
+						.style('height',guageHeight+'px');
+
+				$$.selection.guages.guage = $$.selection.guages.selectAll('div').data($$.currentChartData.guages);
+
+
+
+				$$.selection.guages.guage.enter()
+					.append('div')
+						.each(function(d){
+							this.chart = new AD.CHARTS.guageChart();
+							this.chart
+									.select(this);
+						});
+
+				$$.selection.guages.guage
+					.style('position','absolute')
+						.style('left',function(d,i){return $$.guageScale(i) + 'px';})
+						.each(function(d){
+							this.chart
+									.width($$.guageScale.rangeBand())
+									.height(guageHeight)
+									.data({data:{label:d.label, percent:d.percents[0]}})
+									.update();
+						});
+
+
 
 				$$.selection.internalChart
 					.style('position','relative')
 					.transition()
 						.duration($$.animationDuration)
-						.style('width',$$.width+'px')
-						.style('height',$$.height * 0.8+'px');
+						.style('width',$$.outerWidth+'px')
+						.style('height',internalChartHeight+'px');
 
 				$$.internalChart
+						.on('elementClick',function(d,i,t){
+							if(t == 'chart-button'){
+								$$.selection.guages.guage
+									.each(function(d){
+										this.chart
+												.width($$.guageScale.rangeBand())
+												.height(guageHeight)
+												.data({data:{label:d.label, percent:d.percents[i]}})
+												.update();
+									});
+							}
+						})
 						.width($$.width)
-						.height($$.height * 0.8)
+						.height(internalChartHeight)
 						.update();
 
 				d3.timer.flush();
@@ -136,9 +194,11 @@
 
 	};
 
+	defineCustomCharts();
+
 	$(document).ready(function(){
 
-		defineCustomCharts();
+
 
 		var bar = new AD.CHARTS.customBar();
 
@@ -147,39 +207,45 @@
 			.height($(window).height())
 			.select('.dashboard')
 			.data({
-				data:{
-
-
-					chart:{
-						type:'multiChart',
-						data: {data:{
-							charts:[
+				"data":{
+					"guages":[
+						{"label":'4-Year Accepted', "percents": [0.1239, 0.1502, 0.1505]},
+						{"label":'5-Year Accepted', "percents": [0.3720, 0.3961, 0.3760]},
+						{"label":'6-Year Accepted', "percents": [0.4582, 0.4818, 0.4757]},
+						{"label":'4-Year Intended', "percents": [0.0345, 0.0389, 0.0505]},
+						{"label":'5-Year Intended', "percents": [0.0751, 0.0884, 0.10]},
+						{"label":'6-Year Intended', "percents": [0.0870, 0.1035, 0.1229]},
+					],
+					"chart":{
+						"type":'multiChart',
+						"data": {"data":{
+							"charts":[
 								{
-									label:"2011-12",
-									key:"2011-12",
-									type:"interactiveBarChart",
-									properties:{
-										controls: {
-											horizontal: {
-												visible:false,
-												enabled:true
+									"label":"2011-12",
+									"key":"2011-12",
+									"type":"interactiveBarChart",
+									"properties":{
+										"controls": {
+											"horizontal": {
+												"visible":false,
+												"enabled":true
 											},
-											yAxisLock: {
-												enabled: true,
-												maxStacked: 150,
-												maxNonStacked: 100
+											"yAxisLock": {
+												"enabled": true,
+												"maxStacked": 150,
+												"maxNonStacked": 100
 											}
 										},
-										xScale:{type: 'ordinal'},
-										yFormat:{units:{after:'%'}}
+										"xScale":{"type": 'ordinal'},
+										"yFormat":{"units":{"after":'%'}}
 									},
-									data:{
-										data:{
-											labels:{
-												x:'College',
-												y:'Percentage'
+									"data":{
+										"data":{
+											"labels":{
+												"x":'College',
+												"y":'Percentage'
 											},
-											columns:[
+											"columns":[
 												{"label":"4-Year Accepted Major Graduation Rate",
 													"values":[{"x":"Anderson Schools of Management","y":18.8},{"x":"College of Arts and Sciences","y":14.14},{"x":"College of Education","y":11.44},{"x":"College of Fine Arts","y":8.23},{"x":"College of Nursing","y":15.38},{"x":"College of Pharmacy","y":30.36},{"x":"School of Arch. and Planning","y":15.28},{"x":"School of Engineering","y":7.85},{"x":"School of Medicine","y":3.33},{"x":"University College","y":1.9},{"x":"University Studies","y":0.0}]},
 												{"label":"5-Year Accepted Major Graduation Rate",
@@ -197,31 +263,31 @@
 								},
 
 								{
-									label:"2012-13",
-									key:"2012-13",
-									type:"interactiveBarChart",
-									properties:{
-										controls: {
-											horizontal: {
-												visible:false,
-												enabled:true
+									"label":"2012-13",
+									"key":"2012-13",
+									"type":"interactiveBarChart",
+									"properties":{
+										"controls": {
+											"horizontal": {
+												"visible":false,
+												"enabled":true
 											},
-											yAxisLock: {
-												enabled: true,
-												maxStacked: 150,
-												maxNonStacked: 100
+											"yAxisLock": {
+												"enabled": true,
+												"maxStacked": 150,
+												"maxNonStacked": 100
 											}
 										},
-										xScale:{type: 'ordinal'},
-										yFormat:{units:{after:'%'}}
+										"xScale":{"type": 'ordinal'},
+										"yFormat":{"units":{"after":'%'}}
 									},
-									data:{
-										data:{
-											labels:{
-												x:'College',
-												y:'Percentage'
+									"data":{
+										"data":{
+											"labels":{
+												"x":'College',
+												"y":'Percentage'
 											},
-											columns:[
+											"columns":[
 												{"label":"4-Year Accepted Major Graduation Rate",
 													"values":[{"x":"Anderson Schools of Management","y":18.65},{"x":"College of Arts and Sciences","y":16.95},{"x":"College of Education","y":13.61},{"x":"College of Fine Arts","y":17.39},{"x":"College of Nursing","y":18.03},{"x":"College of Pharmacy","y":31.91},{"x":"School of Arch. and Planning","y":8.06},{"x":"School of Engineering","y":11.37},{"x":"School of Medicine","y":2.67},{"x":"University College","y":4.33},{"x":"University Studies","y":0.0}]},
 												{"label":"5-Year Accepted Major Graduation Rate",
@@ -238,31 +304,31 @@
 									}
 								},
 								{
-									label:"2013-14",
-									key:"2013-14",
-									type:"interactiveBarChart",
-									properties:{
-										controls: {
-											horizontal: {
-												visible:false,
-												enabled:true
+									"label":"2013-14",
+									"key":"2013-14",
+									"type":"interactiveBarChart",
+									"properties":{
+										"controls": {
+											"horizontal": {
+												"visible":false,
+												"enabled":true
 											},
-											yAxisLock: {
-												enabled: true,
-												maxStacked: 150,
-												maxNonStacked: 100
+											"yAxisLock": {
+												"enabled": true,
+												"maxStacked": 150,
+												"maxNonStacked": 100
 											}
 										},
-										xScale:{type: 'ordinal'},
-										yFormat:{units:{after:'%'}}
+										"xScale":{"type": 'ordinal'},
+										"yFormat":{"units":{"after":'%'}}
 									},
-									data:{
-										data:{
-											labels:{
-												x:'College',
-												y:'Percentage'
+									"data":{
+										"data":{
+											"labels":{
+												"x":'College',
+												"y":'Percentage'
 											},
-											columns:[
+											"columns":[
 												{"label":"4-Year Accepted Major Graduation Rate",
 													"values":[{"x":"Anderson Schools of Management","y":16.67},{"x":"College of Arts and Sciences","y":17.81},{"x":"College of Education","y":14.53},{"x":"College of Fine Arts","y":10.0},{"x":"College of Nursing","y":15.08},{"x":"College of Pharmacy","y":35.71},{"x":"School of Arch. and Planning","y":12.5},{"x":"School of Engineering","y":10.27},{"x":"School of Medicine","y":3.3},{"x":"University College","y":7.18},{"x":"University Studies","y":0.0}]},
 												{"label":"5-Year Accepted Major Graduation Rate",
@@ -284,29 +350,29 @@
 					}}
 				}
 
-			}).update();
+			})//.update();
 
 
 
 
 
-		// var dashboard = new AD.DASHBOARDS.dashboard();
-		//
-		// dashboard
-		// 		// .animationDuration(0)
-		// 		.palette({primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"})
-		// 		.width($(window).width())
-		// 		.select('.dashboard');
-		//
-		// d3.json('./simple-dashboard.json',function(data){
-		// 	dashboard.data(data).update();
-		// });
-		//
-		// $(window).resize(function(){
-		// 	dashboard
-		// 			.width($(window).width())
-		// 			.update();
-		// });
+		var dashboard = new AD.DASHBOARDS.dashboard();
+
+		dashboard
+				// .animationDuration(0)
+				.palette({primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"})
+				.width($(window).width())
+				.select('.dashboard');
+
+		d3.json('./simple-dashboard.json',function(data){
+			dashboard.data(data).update();
+		});
+
+		$(window).resize(function(){
+			dashboard
+				.width($(window).width())
+					.update();
+		});
 
 	})
 </script>
