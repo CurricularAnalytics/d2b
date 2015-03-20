@@ -199,12 +199,12 @@ def allGradRatesChart
       data:{
         data:{
           guages:[
-						{"label":'4-Year Accepted', "percents": [0.1239, 0.1502, 0.1505]},
-						{"label":'5-Year Accepted', "percents": [0.3720, 0.3961, 0.3760]},
-						{"label":'6-Year Accepted', "percents": [0.4582, 0.4818, 0.4757]},
-						{"label":'4-Year Intended', "percents": [0.0345, 0.0389, 0.0505]},
-						{"label":'5-Year Intended', "percents": [0.0751, 0.0884, 0.10]},
-						{"label":'6-Year Intended', "percents": [0.0870, 0.1035, 0.1229]},
+						{"label":'4-Year Accepted Major', "percents": [0.1239, 0.1502, 0.1505]},
+						{"label":'5-Year Accepted Major', "percents": [0.3720, 0.3961, 0.3760]},
+						{"label":'6-Year Accepted Major', "percents": [0.4582, 0.4818, 0.4757]},
+						{"label":'4-Year Intended Major', "percents": [0.0345, 0.0389, 0.0505]},
+						{"label":'5-Year Intended Major', "percents": [0.0751, 0.0884, 0.10]},
+						{"label":'6-Year Intended Major', "percents": [0.0870, 0.1035, 0.1229]},
           ],
           chart:{
             type:"multiChart",
