@@ -1,80 +1,90 @@
 AD.createNameSpace("AD.UTILS.CHARTS.HELPERS");
-AD.UTILS.CHARTS.HELPERS.updateLegend = function(_){
-  if(_.legendOrientation == 'right' || _.legendOrientation == 'left'){
-    _.legend.orientation('vertical').data(_.legendData).height(_.innerHeight).update();
+AD.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
+  var legendPadding = 10;
+  if(_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left'){
+    _chart.legend.orientation('vertical').data(_chart.legendData).height(_chart.innerHeight).update();
   }
   else{
-    _.legend.orientation('horizontal').data(_.legendData).width(_.innerWidth).update();
+    _chart.legend.orientation('horizontal').data(_chart.legendData).width(_chart.innerWidth).update();
   }
-
   var legendTranslation;
-  if(_.legendOrientation == 'right')
-    legendTranslation = 'translate('+(_.forcedMargin.left+_.innerWidth-_.legend.computedWidth())+','+((_.innerHeight-_.legend.computedHeight())/2+_.forcedMargin.top)+')';
-  else if(_.legendOrientation == 'left')
-    legendTranslation = 'translate('+(_.forcedMargin.left)+','+((_.innerHeight-_.legend.computedHeight())/2+_.forcedMargin.top)+')';
-  else if(_.legendOrientation == 'top')
-    legendTranslation = 'translate('+(_.forcedMargin.left+(_.innerWidth-_.legend.computedWidth())/2)+','+_.forcedMargin.top+')';
+  if(_chart.legendOrientation == 'right')
+    legendTranslation = 'translate('+(_chart.forcedMargin.left+_chart.innerWidth-_chart.legend.computedWidth())+','+((_chart.innerHeight-_chart.legend.computedHeight())/2+_chart.forcedMargin.top)+')';
+  else if(_chart.legendOrientation == 'left')
+    legendTranslation = 'translate('+(_chart.forcedMargin.left)+','+((_chart.innerHeight-_chart.legend.computedHeight())/2+_chart.forcedMargin.top)+')';
+  else if(_chart.legendOrientation == 'top')
+    legendTranslation = 'translate('+(_chart.forcedMargin.left+(_chart.innerWidth-_chart.legend.computedWidth())/2)+','+_chart.forcedMargin.top+')';
   else
-    legendTranslation = 'translate('+(_.forcedMargin.left+(_.innerWidth-_.legend.computedWidth())/2)+','+(_.innerHeight+_.forcedMargin.top-_.legend.computedHeight())+')';
+    legendTranslation = 'translate('+(_chart.forcedMargin.left+(_chart.innerWidth-_chart.legend.computedWidth())/2)+','+(_chart.innerHeight+_chart.forcedMargin.top-_chart.legend.computedHeight())+')';
 
-  _.selection.legend
+  _chart.selection.legend
     .transition()
-      .duration(_.animationDuration)
+      .duration(_chart.animationDuration)
       .attr('transform',legendTranslation);
 
-  if(_.legendOrientation == 'right' || _.legendOrientation == 'left')
-    _.forcedMargin[_.legendOrientation] += _.legend.computedWidth();
-  else
-    _.forcedMargin[_.legendOrientation] += _.legend.computedHeight();
+  var computedSize;
+  if(_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left'){
+    computedSize = _chart.legend.computedWidth();
+  }else{
+    computedSize = _chart.legend.computedHeight();
+  }
+  if(computedSize)
+    computedSize += legendPadding;
+  _chart.forcedMargin[_chart.legendOrientation] += computedSize;
 
-  _.innerHeight = _.outerHeight - _.forcedMargin.top - _.forcedMargin.bottom;
-  _.innerWidth = _.outerHeight - _.forcedMargin.left - _.forcedMargin.right;
+  _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
+  _chart.innerWidth = _chart.outerWidth - _chart.forcedMargin.left - _chart.forcedMargin.right;
 };
-AD.UTILS.CHARTS.HELPERS.updateControls = function(_){
-  var controlsData = AD.UTILS.getValues(_.controlsData).filter(function(d){return d.visible;});
+AD.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
+  var controlsPadding = 10;
+  var controlsData = AD.UTILS.getValues(_chart.controlsData).filter(function(d){return d.visible;});
   controlsData.map(function(d){
     d.data = {state:d.enabled, label:d.label, key:d.key};
   });
-  _.controls.data(controlsData).width(_.innerWidth).update();
+  _chart.controls.data(controlsData).width(_chart.innerWidth).update();
 
   //reposition the controls
-  _.selection.controls
+  _chart.selection.controls
     .transition()
-      .duration(_.animationDuration)
-      .attr('transform','translate('+(_.forcedMargin.left + _.innerWidth - _.controls.computedWidth())+','+_.forcedMargin.top+')');
+      .duration(_chart.animationDuration)
+      .attr('transform','translate('+(_chart.forcedMargin.left + _chart.innerWidth - _chart.controls.computedWidth())+','+_chart.forcedMargin.top+')');
 
-  _.forcedMargin.top += _.controls.computedHeight();
-  _.innerHeight = _.outerHeight - _.forcedMargin.top - _.forcedMargin.bottom;
+  var computedSize = _chart.controls.computedHeight();
+  if(computedSize)
+    computedSize += controlsPadding;
+  _chart.forcedMargin.top += computedSize;
+
+  _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
 
 };
-AD.UTILS.CHARTS.HELPERS.updateDimensions = function(_){
-	_.outerWidth = _.outerWidth - _.forcedMargin.right - _.forcedMargin.left;
-	_.outerHeight = _.outerHeight - _.forcedMargin.top - _.forcedMargin.bottom;
-	_.forcedMargin = {top:0,bottom:0,left:0,right:0};
-	_.innerWidth = _.outerWidth;
-	_.innerHeight = _.outerHeight;
+AD.UTILS.CHARTS.HELPERS.updateDimensions = function(_chart){
+	_chart.outerWidth = _chart.outerWidth - _chart.forcedMargin.right - _chart.forcedMargin.left;
+	_chart.outerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
+	_chart.forcedMargin = {top:0,bottom:0,left:0,right:0};
+	_chart.innerWidth = _chart.outerWidth;
+	_chart.innerHeight = _chart.outerHeight;
 };
-AD.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_){
+AD.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
   //clean container
-  _.selection.selectAll('*').remove();
+  _chart.selection.selectAll('*').remove();
 
   //create svg
-  _.selection.svg = _.selection
+  _chart.selection.svg = _chart.selection
     .append('svg')
-      .attr('class','ad-template-chart ad-svg ad-container');
+      .attr('class','ad-svg ad-container');
 
   //create group container
-  _.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
-  _.selection.group = _.selection.svg.append('g')
-      .attr('transform','translate('+_.forcedMargin.left+','+_.forcedMargin.top+')');
+  _chart.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+  _chart.selection.group = _chart.selection.svg.append('g')
+      .attr('transform','translate('+_chart.forcedMargin.left+','+_chart.forcedMargin.top+')');
 
   //create legend container
-  _.selection.legend = _.selection.group
+  _chart.selection.legend = _chart.selection.group
     .append('g')
       .attr('class','ad-legend');
 
   //create controls container
-  _.selection.controls = _.selection.group
+  _chart.selection.controls = _chart.selection.group
     .append('g')
       .attr('class','ad-controls');
 };

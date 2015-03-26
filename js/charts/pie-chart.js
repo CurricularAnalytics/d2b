@@ -46,6 +46,17 @@ AD.CHARTS.pieChart = function(){
 	var pieTotal = 1;
 	var legendData = [];
 
+	var arcTween = function(transition, arc) {
+		transition.attrTween("d",function(d){
+		  var i = d3.interpolate(this._current, d);
+		  // this._current = d;
+		  return function(t) {
+			  this._current = i(t);
+		    return arc(i(t));
+		  };
+		})
+	};
+
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 

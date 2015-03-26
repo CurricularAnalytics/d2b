@@ -1,53 +1,67 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-
-/*axis chart*/
+/*template chart*/
 AD.CHARTS.axisChart = function(){
 
-	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT(),
-			margin = AD.CONSTANTS.DEFAULTMARGIN();
+	//private store
+	var $$ = {};
 
-	var innerHeight = height, innerWidth = width;
+	//user set width
+	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {
+		types:[],
+		labels:{}
+	};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	//legend OBJ
+	$$.legend = new AD.UTILS.LEGENDS.legend();
+	//legend orientation 'top', 'bottom', 'left', or 'right'
+	$$.legendOrientation = 'bottom';
+	//legend data
+	$$.legendData = {data:{items:[]}};
+	//controls OBJ
+	$$.controls = new AD.UTILS.CONTROLS.horizontalControls();
 
-	var xScale = {type: 'linear', scale: d3.scale.linear(), domain:'auto'},
-			yScale = {type: 'linear', scale: d3.scale.linear(), domain:'auto'};
+	$$.rotate = false;
 
-	var xBand; //used for the bar width in barCharts
+	// $$.orientationMap = {
+	// 	x: {
+	// 		dimension1:'innerHeight',
+	// 		dimension2:'innerWidth'
+	// 	},
+	// 	y: {
+	// 		dimension1:'innerWidth',
+	// 		dimension2:'innerHeight'
+	// 	}
+	// };
 
-	var generateRequired = true; //using some methods may require the chart to be redrawn
+	$$.orientationMap = {
+		x:'x',
+		y:'y'
+	}
 
-	var selection = d3.select('body'); //default selection of the HTML body
-
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
-
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
-			legendOrientation = 'bottom';
-
-	var xFormat = function(value){return value};
-	var yFormat = function(value){return value};
-
-	//init event object
-	var on = AD.CONSTANTS.DEFAULTEVENTS();
-
-	var controls = {
-				yAxisLock: {
-					label: "Lock Y-Axis",
-					type: "checkbox",
-					visible: false,
-					enabled: false,
-					maxStacked:AD.CONSTANTS.DEFAULTHEIGHT(),
-					maxNonStacked:AD.CONSTANTS.DEFAULTHEIGHT()
-				},
-				stacking: {
-					label: "Stack Bars",
-					type: "checkbox",
-					visible: false,
-					enabled: false
-				},
+	//controls data
+	$$.controlsData = {
 				hideLegend: {
 					label: "Hide Legend",
 					type: "checkbox",
@@ -56,820 +70,519 @@ AD.CHARTS.axisChart = function(){
 				}
 			};
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
-
-	var currentChartData = {
-				columns: {},
-				labels:{x:'',y:''}
-			};
-
-	/*COLUMN METHODS*/
-
-	// replace the column (fade old out and update)
-	var replaceColumn = function(column){
-		var columnToBeRemoved = column.svg;
-		columnToBeRemoved
-			.transition()
-				.duration(animationDuration)
-				.style('opacity',0)
-				.each('end',function(){
-					columnToBeRemoved.remove();
-				});
-
-		column.svg = selection.group.columns[column.newType.split(',')[0]+'_columns']
-			.append('g');
-
-		updateColumn[column.newType](column, 'true');
-		return;
-	}
-
-	// remove the column (fade out)
-	var removeColumn = function(column){
-		var columnToBeRemoved = column.svg;
-		columnToBeRemoved
-			.transition()
-				.duration(animationDuration)
-				.style('opacity',0)
-				.each('end',function(){
-					columnToBeRemoved.remove();
-				});
-
-		return;
-	}
-
-	// different column types
-	var axisChartColumnTypes = ['area','bar','line','scatter'];
-
-	//update column methods (1 for each type)
-	var updateColumn = {};
-	updateColumn.area = function(column, newFlag){
-		var path = column.svg.selectAll('path').data([column]);
-		path.enter()
-			.append('path')
-				.style('opacity',0)
-				.datum(column.modifiedData.values)
-				.attr('d', column.area)
-				.style('stroke', color(column.data.label))
-				.style('fill', color(column.data.label));
-
-		path
-				.datum(column.modifiedData.values)
-			.transition()
-				.duration(animationDuration)
-				.attr('d', column.area)
-				.style('opacity',1);
+	$$.xAlias = {
+		scale:d3.scale.linear(),
+		axis:d3.svg.axis(),
+		type:'quantitative,linear',
+		orientation:'bottom',
+		domain:[0,1],
+		hide: false
 	};
-	updateColumn.bar = function(column, newFlag){
-
-		var bar = column.svg.selectAll('rect').data(column.data.values, function(d){return d.x});
-
-		bar.enter().append('rect')
-				.attr('class','ad-bar-rect')
-				.style('opacity',0)
-				.attr('height',0)
-				.attr('y',innerHeight);
-
-		bar
-				.style('fill', color(column.data.label))
-				.style('stroke-width','0.6px')
-				.style('opacity',1);
-
-		bar.transition()
-				.duration(animationDuration)
-				.attr('x',function(d){return d.xPos;})
-				.attr('y',function(d){return d.yPos;})
-				.attr('width',function(d){return d.width;})
-				.attr('height',function(d){return d.height;})
-				.style('stroke', color(column.data.label));
-
-		bar.exit()
-			.transition()
-				.duration(animationDuration)
-				.style('opacity',0)
-				.attr('height',0)
-				.attr('y',innerHeight)
-				.remove();
-
+	$$.xAlias.axis.scale($$.xAlias.scale).orient($$.xAlias.orientation);
+	$$.yAlias = {
+		scale:d3.scale.linear(),
+		axis:d3.svg.axis(),
+		type:'quantitative,linear',
+		orientation:'left',
+		domain:[0,1],
+		hide: false
 	};
-	updateColumn.line = function(column, newFlag){
-		var line = d3.svg.line()
-				.x(function(d){ return xScale.scale(d.x) + offsetPointX();})
-				.y(function(d){ return yScale.scale(d.y);});
+	$$.yAlias.axis.scale($$.yAlias.scale).orient($$.yAlias.orientation);
 
-		var interpolationType = column.data.type.split(',')[1];
-		if(interpolationType)
-			line.interpolate(interpolationType);
+	$$.x = $$.xAlias;
+	$$.y = $$.yAlias;
 
-		var path = column.svg.selectAll('path').data([column]);
-		path.enter()
-			.append('path')
-				.attr('class','ad-line')
-				.style('opacity',0)
-				.datum(column.data.values)
-				.attr('d', line)
-				.style('stroke', color(column.data.label));
-
-		path
-				.datum(column.data.values)
-			.transition()
-				.duration(animationDuration)
-				.attr('d', line)
-				.style('opacity',1);
-	};
-	updateColumn.scatter = function(column, newFlag){
-		var scatterPoint = column.svg.selectAll('g.ad-scatter-point').data(column.data.values, function(d){return d.x});
-		var newScatterPoint = scatterPoint.enter()
+	$$.updateGraphs = function(){
+		$$.selection.types.foreground.type = $$.selection.types.foreground.selectAll('g.ad-axis-type-foreground').data($$.currentChartData.types, function(d){return d.type;});
+		$$.selection.types.foreground.type.enter()
 			.append('g')
-				.attr('class','ad-scatter-point')
-				.attr('transform', function(d){
-					return 'translate('+(xScale.scale(d.x) + offsetPointX())+','+yScale.scale(d.y)+')';
-				});
-
-		var newCircle = newScatterPoint
-			.append('circle')
-				.attr('class','ad-scatter-point')
-				.attr('r', 5)
-				.style('fill', color(column.data.label))
-				.on('mouseover.ad-mouseover',function(){d3.select(this).transition().duration(250).attr('r',7);})
-				.on('mouseout.ad-mouseout',function(){d3.select(this).transition().duration(250).attr('r',5);})
-				// .style('stroke-width', '2px')
-				// .style('stroke', color(column.data.label));
-
-		scatterPoint
+				.attr('class', function(d){return 'ad-axis-type-foreground ad-'+d.type;});
+		$$.selection.types.foreground.type.exit()
 			.transition()
-				.duration(animationDuration)
-				.attr('transform', function(d){
-					return 'translate('+(xScale.scale(d.x) + offsetPointX())+','+yScale.scale(d.y)+')';
-				});
-
-		scatterPoint.exit()
-			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',0)
 				.remove();
-	};
 
-	//legend hover functions for additional functionality (most of this is done through CSS)
-	var legendItemMouseover = {};
-	var legendItemMouseout = {};
-
-	legendItemMouseover.bar = function(){};
-	legendItemMouseover.scatter = function(d){
-		d.data.svg.selectAll('circle')
+		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.axis-chart-foreground-graph').data(function(d){return d.graphs;},function(d,i){
+				return d.label;
+			});
+		$$.selection.types.foreground.type.graph.enter()
+			.append('g')
+				.attr('class', 'axis-chart-foreground-graph');
+		$$.selection.types.foreground.type.graph
+				.each(function(d){d.foreground = d3.select(this);});
+		$$.selection.types.foreground.type.graph.exit()
 			.transition()
-				.duration(animationDuration/2)
-				.attr('r', 7);
-	};
-	legendItemMouseover.area = function(){};
-	legendItemMouseover.line = function(){};
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
 
-	legendItemMouseout.bar = function(){};
-	legendItemMouseout.scatter = function(d){
-		d.data.svg.selectAll('circle')
+		$$.selection.types.background.type = $$.selection.types.background.selectAll('g.ad-axis-type-background').data($$.currentChartData.types, function(d){return d.type;});
+		$$.selection.types.background.type.enter()
+			.append('g')
+				.attr('class', function(d){return 'ad-axis-type-background ad-'+d.type;})
+				.each(function(background){
+					// this.foreground = $$.selection.types.foreground.type.filter(function(foreground){
+					// 	return foreground.type == background.type;
+					// });
+				});
+		$$.selection.types.background.type.exit()
 			.transition()
-				.duration(animationDuration/2)
-				.attr('r', 5);
-	};
-	legendItemMouseout.area = function(){};
-	legendItemMouseout.line = function(){};
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
 
-	//offset correction for ordinal axis
-	var offsetPointX = function(){
-		if(xScale.type == 'ordinal')
-			return xScale.scale.rangeBand()/2;
-		else
-			return 0;
-	}
 
-	//compute bar positions for all bar columns (stacked vs grouped)
-	var computeBarPositions = function(columns){
-		var xBand;
-		var barWidth;
-		var xBandDefault = innerWidth/(columns.length * 7);
+		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.axis-chart-background-graph').data(function(d){return d.graphs;},function(d,i){
+				return d.label;
+			});
+		$$.selection.types.background.type.graph.enter()
+			.append('g')
+				.attr('class', 'axis-chart-background-graph')
+				.each(function(d){
+					var type = '';
+					d3.select(this.parentNode).each(function(d){
+						type = d.type;
+					});
 
-		var yVals = {};
-
-		if(controls.stacking.enabled){
-			if(xScale.type == 'ordinal'){
-				xBand = xScale.scale.rangeBand();
-				barWidth = xBand * 0.6;
-			}else{
-				xBand = -xBandDefault*2.5;
-				barWidth = xBandDefault;
-			}
-			columns.forEach(function(column,i){
-				column.data.values.forEach(function(bar){
-					bar.height = (innerHeight - yScale.scale(bar.y));
-					yVals[bar.x] = yVals[bar.x] || innerHeight;
-					yVals[bar.x] -= bar.height;
-					bar.xPos = xScale.scale(bar.x) + xBand * 0.2;
-					bar.yPos = yVals[bar.x];
-					bar.width = barWidth;
+					this.adType = new AD.UTILS.AXISCHART[type];
+					this.adType
+						.foreground(d.foreground)
+						.background(d3.select(this));
 				});
-			});
-		}else{
-			if(xScale.type == 'ordinal'){
-				xBand = d3.scale.ordinal()
-						.domain(columns.map(function(c){return c.data.label}))
-						.rangeRoundBands([0, xScale.scale.rangeBand()], 0.05, 0.3);
-			}else{
-				xBand = d3.scale.ordinal()
-						.domain(columns.map(function(c){return c.data.label}))
-						.rangeRoundBands([-xBandDefault/2, xBandDefault/2], 0.05, 0.3);
-			}
-			barWidth = xBand.rangeBand();
-			columns.forEach(function(column,i){
-				column.data.values.forEach(function(bar){
-					bar.xPos = xScale.scale(bar.x) + xBand(column.data.label);
-					bar.height = innerHeight - yScale.scale(bar.y);
-					bar.yPos = innerHeight - bar.height;
-					bar.width = barWidth;
-				});
-			});
-		}
-	};
-
-	//compute area positions for all area columns
-	var computeAreaPositions = function(columns){
-		// var interpolationType;
-		// if(controls.stacking.enabled){
-		//
-		// 	var modifiedData = columns.map(function(column){
-		// 			return column.data.values.map(function(value){
-		// 					return {x:value.x,y:value.y,y0:0};
-		// 			});
-		// 		});
-		//
-		// 	modifiedData = d3.layout.stack()(modifiedData);
-		// 	columns.forEach(function(column,i){
-		// 		column.modifiedData = column.data;
-		// 		column.modifiedData.values = modifiedData[i];
-		// 		column.area = d3.svg.area()
-		// 				.x(function(d){ return xScale.scale(d.x) + offsetPointX();})
-		// 				.y0(function(d){ return yScale.scale(d.y0);})
-		// 				.y1(function(d){ return yScale.scale(d.y);});
-		//
-		// 		interpolationType = column.data.type.split(',')[1];
-		// 		if(interpolationType)
-		// 			column.area.interpolate(interpolationType);
-		//
-		// 	});
-		// }else{
-			columns.forEach(function(column){
-				column.area = d3.svg.area()
-						.x(function(d){ return xScale.scale(d.x) + offsetPointX();})
-						.y0(innerHeight)
-						.y1(function(d){ return yScale.scale(d.y);});
-
-				interpolationType = column.data.type.split(',')[1];
-				if(interpolationType)
-					column.area.interpolate(interpolationType);
-
-				column.modifiedData = column.data;
-			});
-
-		// }
-
-	};
-
-	/*DEFINE CHART OBJECT AND MEMBERS*/
-	var chart = {};
-
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	chart.xScale = function(value){
-		if(!arguments.length) return xScale;
-		xScale.type = value.type;
-		xScale.domain = value.domain;
-		generateRequired = true;
-
-		if(value.type == 'linear'){
-			xScale.scale = d3.scale.linear();
-		}else if(value.type == 'ordinal'){
-			xScale.scale = d3.scale.ordinal();
-		}
-
-		if(value.domain)
-			xScale.scale.domain(value.domain);
-		else
-			xScale.domain = 'auto';
-
-		return chart;
-	};
-	chart.yScale = function(value){
-		if(!arguments.length) return yScale;
-		yScale.type = value.type;
-		yScale.domain = value.domain;
-		generateRequired = true;
-
-		if(value.type == 'linear'){
-			yScale.scale = d3.scale.linear();
-		}else if(value.type == 'ordinal'){
-			yScale.scale = d3.scale.ordinal();
-		}
-
-		if(value.domain)
-			yScale.scale.domain(value.domain);
-		else
-			yScale.domain = 'auto';
-
-		return chart;
-	};
-
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
-	chart.margin = function(values){
-		if(!arguments.length) return margin;
-		if(values.left)
-			margin.left = values.left;
-		if(values.right)
-			margin.right = values.right;
-		if(values.top)
-			margin.top = values.top;
-		if(values.bottom)
-			margin.bottom = values.bottom;
-		return chart;
-	};
-
-	chart.controls = function(value){
-		if(!arguments.length) return controls;
-		if(value.yAxisLock){
-			controls.yAxisLock.visible = (value.yAxisLock.visible != null)? value.yAxisLock.visible:controls.yAxisLock.visible;
-			controls.yAxisLock.enabled = (value.yAxisLock.enabled != null)? value.yAxisLock.enabled:controls.yAxisLock.enabled;
-			controls.yAxisLock.maxStacked = (value.yAxisLock.maxStacked != null)? value.yAxisLock.maxStacked:controls.yAxisLock.maxStacked;
-			controls.yAxisLock.maxNonStacked = (value.yAxisLock.maxNonStacked != null)? value.yAxisLock.maxNonStacked:controls.yAxisLock.maxNonStacked;
-		}
-		if(value.stacking){
-			controls.stacking.visible = (value.stacking.visible != null)? value.stacking.visible:controls.stacking.visible;
-			controls.stacking.enabled = (value.stacking.enabled != null)? value.stacking.enabled:controls.stacking.enabled;
-		}
-		if(value.hideLegend){
-			controls.hideLegend.visible = (value.hideLegend.visible != null)? value.hideLegend.visible:controls.hideLegend.visible;
-			controls.hideLegend.enabled = (value.hideLegend.enabled != null)? value.hideLegend.enabled:controls.hideLegend.enabled;
-		}
-
-		return chart;
-	};
-
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		legend.animationDuration(animationDuration);
-		horizontalControls.animationDuration(animationDuration);
-		return chart;
-	};
+		$$.selection.types.background.type.graph
+				.each(function(d){
+						d.background = d3.select(this);
+					});
+		$$.selection.types.background.type.graph.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
 
 
-	chart.xFormat = function(value){
-		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
-		return chart;
-	};
-	chart.yFormat = function(value){
-		if(!arguments.length) return yFormat;
-		yFormat = AD.UTILS.numberFormat(value);
-		return chart;
-	};
 
-	chart.legendOrientation = function(value){
-		if(!arguments.length) return legendOrientation;
-		legendOrientation = value;
-		return chart;
-	};
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
+		//use custom scales to fix an inconsistancy with the rotated/horizontal scale
+		$$.x.customScale = function(value){
+			if($$.rotate)
+				return $$.innerWidth - $$.x.scale(value);
+			return $$.x.scale(value);
+		};
+		$$.y.customScale = function(value){
+			return $$.y.scale(value);
 		};
 
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
+		$$.selection.types.background.type.graph.each(function(background){
+			this.adType
+				.x($$.xAlias)
+				.y($$.yAlias)
+				.color($$.color)
+				.animationDuration($$.animationDuration)
+				.orientationMap($$.orientationMap)
+				.data(background.graphs)
+				.update();
 
+			// this.adType.foreground().graph.each(function(d){
+			// 	d.foreground = d3.select(this);
+			// });
+			// this.adType.background().graph.each(function(d){
+			// 	d.background = d3.select(this);
+			// });
+
+		});
+
+		$$.selection.types.background.type.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+
+	};
+
+	//axis modifier is used to make like code for x/y axes reusable
+	$$.axisModifier = function(callback, params){
+		if(params){
+			callback('x', params.x);
+			callback('y', params.y);
+		}else{
+			callback('x');
+			callback('y');
+		}
+	};
+
+	$$.updateAxis = function(){
+
+		var labelOffset = 15;
+		var labelTransition = {};
+
+		//setup axis labels if specified and visible
+		$$.axisModifier(
+			function(axis, params){
+				labelTransition[axis] = $$.selection.axes[axis].label
+					.transition()
+						.duration($$.animationDuration);
+				if($$.currentChartData.labels[axis] && !$$[axis].hide){
+					$$.forcedMargin[$$[axis].orientation] += labelOffset;
+					$$[params.dimension] -= labelOffset;
+					labelTransition[axis]
+						.style('opacity',1);
+					$$.selection.axes[axis].label.text
+						.text($$[axis].label);
+				}else{
+					labelTransition[axis]
+						.style('opacity',0);
+					$$.selection.axes[axis].label.text
+						.text('');
+				}
+			},
+			{
+				x:{dimension: 'innerHeight'},
+				y:{dimension: 'innerWidth'}
+			}
+		);
+
+		//create axis transitions;
+		var axisTransition = {};
+		$$.axisModifier(function(axis){
+			axisTransition[axis] = $$.selection.axes[axis]
+				.transition()
+					.duration($$.animationDuration);
+		});
+
+		//find max tick size on the vertical axis for proper spacing
+		var maxTickLength = 0;
+		$$.selection.axes.y.text = $$.selection.axes.y.selectAll('.tick text').each(function(){
+			var length = this.getComputedTextLength();
+			maxTickLength = Math.max(maxTickLength, length);
+		});
+
+		$$.selection.axes.x.text = $$.selection.axes.x.selectAll('text');
+
+		//modify x/y axis positioning and visiblity
+		$$.axisModifier(
+			function(axis, params){
+				if($$[axis].hide){
+					axisTransition[axis].style('opacity',0);
+				}else{
+					axisTransition[axis].style('opacity',1);
+					$$.forcedMargin[$$[axis].orientation] += params.offset;
+					$$[params.dimension] -= params.offset;
+				}
+			},
+			{
+				x:{offset:15, dimension:'innerHeight'},
+				y:{offset:maxTickLength, dimension:'innerWidth'}
+			}
+		);
+
+		//position x/y labels
+		var labelOffsetPosition = ($$.y.orientation == 'left')? $$.forcedMargin.left - 3*labelOffset - maxTickLength : maxTickLength + 1.5*labelOffset;
+		labelTransition.y.attr('transform','translate('+ labelOffsetPosition +','+ $$.innerHeight/2 +')');
+
+		labelOffsetPosition = ($$.x.orientation == 'top')? $$.forcedMargin.top - 3.5*labelOffset : 2.2 * labelOffset;
+		labelTransition.x.attr('transform','translate('+	$$.innerWidth/2 +','+ labelOffsetPosition+')');
+
+		//set x/y scale range
+		var range = {};
+		if($$.rotate){
+			if($$.x.invert)
+				range.x=[$$.innerWidth, 0];
+			else
+				range.x=[0, $$.innerWidth];
+
+			if(!$$.y.invert)
+				range.y=[0, $$.innerHeight];
+			else
+				range.y=[$$.innerHeight, 0];
+		}else{
+			if($$.x.invert)
+				range.x=[$$.innerWidth, 0];
+			else
+				range.x=[0, $$.innerWidth];
+
+			if($$.y.invert)
+				range.y=[0, $$.innerHeight];
+			else
+				range.y=[$$.innerHeight, 0];
+		}
+
+		if($$.x.type.split(',')[0] == 'ordinal'){
+			$$.x.scale.rangeBands(range.x);
+			$$.x.rangeBand = $$.x.scale.rangeBand();
+		}else{
+			$$.x.scale.range(range.x);
+			$$.x.rangeBand = 0;
+		}
+
+
+
+		if($$.y.type.split(',')[0] == 'ordinal'){
+			$$.y.scale.rangeBands(range.y);
+			$$.y.rangeBand = $$.y.scale.rangeBand();
+		}else{
+			$$.y.scale.range(range.y);
+			$$.y.rangeBand = 0;
+		}
+
+		//set x/y tick size
+		$$.x.axis.tickSize(-$$.innerHeight);
+		$$.y.axis.tickSize(-$$.innerWidth);
+
+		//transition and position x axis
+		axisTransition.x
+			.call($$.x.axis);
+
+		if($$.x.orientation == 'top'){
+			axisTransition.x
+					.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+		}else{
+			axisTransition.x
+					.attr('transform','translate('+$$.forcedMargin.left+','+($$.innerHeight + $$.forcedMargin.top)+')');
+		}
+
+		//transition and position y axis
+		axisTransition.y
+			.call($$.y.axis)
+			.each('end',function(){
+				//when y transition finishes, wait 10ms and then verify that the horizontal margin is correctly aligned for the maxTickLength
+				setTimeout(function(){
+					var verifyMaxTickLength = 0;
+					$$.selection.axes.y.selectAll('.tick text').each(function(){
+						var length = this.getComputedTextLength();
+						verifyMaxTickLength = Math.max(verifyMaxTickLength, length);
+					});
+					if(maxTickLength != verifyMaxTickLength)
+						chart.update();
+				},10);
+
+			});
+
+		if($$.y.orientation == 'left'){
+			axisTransition.y
+					.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+		}else{
+			axisTransition.y
+					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
+		}
+	};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+		$$.legend.animationDuration($$.animationDuration);
+		$$.controls.animationDuration($$.animationDuration);
+	});
+	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.rotate = function(value){
+		$$.rotate = value;
+		if(value){
+			$$.orientationMap = {x:'y', y:'x'}
+			$$.x = $$.yAlias;
+			$$.y = $$.xAlias;
+		}else{
+			$$.orientationMap = {x:'x', y:'y'}
+			$$.x = $$.xAlias;
+			$$.y = $$.yAlias;
+		}
 		return chart;
 	};
+
+	chart.x = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
+		if(value.orientation)
+			$$.xAlias.orientation = value.orientation;
+
+			$$.xAlias.axis
+			.scale($$.xAlias.scale)
+			.orient($$.xAlias.orientation);
+	});
+	chart.y = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
+		if(value.orientation)
+			$$.yAlias.orientation = value.orientation;
+
+		$$.yAlias.axis
+			.scale($$.yAlias.scale)
+			.orient($$.yAlias.orientation);
+	});
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {
-							columns: {},
-							labels:{x:'',y:''}
-						};
-			generateRequired = true;
+			$$.currentChartData = {};
 		}
 
-		chartData.data.columns.forEach(function(d,i){
-			var c;
-			if(currentChartData.columns[d.label]){
-				c = currentChartData.columns[d.label];
-				c.data.values = d.values || c.data.values;
-				c.data.type = d.type || c.data.type;
-				c.replace = d.replace || false;
-				if(d.type)
-					c.newType = d.type.split(',')[0];
-				else
-					c.newType = c.oldType;
-			}else{
-				c = currentChartData.columns[d.label] = {data:d, newType:d.type.split(',')[0], oldType:null};
-				if(!generateRequired){
-					c.svg = selection.group.columns[d.type.split(',')[0]+'_columns']
-						.append('g');
-				}
-			}
-		});
-		if(chartData.data.labels)
-			currentChartData.labels = chartData.data.labels;
+		if(chartData.data.types)
+			$$.currentChartData.types = chartData.data.types;
+
+		if(chartData.data.labels){
+			$$.currentChartData.labels = chartData.data.labels;
+			$$.xAlias.label = $$.currentChartData.labels.x;
+			$$.yAlias.label = $$.currentChartData.labels.y;
+		}
+
 
 		return chart;
 	};
 
-	//generate chart
+	//chart generate
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
-		//clean container
-		selection.selectAll('*').remove();
+		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
+		AD.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
-		//create svg
-		selection.svg = selection
-			.append('svg')
-				.attr('class','ad-axis-chart ad-svg ad-container');
+		//init legend properties
+		$$.legend
+				.color($$.color)
+				.selection($$.selection.legend);
 
-		//create group container
-		selection.group = selection.svg.append('g');
-
-		//create axis containers
-		selection.group.axes = selection.group
-			.append('g')
-				.attr('class','ad-axes');
-		selection.group.axes.x = selection.group.axes
-			.append('g')
-				.attr('class','ad-x ad-axis');
-		selection.group.axes.y = selection.group.axes
-			.append('g')
-				.attr('class','ad-y ad-axis');
-		selection.group.axes.xLabel = selection.group.axes
-			.append('g')
-				.attr('class','ad-x-label')
-			.append('text');
-		selection.group.axes.yLabel = selection.group.axes
-			.append('g')
-				.attr('class','ad-y-label')
-			.append('text');
-
-
-
-		//create column containers
-		selection.group.columns = selection.group
-			.append('g')
-				.attr('class','ad-columns');
-
-		axisChartColumnTypes.forEach(function(d){
-			selection.group.columns[d+'_columns'] = selection.group.columns
-				.append('g')
-					.attr('class','ad-'+d+'-columns');
-		})
-
-		for(key in currentChartData.columns){
-			currentChartData.columns[key].svg = selection.group.columns[currentChartData.columns[key].newType+'_columns']
-				.append('g');
-		}
-
-		//create controls container
-		selection.controls = selection.group
-			.append('g')
-				.attr('class','ad-controls');
-
-		//intialize new controls
-		// horizontalControls = new AD.UTILS.CONTROLS.horizontalControls();
-		horizontalControls
-				.selection(selection.controls)
+		//init control properties
+		$$.controls
+				.selection($$.selection.controls)
 				.on('elementChange',function(d,i){
-					controls[d.key].enabled = d.state;
+					$$.controlsData[d.key].enabled = d.state;
 					chart.update();
 				});
 
-		//create legend container
-		selection.legend = selection.group
+		//init main chart container
+		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','ad-legend');
+				.attr('class','ad-axis-chart');
 
-		//intialize new legend
-		// legend = new AD.UTILS.LEGENDS.legend();
-		legend
-				.color(color)
-				.selection(selection.legend)
-				.on('elementMouseover.ad-mouseover', function(d,i){
-					if(legendItemMouseover[d.data.newType]){
-						legendItemMouseover[d.data.newType](d);
-						d.data.svg.classed('ad-legend-mouseover',true);
-					}
-				})
-				.on('elementMouseout.ad-mouseout',function(d,i){
-					if(legendItemMouseover[d.data.newType]){
-						legendItemMouseout[d.data.newType](d);
-						d.data.svg.classed('ad-legend-mouseover',false);
-					}
-				});
+		$$.selection.axes = $$.selection.main
+			.append('g')
+				.attr('class','ad-axes');
+
+		$$.selection.axes.x = $$.selection.axes
+			.append('g')
+				.attr('class','ad-axis ad-x');
+
+		$$.selection.axes.x.label = $$.selection.axes.x
+			.append('g')
+				.attr('class','ad-label');
+		$$.selection.axes.x.label.text = $$.selection.axes.x.label
+			.append('text');
+
+		$$.selection.axes.y = $$.selection.axes
+			.append('g')
+				.attr('class','ad-axis ad-y');
+
+		$$.selection.axes.y.label = $$.selection.axes.y
+			.append('g')
+				.attr('class','ad-label');
+		$$.selection.axes.y.label.text = $$.selection.axes.y.label
+			.append('text')
+		    .attr('transform', 'rotate(-90)');
+
+		$$.selection.types = $$.selection.main
+			.append('g')
+				.attr('class','ad-axis-types');
+		$$.selection.types.background = $$.selection.types
+			.append('g')
+				.attr('class','ad-axis-types-background');
+		$$.selection.types.foreground = $$.selection.types
+			.append('g')
+				.attr('class','ad-axis-types-foreground');
+
+		$$.legend.on('elementMouseover',function(d){
+			d3.selectAll('g.axis-chart-background-graph').style('opacity',0.3);
+			d.background.style('opacity',1);
+			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',0.3);
+			d.foreground.style('opacity',1);
+		})
+		.on('elementMouseout',function(d){
+			d3.selectAll('g.axis-chart-background-graph').style('opacity',1);
+			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',1);
+		});
 
 		//auto update chart
-		var temp = animationDuration;
-		chart.animationDuration(0);
-		chart.update(callback);
-		chart.animationDuration(temp);
+		var temp = $$.animationDuration;
+		chart
+				.animationDuration(0)
+				.update(callback)
+				.animationDuration(temp);
 
 		return chart;
 	};
 
-	//update chart
+	//chart update
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
-		forcedMargin.bottom += 20;
-		forcedMargin.left += 20;
+		//init forcedMargin
+		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
 
-		var columns = AD.UTILS.getValues(currentChartData.columns);
-		var barColumns = columns.filter(function(d){return d.newType == 'bar';});
-		var areaColumns = columns.filter(function(d){return d.newType == 'area';});
-		innerWidth = width - margin.left - margin.right - forcedMargin.right - forcedMargin.left;
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
 
-		if(controls.hideLegend.enabled){
-			var legendData = {data:{items:[]}};
+		//update dimensions to the conform to the padded SVG:G
+		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		//update controls viz
+		AD.UTILS.CHARTS.HELPERS.updateControls($$);
+
+		//set legend data and update legend viz
+		if($$.controlsData.hideLegend.enabled){
+			$$.legendData = {data:{items:[]}};
 		}else{
-			var legendData = {
-				data:{
-					items:columns
-									.filter(function(d){return d.newType != 'none';})
-									.map(function(d){return {label:d.data.label,type:d.newType,data:d};})
-									.sort(function(a,b){return a.label-b.label})
-				}
-			};
+			$$.legendData.data.items = [].concat.apply([], $$.currentChartData.types.map(function(d){return d.graphs.map(function(d){return d;})}));;
 		}
-		legend.width(innerWidth).data(legendData).update();
+		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
 
-		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
-		controlsData.map(function(d){
-			d.data = {state:d.enabled, label:d.label, key:d.key};
-		});
-		horizontalControls.width(innerWidth).data(controlsData).update();
-		forcedMargin.top += horizontalControls.computedHeight();
-
-		innerHeight = height - margin.top - margin.bottom - forcedMargin.top - forcedMargin.bottom;
-
-
-		//reposition the controls
-		selection.controls
+		$$.selection.main
 			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+((margin.left + forcedMargin.left) + innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10+(margin.top + forcedMargin.top))+')');
-				// .attr('transform','translate('+(innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10)+')');
+				.duration($$.animationDuration)
+				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
+		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		if(legendOrientation == 'right' || legendOrientation == 'left'){
-			legend.orientation('vertical').height(innerHeight).update();
-		}
-		else{
-			legend.orientation('horizontal').width(innerWidth).update();
-		}
+		$$.updateAxis();
 
-		var legendTranslation;
-		if(legendOrientation == 'right')
-			legendTranslation = 'translate('+(forcedMargin.left+innerWidth-legend.computedWidth())+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'left')
-			legendTranslation = 'translate('+(forcedMargin.left)+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'top')
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(forcedMargin.top-20)+')';
-		else
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(25+innerHeight+forcedMargin.top-legend.computedHeight())+')';
-
-		selection.legend
+		$$.selection.types
 			.transition()
-				.duration(animationDuration)
-				.attr('transform',legendTranslation);
+				.duration($$.animationDuration)
+				.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
-		if(legendOrientation == 'right' || legendOrientation == 'left')
-			forcedMargin[legendOrientation] += legend.computedWidth() + 30;
-		else
-			forcedMargin[legendOrientation] += legend.computedHeight();
 
-		innerHeight = height - margin.top - margin.bottom - forcedMargin.top - forcedMargin.bottom;
-		innerWidth = width - margin.left - margin.right - forcedMargin.right - forcedMargin.left;
-
-		//gather x and y values to find domain
-		var xVals = [];
-		var yVals = [];
-
-		columns.forEach(function(c){
-			if(c.data.values && c.newType){
-				c.data.values.forEach(function(v){
-					xVals.push(v.x);
-					yVals.push(v.y);
-				});
-			}
-		});
-
-		//if stacking is add stacked values to set of y values
-	  var yValsStackedBars = {};
-		if(controls.stacking.enabled){
-			barColumns.forEach(function(column,i){
-				column.data.values.forEach(function(bar){
-					if(!yValsStackedBars[bar.x])
-						yValsStackedBars[bar.x] = 0;
-					yValsStackedBars[bar.x] += bar.y;
-				});
-			});
-			yVals = yVals.concat(AD.UTILS.getValues(yValsStackedBars));
-		}
-
-		//Set rand and domain of x and y scales
-		if(xScale.type == 'linear'){
-			xScale.scale.range([0, innerWidth])
-			if(xScale.domain == 'auto'){
-				vals = [];
-				xScale.scale.domain(AD.UTILS.AXISCHARTS.getDomainLinear(xVals));
-			}
-		}else if(xScale.type == 'ordinal'){
-			xScale.scale.rangeRoundBands([0, innerWidth], .1);
-			if(xScale.domain == 'auto'){
-				xScale.scale.domain(AD.UTILS.AXISCHARTS.getDomainOrdinal(xVals));
-			}
-		}
-
-		var yDomain = [0,0];
-		if(controls.yAxisLock.enabled){
-			if(controls.stacking.enabled){
-				yDomain = [0,controls.yAxisLock.maxStacked];
-			}else{
-				yDomain = [0,controls.yAxisLock.maxNonStacked];
-			}
+		if($$.rotate){
+			$$.selection.types.background
+				.transition()
+					.duration($$.animationDuration)
+					.attr('transform','translate('+($$.innerWidth)+', 0),rotate(90)');
+			$$.selection.types.foreground
+				.transition()
+					.duration($$.animationDuration)
+					.attr('transform','translate('+($$.innerWidth)+', 0),rotate(90)');
 		}else{
-			yDomain = AD.UTILS.AXISCHARTS.getDomainLinear(yVals);
-		}
-		yScale.scale.range([innerHeight, 0])
-		if(yScale.domain == 'auto'){
-			yScale.scale.domain(yDomain);
-		}
-
-		//resize svg
-		selection.svg
-				.attr('width',width)
-				.attr('height',height);
-
-		//create x and y axes
-		yScale.scale.nice(5)
-		var xAxis = d3.svg.axis()
-				.scale(xScale.scale)
-				.orient('bottom')
-				.tickFormat(xFormat);
-		var yAxis = d3.svg.axis()
-				.scale(yScale.scale)
-				.orient('left')
-				.tickFormat(yFormat);
-
-		//initialize y-axes transition
-		selection.group.axes.y
-			.transition()
-				.duration(animationDuration)
-				.call(yAxis);
-
-		//find the longest y-axis tick text
-		var longestTick = 0;
-		d3.select('.ad-y.ad-axis').selectAll('.tick text').each(function(){
-			if(longestTick < this.getComputedTextLength())
-				longestTick = this.getComputedTextLength();
-		})
-
-		forcedMargin.left += longestTick;
-
-		//resize the width based on the longest tick text
-		innerWidth = width - margin.left - margin.right - forcedMargin.right - forcedMargin.left;
-
-		//Re asign the x-axis range to account for width resize
-		if(xScale.type == 'linear'){
-			xScale.scale.range([0, innerWidth])
-		}else if(xScale.type == 'ordinal'){
-			xScale.scale.rangeRoundBands([0, innerWidth], .1);
+			$$.selection.types.background
+				.transition()
+					.duration($$.animationDuration)
+					.attr('transform','');
+			$$.selection.types.foreground
+				.transition()
+					.duration($$.animationDuration)
+					.attr('transform','');
 		}
 
-	  //set tickSize for grid
-		xAxis.tickSize(-innerHeight)
-		yAxis.tickSize(-innerWidth);
 
-		//reposition the g container
-		selection.group
-			.transition()
-				.duration(animationDuration)
-				// .attr('transform','translate('+ (margin.left + forcedMargin.left) +','+ (margin.top + forcedMargin.top) +')');
-		//transition x-axis
-		selection.group.axes.x
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+ (margin.left + forcedMargin.left) +','+ ((margin.top + forcedMargin.top)+innerHeight) +')')
-				// .attr('transform','translate('+ (0) +','+ (innerHeight) +')')
-				.call(xAxis);
-		//transition y-axis
-		selection.group.axes.y
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+ (margin.left + forcedMargin.left) +','+ (margin.top + forcedMargin.top) +')')
-				// .attr('transform','translate('+ (0) +','+ (0) +')')
-				.call(yAxis);
-
-		//set the xBand, this is used for bar chart inconsistancies between different scale types.
-		if(xScale.type == 'ordinal'){
-			xBand = d3.scale.ordinal()
-					.domain(barColumns.map(function(c){return c.data.label}))
-					.rangeRoundBands([0, xScale.scale.rangeBand()]);
-		}else{
-			xBand = innerWidth/(barColumns.length * 20)
-		}
-
-		//update axis labels
-		selection.group.axes.xLabel
-			.transition()
-				.duration(animationDuration)
-				.text(currentChartData.labels.x)
-				.attr('transform', 'translate('+(margin.left + forcedMargin.left + innerWidth/2)+','+(innerHeight + 30 + (margin.top + forcedMargin.top))+')');
-				// .attr('transform', 'translate('+(innerWidth/2)+','+(innerHeight + 30)+')');
-
-		selection.group.axes.yLabel
-			.transition()
-				.duration(animationDuration)
-	      .attr('transform', 'translate('+(margin.left + forcedMargin.left-longestTick-10)+','+(innerHeight/2+(margin.top + forcedMargin.top))+'),rotate(-90)')
-	      // .attr('transform', 'translate('+(-35)+','+(innerHeight/2)+'),rotate(-90)')
-				.text(currentChartData.labels.y);
-
-		selection.group.columns
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+ (margin.left + forcedMargin.left) +','+ (margin.top + forcedMargin.top) +')');
-				// .attr('transform','translate('+ (0) +','+ (0) +')');
-
-		//calculate barChart positions
-		computeBarPositions(barColumns);
-		//calculate areaChart positions
-		computeAreaPositions(areaColumns);
-
-		//update columns replace(replace the column with a different type)/update(update the column with the same type)/remove(remove the column)
-		columns.forEach(function(c,i){
-			if(c.replace){
-				replaceColumn(c);
-			}else if(c.newType == 'none'){
-				removeColumn(c);
-			}else if(!c.oldType){
-				updateColumn[c.newType](c, true);
-			}else if(c.newType == c.oldType){
-				updateColumn[c.newType](c, false);
-			}else{
-				replaceColumn(c);
-			}
-
-			c.oldType = c.newType;
-		});
-
-		//sort the areas by max value (greatest to least)
-		var maxAreaValues = areaColumns.map(function(d){
-			return {column: d,maxY: d3.max(d.data.values.map(function(v){
-				return v.y;
-			}))};
-		});
-		maxAreaValues
-				.sort(function(a,b){return b.maxY - a.maxY;})
-		maxAreaValues
-				.forEach(function(d){
-					selection.group.columns.area_columns.node().appendChild(d.column.svg.node());
-				});
+		$$.updateGraphs();
 
 		d3.timer.flush();
 
@@ -877,7 +590,7 @@ AD.CHARTS.axisChart = function(){
 			callback();
 
 		return chart;
-	}
+	};
 
 	return chart;
 };

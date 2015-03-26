@@ -33,3 +33,5 @@ AD.createNameSpace("AD.DASHBOARDS");
 AD.createNameSpace("AD.UTILS");
 /*AD UTILITIES*/
 AD.createNameSpace("AD.UTILS.CHARTPAGE");
+
+AD.createNameSpace("AD.UTILS.AXISCHART");

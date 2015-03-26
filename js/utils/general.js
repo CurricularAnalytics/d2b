@@ -199,17 +199,19 @@ AD.UTILS.textWrap = function(text, width) {
 
 
 /*Custom Tweens*/
-var arcTween = function(transition, arc) {
+AD.createNameSpace("AD.UTILS.TWEENS");
+//arc tween from this.oldArc to this.newArc
+AD.UTILS.TWEENS.arcTween = function(transition, arc){
 	transition.attrTween("d",function(d){
-	  var i = d3.interpolate(this._current, d);
-	  // this._current = d;
-	  return function(t) {
-		  this._current = i(t);
-	    return arc(i(t));
-	  };
-	})
+		var _self = this;
+		var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
+		function tween(t){
+			_self.oldArc = interpolator(t);
+			return arc(_self.oldArc);
+		}
+		return tween;
+	});
 };
-
 
 /*Events*/
 AD.UTILS.bind = function(mainKey, elements, _, data, index, type){

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var axisChart = new AD.CHARTS.axisChart();
+
+		axisChart
+//no need to use select/width/height if imbeding chart into a chartLayout
+			// .select('.axis-chart')
+			// .width($(window).width())
+			// .height($(window).height())
+
+//set the x scale properties
+			.x({
+				orientation:'bottom', 				//default 'bottom', can be set to right or left if rotated, bottom or top if not
+				invert:false, 								//default false
+				hide: false, 									//default false
+				type:'ordinal', 							//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
+				domain:['x1', 'x2', 'x3']			//default [0, 1], set the domain for the chosen scale type
+			})
+
+//set the y scale type to quantitative,linear (this is default) and the domain as [0,300]
+			.y({
+				orientation:'left', 					//default 'left', can be set to top or bottom if rotated, right or left if not
+				invert:false, 								//default false
+				hide: false, 									//default false
+				type:'quantitative,linear', 	//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
+				domain:[0, 300]								//default [0, 1], set the domain for the chosen scale type
+			})
+
+//set the controls for this chart, only hideLegend currenlty available for axis-charts
+			.controls({'hideLegend':{'enabled':false,'visible':true}}) // default {'hideLegend':{'enabled':false,'visible':false}}
+
+//to rotate the chart
+			// .rotate(true)								//default false
+			// .x({orientation:'left'})
+			// .y({orientation:'bottom'})
+
+//to position the legend
+			.legendOrientation('top') 			//default 'bottom'
+
+//set the axis chart data
+			.data({data:{
+				labels:{
+					x:'Template x label',
+					y:'Template y label'
+				},
+				types:[
+					{
+						type:'area',
+						graphs:[
+							{
+								label: 'Area 1',
+								interpolate:'cardinal',
+								values:[
+									{x: 'x1', y: 150, y0:50},
+									{x: 'x2', y: 200, y0:100},
+									{x: 'x3', y: 50, y0:0},
+								]
+							},
+							{
+								label: 'Area 2',
+								interpolate:'cardinal',
+								values:[
+									{x: 'x1', y: 50, y0:0},
+									{x: 'x2', y: 100, y0:0},
+									{x: 'x3', y: 00, y0:0},
+								]
+							}
+						]
+					},
+					{
+						type:'line',
+						graphs:[
+							{
+								label: 'Line 1',
+								interpolate:'cardinal',
+								values:[
+									{x: 'x1', y: 200},
+									{x: 'x2', y: 250},
+									{x: 'x3', y: 100},
+								]
+							},
+							{
+								label: 'Line 2',
+								interpolate:'cardinal',
+								values:[
+									{x: 'x1', y: 100},
+									{x: 'x2', y: 150},
+									{x: 'x3', y: 00},
+								]
+							}
+						]
+					}
+				]
+			}});
+
+
+//define chart layout
+			var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+
+//setup chart layout
+			chartLayout
+					.width($(window).width())			//set the chart width
+					.height($(window).height())		//set the chart height
+					.chart(axisChart)							//set the chart
+					.select('.axis-chart');				//set the container
+
+//set the chart layout data
+			var chartLayoutData = {
+				"data":
+				{
+					"chartLayout":{
+						"title":"Example Axis-Chart"
+					}
+				}
+			};
+			chartLayout
+				.data(chartLayoutData)
+
+//update the chart layout
+				.update();
+
+
+
+		$(window).resize(function(){
+//on window resize, reset chart layout dimensions and update
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

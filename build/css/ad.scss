@@ -256,6 +256,50 @@ html, body, .ad-container {
 	text-anchor:start;
 }
 
+
+
+
+//NEW STARTS HERE
+
+.ad-axis-chart{
+	.ad-axes{
+		.ad-label{
+			text{
+				text-anchor:middle;
+				font-size:15px;
+				font-weight:bold;
+			}
+		}
+	}
+	.ad-axis-types{
+		.ad-axis-types-background{
+			.ad-line{
+				path{
+					fill:none;
+					stroke-width:2px;
+					&:hover{
+						stroke-width:4px;
+					}
+				}
+			}
+			.ad-area{
+				path{
+					fill-opacity:0.4;
+					&:hover{
+						fill-opacity:0.6;
+					}
+				}
+			}
+		}
+		.ad-axis-types-foreground{
+			circle{
+				stroke-width:2px;
+				stroke:white;
+			}
+		}
+	}
+}
+
 .ad-sankey-chart{
   .ad-sankey-labels{
     font-size: 17pt;
@@ -407,35 +451,33 @@ html, body, .ad-container {
 	}
 }
 
-.ad-sunburst-chart{
-	.ad-sunburst{
-		.ad-sunburst-arcs{
-			// cursor:pointer;
-			path{
-				fill-opacity:0.9;
+.ad-sunburst{
+	.ad-sunburst-arcs{
+		// cursor:pointer;
+		path{
+			fill-opacity:0.9;
+			stroke:white;
+			stroke-width:1;
+			-webkit-transition: fill-opacity 0.25s;
+		    transition: fill-opacity 0.25s;
+			&:hover{
+				fill-opacity:1;
 				stroke:white;
-				stroke-width:1;
-				-webkit-transition: fill-opacity 0.25s;
-			    transition: fill-opacity 0.25s;
-				&:hover{
-					fill-opacity:1;
-					stroke:white;
-				}
 			}
-
 		}
+
 	}
-	.ad-sunburst-tooltip{
-		text{
-			pointer-events:none;
-			text-anchor:middle;
-			tspan:first-child{
-				font-size:12pt;
-				font-weight:bold;
-			}
-			tspan:last-child{
-				font-size:16pt;
-			}
+}
+.ad-sunburst-tooltip{
+	text{
+		pointer-events:none;
+		text-anchor:middle;
+		tspan:first-child{
+			font-size:12pt;
+			font-weight:bold;
+		}
+		tspan:last-child{
+			font-size:16pt;
 		}
 	}
 }

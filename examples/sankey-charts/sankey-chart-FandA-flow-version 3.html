@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/ad.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script>
+	$(document).ready(function(){
+
+		var sankeyChart = new AD.CHARTS.sankeyChart();
+
+		sankeyChart
+			.nodePadding(23)
+			.layout(0.5)
+			// .select('.sankey-chart')
+			// .width($(window).width())
+			// .height($(window).height())
+			.xFormat({siPrefixed:true,separateThousands:false,units:{before:"$"},precision:4});
+
+		data = {
+						//labels:{source:"F&A Generated from Units",destination:"F&A Distributed to Units"},
+						columnHeaders:["FandA flow from Units", "FandA General Pool", "FandA Allocations", "FandA Return to Units"],
+						links:[
+
+							{source:0, target:21, value:9047259, colorBy:"target"},
+							{source:1, target:21, value:5028640, colorBy:"target"},
+							{source:2, target:21, value:1854867, colorBy:"target"},
+							{source:3, target:21, value:1458676, colorBy:"target"},
+							{source:4, target:21, value:1216995, colorBy:"target"},
+							{source:5, target:21, value:936717, colorBy:"source"},
+							{source:6, target:21, value:638467, colorBy:"target"},
+							{source:7, target:21, value:415919, colorBy:"target"},
+							{source:8, target:21, value:379451, colorBy:"target"},
+							{source:9, target:21, value:340185, colorBy:"target"},
+							{source:10, target:21, value:257462, colorBy:"target"},
+							{source:11, target:21, value:248407, colorBy:"target"},
+							{source:12, target:21, value:197247, colorBy:"target"},
+							{source:13, target:21, value:106932, colorBy:"target"},
+							{source:14, target:21, value:101649, colorBy:"target"},
+							{source:15, target:21, value:52011, colorBy:"target"},
+							{source:16, target:21, value:39069, colorBy:"target"},
+							{source:17, target:21, value:34080, colorBy:"target"},
+							{source:18, target:21, value:16179, colorBy:"target"},
+							{source:19, target:21, value:12259, colorBy:"target"},
+							{source:20, target:21, value:10730, colorBy:"target"},
+
+
+							{source:21, target:23, value:12007686, colorBy:"target"},
+							{source:21, target:22, value:10385407, colorBy:"target"},
+
+
+							{source:22, target:30, value:8076950, colorBy:"source"},
+							{source:22, target:31, value:672127, colorBy:"source"},
+							{source:22, target:27, value:1636330, colorBy:"source"},
+
+
+							{source:23, target:24, value:5711952, colorBy:"source"},
+							{source:23, target:25, value:830000, colorBy:"source"},
+							{source:23, target:26, value:2685934, colorBy:"source"},
+							{source:23, target:27, value:1851516, colorBy:"source"},
+							{source:23, target:28, value:859284, colorBy:"source"},
+							{source:23, target:31, value:69000, colorBy:"source"},
+
+
+							//FandA Return to Units
+
+							{source:30, target:32, value:3031042, colorBy:"source"},
+							{source:30, target:33, value:1801316, colorBy:"source"},
+							{source:30, target:34, value:933553, colorBy:"source"},
+							{source:30, target:35, value:853760, colorBy:"source"},
+							{source:30, target:36, value:625932, colorBy:"source"},
+							{source:30, target:37, value:223463, colorBy:"source"},
+							{source:30, target:38, value:124766, colorBy:"source"},
+							{source:30, target:39, value:105055, colorBy:"source"},
+							{source:30, target:40, value:132808, colorBy:"source"},
+							{source:30, target:41, value:3219, colorBy:"source"},
+							{source:30, target:42, value:10224, colorBy:"source"},
+							{source:30, target:43, value:30495, colorBy:"source"},
+							{source:30, target:44, value:32080, colorBy:"source"},
+							{source:30, target:45, value:15603, colorBy:"source"},
+							{source:30, target:46, value:58274, colorBy:"source"},
+							{source:30, target:47, value:77239, colorBy:"source"},
+							{source:30, target:48, value:4854, colorBy:"source"},
+							{source:30, target:49, value:868, colorBy:"source"},
+							{source:30, target:50, value:11721, colorBy:"source"},
+							{source:30, target:51, value:3678, colorBy:"source"},
+
+
+							//Core Research Services to Units
+
+							{source:24, target:52, value:1060426, colorBy:"source"},
+							{source:24, target:53, value:947904, colorBy:"source"},
+							{source:24, target:54, value:931108, colorBy:"source"},
+							{source:24, target:55, value:996666, colorBy:"source"},
+							{source:24, target:56, value:876628, colorBy:"source"},
+							{source:24, target:57, value:377475, colorBy:"source"},
+							{source:24, target:58, value:335786, colorBy:"source"},
+							{source:24, target:59, value:185959, colorBy:"source"},
+
+							//Center Support
+							{source:25, target:60, value:560000, colorBy:"source"},
+							{source:25, target:61, value:170000, colorBy:"source"},
+							{source:25, target:62, value:100000, colorBy:"source"},
+
+							//Historical Mandates
+							{source:26, target:63, value:875582, colorBy:"source"},
+							{source:26, target:64, value:864000, colorBy:"source"},
+							{source:26, target:65, value:210000, colorBy:"source"},
+							{source:26, target:66, value:210352, colorBy:"source"},
+							{source:26, target:67, value:150000, colorBy:"source"},
+							{source:26, target:68, value:170000, colorBy:"source"},
+							{source:26, target:69, value:152000, colorBy:"source"},
+							{source:26, target:70, value:54000, colorBy:"source"},
+
+							//Individual Faculty Support
+							{source:27, target:71, value:1399661, colorBy:"source"},
+							{source:27, target:72, value:1136330, colorBy:"source"},
+							{source:27, target:73, value:500000, colorBy:"source"},
+							{source:27, target:74, value:451855, colorBy:"source"},
+
+							//Other Obligations
+							{source:28, target:75, value:489284, colorBy:"source"},
+							{source:28, target:76, value:250000, colorBy:"source"},
+							{source:28, target:77, value:120000, colorBy:"source"},
+
+
+							//Non Faculty Research
+							{source:31, target:78, value:313448, colorBy:"source"},
+							{source:31, target:79, value:250000, colorBy:"source"},
+							{source:31, target:80, value:108679, colorBy:"source"},
+							{source:31, target:81, value:69000, colorBy:"source"}
+
+
+
+
+						],
+						nodes:[
+							//Level One Nodes
+							{id:0,name:"College of Arts & Sciences",shortName:"College of Arts & Sciences",colorKey:"College of Arts & Sciences"},
+							{id:1,name:"School of Engineering",shortName:"School of Engineering",colorKey:"School of Engineering"},
+							{id:2,name:"CHTM",shortName:"CHTM",colorKey:"CHTM"},
+							{id:3,name:"CASAA",shortName:"CASAA",colorKey:"CASAA"},
+							{id:4,name:"EPSCOR",shortName:"EPSCOR",colorKey:"EPSCOR"},
+							{id:5,name:"Use of Reserves",shortName:"Use of Reserves",colorKey:"Use of Reserves"},
+							{id:6,name:"Continuing Education",shortName:"Continuing Education",colorKey:"Continuing Education"},
+							{id:7,name:"Provost Administration",shortName:"Provost Administration",colorKey:"Provost Administration"},
+							{id:8,name:"CMEM",shortName:"CMEM",colorKey:"CMEM"},
+							{id:9,name:"College of Education",shortName:"College of Education",colorKey:"College of Education"},
+							{id:10,name:"VP Student Services",shortName:"VP Student Services",colorKey:"VP Student Services"},
+							{id:11,name:"VP for Research",shortName:"VP for Research",colorKey:"VP for Research"},
+							{id:12,name:"IARS-BBER",shortName:"IARS-BBER",colorKey:"IARS-BBER"},
+							{id:13,name:"School of Law",shortName:"School of Law",colorKey:"School of Law"},
+							{id:14,name:"Anderson Schools of Management",shortName:"Anderson Schools of Management",colorKey:"Anderson Schools of Management"},
+							{id:15,name:"School of Architecture & Planning",shortName:"School of Architecture & Planning",colorKey:"School of Architecture & Planning"},
+							{id:16,name:"VP for Student Life",shortName:"VP for Student Life",colorKey:"VP for Student Life"},
+							{id:17,name:"College of Fine Arts",shortName:"College of Fine Arts",colorKey:"College of Fine Arts"},
+							{id:18,name:"University Libraries",shortName:"University Libraries",colorKey:"University Libraries"},
+							{id:19,name:"VP for Institutional Support Services",shortName:"VP for Institutional Support Services",colorKey:"VP for Institutional Support Services"},
+							{id:20,name:"School of Public Administration",shortName:"School of Public Administration",colorKey:"School of Public Administration"},
+
+							//Level Two Nodes
+							{id:21,name:"Generated F&A",shortName:"Generated F&A"},
+							{id:22,name:"Discretionary",shortName:"Discretionary",colorKey:"Discretionary"},
+							{id:23,name:"Non-Discretionary",shortName:"Non-Discretionary",colorKey:"Non-Discretionary"},
+
+
+							//Level three Nodes
+							{id:24,name:"Core Research Services",shortName:"Core Research Services",colorKey:"Core Research Services"},
+							{id:25,name:"Center Support",shortName:"Center Support",colorKey:"Center Support"},
+							{id:26,name:"Historical Mandate",shortName:"Historical Mandate",colorKey:"Historical Mandate"},
+							{id:27,name:"Individual Faculty Support",shortName:"Individual Faculty Support"},
+							{id:28,name:"Other Obligations",shortName:"Other Obligations",colorKey:"Other Obligations"},
+							{id:29,name:"",shortName:"",colorKey:""},
+
+							{id:30,name:"F&A Return to Units",shortName:"F&A Return to Units",colorKey:"F&A Return to Units"},
+							{id:31,name:"Non Faculty Research",shortName:"Non Faculty Research",colorKey:"Non Faculty Research"},
+
+							//Level four Nodes: FandA Return to Units
+
+
+							{id:32,name:"College of Arts & Science",shortName:"College of Arts & Science",colorKey:"College of Arts & Science"},
+							{id:33,name:"School of Engineering",shortName:"School of Engineering",colorKey:"School of Engineering"},
+							{id:34,name:"CASAA",shortName:"CASAA",colorKey:"CASAA"},
+							{id:35,name:"CHTM",shortName:"CHTM",colorKey:"CHTM"},
+							{id:36,name:"EPSCOR",shortName:"EPSCOR",colorKey:"EPSCOR"},
+							{id:37,name:"Continuing Education",shortName:"Continuing Education",colorKey:"Continuing Education"},
+							{id:38,name:"Provost Administrative Units",shortName:"Provost Administrative Units",colorKey:"Provost Administrative Units"},
+							{id:39,name:"College of Education",shortName:"College of Education",colorKey:"College of Education"},
+							{id:40,name:"CMEM",shortName:"CMEM",colorKey:"CMEM"},
+							{id:41,name:"School of Public Administration",shortName:"School of Public Administration",colorKey:"School of Public Administration"},
+							{id:42,name:"College of Fine Arts",shortName:"College of Fine Arts",colorKey:"College of Fine Arts"},
+							{id:43,name:"Anderson School of Management",shortName:"Anderson School of Management",colorKey:"Anderson School of Management"},
+							{id:44,name:"School of Law",shortName:"School of Law",colorKey:"School of Law"},
+							{id:45,name:"School of Architecture & Planning",shortName:"School of Architecture & Planning",colorKey:"School of Architecture & Planning"},
+							{id:46,name:"IARS-BBER",shortName:"IARS-BBER",colorKey:"IARS-BBER"},
+							{id:47,name:"VP of Student Services",shortName:"VP of Student Services",colorKey:"VP of Student Services"},
+							{id:48,name:"University Libraries",shortName:"University Libraries",colorKey:"University Libraries"},
+							{id:49,name:"VP of Student Affairs",shortName:"VP of Student Affairs",colorKey:"VP of Student Affairs"},
+							{id:50,name:"VP of Student Life",shortName:"VP of Student Life",colorKey:"VP of Student Life"},
+							{id:51,name:"VP of Institutional Support Services",shortName:"VP of Institutional Support Services",colorKey:"VP of Institutional Support Services"},
+
+
+							//Level four Nodes: Core Research Services to Units
+							{id:52,name:"VPR Administration",shortName:"VPR Administration",colorKey:"VPR Administration"},
+							{id:53,name:"Contract & Grant Accounting",shortName:"Contract & Grant Accounting",colorKey:"Contract & Grant Accounting"},
+							{id:54,name:"Research Compliance",shortName:"Research Compliance",colorKey:"Research Compliance"},
+							{id:55,name:"Sponsored Projects",shortName:"Sponsored Projects",colorKey:"Sponsored Projects"},
+							{id:56,name:"Fringe Benefits",shortName:"Fringe Benefits",colorKey:"Fringe Benefits"},
+							{id:57,name:"Legal Office",shortName:"Legal Office",colorKey:"Legal Office"},
+							{id:58,name:"Faculty Research Officers",shortName:"Faculty Research Officers",colorKey:"Faculty Research Officers"},
+							{id:59,name:"Libraries",shortName:"Libraries",colorKey:"Libraries"},
+
+							//Level four Nodes: Center Support to Units
+							{id:60,name:"CARC",shortName:"CARC",colorKey:"CARC"},
+							{id:61,name:"CMEM",shortName:"CMEM",colorKey:"CMEM"},
+							{id:62,name:"SHRI",shortName:"SHRI",colorKey:"SHRI"},
+
+							//Level four Nodes: Historical Mandates
+							{id:63,name:"Research Park Rents",shortName:"Research Park Rents",colorKey:"Research Park Rents"},
+							{id:64,name:"STC.UNM",shortName:"STC.UNM",colorKey:"STC.UNM"},
+							{id:65,name:"IARS-BBER",shortName:"IARS-BBER",colorKey:"IARS-BBER"},
+							{id:66,name:"Goverment Relations",shortName:"Goverment Relations",colorKey:"Goverment Relations"},
+							{id:67,name:"RAC",shortName:"RAC",colorKey:"RAC"},
+							{id:68,name:"Science Fair",shortName:"Science Fair",colorKey:"Science Fair"},
+							{id:69,name:"Sevilleta",shortName:"Sevilleta",colorKey:"Sevilleta"},
+							{id:70,name:"Office of Graduate Studies",shortName:"Office of Graduate Studies",colorKey:"Office of Graduate Studies"},
+
+							//Level four Nodes: Individual Faculty Support
+							{id:71,name:"Faculty Start Up",shortName:"Faculty Start Up",colorKey:"Faculty Start Up"},
+							{id:72,name:"Research Development",shortName:"Research Development",colorKey:"Research Development"},
+							{id:73,name:"Equipment Fund",shortName:"Equipment Fund",colorKey:"Equipment Fund"},
+							{id:74,name:"Faculty Retention",shortName:"Faculty Retention",colorKey:"Faculty Retention"},
+
+							//Level Four Nodes: Other Obligations
+							{id:75,name:"CHTM Debt Service",shortName:"CHTM Debt Service",colorKey:"CHTM Debt Service"},
+							{id:76,name:"Annual Leave",shortName:"Annual Leave",colorKey:"Annual Leave"},
+							{id:77,name:"Bad Debt",shortName:"Bad Debt",colorKey:"Bad Debt"},
+
+							//Level Four Nodes: Non Faculty Research
+							{id:78,name:"Cost Share",shortName:"Cost Share",colorKey:"Cost Share"},
+							{id:79,name:"Banner Tax",shortName:"Banner Tax",colorKey:"Banner Tax"},
+							{id:80,name:"Safety & Risk Services",shortName:"Safety & Risk Services",colorKey:"Safety & Risk Services"},
+							{id:81,name:"Office of Graduate Studies",shortName:"Office of Graduate Studies",colorKey:"Office of Graduate Studies"}
+
+
+
+						]
+				};
+
+		var chartLayoutData = {
+			chartLayout:{
+				title:"UNM Research Generated F&A Funds and Distribution Flow"
+			},
+			// chartData:{data:data}
+		}
+		sankeyChart.data({data:data})
+		var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+
+		chartLayout
+			.select('.sankey-chart')
+			.width($(window).width())
+			//.height($(window).height())
+			.height(1800)
+			.data({data:chartLayoutData})
+			.chart(sankeyChart);
+
+
+		chartLayout.update();
+
+		// $(window).resize(function(){
+		// 	chartLayout.height($(window).height()).width($(window).width()).update();
+		// });
+
+	})
+</script>
+<style>
+	.ad-general-tooltip{
+		/*display:none !important;*/
+	}
+</style>
+<body style='margin:0px;'>
+<div class = 'sankey-chart'></div>
+
+</body>
+</html>

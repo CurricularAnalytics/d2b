@@ -139,3 +139,47 @@
 	fill:#555;
 	text-anchor:start;
 }
+
+
+
+
+//NEW STARTS HERE
+
+.ad-axis-chart{
+	.ad-axes{
+		.ad-label{
+			text{
+				text-anchor:middle;
+				font-size:15px;
+				font-weight:bold;
+			}
+		}
+	}
+	.ad-axis-types{
+		.ad-axis-types-background{
+			.ad-line{
+				path{
+					fill:none;
+					stroke-width:2px;
+					&:hover{
+						stroke-width:4px;
+					}
+				}
+			}
+			.ad-area{
+				path{
+					fill-opacity:0.4;
+					&:hover{
+						fill-opacity:0.6;
+					}
+				}
+			}
+		}
+		.ad-axis-types-foreground{
+			circle{
+				stroke-width:2px;
+				stroke:white;
+			}
+		}
+	}
+}

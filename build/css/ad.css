@@ -207,6 +207,23 @@ html, body, .ad-container {
   fill: #555;
   text-anchor: start; }
 
+.ad-axis-chart .ad-axes .ad-label text {
+  text-anchor: middle;
+  font-size: 15px;
+  font-weight: bold; }
+.ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-line path {
+  fill: none;
+  stroke-width: 2px; }
+  .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-line path:hover {
+    stroke-width: 4px; }
+.ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-area path {
+  fill-opacity: 0.4; }
+  .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-area path:hover {
+    fill-opacity: 0.6; }
+.ad-axis-chart .ad-axis-types .ad-axis-types-foreground circle {
+  stroke-width: 2px;
+  stroke: white; }
+
 .ad-sankey-chart .ad-sankey-labels {
   font-size: 17pt; }
   .ad-sankey-chart .ad-sankey-labels .ad-sankey-label-source text {
@@ -295,22 +312,23 @@ html, body, .ad-container {
       .ad-multi-chart-buttons-wrapper ul.ad-buttons li:last-child {
         border-right: 0px; }
 
-.ad-sunburst-chart .ad-sunburst .ad-sunburst-arcs path {
+.ad-sunburst .ad-sunburst-arcs path {
   fill-opacity: 0.9;
   stroke: white;
   stroke-width: 1;
   -webkit-transition: fill-opacity 0.25s;
   transition: fill-opacity 0.25s; }
-  .ad-sunburst-chart .ad-sunburst .ad-sunburst-arcs path:hover {
+  .ad-sunburst .ad-sunburst-arcs path:hover {
     fill-opacity: 1;
     stroke: white; }
-.ad-sunburst-chart .ad-sunburst-tooltip text {
+
+.ad-sunburst-tooltip text {
   pointer-events: none;
   text-anchor: middle; }
-  .ad-sunburst-chart .ad-sunburst-tooltip text tspan:first-child {
+  .ad-sunburst-tooltip text tspan:first-child {
     font-size: 12pt;
     font-weight: bold; }
-  .ad-sunburst-chart .ad-sunburst-tooltip text tspan:last-child {
+  .ad-sunburst-tooltip text tspan:last-child {
     font-size: 16pt; }
 
 .ad-bubble-chart-buttons-wrapper {
