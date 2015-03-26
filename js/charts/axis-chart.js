@@ -179,7 +179,7 @@ AD.CHARTS.axisChart = function(){
 
 
 		//use custom scales to fix an inconsistancy with the rotated/horizontal scale and sync ordinal scales with other scale types
-		$$.x.customScale = function(value){
+		$$.x.customScale = function(value, invert){
 			var position = 0;
 			if($$.rotate)
 				position = $$.innerWidth - $$.x.scale(value);
@@ -189,15 +189,21 @@ AD.CHARTS.axisChart = function(){
 			if($$.x.type == 'ordinal')
 				position += $$.x.scale.rangeBand()/2;
 
+			if(invert)
+				position = $$.innerWidth - position;
+
 			return position;
 		};
-		$$.y.customScale = function(value){
+		$$.y.customScale = function(value, invert){
 			var position = 0;
 
 			position = $$.y.scale(value);
 
 			if($$.y.type == 'ordinal')
 				position += $$.y.scale.rangeBand()/2;
+
+			if(invert)
+				position = $$.innerHeight - position;
 
 			return position;
 		};
@@ -348,20 +354,20 @@ AD.CHARTS.axisChart = function(){
 
 		if($$.x.type.split(',')[0] == 'ordinal'){
 			$$.x.scale.rangeBands(range.x);
-			$$.x.rangeBand = $$.x.scale.rangeBand();
+			$$.x.rangeBand = $$.x.scale.rangeBand()*0.75;
 		}else{
 			$$.x.scale.range(range.x);
-			$$.x.rangeBand = $$.innerWidth/15;
+			$$.x.rangeBand = $$.innerWidth/10;
 		}
 
 
 
 		if($$.y.type.split(',')[0] == 'ordinal'){
 			$$.y.scale.rangeBands(range.y);
-			$$.y.rangeBand = $$.y.scale.rangeBand();
+			$$.y.rangeBand = $$.y.scale.rangeBand()*0.75;
 		}else{
 			$$.y.scale.range(range.y);
-			$$.y.rangeBand = $$.innerHeight/15;
+			$$.y.rangeBand = $$.innerHeight/10;
 		}
 
 		//set x/y tick size

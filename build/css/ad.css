@@ -228,6 +228,10 @@ html, body, .ad-container {
   fill-opacity: 0.4; }
   .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-area path:hover {
     fill-opacity: 0.6; }
+.ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-bar rect {
+  fill-opacity: 0.7; }
+  .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-bar rect:hover {
+    fill-opacity: 0.9; }
 .ad-axis-chart .ad-axis-types .ad-axis-types-foreground circle {
   stroke-width: 2px;
   stroke: white; }

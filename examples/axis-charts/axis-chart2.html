@@ -75,6 +75,43 @@
 						]
 					},
 					{
+						type:'bar',
+						graphs:[
+							{
+								label: 'Bar 1',
+								values:[
+									// {x:'1', y:50},
+									{x:'2', y:20},
+									{x:'3', y:30}
+								]
+							},
+							{
+								label: 'Bar 2',
+								values:[
+									{x:'1', y:30},
+									{x:'2', y:10},
+									{x:'3', y:4}
+								]
+							},
+							{
+								label: 'Bar 3',
+								values:[
+									{x:'1', y:10},
+									{x:'2', y:25},
+									{x:'3', y:35}
+								]
+							},
+							// {
+							// 	label: 'Bar 4',
+							// 	values:[
+							// 		{x:'1', y:6},
+							// 		{x:'2', y:100},
+							// 		{x:'3', y:45}
+							// 	]
+							// }
+						]
+					},
+					{
 						type:'line',
 						graphs:[
 							{
@@ -127,9 +164,102 @@
 				.update();
 
 
-		// setTimeout(function(){
-		// 	axisChart.x({orientation:'top'}).legendOrientation('top').update();
-		// },2000);
+		setTimeout(function(){
+			// axisChart.x({orientation:'top'}).legendOrientation('top').update();
+			axisChart.x({orientation:'left'}).y({orientation:'top'}).rotate(true).legendOrientation('right').update();
+			axisChart.data({data:{
+				labels:{
+					x:'Template x label',
+					y:'Template y label'
+				},
+				types:[
+					{
+						type:'area',
+						graphs:[
+							{
+								label: 'Area 1',
+								interpolate:'cardinal',
+								values:[
+									{x: '1', y: 150, y0:50},
+									{x: '2', y: 200, y0:100},
+									{x: '3', y: 50, y0:0},
+								]
+							},
+							{
+								label: 'Area 2',
+								interpolate:'cardinal',
+								values:[
+									{x: '1', y: 50, y0:0},
+									{x: '2', y: 100, y0:0},
+									{x: '3', y: 00, y0:0},
+								]
+							}
+						]
+					},
+					{
+						type:'bar',
+						graphs:[
+							{
+								label: 'Bar 1',
+								values:[
+									{x:'1', y:50},
+									{x:'2', y:20},
+									// {x:'3', y:30}
+								]
+							},
+							{
+								label: 'Bar 2',
+								values:[
+									{x:'1', y:30},
+									{x:'2', y:10},
+									{x:'3', y:4}
+								]
+							},
+							{
+								label: 'Bar 3',
+								values:[
+									{x:'1', y:10},
+									{x:'2', y:25},
+									{x:'3', y:35}
+								]
+							},
+							{
+								label: 'Bar 4',
+								values:[
+									{x:'1', y:6},
+									{x:'2', y:100},
+									{x:'3', y:45}
+								]
+							}
+						]
+					},
+					{
+						type:'line',
+						graphs:[
+							{
+								label: 'Line 1',
+								interpolate:'cardinal',
+								values:[
+									{x: '1', y: 200},
+									{x: '2', y: 250},
+									{x: '3', y: 100},
+								]
+							},
+							{
+								label: 'Line 2',
+								interpolate:'cardinal',
+								values:[
+									{x: '1', y: 100},
+									{x: '2', y: 150},
+									{x: '3', y: 00},
+								]
+							}
+						]
+					}
+				]
+			}}).update();
+
+		},2000);
 
 
 		$(window).resize(function(){

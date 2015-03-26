@@ -25,8 +25,6 @@ AD.UTILS.AXISCHART.TYPES.template = function(){
 	//properties that will be set by the axis-chart main code
 	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -44,7 +42,6 @@ AD.UTILS.AXISCHART.TYPES.template = function(){
 
 	//chart update
 	chart.update = function(callback){
-
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
 			//code for the background visualization goes here
@@ -54,7 +51,7 @@ AD.UTILS.AXISCHART.TYPES.template = function(){
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
 			//code for the foreground visualization goes here
-			//this will iterate through all of the foreground graph containers of this type 
+			//this will iterate through all of the foreground graph containers of this type
 		});
 
 		d3.timer.flush();

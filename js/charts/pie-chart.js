@@ -48,10 +48,10 @@ AD.CHARTS.pieChart = function(){
 
 	var arcTween = function(transition, arc) {
 		transition.attrTween("d",function(d){
-		  var i = d3.interpolate(this._current, d);
-		  // this._current = d;
+			_self = this;
+		  var i = d3.interpolate(_self._current, d);
 		  return function(t) {
-			  this._current = i(t);
+			  _self._current = i(t);
 		    return arc(i(t));
 		  };
 		})

@@ -19,6 +19,8 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	//event object
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 
+  $$.groupScale = d3.scale.ordinal();
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -44,13 +46,75 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	//chart update
 	chart.update = function(callback){
 
+    var barLabels = $$.currentChartData.map(function(d){return d.label;});
+    $$.groupScale
+      .domain(barLabels)
+      .rangeBands([0, $$.x.rangeBand]);
+    var stackedYVals = {'1':0,'2':0,'3':0};
+
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
+
+      var bar = graph.selectAll('rect').data(graphData.values, function(d,i){
+        return d.x;
+      });
+
+      var newBar = bar.enter()
+        .append('rect')
+        .style('fill', $$.color(graphData.label));
+
+
+      if($$.controlsData.stackBars.enabled){
+        newBar
+            .attr('y',$$.y.customScale(0))
+            .attr('height',0);
+
+        bar
+          .transition()
+            .duration($$.animationDuration)
+            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2})
+            .attr('y',function(d){
+              if(!stackedYVals[d.x])
+                stackedYVals[d.x] = 0;
+
+              stackedYVals[d.x] += $$.y.customScale(d.y, true);
+              return $$.y.customScale(0) - stackedYVals[d.x];
+            })
+            .attr('width',function(d){return $$.x.rangeBand;})
+            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+
+        bar.exit()
+          .transition()
+            .duration($$.animationDuration)
+            .attr('y', $$.y.customScale(0))
+            .attr('height',0);
+      }else{
+        newBar
+            .attr('y',$$.y.customScale(0))
+            .attr('height',0);
+
+        bar
+          .transition()
+            .duration($$.animationDuration)
+            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+1;})
+            .attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
+            .attr('width',function(d){return $$.groupScale.rangeBand()-2;})
+            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+
+        bar.exit()
+          .transition()
+            .duration($$.animationDuration)
+            .attr('y', $$.y.customScale(0))
+            .attr('height',0);
+      }
+
+
+
 		});
 
-		$$.foreground.each(function(graphData){
-			var graph = d3.select(this);
-		});
+		// $$.foreground.each(function(graphData){
+		// 	var graph = d3.select(this);
+		// });
 
 		d3.timer.flush();
 

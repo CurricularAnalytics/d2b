@@ -3329,7 +3329,7 @@ AD.CHARTS.axisChart = function(){
 
 
 		//use custom scales to fix an inconsistancy with the rotated/horizontal scale and sync ordinal scales with other scale types
-		$$.x.customScale = function(value){
+		$$.x.customScale = function(value, invert){
 			var position = 0;
 			if($$.rotate)
 				position = $$.innerWidth - $$.x.scale(value);
@@ -3339,15 +3339,21 @@ AD.CHARTS.axisChart = function(){
 			if($$.x.type == 'ordinal')
 				position += $$.x.scale.rangeBand()/2;
 
+			if(invert)
+				position = $$.innerWidth - position;
+
 			return position;
 		};
-		$$.y.customScale = function(value){
+		$$.y.customScale = function(value, invert){
 			var position = 0;
 
 			position = $$.y.scale(value);
 
 			if($$.y.type == 'ordinal')
 				position += $$.y.scale.rangeBand()/2;
+
+			if(invert)
+				position = $$.innerHeight - position;
 
 			return position;
 		};
@@ -3498,20 +3504,20 @@ AD.CHARTS.axisChart = function(){
 
 		if($$.x.type.split(',')[0] == 'ordinal'){
 			$$.x.scale.rangeBands(range.x);
-			$$.x.rangeBand = $$.x.scale.rangeBand();
+			$$.x.rangeBand = $$.x.scale.rangeBand()*0.75;
 		}else{
 			$$.x.scale.range(range.x);
-			$$.x.rangeBand = $$.innerWidth/15;
+			$$.x.rangeBand = $$.innerWidth/10;
 		}
 
 
 
 		if($$.y.type.split(',')[0] == 'ordinal'){
 			$$.y.scale.rangeBands(range.y);
-			$$.y.rangeBand = $$.y.scale.rangeBand();
+			$$.y.rangeBand = $$.y.scale.rangeBand()*0.75;
 		}else{
 			$$.y.scale.range(range.y);
-			$$.y.rangeBand = $$.innerHeight/15;
+			$$.y.rangeBand = $$.innerHeight/10;
 		}
 
 		//set x/y tick size
@@ -4439,10 +4445,10 @@ AD.CHARTS.pieChart = function(){
 
 	var arcTween = function(transition, arc) {
 		transition.attrTween("d",function(d){
-		  var i = d3.interpolate(this._current, d);
-		  // this._current = d;
+			_self = this;
+		  var i = d3.interpolate(_self._current, d);
 		  return function(t) {
-			  this._current = i(t);
+			  _self._current = i(t);
 		    return arc(i(t));
 		  };
 		})
@@ -6506,6 +6512,8 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	//event object
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 
+  $$.groupScale = d3.scale.ordinal();
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -6531,13 +6539,75 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	//chart update
 	chart.update = function(callback){
 
+    var barLabels = $$.currentChartData.map(function(d){return d.label;});
+    $$.groupScale
+      .domain(barLabels)
+      .rangeBands([0, $$.x.rangeBand]);
+    var stackedYVals = {'1':0,'2':0,'3':0};
+
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
+
+      var bar = graph.selectAll('rect').data(graphData.values, function(d,i){
+        return d.x;
+      });
+
+      var newBar = bar.enter()
+        .append('rect')
+        .style('fill', $$.color(graphData.label));
+
+
+      if($$.controlsData.stackBars.enabled){
+        newBar
+            .attr('y',$$.y.customScale(0))
+            .attr('height',0);
+
+        bar
+          .transition()
+            .duration($$.animationDuration)
+            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2})
+            .attr('y',function(d){
+              if(!stackedYVals[d.x])
+                stackedYVals[d.x] = 0;
+
+              stackedYVals[d.x] += $$.y.customScale(d.y, true);
+              return $$.y.customScale(0) - stackedYVals[d.x];
+            })
+            .attr('width',function(d){return $$.x.rangeBand;})
+            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+
+        bar.exit()
+          .transition()
+            .duration($$.animationDuration)
+            .attr('y', $$.y.customScale(0))
+            .attr('height',0);
+      }else{
+        newBar
+            .attr('y',$$.y.customScale(0))
+            .attr('height',0);
+
+        bar
+          .transition()
+            .duration($$.animationDuration)
+            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+1;})
+            .attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
+            .attr('width',function(d){return $$.groupScale.rangeBand()-2;})
+            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+
+        bar.exit()
+          .transition()
+            .duration($$.animationDuration)
+            .attr('y', $$.y.customScale(0))
+            .attr('height',0);
+      }
+
+
+
 		});
 
-		$$.foreground.each(function(graphData){
-			var graph = d3.select(this);
-		});
+		// $$.foreground.each(function(graphData){
+		// 	var graph = d3.select(this);
+		// });
 
 		d3.timer.flush();
 

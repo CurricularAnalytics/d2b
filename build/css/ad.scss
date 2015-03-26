@@ -311,6 +311,14 @@ html, body, .ad-container {
 					}
 				}
 			}
+			.ad-bar{
+				rect{
+					fill-opacity:0.7;
+					&:hover{
+						fill-opacity:0.9;
+					}
+				}
+			}
 		}
 		.ad-axis-types-foreground{
 			circle{
