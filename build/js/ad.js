@@ -34,7 +34,7 @@ AD.createNameSpace("AD.UTILS");
 /*AD UTILITIES*/
 AD.createNameSpace("AD.UTILS.CHARTPAGE");
 
-AD.createNameSpace("AD.UTILS.AXISCHART");
+AD.createNameSpace("AD.UTILS.AXISCHART.TYPES");
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -3220,6 +3220,23 @@ AD.CHARTS.axisChart = function(){
 				}
 			};
 
+	//account for any tools defined by the various axis chart types
+	for(type in AD.UTILS.AXISCHART.TYPES){
+		if(AD.UTILS.AXISCHART.TYPES[type].tools){
+			var tools = AD.UTILS.AXISCHART.TYPES[type].tools();
+			if(tools){
+
+				//controlsData tools
+				if(tools.controlsData){
+					for(control in tools.controlsData){
+						$$.controlsData[control] = tools.controlsData[control];
+					}
+				}
+
+			}
+		}
+	}
+
 	$$.xAlias = {
 		scale:d3.scale.linear(),
 		axis:d3.svg.axis(),
@@ -3243,6 +3260,8 @@ AD.CHARTS.axisChart = function(){
 	$$.y = $$.yAlias;
 
 	$$.updateGraphs = function(){
+
+		//enter update exit a foreground svg:g element for each axis-chart-type
 		$$.selection.types.foreground.type = $$.selection.types.foreground.selectAll('g.ad-axis-type-foreground').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.foreground.type.enter()
 			.append('g')
@@ -3253,12 +3272,14 @@ AD.CHARTS.axisChart = function(){
 				.style('opacity',0)
 				.remove();
 
+		//enter update exit a sub-foreground element for the graphs associated with each type
 		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.axis-chart-foreground-graph').data(function(d){return d.graphs;},function(d,i){
 				return d.label;
 			});
 		$$.selection.types.foreground.type.graph.enter()
 			.append('g')
 				.attr('class', 'axis-chart-foreground-graph');
+		//save the foreground in data for use with the legend events
 		$$.selection.types.foreground.type.graph
 				.each(function(d){d.foreground = d3.select(this);});
 		$$.selection.types.foreground.type.graph.exit()
@@ -3267,14 +3288,13 @@ AD.CHARTS.axisChart = function(){
 				.style('opacity',0)
 				.remove();
 
+		//enter update exit a background svg:g element for each axis-chart-type
 		$$.selection.types.background.type = $$.selection.types.background.selectAll('g.ad-axis-type-background').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.background.type.enter()
 			.append('g')
 				.attr('class', function(d){return 'ad-axis-type-background ad-'+d.type;})
-				.each(function(background){
-					// this.foreground = $$.selection.types.foreground.type.filter(function(foreground){
-					// 	return foreground.type == background.type;
-					// });
+				.each(function(d){
+					this.adType = new AD.UTILS.AXISCHART.TYPES[d.type];
 				});
 		$$.selection.types.background.type.exit()
 			.transition()
@@ -3282,24 +3302,15 @@ AD.CHARTS.axisChart = function(){
 				.style('opacity',0)
 				.remove();
 
-
+		//enter update exit a sub-foreground element for the graphs associated with each type
 		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.axis-chart-background-graph').data(function(d){return d.graphs;},function(d,i){
 				return d.label;
 			});
 		$$.selection.types.background.type.graph.enter()
 			.append('g')
-				.attr('class', 'axis-chart-background-graph')
-				.each(function(d){
-					var type = '';
-					d3.select(this.parentNode).each(function(d){
-						type = d.type;
-					});
+				.attr('class', 'axis-chart-background-graph');
 
-					this.adType = new AD.UTILS.AXISCHART[type];
-					this.adType
-						.foreground(d.foreground)
-						.background(d3.select(this));
-				});
+		//save the background in data for use with the legend events
 		$$.selection.types.background.type.graph
 				.each(function(d){
 						d.background = d3.select(this);
@@ -3310,35 +3321,53 @@ AD.CHARTS.axisChart = function(){
 				.style('opacity',0)
 				.remove();
 
+		$$.selection.types.foreground.type.each(function(d){
+			var type = d3.select(this);
+			var graphs = type.selectAll('.axis-chart-foreground-graph');
+			d.foregroundGraphs = graphs;
+		});
 
 
-		//use custom scales to fix an inconsistancy with the rotated/horizontal scale
+		//use custom scales to fix an inconsistancy with the rotated/horizontal scale and sync ordinal scales with other scale types
 		$$.x.customScale = function(value){
+			var position = 0;
 			if($$.rotate)
-				return $$.innerWidth - $$.x.scale(value);
-			return $$.x.scale(value);
+				position = $$.innerWidth - $$.x.scale(value);
+			else
+				position = $$.x.scale(value);
+
+			if($$.x.type == 'ordinal')
+				position += $$.x.scale.rangeBand()/2;
+
+			return position;
 		};
 		$$.y.customScale = function(value){
-			return $$.y.scale(value);
+			var position = 0;
+
+			position = $$.y.scale(value);
+
+			if($$.y.type == 'ordinal')
+				position += $$.y.scale.rangeBand()/2;
+
+			return position;
 		};
 
-		$$.selection.types.background.type.graph.each(function(background){
+		$$.selection.types.background.type.each(function(d){
+			var type = d3.select(this);
+			var graphs = type.selectAll('.axis-chart-background-graph');
+			d.backgroundGraphs = graphs;
+
 			this.adType
 				.x($$.xAlias)
 				.y($$.yAlias)
 				.color($$.color)
+				.foreground(d.foregroundGraphs)
+				.background(d.backgroundGraphs)
 				.animationDuration($$.animationDuration)
-				.orientationMap($$.orientationMap)
-				.data(background.graphs)
+				// .orientationMap($$.orientationMap)
+				.data(d.graphs)
+				.controls($$.controlsData)
 				.update();
-
-			// this.adType.foreground().graph.each(function(d){
-			// 	d.foreground = d3.select(this);
-			// });
-			// this.adType.background().graph.each(function(d){
-			// 	d.background = d3.select(this);
-			// });
-
 		});
 
 		$$.selection.types.background.type.exit()
@@ -3362,7 +3391,7 @@ AD.CHARTS.axisChart = function(){
 
 	$$.updateAxis = function(){
 
-		var labelOffset = 15;
+		var labelOffset = 10;
 		var labelTransition = {};
 
 		//setup axis labels if specified and visible
@@ -3399,6 +3428,15 @@ AD.CHARTS.axisChart = function(){
 					.duration($$.animationDuration);
 		});
 
+
+		//create axis transitions;
+		var gridTransition = {};
+		$$.axisModifier(function(axis){
+			gridTransition[axis] = $$.selection.grid[axis]
+				.transition()
+					.duration($$.animationDuration);
+		});
+
 		//find max tick size on the vertical axis for proper spacing
 		var maxTickLength = 0;
 		$$.selection.axes.y.text = $$.selection.axes.y.selectAll('.tick text').each(function(){
@@ -3407,6 +3445,8 @@ AD.CHARTS.axisChart = function(){
 		});
 
 		$$.selection.axes.x.text = $$.selection.axes.x.selectAll('text');
+
+		var labelPadding = 10;
 
 		//modify x/y axis positioning and visiblity
 		$$.axisModifier(
@@ -3420,16 +3460,16 @@ AD.CHARTS.axisChart = function(){
 				}
 			},
 			{
-				x:{offset:15, dimension:'innerHeight'},
-				y:{offset:maxTickLength, dimension:'innerWidth'}
+				x:{offset:10 + labelPadding, dimension:'innerHeight'},
+				y:{offset:maxTickLength + labelPadding, dimension:'innerWidth'}
 			}
 		);
 
 		//position x/y labels
-		var labelOffsetPosition = ($$.y.orientation == 'left')? $$.forcedMargin.left - 3*labelOffset - maxTickLength : maxTickLength + 1.5*labelOffset;
+		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLength-labelOffset-labelPadding-5 : maxTickLength+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
 		labelTransition.y.attr('transform','translate('+ labelOffsetPosition +','+ $$.innerHeight/2 +')');
 
-		labelOffsetPosition = ($$.x.orientation == 'top')? $$.forcedMargin.top - 3.5*labelOffset : 2.2 * labelOffset;
+		labelOffsetPosition = ($$.x.orientation == 'top')? -labelOffset*1.5-labelPadding:+labelOffset*1+labelPadding+labelTransition.x.node().getBBox().height;
 		labelTransition.x.attr('transform','translate('+	$$.innerWidth/2 +','+ labelOffsetPosition+')');
 
 		//set x/y scale range
@@ -3461,7 +3501,7 @@ AD.CHARTS.axisChart = function(){
 			$$.x.rangeBand = $$.x.scale.rangeBand();
 		}else{
 			$$.x.scale.range(range.x);
-			$$.x.rangeBand = 0;
+			$$.x.rangeBand = $$.innerWidth/15;
 		}
 
 
@@ -3471,12 +3511,12 @@ AD.CHARTS.axisChart = function(){
 			$$.y.rangeBand = $$.y.scale.rangeBand();
 		}else{
 			$$.y.scale.range(range.y);
-			$$.y.rangeBand = 0;
+			$$.y.rangeBand = $$.innerHeight/15;
 		}
 
 		//set x/y tick size
-		$$.x.axis.tickSize(-$$.innerHeight);
-		$$.y.axis.tickSize(-$$.innerWidth);
+		$$.x.axis.tickSize(5);
+		$$.y.axis.tickSize(5);
 
 		//transition and position x axis
 		axisTransition.x
@@ -3514,7 +3554,36 @@ AD.CHARTS.axisChart = function(){
 			axisTransition.y
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
+
+
+		//set x/y tick size for grid
+		$$.x.axis.tickSize(-$$.innerHeight);
+		$$.y.axis.tickSize(-$$.innerWidth);
+
+		//transition and position x/y grid lines
+		gridTransition.x
+			.call($$.x.axis);
+		if($$.x.orientation == 'top'){
+			gridTransition.x
+					.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+		}else{
+			gridTransition.x
+					.attr('transform','translate('+$$.forcedMargin.left+','+($$.innerHeight + $$.forcedMargin.top)+')');
+		}
+		gridTransition.y
+			.call($$.y.axis);
+
+		if($$.y.orientation == 'left'){
+			gridTransition.y
+					.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+		}else{
+			gridTransition.y
+					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
+		}
+
+
 	};
+
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -3633,6 +3702,18 @@ AD.CHARTS.axisChart = function(){
 			.append('text')
 		    .attr('transform', 'rotate(-90)');
 
+		$$.selection.grid = $$.selection.main
+			.append('g')
+				.attr('class','ad-grid');
+
+		$$.selection.grid.x = $$.selection.grid
+			.append('g')
+				.attr('class','ad-grid ad-x');
+
+		$$.selection.grid.y = $$.selection.grid
+			.append('g')
+				.attr('class','ad-grid ad-y');
+
 		$$.selection.types = $$.selection.main
 			.append('g')
 				.attr('class','ad-axis-types');
@@ -3695,6 +3776,11 @@ AD.CHARTS.axisChart = function(){
 			$$.legendData.data.items = [].concat.apply([], $$.currentChartData.types.map(function(d){return d.graphs.map(function(d){return d;})}));;
 		}
 		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
+
+		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
+			// || ($$.legend.computedWidth() && ($$.legendOrientation == 'top'||$$.legendOrientation == 'bottom'))){
+			$$.forcedMargin[$$.legendOrientation] += 10;
+		}
 
 		$$.selection.main
 			.transition()
@@ -6399,11 +6485,88 @@ AD.UTILS.AXISCHART.scatter = function(){
   
 };
 
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*axis-chart-bar*/
+AD.UTILS.AXISCHART.TYPES.bar = function(){
+
+	//private store
+	var $$ = {};
+
+	//default animation duration
+	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//formatting y values
+	$$.yFormat = function(value){return value};
+	//event object
+	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+
+	chart.data = function(chartData){
+		if(!arguments.length) return $$.currentChartData;
+		$$.currentChartData = chartData;
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+
+		$$.background.each(function(graphData){
+			var graph = d3.select(this);
+		});
+
+		$$.foreground.each(function(graphData){
+			var graph = d3.select(this);
+		});
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+AD.UTILS.AXISCHART.TYPES.bar.tools = function(){
+  return {
+    controlsData:{
+      stackBars: {
+        label: "Stack Bars",
+        type: "checkbox",
+        visible: false,
+        enabled: false
+      }
+    }
+  }
+}
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-line*/
-AD.UTILS.AXISCHART.line = function(){
+AD.UTILS.AXISCHART.TYPES.line = function(){
 
 	//private store
 	var $$ = {};
@@ -6422,23 +6585,8 @@ AD.UTILS.AXISCHART.line = function(){
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	$$.line = d3.svg.line()
-    .x(function(d) { return $$.getPointCenter(d).x; })
-    .y(function(d) { return $$.getPointCenter(d).y; });
-
-	$$.getPointCenter = function(point){
-		var obj = {};
-		obj.x = $$.x.customScale(point.x) + $$.x.rangeBand/2;
-		obj.y = $$.y.customScale(point.y) + $$.y.rangeBand/2;
-		return obj;
-	};
-
-	$$.getGraphColor = function(d){
-		var color = '';
-		d3.select(this.parentNode).each(function(d){
-			color = $$.color(d.label);
-		});
-		return color;
-	};
+    .x(function(d) { return $$.x.customScale(d.x); })
+    .y(function(d) { return $$.y.customScale(d.y); });
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -6450,11 +6598,11 @@ AD.UTILS.AXISCHART.line = function(){
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.orientationMap = 			AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'orientationMap');
 	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
@@ -6498,8 +6646,8 @@ AD.UTILS.AXISCHART.line = function(){
 					.style('fill', $$.color(graphData.label))
 				.transition()
 					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.getPointCenter(d).x;})
-					.attr('cy',function(d){return $$.getPointCenter(d).y;});
+					.attr('cx',function(d){return $$.x.customScale(d.x);})
+					.attr('cy',function(d){return $$.y.customScale(d.y);});
 			circle.exit()
 				.transition()
 					.duration($$.animationDuration)
@@ -6522,26 +6670,11 @@ AD.UTILS.AXISCHART.line = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-area*/
-AD.UTILS.AXISCHART.area = function(){
+AD.UTILS.AXISCHART.TYPES.area = function(){
 
 	//private store
 	var $$ = {};
 
-	//user set width
-	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
-	//user set height
-	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
-	// //inner/outer height/width and margin are modified as sections of the chart are drawn
-	// $$.innerHeight = $$.height;
-	// $$.innerWidth = $$.width;
-	// $$.outerHeight = $$.height;
-	// $$.outerWidth = $$.width;
-	// $$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
-	//force chart regeneration on next update()
-	$$.generateRequired = true;
-	// //d3.selection for chart container
-	// $$.selection = d3.select('body');
-	// $$.foreground =
 	//default animation duration
 	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
@@ -6556,26 +6689,9 @@ AD.UTILS.AXISCHART.area = function(){
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	$$.area = d3.svg.area()
-    .x(function(d) { return $$.getPointCenter(d).x; })
-    .y1(function(d) { return $$.getPointCenter(d).y; })
-    .y0(function(d) { return $$.getPointCenter(d).y0; });
-
-	$$.getPointCenter = function(point){
-		var obj = {};
-		obj.x = $$.x.customScale(point.x) + $$.x.rangeBand/2;
-		obj.y = $$.y.customScale(point.y) + $$.y.rangeBand/2;
-		obj.y0 = $$.y.customScale(point.y0) + $$.y.rangeBand/2;
-		return obj;
-	};
-
-	$$.getGraphColor = function(d){
-		var color = '';
-		d3.select(this.parentNode).each(function(d){
-			color = $$.color(d.label);
-		});
-		return color;
-	};
-
+    .x(function(d) { return $$.x.customScale(d.x); })
+    .y1(function(d) { return $$.y.customScale(d.y); })
+    .y0(function(d) { return $$.y.customScale(d.y0); });
 
 	$$.updateGraph = function(d){
 
@@ -6586,20 +6702,18 @@ AD.UTILS.AXISCHART.area = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	//chart setters
-	// chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground', function(){ $$.generateRequired = true; });
-	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background', function(){ $$.generateRequired = true; });
+	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
 	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.orientationMap = 			AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'orientationMap');
 	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -6610,23 +6724,8 @@ AD.UTILS.AXISCHART.area = function(){
 		return chart;
 	};
 
-	//chart generate
-	chart.generate = function(callback) {
-		$$.generateRequired = false;
-
-		chart
-			.update(callback)
-
-		return chart;
-	};
-
 	//chart update
 	chart.update = function(callback){
-
-		//if generate required call the generate method
-		if($$.generateRequired){
-			return chart.generate(callback);
-		}
 
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
@@ -6662,8 +6761,8 @@ AD.UTILS.AXISCHART.area = function(){
 					.style('fill', $$.color(graphData.label))
 				.transition()
 					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.getPointCenter(d).x;})
-					.attr('cy',function(d){return $$.getPointCenter(d).y;});
+					.attr('cx',function(d){return $$.x.customScale(d.x);})
+					.attr('cy',function(d){return $$.y.customScale(d.y);});
 			circle.exit()
 				.transition()
 					.duration($$.animationDuration)

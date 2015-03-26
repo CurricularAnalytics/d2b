@@ -34,4 +34,4 @@ AD.createNameSpace("AD.UTILS");
 /*AD UTILITIES*/
 AD.createNameSpace("AD.UTILS.CHARTPAGE");
 
-AD.createNameSpace("AD.UTILS.AXISCHART");
+AD.createNameSpace("AD.UTILS.AXISCHART.TYPES");

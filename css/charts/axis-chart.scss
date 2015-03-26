@@ -145,6 +145,14 @@
 
 //NEW STARTS HERE
 
+.ad-axis{
+		// path{
+		// 	stroke-width:1px !important;
+		// 	stroke:#333 !important;
+		// }
+
+}
+
 .ad-axis-chart{
 	.ad-axes{
 		.ad-label{
@@ -153,6 +161,19 @@
 				font-size:15px;
 				font-weight:bold;
 			}
+		}
+	}
+	.ad-grid{
+		path{
+			fill:none;
+		}
+		line{
+			stroke-width:1px;
+			stroke:#ddd;
+		}
+		text{
+			display:none;
+			opacity:0;
 		}
 	}
 	.ad-axis-types{

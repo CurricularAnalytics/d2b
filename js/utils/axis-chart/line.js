@@ -1,7 +1,7 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-line*/
-AD.UTILS.AXISCHART.line = function(){
+AD.UTILS.AXISCHART.TYPES.line = function(){
 
 	//private store
 	var $$ = {};
@@ -20,23 +20,8 @@ AD.UTILS.AXISCHART.line = function(){
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 
 	$$.line = d3.svg.line()
-    .x(function(d) { return $$.getPointCenter(d).x; })
-    .y(function(d) { return $$.getPointCenter(d).y; });
-
-	$$.getPointCenter = function(point){
-		var obj = {};
-		obj.x = $$.x.customScale(point.x) + $$.x.rangeBand/2;
-		obj.y = $$.y.customScale(point.y) + $$.y.rangeBand/2;
-		return obj;
-	};
-
-	$$.getGraphColor = function(d){
-		var color = '';
-		d3.select(this.parentNode).each(function(d){
-			color = $$.color(d.label);
-		});
-		return color;
-	};
+    .x(function(d) { return $$.x.customScale(d.x); })
+    .y(function(d) { return $$.y.customScale(d.y); });
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -48,11 +33,11 @@ AD.UTILS.AXISCHART.line = function(){
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.orientationMap = 			AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'orientationMap');
 	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
@@ -96,8 +81,8 @@ AD.UTILS.AXISCHART.line = function(){
 					.style('fill', $$.color(graphData.label))
 				.transition()
 					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.getPointCenter(d).x;})
-					.attr('cy',function(d){return $$.getPointCenter(d).y;});
+					.attr('cx',function(d){return $$.x.customScale(d.x);})
+					.attr('cy',function(d){return $$.y.customScale(d.y);});
 			circle.exit()
 				.transition()
 					.duration($$.animationDuration)
