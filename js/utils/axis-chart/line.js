@@ -28,8 +28,6 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 
 	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');

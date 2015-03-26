@@ -587,12 +587,20 @@ AD.CHARTS.axisChart = function(){
 				.attr('class','ad-axis-types-foreground');
 
 		$$.legend.on('elementMouseover',function(d){
+			//bring the type and the graph to the front for the foreground and background
+			d.background.node().parentNode.parentNode.appendChild(d.background.node().parentNode);
+			d.background.node().parentNode.appendChild(d.background.node());
+			d.foreground.node().parentNode.parentNode.appendChild(d.foreground.node().parentNode);
+			d.foreground.node().parentNode.appendChild(d.foreground.node());
+
+			//dim all but the corresponding graph
 			d3.selectAll('g.axis-chart-background-graph').style('opacity',0.3);
 			d.background.style('opacity',1);
 			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',0.3);
 			d.foreground.style('opacity',1);
 		})
 		.on('elementMouseout',function(d){
+			//reset dimming
 			d3.selectAll('g.axis-chart-background-graph').style('opacity',1);
 			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',1);
 		});
