@@ -311,11 +311,19 @@ html, body, .ad-container {
 					}
 				}
 			}
+			.ad-histogram{
+				rect{
+					fill-opacity:0.8;
+					&:hover{
+						fill-opacity:1;
+					}
+				}
+			}
 			.ad-bar{
 				rect{
-					fill-opacity:0.7;
+					fill-opacity:0.8;
 					&:hover{
-						fill-opacity:0.9;
+						fill-opacity:1;
 					}
 				}
 			}

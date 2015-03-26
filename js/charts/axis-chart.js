@@ -31,6 +31,8 @@ AD.CHARTS.axisChart = function(){
 	};
 	//formatting x values
 	$$.xFormat = function(value){return value};
+	//formatting y values
+	$$.yFormat = function(value){return value};
 	//event object
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
@@ -216,11 +218,14 @@ AD.CHARTS.axisChart = function(){
 			this.adType
 				.x($$.xAlias)
 				.y($$.yAlias)
+				.xFormat($$.xFormat)
+				.yFormat($$.yFormat)
 				.color($$.color)
 				.foreground(d.foregroundGraphs)
 				.background(d.backgroundGraphs)
 				.animationDuration($$.animationDuration)
-				// .orientationMap($$.orientationMap)
+				.width($$.innerWidth)
+				.height($$.innerHeight)
 				.data(d.graphs)
 				.controls($$.controlsData)
 				.update();
@@ -454,7 +459,8 @@ AD.CHARTS.axisChart = function(){
 		$$.controls.animationDuration($$.animationDuration);
 	});
 	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 

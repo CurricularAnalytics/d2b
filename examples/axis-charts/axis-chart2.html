@@ -20,8 +20,8 @@
 				orientation:'bottom', 						//default 'bottom', can be set to right or left if rotated, bottom or top if not
 				invert:false, 								//default false
 				hide: false, 									//default false
-				type:'ordinal', 							//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
-				domain:['1','2','3']			//default [0, 1], set the domain for the chosen scale type
+				// type:'ordinal', 							//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
+				domain:[-0.1, 1.1]			//default [0, 1], set the domain for the chosen scale type
 			})
 
 //set the y scale type to quantitative,linear (this is default) and the domain as [0,300]
@@ -52,24 +52,34 @@
 				},
 				types:[
 					{
+						type:'histogram',
+						graphs:[
+							{
+								label: 'Histogram 1',
+								bins:[0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
+								values:d3.range(1000).map(d3.random.bates(10))
+							}
+						]
+					},
+					{
 						type:'area',
 						graphs:[
 							{
 								label: 'Area 1',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 150, y0:50},
-									{x: '2', y: 200, y0:100},
-									{x: '3', y: 50, y0:0},
+									{x: 0.3, y: 150, y0:50},
+									{x: 0.6, y: 200, y0:100},
+									{x: 0.8, y: 50, y0:0},
 								]
 							},
 							{
 								label: 'Area 2',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 50, y0:0},
-									{x: '2', y: 100, y0:0},
-									{x: '3', y: 00, y0:0},
+									{x: 0.3, y: 50, y0:0},
+									{x: 0.6, y: 100, y0:0},
+									{x: 0.8, y: 00, y0:0},
 								]
 							}
 						]
@@ -80,33 +90,33 @@
 							{
 								label: 'Bar 1',
 								values:[
-									// {x:'1', y:50},
-									{x:'2', y:20},
-									{x:'3', y:30}
+									// {x:0.3, y:50},
+									{x:0.6, y:20},
+									{x:0.8, y:30}
 								]
 							},
 							{
 								label: 'Bar 2',
 								values:[
-									{x:'1', y:30},
-									{x:'2', y:10},
-									{x:'3', y:4}
+									{x:0.3, y:30},
+									{x:0.6, y:10},
+									{x:0.8, y:4}
 								]
 							},
 							{
 								label: 'Bar 3',
 								values:[
-									{x:'1', y:10},
-									{x:'2', y:25},
-									{x:'3', y:35}
+									{x:0.3, y:10},
+									{x:0.6, y:25},
+									{x:0.8, y:35}
 								]
 							},
 							// {
 							// 	label: 'Bar 4',
 							// 	values:[
-							// 		{x:'1', y:6},
-							// 		{x:'2', y:100},
-							// 		{x:'3', y:45}
+							// 		{x:0.3, y:6},
+							// 		{x:0.6, y:100},
+							// 		{x:0.8, y:45}
 							// 	]
 							// }
 						]
@@ -118,18 +128,18 @@
 								label: 'Line 1',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 200},
-									{x: '2', y: 250},
-									{x: '3', y: 100},
+									{x: 0.3, y: 200},
+									{x: 0.6, y: 250},
+									{x: 0.8, y: 100},
 								]
 							},
 							{
 								label: 'Line 2',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 100},
-									{x: '2', y: 150},
-									{x: '3', y: 00},
+									{x: 0.3, y: 100},
+									{x: 0.6, y: 150},
+									{x: 0.8, y: 00},
 								]
 							}
 						]
@@ -174,24 +184,34 @@
 				},
 				types:[
 					{
+						type:'histogram',
+						graphs:[
+							{
+								label: 'Histogram 1',
+								bins:[0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
+								values:d3.range(1000).map(d3.random.bates(10))
+							}
+						]
+					},
+					{
 						type:'area',
 						graphs:[
 							{
 								label: 'Area 1',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 150, y0:50},
-									{x: '2', y: 200, y0:100},
-									{x: '3', y: 50, y0:0},
+									{x: 0.3, y: 150, y0:50},
+									{x: 0.6, y: 200, y0:100},
+									{x: 0.8, y: 50, y0:0},
 								]
 							},
 							{
 								label: 'Area 2',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 50, y0:0},
-									{x: '2', y: 100, y0:0},
-									{x: '3', y: 00, y0:0},
+									{x: 0.3, y: 50, y0:0},
+									{x: 0.6, y: 100, y0:0},
+									{x: 0.8, y: 00, y0:0},
 								]
 							}
 						]
@@ -202,33 +222,33 @@
 							{
 								label: 'Bar 1',
 								values:[
-									{x:'1', y:50},
-									{x:'2', y:20},
-									// {x:'3', y:30}
+									{x:0.3, y:50},
+									{x:0.6, y:20},
+									// {x:0.8, y:30}
 								]
 							},
 							{
 								label: 'Bar 2',
 								values:[
-									{x:'1', y:30},
-									{x:'2', y:10},
-									{x:'3', y:4}
+									{x:0.3, y:30},
+									{x:0.6, y:10},
+									{x:0.8, y:4}
 								]
 							},
 							{
 								label: 'Bar 3',
 								values:[
-									{x:'1', y:10},
-									{x:'2', y:25},
-									{x:'3', y:35}
+									{x:0.3, y:10},
+									{x:0.6, y:25},
+									{x:0.8, y:35}
 								]
 							},
 							{
 								label: 'Bar 4',
 								values:[
-									{x:'1', y:6},
-									{x:'2', y:100},
-									{x:'3', y:45}
+									{x:0.3, y:6},
+									{x:0.6, y:100},
+									{x:0.8, y:45}
 								]
 							}
 						]
@@ -240,18 +260,18 @@
 								label: 'Line 1',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 200},
-									{x: '2', y: 250},
-									{x: '3', y: 100},
+									{x: 0.3, y: 200},
+									{x: 0.6, y: 250},
+									{x: 0.8, y: 100},
 								]
 							},
 							{
 								label: 'Line 2',
 								interpolate:'cardinal',
 								values:[
-									{x: '1', y: 100},
-									{x: '2', y: 150},
-									{x: '3', y: 00},
+									{x: 0.3, y: 100},
+									{x: 0.6, y: 150},
+									{x: 0.8, y: 00},
 								]
 							}
 						]
@@ -260,7 +280,10 @@
 			}}).update();
 
 		},2000);
-
+		setTimeout(function(){
+			// axisChart.x({orientation:'top'}).legendOrientation('top').update();
+			// axisChart.x({orientation:'bottom'}).y({orientation:'left'}).rotate(false).legendOrientation('right').update();
+		},4000);
 
 		$(window).resize(function(){
 //on window resize, reset chart layout dimensions and update

@@ -3181,6 +3181,8 @@ AD.CHARTS.axisChart = function(){
 	};
 	//formatting x values
 	$$.xFormat = function(value){return value};
+	//formatting y values
+	$$.yFormat = function(value){return value};
 	//event object
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
@@ -3366,11 +3368,14 @@ AD.CHARTS.axisChart = function(){
 			this.adType
 				.x($$.xAlias)
 				.y($$.yAlias)
+				.xFormat($$.xFormat)
+				.yFormat($$.yFormat)
 				.color($$.color)
 				.foreground(d.foregroundGraphs)
 				.background(d.backgroundGraphs)
 				.animationDuration($$.animationDuration)
-				// .orientationMap($$.orientationMap)
+				.width($$.innerWidth)
+				.height($$.innerHeight)
 				.data(d.graphs)
 				.controls($$.controlsData)
 				.update();
@@ -3604,7 +3609,8 @@ AD.CHARTS.axisChart = function(){
 		$$.controls.animationDuration($$.animationDuration);
 	});
 	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
@@ -6519,13 +6525,13 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
 	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
@@ -6573,8 +6579,8 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
               stackedYVals[d.x] += $$.y.customScale(d.y, true);
               return $$.y.customScale(0) - stackedYVals[d.x];
             })
-            .attr('width',function(d){return $$.x.rangeBand;})
-            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+            .attr('width',function(d){return Math.max(0, $$.x.rangeBand);})
+            .attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
 
         bar.exit()
           .transition()
@@ -6591,8 +6597,8 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
             .duration($$.animationDuration)
             .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+1;})
             .attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
-            .attr('width',function(d){return $$.groupScale.rangeBand()-2;})
-            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand()-2);})
+            .attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
 
         bar.exit()
           .transition()
@@ -6668,8 +6674,10 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
@@ -6779,8 +6787,8 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
@@ -6840,6 +6848,111 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 					.attr('r',0)
 					.remove();
 		});
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*axis-chart-histogram*/
+AD.UTILS.AXISCHART.TYPES.histogram = function(){
+
+	//private store
+	var $$ = {};
+
+	//default animation duration
+	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//formatting y values
+	$$.yFormat = function(value){return value};
+	//event object
+	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+
+	$$.hist = d3.layout.histogram();
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//properties that will be set by the axis-chart main code
+	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+
+	chart.data = function(chartData){
+		if(!arguments.length) return $$.currentChartData;
+		$$.currentChartData = chartData;
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+
+		$$.background.each(function(graphData){
+			var graph = d3.select(this);
+			var data = $$.hist.bins(graphData.bins)(graphData.values);
+
+			// console.log
+			var barWidth = $$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length - 5;
+
+			// var barWidth = ($$.width / data.length)/2;
+
+			graph.selectAll('rect')
+
+			var bar = graph.selectAll('rect').data(data, function(d,i){
+				return d.x;
+			});
+
+			var newBar = bar.enter()
+				.append('rect')
+				.style('fill', $$.color(graphData.label))
+				.attr('y',$$.y.customScale(0))
+				.attr('height',0);
+
+			bar
+				.transition()
+					.duration($$.animationDuration)
+					.attr('x',function(d){return $$.x.customScale(d.x) - barWidth/2;})
+					.attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
+					.attr('width',function(d){return Math.max(0, barWidth);})
+					.attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
+
+			bar.exit()
+				.transition()
+					.duration($$.animationDuration)
+					.attr('y', $$.y.customScale(0))
+					.attr('height',0);
+
+			//
+
+		});
+
+		// $$.foreground.each(function(graphData){
+		// 	var graph = d3.select(this);
+		// 	//code for the foreground visualization goes here
+		// 	//this will iterate through all of the foreground graph containers of this type
+		// });
 
 		d3.timer.flush();
 

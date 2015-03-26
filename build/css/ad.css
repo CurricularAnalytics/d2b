@@ -228,10 +228,14 @@ html, body, .ad-container {
   fill-opacity: 0.4; }
   .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-area path:hover {
     fill-opacity: 0.6; }
+.ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-histogram rect {
+  fill-opacity: 0.8; }
+  .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-histogram rect:hover {
+    fill-opacity: 1; }
 .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-bar rect {
-  fill-opacity: 0.7; }
+  fill-opacity: 0.8; }
   .ad-axis-chart .ad-axis-types .ad-axis-types-background .ad-bar rect:hover {
-    fill-opacity: 0.9; }
+    fill-opacity: 1; }
 .ad-axis-chart .ad-axis-types .ad-axis-types-foreground circle {
   stroke-width: 2px;
   stroke: white; }

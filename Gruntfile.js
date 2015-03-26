@@ -54,6 +54,7 @@ module.exports = function(grunt){
 							'js/utils/axis-chart/bar.js',
 							'js/utils/axis-chart/line.js',
 							'js/utils/axis-chart/area.js',
+							'js/utils/axis-chart/histogram.js',
 							'js/dashboards/dashboard.js',
 							'js/d3_extensions/sankey.js',
 							'js/d3_extensions/colorbrewer.js'],

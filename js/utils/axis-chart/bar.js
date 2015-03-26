@@ -26,13 +26,13 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
 	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
@@ -80,8 +80,8 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
               stackedYVals[d.x] += $$.y.customScale(d.y, true);
               return $$.y.customScale(0) - stackedYVals[d.x];
             })
-            .attr('width',function(d){return $$.x.rangeBand;})
-            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+            .attr('width',function(d){return Math.max(0, $$.x.rangeBand);})
+            .attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
 
         bar.exit()
           .transition()
@@ -98,8 +98,8 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
             .duration($$.animationDuration)
             .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+1;})
             .attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
-            .attr('width',function(d){return $$.groupScale.rangeBand()-2;})
-            .attr('height',function(d){return $$.y.customScale(d.y, true);});
+            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand()-2);})
+            .attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
 
         bar.exit()
           .transition()

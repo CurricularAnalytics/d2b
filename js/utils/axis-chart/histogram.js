@@ -1,7 +1,7 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*axis-chart-line*/
-AD.UTILS.AXISCHART.TYPES.line = function(){
+/*axis-chart-histogram*/
+AD.UTILS.AXISCHART.TYPES.histogram = function(){
 
 	//private store
 	var $$ = {};
@@ -19,17 +19,14 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 	//event object
 	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
 
-	$$.line = d3.svg.line()
-    .x(function(d) { return $$.x.customScale(d.x); })
-    .y(function(d) { return $$.y.customScale(d.y); });
+	$$.hist = d3.layout.histogram();
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
+	//properties that will be set by the axis-chart main code
 	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -50,48 +47,50 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 	//chart update
 	chart.update = function(callback){
 
-		$$.background.each(function(graphData,i){
+		$$.background.each(function(graphData){
 			var graph = d3.select(this);
-			var path = graph.select('path');
-			if(path.size() == 0){
-				path = graph.append('path');
-			}
+			var data = $$.hist.bins(graphData.bins)(graphData.values);
 
-			if(graphData.interpolate){
-				$$.line.interpolate(graphData.interpolate);
-			}else{
-				$$.line.interpolate('linear');
-			}
+			// console.log
+			var barWidth = $$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length - 5;
 
-			path
-					.style('stroke', function(d){return $$.color(graphData.label);})
-				.datum(function(d){return graphData.values;})
+			// var barWidth = ($$.width / data.length)/2;
+
+			graph.selectAll('rect')
+
+			var bar = graph.selectAll('rect').data(data, function(d,i){
+				return d.x;
+			});
+
+			var newBar = bar.enter()
+				.append('rect')
+				.style('fill', $$.color(graphData.label))
+				.attr('y',$$.y.customScale(0))
+				.attr('height',0);
+
+			bar
 				.transition()
 					.duration($$.animationDuration)
-					.attr("d", $$.line);
+					.attr('x',function(d){return $$.x.customScale(d.x) - barWidth/2;})
+					.attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
+					.attr('width',function(d){return Math.max(0, barWidth);})
+					.attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
+
+			bar.exit()
+				.transition()
+					.duration($$.animationDuration)
+					.attr('y', $$.y.customScale(0))
+					.attr('height',0);
+
+			//
 
 		});
 
-		$$.foreground.each(function(graphData){
-			var graph = d3.select(this);
-			var circle = graph.selectAll('circle').data(function(d){return d.values;});
-
-			circle.enter()
-				.append('circle')
-					.attr('r', '5');
-			circle
-					.style('fill', $$.color(graphData.label))
-				.transition()
-					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.x.customScale(d.x);})
-					.attr('cy',function(d){return $$.y.customScale(d.y);});
-			circle.exit()
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0)
-					.attr('r',0)
-					.remove();
-		});
+		// $$.foreground.each(function(graphData){
+		// 	var graph = d3.select(this);
+		// 	//code for the foreground visualization goes here
+		// 	//this will iterate through all of the foreground graph containers of this type
+		// });
 
 		d3.timer.flush();
 
