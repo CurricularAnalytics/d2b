@@ -75,7 +75,7 @@ AD.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
 AD.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
-    _chart.xFormat = AD.UTILS.numberFormat(value);
+    _chart[property] = AD.UTILS.numberFormat(value);
     if(callback)
       callback(value);
     return chart;

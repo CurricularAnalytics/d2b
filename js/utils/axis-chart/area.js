@@ -83,18 +83,53 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
-			var circle = graph.selectAll('circle').data(function(d){return d.values;});
+			$$.foreground.circleY = graph.selectAll('circle.ad-y-point').data(function(d){return d.values;});
 
-			circle.enter()
+			$$.foreground.circleY.enter()
 				.append('circle')
-					.attr('r', '5');
-			circle
-					.style('fill', $$.color(graphData.label))
+					.attr('class','ad-y-point')
+					.attr('r', '4')
+					.on('mouseover.ad-mouseover',function(d,i){
+						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+					})
+					.on('mouseout.ad-mouseout',function(d,i){
+						AD.UTILS.removeTooltip();
+					});
+					$$.foreground.circleY
+					.style('stroke', $$.color(graphData.label))
+					.style('fill', 'white')
 				.transition()
 					.duration($$.animationDuration)
 					.attr('cx',function(d){return $$.x.customScale(d.x);})
 					.attr('cy',function(d){return $$.y.customScale(d.y);});
-			circle.exit()
+					$$.foreground.circleY.exit()
+				.transition()
+					.duration($$.animationDuration)
+					.style('opacity',0)
+					.attr('r',0)
+					.remove();
+
+
+			$$.foreground.circleY0 = graph.selectAll('circle.ad-y0-point').data(function(d){return d.values;});
+
+			$$.foreground.circleY0.enter()
+				.append('circle')
+					.attr('class','ad-y0-point')
+					.attr('r', '4')
+					.on('mouseover.ad-mouseover',function(d,i){
+						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y0));
+					})
+					.on('mouseout.ad-mouseout',function(d,i){
+						AD.UTILS.removeTooltip();
+					});
+			$$.foreground.circleY0
+					.style('stroke', $$.color(graphData.label))
+					.style('fill', 'white')
+				.transition()
+					.duration($$.animationDuration)
+					.attr('cx',function(d){return $$.x.customScale(d.x);})
+					.attr('cy',function(d){return $$.y.customScale(d.y0);});
+			$$.foreground.circleY0.exit()
 				.transition()
 					.duration($$.animationDuration)
 					.style('opacity',0)

@@ -1490,7 +1490,7 @@ AD.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
 AD.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
-    _chart.xFormat = AD.UTILS.numberFormat(value);
+    _chart[property] = AD.UTILS.numberFormat(value);
     if(callback)
       callback(value);
     return chart;
@@ -3609,8 +3609,8 @@ AD.CHARTS.axisChart = function(){
 		$$.controls.animationDuration($$.animationDuration);
 	});
 	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.x.axis.tickFormat($$.xFormat);});
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.y.axis.tickFormat($$.yFormat);});
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
@@ -3744,9 +3744,9 @@ AD.CHARTS.axisChart = function(){
 			d.foreground.node().parentNode.appendChild(d.foreground.node());
 
 			//dim all but the corresponding graph
-			d3.selectAll('g.axis-chart-background-graph').style('opacity',0.3);
+			d3.selectAll('g.axis-chart-background-graph').style('opacity',0.2);
 			d.background.style('opacity',1);
-			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',0.3);
+			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',0.2);
 			d.foreground.style('opacity',1);
 		})
 		.on('elementMouseout',function(d){
@@ -6568,7 +6568,13 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
       var newBar = bar.enter()
         .append('rect')
-        .style('fill', $$.color(graphData.label));
+        .style('fill', $$.color(graphData.label))
+        .on('mouseover.ad-mouseover',function(d,i){
+          AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+        })
+        .on('mouseout.ad-mouseout',function(d,i){
+          AD.UTILS.removeTooltip();
+        });
 
 
       if($$.controlsData.stackBars.enabled){
@@ -6725,9 +6731,16 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 
 			circle.enter()
 				.append('circle')
-					.attr('r', '5');
+					.attr('r', '4')
+					.on('mouseover.ad-mouseover',function(d,i){
+						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+					})
+					.on('mouseout.ad-mouseout',function(d,i){
+						AD.UTILS.removeTooltip();
+					});
 			circle
-					.style('fill', $$.color(graphData.label))
+					.style('stroke', $$.color(graphData.label))
+					.style('fill', 'white')
 				.transition()
 					.duration($$.animationDuration)
 					.attr('cx',function(d){return $$.x.customScale(d.x);})
@@ -6836,18 +6849,53 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
-			var circle = graph.selectAll('circle').data(function(d){return d.values;});
+			$$.foreground.circleY = graph.selectAll('circle.ad-y-point').data(function(d){return d.values;});
 
-			circle.enter()
+			$$.foreground.circleY.enter()
 				.append('circle')
-					.attr('r', '5');
-			circle
-					.style('fill', $$.color(graphData.label))
+					.attr('class','ad-y-point')
+					.attr('r', '4')
+					.on('mouseover.ad-mouseover',function(d,i){
+						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+					})
+					.on('mouseout.ad-mouseout',function(d,i){
+						AD.UTILS.removeTooltip();
+					});
+					$$.foreground.circleY
+					.style('stroke', $$.color(graphData.label))
+					.style('fill', 'white')
 				.transition()
 					.duration($$.animationDuration)
 					.attr('cx',function(d){return $$.x.customScale(d.x);})
 					.attr('cy',function(d){return $$.y.customScale(d.y);});
-			circle.exit()
+					$$.foreground.circleY.exit()
+				.transition()
+					.duration($$.animationDuration)
+					.style('opacity',0)
+					.attr('r',0)
+					.remove();
+
+
+			$$.foreground.circleY0 = graph.selectAll('circle.ad-y0-point').data(function(d){return d.values;});
+
+			$$.foreground.circleY0.enter()
+				.append('circle')
+					.attr('class','ad-y0-point')
+					.attr('r', '4')
+					.on('mouseover.ad-mouseover',function(d,i){
+						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y0));
+					})
+					.on('mouseout.ad-mouseout',function(d,i){
+						AD.UTILS.removeTooltip();
+					});
+			$$.foreground.circleY0
+					.style('stroke', $$.color(graphData.label))
+					.style('fill', 'white')
+				.transition()
+					.duration($$.animationDuration)
+					.attr('cx',function(d){return $$.x.customScale(d.x);})
+					.attr('cy',function(d){return $$.y.customScale(d.y0);});
+			$$.foreground.circleY0.exit()
 				.transition()
 					.duration($$.animationDuration)
 					.style('opacity',0)
@@ -6920,7 +6968,7 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 			var data = $$.hist.bins(graphData.bins)(graphData.values);
 
 			// console.log
-			var barWidth = $$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length - 5;
+			var barWidth = 0.92*$$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length;
 
 			// var barWidth = ($$.width / data.length)/2;
 
@@ -6934,7 +6982,13 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 				.append('rect')
 				.style('fill', $$.color(graphData.label))
 				.attr('y',$$.y.customScale(0))
-				.attr('height',0);
+				.attr('height',0)
+        .on('mouseover.ad-mouseover',function(d,i){
+          AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+        })
+        .on('mouseout.ad-mouseout',function(d,i){
+          AD.UTILS.removeTooltip();
+        });
 
 			bar
 				.transition()

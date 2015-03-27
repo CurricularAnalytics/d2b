@@ -61,7 +61,13 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
       var newBar = bar.enter()
         .append('rect')
-        .style('fill', $$.color(graphData.label));
+        .style('fill', $$.color(graphData.label))
+        .on('mouseover.ad-mouseover',function(d,i){
+          AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+        })
+        .on('mouseout.ad-mouseout',function(d,i){
+          AD.UTILS.removeTooltip();
+        });
 
 
       if($$.controlsData.stackBars.enabled){

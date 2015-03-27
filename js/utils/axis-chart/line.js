@@ -76,9 +76,16 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 
 			circle.enter()
 				.append('circle')
-					.attr('r', '5');
+					.attr('r', '4')
+					.on('mouseover.ad-mouseover',function(d,i){
+						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+					})
+					.on('mouseout.ad-mouseout',function(d,i){
+						AD.UTILS.removeTooltip();
+					});
 			circle
-					.style('fill', $$.color(graphData.label))
+					.style('stroke', $$.color(graphData.label))
+					.style('fill', 'white')
 				.transition()
 					.duration($$.animationDuration)
 					.attr('cx',function(d){return $$.x.customScale(d.x);})

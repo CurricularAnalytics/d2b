@@ -52,7 +52,7 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 			var data = $$.hist.bins(graphData.bins)(graphData.values);
 
 			// console.log
-			var barWidth = $$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length - 5;
+			var barWidth = 0.92*$$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length;
 
 			// var barWidth = ($$.width / data.length)/2;
 
@@ -66,7 +66,13 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 				.append('rect')
 				.style('fill', $$.color(graphData.label))
 				.attr('y',$$.y.customScale(0))
-				.attr('height',0);
+				.attr('height',0)
+        .on('mouseover.ad-mouseover',function(d,i){
+          AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
+        })
+        .on('mouseout.ad-mouseout',function(d,i){
+          AD.UTILS.removeTooltip();
+        });
 
 			bar
 				.transition()

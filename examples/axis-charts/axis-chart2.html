@@ -15,6 +15,10 @@
 			// .width($(window).width())
 			// .height($(window).height())
 
+//value formatting
+			// .xFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:0})
+			// .yFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:0})
+
 //set the x scale properties
 			.x({
 				orientation:'bottom', 						//default 'bottom', can be set to right or left if rotated, bottom or top if not
@@ -147,7 +151,7 @@
 				]
 			}});
 
-
+console.log(axisChart.xFormat())
 //define chart layout
 			var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
 
@@ -200,9 +204,9 @@
 								label: 'Area 1',
 								interpolate:'cardinal',
 								values:[
-									{x: 0.3, y: 150, y0:50},
-									{x: 0.6, y: 200, y0:100},
-									{x: 0.8, y: 50, y0:0},
+									{x: 0.3, y: 150, y0:75},
+									{x: 0.6, y: 200, y0:125},
+									{x: 0.8, y: 50, y0:25},
 								]
 							},
 							{

@@ -459,8 +459,8 @@ AD.CHARTS.axisChart = function(){
 		$$.controls.animationDuration($$.animationDuration);
 	});
 	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.x.axis.tickFormat($$.xFormat);});
+	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.y.axis.tickFormat($$.yFormat);});
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
@@ -594,9 +594,9 @@ AD.CHARTS.axisChart = function(){
 			d.foreground.node().parentNode.appendChild(d.foreground.node());
 
 			//dim all but the corresponding graph
-			d3.selectAll('g.axis-chart-background-graph').style('opacity',0.3);
+			d3.selectAll('g.axis-chart-background-graph').style('opacity',0.2);
 			d.background.style('opacity',1);
-			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',0.3);
+			d3.selectAll('g.axis-chart-foreground-graph').style('opacity',0.2);
 			d.foreground.style('opacity',1);
 		})
 		.on('elementMouseout',function(d){
