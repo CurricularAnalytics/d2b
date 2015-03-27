@@ -39,6 +39,21 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
+	chart.xValues = function(){
+    var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.x;}));
+		});
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.y;}));
+		});
+		return values;
+	};
+
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
@@ -77,12 +92,7 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 			circle.enter()
 				.append('circle')
 					.attr('r', '4')
-					.on('mouseover.ad-mouseover',function(d,i){
-						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
-					})
-					.on('mouseout.ad-mouseout',function(d,i){
-						AD.UTILS.removeTooltip();
-					});
+					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 			circle
 					.style('stroke', $$.color(graphData.label))
 					.style('fill', 'white')

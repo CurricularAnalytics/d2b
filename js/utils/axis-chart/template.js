@@ -36,6 +36,22 @@ AD.UTILS.AXISCHART.TYPES.template = function(){
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
+	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
+	chart.xValues = function(){
+    var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.x;}));
+		});
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.y;}));
+		});
+		return values;
+	};
+
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;

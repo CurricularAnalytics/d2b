@@ -214,20 +214,31 @@ AD.UTILS.TWEENS.arcTween = function(transition, arc){
 };
 
 /*Events*/
-AD.UTILS.bind = function(mainKey, elements, _, data, index, type){
+AD.UTILS.bind = function(mainKey, element, _, data, index, type){
 	for(key in _.on[mainKey]){
-		_.on[mainKey][key].call(elements,data,index,type);
+		_.on[mainKey][key].call(element,data,index,type);
 	}
 }
-AD.UTILS.bindElementEvents = function(elements, _, type){
-	elements
+AD.UTILS.bindElementEvents = function(element, _, type){
+	element
 			.on('mouseover.ad-element-mouseover',function(d,i){
-				AD.UTILS.bind('elementMouseover', elements, _, d, i, type)
+				AD.UTILS.bind('elementMouseover', element, _, d, i, type)
 			})
 			.on('mouseout.ad-element-mouseout',function(d,i){
-				AD.UTILS.bind('elementMouseout', elements, _, d, i, type)
+				AD.UTILS.bind('elementMouseout', element, _, d, i, type)
 			})
 			.on('click.ad-element-click',function(d,i){
-				AD.UTILS.bind('elementClick', elements, _, d, i, type)
+				AD.UTILS.bind('elementClick', element, _, d, i, type)
 			});
 }
+
+/*Bind Tooltip Events*/
+AD.UTILS.tooltip = function(element, heading, content){
+	element
+			.on('mouseover.ad-mouseover-tooltip',function(d,i){
+				AD.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
+			})
+			.on('mouseout.ad-mouseout-tooltip',function(d,i){
+				AD.UTILS.removeTooltip();
+			});
+};

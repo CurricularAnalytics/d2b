@@ -24,11 +24,6 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
     .y1(function(d) { return $$.y.customScale(d.y); })
     .y0(function(d) { return $$.y.customScale(d.y0); });
 
-	$$.updateGraph = function(d){
-
-	};
-	// $$.x = d3.scale.linear();
-	// $$.y = d3.scale.linear();
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -45,6 +40,22 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+
+	chart.xValues = function(){
+    var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.x;}));
+		});
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.y;}));
+			values = values.concat(graphData.values.map(function(d){return d.y0;}));
+		});
+		return values;
+	};
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -116,12 +127,8 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 				.append('circle')
 					.attr('class','ad-y0-point')
 					.attr('r', '4')
-					.on('mouseover.ad-mouseover',function(d,i){
-						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y0));
-					})
-					.on('mouseout.ad-mouseout',function(d,i){
-						AD.UTILS.removeTooltip();
-					});
+					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+
 			$$.foreground.circleY0
 					.style('stroke', $$.color(graphData.label))
 					.style('fill', 'white')

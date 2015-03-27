@@ -1004,23 +1004,34 @@ AD.UTILS.TWEENS.arcTween = function(transition, arc){
 };
 
 /*Events*/
-AD.UTILS.bind = function(mainKey, elements, _, data, index, type){
+AD.UTILS.bind = function(mainKey, element, _, data, index, type){
 	for(key in _.on[mainKey]){
-		_.on[mainKey][key].call(elements,data,index,type);
+		_.on[mainKey][key].call(element,data,index,type);
 	}
 }
-AD.UTILS.bindElementEvents = function(elements, _, type){
-	elements
+AD.UTILS.bindElementEvents = function(element, _, type){
+	element
 			.on('mouseover.ad-element-mouseover',function(d,i){
-				AD.UTILS.bind('elementMouseover', elements, _, d, i, type)
+				AD.UTILS.bind('elementMouseover', element, _, d, i, type)
 			})
 			.on('mouseout.ad-element-mouseout',function(d,i){
-				AD.UTILS.bind('elementMouseout', elements, _, d, i, type)
+				AD.UTILS.bind('elementMouseout', element, _, d, i, type)
 			})
 			.on('click.ad-element-click',function(d,i){
-				AD.UTILS.bind('elementClick', elements, _, d, i, type)
+				AD.UTILS.bind('elementClick', element, _, d, i, type)
 			});
 }
+
+/*Bind Tooltip Events*/
+AD.UTILS.tooltip = function(element, heading, content){
+	element
+			.on('mouseover.ad-mouseover-tooltip',function(d,i){
+				AD.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
+			})
+			.on('mouseout.ad-mouseout-tooltip',function(d,i){
+				AD.UTILS.removeTooltip();
+			});
+};
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -3197,25 +3208,26 @@ AD.CHARTS.axisChart = function(){
 	$$.rotate = false;
 
 	// $$.orientationMap = {
-	// 	x: {
-	// 		dimension1:'innerHeight',
-	// 		dimension2:'innerWidth'
-	// 	},
-	// 	y: {
-	// 		dimension1:'innerWidth',
-	// 		dimension2:'innerHeight'
-	// 	}
-	// };
-
-	$$.orientationMap = {
-		x:'x',
-		y:'y'
-	}
+	// 	x:'x',
+	// 	y:'y'
+	// }
 
 	//controls data
 	$$.controlsData = {
 				hideLegend: {
 					label: "Hide Legend",
+					type: "checkbox",
+					visible: false,
+					enabled: false
+				},
+				lockYAxis: {
+					label: "Lock Y-Axis",
+					type: "checkbox",
+					visible: false,
+					enabled: false
+				},
+				lockXAxis: {
+					label: "Lock X-Axis",
 					type: "checkbox",
 					visible: false,
 					enabled: false
@@ -3244,6 +3256,7 @@ AD.CHARTS.axisChart = function(){
 		axis:d3.svg.axis(),
 		type:'quantitative,linear',
 		orientation:'bottom',
+		// domain:'auto',
 		domain:[0,1],
 		hide: false
 	};
@@ -3253,6 +3266,7 @@ AD.CHARTS.axisChart = function(){
 		axis:d3.svg.axis(),
 		type:'quantitative,linear',
 		orientation:'left',
+		// domain:'auto',
 		domain:[0,1],
 		hide: false
 	};
@@ -3261,8 +3275,56 @@ AD.CHARTS.axisChart = function(){
 	$$.x = $$.xAlias;
 	$$.y = $$.yAlias;
 
-	$$.updateGraphs = function(){
+	//update scale domains based on yValues/xValues 'getters' of each graph type
+	$$.updateDomains = function(){
+		var xType = $$.xAlias.type.split(',')[0];
+		var tools;
+		var xValues = [];
 
+		$$.selection.types.background.type.each(function(d){
+			this.adType
+				.data(d.graphs);
+			if(this.adType.xValues)
+				xValues = xValues.concat(this.adType.xValues());
+		});
+
+		if(!$$.controlsData.lockXAxis.enabled){
+			switch(xType){
+				case 'ordinal':
+					$$.xAlias.scale.domain(d3.set(xValues).values());
+					break;
+				default:
+					$$.xAlias.scale.domain(d3.extent(xValues));
+					break;
+			}
+		}else{
+			$$.xAlias.scale.domain($$.xAlias.domain);
+		}
+
+		var yType = $$.yAlias.type.split(',')[0];
+		var yValues = [];
+		$$.selection.types.background.type.each(function(d){
+			this.adType
+				.data(d.graphs);
+			if(this.adType.yValues)
+				yValues = yValues.concat(this.adType.yValues());
+		});
+		if(!$$.controlsData.lockYAxis.enabled){
+			switch(yType){
+				case 'ordinal':
+					$$.yAlias.scale.domain(d3.set(yValues).values());
+					break;
+				default:
+					$$.yAlias.scale.domain(d3.extent(yValues));
+					break;
+			}
+		}else{
+			$$.yAlias.scale.domain($$.yAlias.domain);
+		}
+	};
+
+	//initialize axis-chart-type containers and graph containers
+	$$.initGraphs = function(){
 		//enter update exit a foreground svg:g element for each axis-chart-type
 		$$.selection.types.foreground.type = $$.selection.types.foreground.selectAll('g.ad-axis-type-foreground').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.foreground.type.enter()
@@ -3297,6 +3359,13 @@ AD.CHARTS.axisChart = function(){
 				.attr('class', function(d){return 'ad-axis-type-background ad-'+d.type;})
 				.each(function(d){
 					this.adType = new AD.UTILS.AXISCHART.TYPES[d.type];
+					this.adType
+						.x($$.xAlias)
+						.color($$.color)
+						.y($$.yAlias)
+						.xFormat($$.xFormat)
+						.yFormat($$.yFormat)
+						.controls($$.controlsData);
 				});
 		$$.selection.types.background.type.exit()
 			.transition()
@@ -3323,12 +3392,17 @@ AD.CHARTS.axisChart = function(){
 				.style('opacity',0)
 				.remove();
 
+		//store the foreground graphs within the data
 		$$.selection.types.foreground.type.each(function(d){
 			var type = d3.select(this);
 			var graphs = type.selectAll('.axis-chart-foreground-graph');
 			d.foregroundGraphs = graphs;
 		});
 
+	};
+
+	//update the custom scales that are used by the axis-chart-types
+	$$.updateCustomScales = function(){
 
 		//use custom scales to fix an inconsistancy with the rotated/horizontal scale and sync ordinal scales with other scale types
 		$$.x.customScale = function(value, invert){
@@ -3346,6 +3420,7 @@ AD.CHARTS.axisChart = function(){
 
 			return position;
 		};
+
 		$$.y.customScale = function(value, invert){
 			var position = 0;
 
@@ -3360,24 +3435,57 @@ AD.CHARTS.axisChart = function(){
 			return position;
 		};
 
+		//custom bar scale that returns:
+		//bar{
+		//  y(y-axis positioning),
+		//  height(absolute height),
+		//  sHeight(signed height negative down, positive up)
+		//  origin(the x-axis position)
+		//  destination(bar-end position)
+		//}
+		$$.y.customBarScale = function(value){
+			var bar = {y:0,height:0};
+
+			if($$.rotate){
+				bar.origin = $$.x.customScale(0);
+				bar.destination = $$.x.customScale(value);
+
+				bar.sHeight = bar.origin - bar.destination;
+
+				bar.y = Math.min($$.x.customScale(0), bar.destination);
+				bar.height = Math.abs(bar.sHeight);
+			}else{
+				bar.origin = $$.y.customScale(0);
+				bar.destination = $$.y.customScale(value);
+
+				bar.sHeight = bar.origin - bar.destination;
+
+				bar.y = Math.min($$.y.customScale(0), bar.destination);
+				bar.height = Math.abs(bar.sHeight);
+			}
+
+			return bar;
+		};
+
+	}
+
+	//update the graphs stored in the instance of each axis-chart-type-background
+	$$.updateGraphs = function(){
+
+		$$.updateCustomScales();
+
 		$$.selection.types.background.type.each(function(d){
 			var type = d3.select(this);
 			var graphs = type.selectAll('.axis-chart-background-graph');
 			d.backgroundGraphs = graphs;
 
 			this.adType
-				.x($$.xAlias)
-				.y($$.yAlias)
-				.xFormat($$.xFormat)
-				.yFormat($$.yFormat)
-				.color($$.color)
-				.foreground(d.foregroundGraphs)
-				.background(d.backgroundGraphs)
 				.animationDuration($$.animationDuration)
 				.width($$.innerWidth)
 				.height($$.innerHeight)
+				.foreground(d.foregroundGraphs)
+				.background(d.backgroundGraphs)
 				.data(d.graphs)
-				.controls($$.controlsData)
 				.update();
 		});
 
@@ -3400,6 +3508,7 @@ AD.CHARTS.axisChart = function(){
 		}
 	};
 
+	//update x and y axis (including scales, labels, grid..)
 	$$.updateAxis = function(){
 
 		var labelOffset = 10;
@@ -3614,25 +3723,27 @@ AD.CHARTS.axisChart = function(){
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
+	//rotate the chart, set x,y scales accordingly
 	chart.rotate = function(value){
 		$$.rotate = value;
 		if(value){
-			$$.orientationMap = {x:'y', y:'x'}
+			// $$.orientationMap = {x:'y', y:'x'}
 			$$.x = $$.yAlias;
 			$$.y = $$.xAlias;
 		}else{
-			$$.orientationMap = {x:'x', y:'y'}
+			// $$.orientationMap = {x:'x', y:'y'}
 			$$.x = $$.xAlias;
 			$$.y = $$.yAlias;
 		}
 		return chart;
 	};
 
+	//x/y setters
 	chart.x = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
 		if(value.orientation)
 			$$.xAlias.orientation = value.orientation;
 
-			$$.xAlias.axis
+		$$.xAlias.axis
 			.scale($$.xAlias.scale)
 			.orient($$.xAlias.orientation);
 	});
@@ -3645,6 +3756,7 @@ AD.CHARTS.axisChart = function(){
 			.orient($$.yAlias.orientation);
 	});
 
+	//data setter
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
 		if(reset){
@@ -3659,7 +3771,6 @@ AD.CHARTS.axisChart = function(){
 			$$.xAlias.label = $$.currentChartData.labels.x;
 			$$.yAlias.label = $$.currentChartData.labels.y;
 		}
-
 
 		return chart;
 	};
@@ -3681,6 +3792,7 @@ AD.CHARTS.axisChart = function(){
 				.selection($$.selection.controls)
 				.on('elementChange',function(d,i){
 					$$.controlsData[d.key].enabled = d.state;
+					// $$.updateScaleDomains();
 					chart.update();
 				});
 
@@ -3808,6 +3920,10 @@ AD.CHARTS.axisChart = function(){
 				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
 		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		$$.initGraphs();
+
+		$$.updateDomains();
 
 		$$.updateAxis();
 
@@ -6505,7 +6621,7 @@ AD.UTILS.AXISCHART.scatter = function(){
   
 };
 
-/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+/* Copyright � 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-bar*/
 AD.UTILS.AXISCHART.TYPES.bar = function(){
@@ -6528,6 +6644,16 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
   $$.groupScale = d3.scale.ordinal();
 
+  $$.updateStackedVals = function(yVal, bar){
+    if(bar.sHeight < 0){
+      yVal+=bar.height;
+      return {newValue: yVal, modifier: -bar.height};
+    }else{
+      yVal-=bar.height;
+      return {newValue: yVal, modifier: 0};
+    }
+  };
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -6544,6 +6670,44 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
+  chart.xValues = function(){
+    var values = [];
+    $$.currentChartData.forEach(function(d){
+      values = values.concat(d.values.map(function(v){return v.x;}));
+    });
+    return values;
+  };
+
+  chart.yValues = function(){
+    var stackedValues = {};
+    var values = [0];
+
+    if($$.controlsData.stackBars.enabled){
+      $$.currentChartData.forEach(function(d){
+        d.values.forEach(function(v){
+          if(!stackedValues[v.x]){
+            stackedValues[v.x] = {positive:0, negative:0};
+          }
+          if(v.y > 0){
+            stackedValues[v.x].positive += v.y;
+          }else{
+            stackedValues[v.x].negative += v.y;
+          }
+        });
+      });
+      for(var x in stackedValues){
+        values.push(stackedValues[x].negative);
+        values.push(stackedValues[x].positive);
+      }
+    }else{
+      $$.currentChartData.forEach(function(d){
+        values = values.concat(d.values.map(function(v){return v.y;}));
+      });
+    }
+
+    return values;
+  };
+
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
@@ -6557,7 +6721,7 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
     $$.groupScale
       .domain(barLabels)
       .rangeBands([0, $$.x.rangeBand]);
-    var stackedYVals = {'1':0,'2':0,'3':0};
+    var stackedYVals = {};
 
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
@@ -6569,13 +6733,7 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
       var newBar = bar.enter()
         .append('rect')
         .style('fill', $$.color(graphData.label))
-        .on('mouseover.ad-mouseover',function(d,i){
-          AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
-        })
-        .on('mouseout.ad-mouseout',function(d,i){
-          AD.UTILS.removeTooltip();
-        });
-
+        .call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 
       if($$.controlsData.stackBars.enabled){
         newBar
@@ -6586,15 +6744,25 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
           .transition()
             .duration($$.animationDuration)
             .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2})
-            .attr('y',function(d){
-              if(!stackedYVals[d.x])
-                stackedYVals[d.x] = 0;
+            .attr('y', function(d){
+              if(!stackedYVals[d.x]){
+                stackedYVals[d.x] = {negative:$$.y.customScale(0), positive:$$.y.customScale(0)};
+              }
 
-              stackedYVals[d.x] += $$.y.customScale(d.y, true);
-              return $$.y.customScale(0) - stackedYVals[d.x];
+              var updateScheme;
+              if(d.y < 0){
+                updateScheme = $$.updateStackedVals(stackedYVals[d.x].negative, $$.y.customBarScale(d.y));
+                stackedYVals[d.x].negative = updateScheme.newValue;
+                return stackedYVals[d.x].negative + updateScheme.modifier;
+              }else{
+                updateScheme = $$.updateStackedVals(stackedYVals[d.x].positive, $$.y.customBarScale(d.y));
+                stackedYVals[d.x].positive = updateScheme.newValue;
+                return stackedYVals[d.x].positive + updateScheme.modifier;
+              }
+
             })
             .attr('width',function(d){return Math.max(0, $$.x.rangeBand);})
-            .attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
+            .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
         bar.exit()
           .transition()
@@ -6610,9 +6778,9 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
           .transition()
             .duration($$.animationDuration)
             .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+1;})
-            .attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
             .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand()-2);})
-            .attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
+            .attr('y', function(d){return $$.y.customBarScale(d.y).y;})
+            .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
         bar.exit()
           .transition()
@@ -6625,9 +6793,6 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
 		});
 
-		// $$.foreground.each(function(graphData){
-		// 	var graph = d3.select(this);
-		// });
 
 		d3.timer.flush();
 
@@ -6651,7 +6816,7 @@ AD.UTILS.AXISCHART.TYPES.bar.tools = function(){
       }
     }
   }
-}
+};
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -6694,6 +6859,21 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
+	chart.xValues = function(){
+    var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.x;}));
+		});
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.y;}));
+		});
+		return values;
+	};
+
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
@@ -6732,12 +6912,7 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 			circle.enter()
 				.append('circle')
 					.attr('r', '4')
-					.on('mouseover.ad-mouseover',function(d,i){
-						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
-					})
-					.on('mouseout.ad-mouseout',function(d,i){
-						AD.UTILS.removeTooltip();
-					});
+					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 			circle
 					.style('stroke', $$.color(graphData.label))
 					.style('fill', 'white')
@@ -6790,11 +6965,6 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
     .y1(function(d) { return $$.y.customScale(d.y); })
     .y0(function(d) { return $$.y.customScale(d.y0); });
 
-	$$.updateGraph = function(d){
-
-	};
-	// $$.x = d3.scale.linear();
-	// $$.y = d3.scale.linear();
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -6811,6 +6981,22 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+
+	chart.xValues = function(){
+    var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.x;}));
+		});
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.values.map(function(d){return d.y;}));
+			values = values.concat(graphData.values.map(function(d){return d.y0;}));
+		});
+		return values;
+	};
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -6882,12 +7068,8 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 				.append('circle')
 					.attr('class','ad-y0-point')
 					.attr('r', '4')
-					.on('mouseover.ad-mouseover',function(d,i){
-						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y0));
-					})
-					.on('mouseout.ad-mouseout',function(d,i){
-						AD.UTILS.removeTooltip();
-					});
+					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+
 			$$.foreground.circleY0
 					.style('stroke', $$.color(graphData.label))
 					.style('fill', 'white')
@@ -6954,9 +7136,28 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
+	chart.xValues = function(){
+    var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.histData.map(function(d){return d.x;}));
+		});
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.histData.map(function(d){return d.y;}));
+		});
+		return values;
+	};
+
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
+		$$.currentChartData.forEach(function(graphData){
+			graphData.histData = $$.hist.bins(graphData.bins)(graphData.values);
+		});
+
 		return chart;
 	};
 
@@ -6965,16 +7166,19 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
-			var data = $$.hist.bins(graphData.bins)(graphData.values);
 
 			// console.log
-			var barWidth = 0.92*$$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length;
+			var xVals = graphData.histData.map(function(d){return d.x;});
+			var xRange = [$$.x.customScale(d3.min(xVals)),
+										$$.x.customScale(d3.max(xVals))];
+			// console.log(histWidth)
+			var barWidth = 1.03*Math.abs(xRange[0]-xRange[1])/graphData.histData.length;
 
 			// var barWidth = ($$.width / data.length)/2;
 
 			graph.selectAll('rect')
 
-			var bar = graph.selectAll('rect').data(data, function(d,i){
+			var bar = graph.selectAll('rect').data(graphData.histData, function(d,i){
 				return d.x;
 			});
 
@@ -6983,20 +7187,15 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 				.style('fill', $$.color(graphData.label))
 				.attr('y',$$.y.customScale(0))
 				.attr('height',0)
-        .on('mouseover.ad-mouseover',function(d,i){
-          AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
-        })
-        .on('mouseout.ad-mouseout',function(d,i){
-          AD.UTILS.removeTooltip();
-        });
+				.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 
 			bar
 				.transition()
 					.duration($$.animationDuration)
 					.attr('x',function(d){return $$.x.customScale(d.x) - barWidth/2;})
-					.attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
 					.attr('width',function(d){return Math.max(0, barWidth);})
-					.attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
+					.attr('y', function(d){return $$.y.customBarScale(d.y).y;})
+					.attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
 			bar.exit()
 				.transition()
@@ -7004,15 +7203,7 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 					.attr('y', $$.y.customScale(0))
 					.attr('height',0);
 
-			//
-
 		});
-
-		// $$.foreground.each(function(graphData){
-		// 	var graph = d3.select(this);
-		// 	//code for the foreground visualization goes here
-		// 	//this will iterate through all of the foreground graph containers of this type
-		// });
 
 		d3.timer.flush();
 

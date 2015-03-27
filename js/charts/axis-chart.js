@@ -47,25 +47,26 @@ AD.CHARTS.axisChart = function(){
 	$$.rotate = false;
 
 	// $$.orientationMap = {
-	// 	x: {
-	// 		dimension1:'innerHeight',
-	// 		dimension2:'innerWidth'
-	// 	},
-	// 	y: {
-	// 		dimension1:'innerWidth',
-	// 		dimension2:'innerHeight'
-	// 	}
-	// };
-
-	$$.orientationMap = {
-		x:'x',
-		y:'y'
-	}
+	// 	x:'x',
+	// 	y:'y'
+	// }
 
 	//controls data
 	$$.controlsData = {
 				hideLegend: {
 					label: "Hide Legend",
+					type: "checkbox",
+					visible: false,
+					enabled: false
+				},
+				lockYAxis: {
+					label: "Lock Y-Axis",
+					type: "checkbox",
+					visible: false,
+					enabled: false
+				},
+				lockXAxis: {
+					label: "Lock X-Axis",
 					type: "checkbox",
 					visible: false,
 					enabled: false
@@ -94,6 +95,7 @@ AD.CHARTS.axisChart = function(){
 		axis:d3.svg.axis(),
 		type:'quantitative,linear',
 		orientation:'bottom',
+		// domain:'auto',
 		domain:[0,1],
 		hide: false
 	};
@@ -103,6 +105,7 @@ AD.CHARTS.axisChart = function(){
 		axis:d3.svg.axis(),
 		type:'quantitative,linear',
 		orientation:'left',
+		// domain:'auto',
 		domain:[0,1],
 		hide: false
 	};
@@ -111,8 +114,56 @@ AD.CHARTS.axisChart = function(){
 	$$.x = $$.xAlias;
 	$$.y = $$.yAlias;
 
-	$$.updateGraphs = function(){
+	//update scale domains based on yValues/xValues 'getters' of each graph type
+	$$.updateDomains = function(){
+		var xType = $$.xAlias.type.split(',')[0];
+		var tools;
+		var xValues = [];
 
+		$$.selection.types.background.type.each(function(d){
+			this.adType
+				.data(d.graphs);
+			if(this.adType.xValues)
+				xValues = xValues.concat(this.adType.xValues());
+		});
+
+		if(!$$.controlsData.lockXAxis.enabled){
+			switch(xType){
+				case 'ordinal':
+					$$.xAlias.scale.domain(d3.set(xValues).values());
+					break;
+				default:
+					$$.xAlias.scale.domain(d3.extent(xValues));
+					break;
+			}
+		}else{
+			$$.xAlias.scale.domain($$.xAlias.domain);
+		}
+
+		var yType = $$.yAlias.type.split(',')[0];
+		var yValues = [];
+		$$.selection.types.background.type.each(function(d){
+			this.adType
+				.data(d.graphs);
+			if(this.adType.yValues)
+				yValues = yValues.concat(this.adType.yValues());
+		});
+		if(!$$.controlsData.lockYAxis.enabled){
+			switch(yType){
+				case 'ordinal':
+					$$.yAlias.scale.domain(d3.set(yValues).values());
+					break;
+				default:
+					$$.yAlias.scale.domain(d3.extent(yValues));
+					break;
+			}
+		}else{
+			$$.yAlias.scale.domain($$.yAlias.domain);
+		}
+	};
+
+	//initialize axis-chart-type containers and graph containers
+	$$.initGraphs = function(){
 		//enter update exit a foreground svg:g element for each axis-chart-type
 		$$.selection.types.foreground.type = $$.selection.types.foreground.selectAll('g.ad-axis-type-foreground').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.foreground.type.enter()
@@ -147,6 +198,13 @@ AD.CHARTS.axisChart = function(){
 				.attr('class', function(d){return 'ad-axis-type-background ad-'+d.type;})
 				.each(function(d){
 					this.adType = new AD.UTILS.AXISCHART.TYPES[d.type];
+					this.adType
+						.x($$.xAlias)
+						.color($$.color)
+						.y($$.yAlias)
+						.xFormat($$.xFormat)
+						.yFormat($$.yFormat)
+						.controls($$.controlsData);
 				});
 		$$.selection.types.background.type.exit()
 			.transition()
@@ -173,12 +231,17 @@ AD.CHARTS.axisChart = function(){
 				.style('opacity',0)
 				.remove();
 
+		//store the foreground graphs within the data
 		$$.selection.types.foreground.type.each(function(d){
 			var type = d3.select(this);
 			var graphs = type.selectAll('.axis-chart-foreground-graph');
 			d.foregroundGraphs = graphs;
 		});
 
+	};
+
+	//update the custom scales that are used by the axis-chart-types
+	$$.updateCustomScales = function(){
 
 		//use custom scales to fix an inconsistancy with the rotated/horizontal scale and sync ordinal scales with other scale types
 		$$.x.customScale = function(value, invert){
@@ -196,6 +259,7 @@ AD.CHARTS.axisChart = function(){
 
 			return position;
 		};
+
 		$$.y.customScale = function(value, invert){
 			var position = 0;
 
@@ -210,24 +274,57 @@ AD.CHARTS.axisChart = function(){
 			return position;
 		};
 
+		//custom bar scale that returns:
+		//bar{
+		//  y(y-axis positioning),
+		//  height(absolute height),
+		//  sHeight(signed height negative down, positive up)
+		//  origin(the x-axis position)
+		//  destination(bar-end position)
+		//}
+		$$.y.customBarScale = function(value){
+			var bar = {y:0,height:0};
+
+			if($$.rotate){
+				bar.origin = $$.x.customScale(0);
+				bar.destination = $$.x.customScale(value);
+
+				bar.sHeight = bar.origin - bar.destination;
+
+				bar.y = Math.min($$.x.customScale(0), bar.destination);
+				bar.height = Math.abs(bar.sHeight);
+			}else{
+				bar.origin = $$.y.customScale(0);
+				bar.destination = $$.y.customScale(value);
+
+				bar.sHeight = bar.origin - bar.destination;
+
+				bar.y = Math.min($$.y.customScale(0), bar.destination);
+				bar.height = Math.abs(bar.sHeight);
+			}
+
+			return bar;
+		};
+
+	}
+
+	//update the graphs stored in the instance of each axis-chart-type-background
+	$$.updateGraphs = function(){
+
+		$$.updateCustomScales();
+
 		$$.selection.types.background.type.each(function(d){
 			var type = d3.select(this);
 			var graphs = type.selectAll('.axis-chart-background-graph');
 			d.backgroundGraphs = graphs;
 
 			this.adType
-				.x($$.xAlias)
-				.y($$.yAlias)
-				.xFormat($$.xFormat)
-				.yFormat($$.yFormat)
-				.color($$.color)
-				.foreground(d.foregroundGraphs)
-				.background(d.backgroundGraphs)
 				.animationDuration($$.animationDuration)
 				.width($$.innerWidth)
 				.height($$.innerHeight)
+				.foreground(d.foregroundGraphs)
+				.background(d.backgroundGraphs)
 				.data(d.graphs)
-				.controls($$.controlsData)
 				.update();
 		});
 
@@ -250,6 +347,7 @@ AD.CHARTS.axisChart = function(){
 		}
 	};
 
+	//update x and y axis (including scales, labels, grid..)
 	$$.updateAxis = function(){
 
 		var labelOffset = 10;
@@ -464,25 +562,27 @@ AD.CHARTS.axisChart = function(){
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
+	//rotate the chart, set x,y scales accordingly
 	chart.rotate = function(value){
 		$$.rotate = value;
 		if(value){
-			$$.orientationMap = {x:'y', y:'x'}
+			// $$.orientationMap = {x:'y', y:'x'}
 			$$.x = $$.yAlias;
 			$$.y = $$.xAlias;
 		}else{
-			$$.orientationMap = {x:'x', y:'y'}
+			// $$.orientationMap = {x:'x', y:'y'}
 			$$.x = $$.xAlias;
 			$$.y = $$.yAlias;
 		}
 		return chart;
 	};
 
+	//x/y setters
 	chart.x = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
 		if(value.orientation)
 			$$.xAlias.orientation = value.orientation;
 
-			$$.xAlias.axis
+		$$.xAlias.axis
 			.scale($$.xAlias.scale)
 			.orient($$.xAlias.orientation);
 	});
@@ -495,6 +595,7 @@ AD.CHARTS.axisChart = function(){
 			.orient($$.yAlias.orientation);
 	});
 
+	//data setter
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
 		if(reset){
@@ -509,7 +610,6 @@ AD.CHARTS.axisChart = function(){
 			$$.xAlias.label = $$.currentChartData.labels.x;
 			$$.yAlias.label = $$.currentChartData.labels.y;
 		}
-
 
 		return chart;
 	};
@@ -531,6 +631,7 @@ AD.CHARTS.axisChart = function(){
 				.selection($$.selection.controls)
 				.on('elementChange',function(d,i){
 					$$.controlsData[d.key].enabled = d.state;
+					// $$.updateScaleDomains();
 					chart.update();
 				});
 
@@ -658,6 +759,10 @@ AD.CHARTS.axisChart = function(){
 				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
 		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		$$.initGraphs();
+
+		$$.updateDomains();
 
 		$$.updateAxis();
 

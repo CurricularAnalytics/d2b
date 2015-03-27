@@ -38,9 +38,28 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
+	chart.xValues = function(){
+    var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.histData.map(function(d){return d.x;}));
+		});
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(graphData){
+			values = values.concat(graphData.histData.map(function(d){return d.y;}));
+		});
+		return values;
+	};
+
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
+		$$.currentChartData.forEach(function(graphData){
+			graphData.histData = $$.hist.bins(graphData.bins)(graphData.values);
+		});
+
 		return chart;
 	};
 
@@ -49,16 +68,19 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
-			var data = $$.hist.bins(graphData.bins)(graphData.values);
 
 			// console.log
-			var barWidth = 0.92*$$.x.customScale(d3.max(data.map(function(d){return d.x;})) - d3.min(data.map(function(d){return d.x;})))/data.length;
+			var xVals = graphData.histData.map(function(d){return d.x;});
+			var xRange = [$$.x.customScale(d3.min(xVals)),
+										$$.x.customScale(d3.max(xVals))];
+			// console.log(histWidth)
+			var barWidth = 1.03*Math.abs(xRange[0]-xRange[1])/graphData.histData.length;
 
 			// var barWidth = ($$.width / data.length)/2;
 
 			graph.selectAll('rect')
 
-			var bar = graph.selectAll('rect').data(data, function(d,i){
+			var bar = graph.selectAll('rect').data(graphData.histData, function(d,i){
 				return d.x;
 			});
 
@@ -67,20 +89,15 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 				.style('fill', $$.color(graphData.label))
 				.attr('y',$$.y.customScale(0))
 				.attr('height',0)
-        .on('mouseover.ad-mouseover',function(d,i){
-          AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
-        })
-        .on('mouseout.ad-mouseout',function(d,i){
-          AD.UTILS.removeTooltip();
-        });
+				.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 
 			bar
 				.transition()
 					.duration($$.animationDuration)
 					.attr('x',function(d){return $$.x.customScale(d.x) - barWidth/2;})
-					.attr('y',function(d){return $$.y.customScale(0) - $$.y.customScale(d.y, true);})
 					.attr('width',function(d){return Math.max(0, barWidth);})
-					.attr('height',function(d){return Math.max(0, $$.y.customScale(d.y, true));});
+					.attr('y', function(d){return $$.y.customBarScale(d.y).y;})
+					.attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
 			bar.exit()
 				.transition()
@@ -88,15 +105,7 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 					.attr('y', $$.y.customScale(0))
 					.attr('height',0);
 
-			//
-
 		});
-
-		// $$.foreground.each(function(graphData){
-		// 	var graph = d3.select(this);
-		// 	//code for the foreground visualization goes here
-		// 	//this will iterate through all of the foreground graph containers of this type
-		// });
 
 		d3.timer.flush();
 
