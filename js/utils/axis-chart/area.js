@@ -73,7 +73,8 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 			var graph = d3.select(this);
 			var path = graph.select('path');
 			if(path.size() == 0){
-				path = graph.append('path');
+				path = graph.append('path')
+					.call(AD.UTILS.bindElementEvents, $$, 'area');
 			}
 
 			if(graphData.interpolate){
@@ -100,6 +101,7 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 				.append('circle')
 					.attr('class','ad-y-point')
 					.attr('r', '4')
+					.call(AD.UTILS.bindElementEvents, $$, 'area-point-y')
 					.on('mouseover.ad-mouseover',function(d,i){
 						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
 					})
@@ -125,6 +127,7 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 
 			$$.foreground.circleY0.enter()
 				.append('circle')
+					.call(AD.UTILS.bindElementEvents, $$, 'area-point-y0')
 					.attr('class','ad-y0-point')
 					.attr('r', '4')
 					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});

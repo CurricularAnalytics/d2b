@@ -214,21 +214,21 @@ AD.UTILS.TWEENS.arcTween = function(transition, arc){
 };
 
 /*Events*/
-AD.UTILS.bind = function(mainKey, element, _, data, index, type){
-	for(key in _.on[mainKey]){
-		_.on[mainKey][key].call(element,data,index,type);
+AD.UTILS.bind = function(mainKey, element, _chart, data, index, type){
+	for(key in _chart.on[mainKey]){
+		_chart.on[mainKey][key].call(element,data,index,type);
 	}
 }
-AD.UTILS.bindElementEvents = function(element, _, type){
+AD.UTILS.bindElementEvents = function(element, _chart, type){
 	element
 			.on('mouseover.ad-element-mouseover',function(d,i){
-				AD.UTILS.bind('elementMouseover', element, _, d, i, type)
+				AD.UTILS.bind('elementMouseover', element, _chart, d, i, type)
 			})
 			.on('mouseout.ad-element-mouseout',function(d,i){
-				AD.UTILS.bind('elementMouseout', element, _, d, i, type)
+				AD.UTILS.bind('elementMouseout', element, _chart, d, i, type)
 			})
 			.on('click.ad-element-click',function(d,i){
-				AD.UTILS.bind('elementClick', element, _, d, i, type)
+				AD.UTILS.bind('elementClick', element, _chart, d, i, type)
 			});
 }
 

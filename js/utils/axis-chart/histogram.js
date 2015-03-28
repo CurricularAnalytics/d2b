@@ -86,10 +86,11 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 
 			var newBar = bar.enter()
 				.append('rect')
-				.style('fill', $$.color(graphData.label))
-				.attr('y',$$.y.customScale(0))
-				.attr('height',0)
-				.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+					.call(AD.UTILS.bindElementEvents, $$, 'histogram-bar')
+					.style('fill', $$.color(graphData.label))
+					.attr('y',$$.y.customScale(0))
+					.attr('height',0)
+					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 
 			bar
 				.transition()

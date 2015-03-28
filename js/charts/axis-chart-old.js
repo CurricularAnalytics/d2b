@@ -116,22 +116,17 @@ AD.CHARTS.axisChart = function(){
 	$$.x = $$.xAlias;
 	$$.y = $$.yAlias;
 
-	$$.persistentChartData = {};
-
 	//update scale domains based on yValues/xValues 'getters' of each graph type
 	$$.updateDomains = function(){
 		var xType = $$.xAlias.type.split(',')[0];
 		var tools;
 		var xValues = [];
-		var yValues = [];
 
 		$$.selection.types.background.type.each(function(d){
 			this.adType
-				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}));
+				.data(d.graphs.filter(function(graph){return !$$.hiddenGraphs[graph.type+'-'+graph.label]}));
 			if(this.adType.xValues)
 				xValues = xValues.concat(this.adType.xValues());
-			if(this.adType.yValues)
-				yValues = yValues.concat(this.adType.yValues());
 		});
 
 		if(xValues.length == 0){
@@ -151,7 +146,13 @@ AD.CHARTS.axisChart = function(){
 		}
 
 		var yType = $$.yAlias.type.split(',')[0];
-
+		var yValues = [];
+		$$.selection.types.background.type.each(function(d){
+			this.adType
+				.data(d.graphs.filter(function(graph){return !$$.hiddenGraphs[graph.type+'-'+graph.label]}));
+			if(this.adType.yValues)
+				yValues = yValues.concat(this.adType.yValues());
+		});
 		if(yValues.length == 0){
 			yValues = [0,1]
 		}
@@ -172,14 +173,10 @@ AD.CHARTS.axisChart = function(){
 	//initialize axis-chart-type containers and graph containers
 	$$.initGraphs = function(){
 		//enter update exit a foreground svg:g element for each axis-chart-type
-		$$.selection.types.foreground.type = $$.selection.types.foreground
-			.selectAll('g.ad-axis-type-foreground')
-				.data($$.currentChartData.types, function(d){return d.type;});
-
+		$$.selection.types.foreground.type = $$.selection.types.foreground.selectAll('g.ad-axis-type-foreground').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.foreground.type.enter()
 			.append('g')
 				.attr('class', function(d){return 'ad-axis-type-foreground ad-'+d.type;});
-
 		$$.selection.types.foreground.type.exit()
 			.transition()
 				.duration($$.animationDuration)
@@ -190,7 +187,7 @@ AD.CHARTS.axisChart = function(){
 		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.ad-axis-chart-foreground-graph')
 			.data(
 				function(d){
-					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
+					return d.graphs
 				},
 				function(d,i){
 					return d.label;
@@ -198,28 +195,18 @@ AD.CHARTS.axisChart = function(){
 			);
 		$$.selection.types.foreground.type.graph.enter()
 			.append('g')
-				.style('opacity',0)
 				.attr('class', 'ad-axis-chart-foreground-graph');
-
 		//save the foreground in data for use with the legend events
 		$$.selection.types.foreground.type.graph
-			.transition()
-				.duration($$.animationDuration)
-				.style('opacity',1)
 				.each(function(d){d.foreground = d3.select(this);});
-
 		$$.selection.types.foreground.type.graph.exit()
-			.each(function(d){d.foreground = null;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
 				.remove();
 
 		//enter update exit a background svg:g element for each axis-chart-type
-		$$.selection.types.background.type = $$.selection.types.background
-			.selectAll('g.ad-axis-type-background')
-				.data($$.currentChartData.types, function(d){return d.type;});
-
+		$$.selection.types.background.type = $$.selection.types.background.selectAll('g.ad-axis-type-background').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.background.type.enter()
 			.append('g')
 				.attr('class', function(d){return 'ad-axis-type-background ad-'+d.type;})
@@ -256,30 +243,19 @@ AD.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a sub-foreground element for the graphs associated with each type
-		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.ad-axis-chart-background-graph')
-			.data(
-				function(d){
-					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
-				},
-				function(d,i){
-					return d.label;
-				}
-			);
+		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.ad-axis-chart-background-graph').data(function(d){return d.graphs;},function(d,i){
+				return d.label;
+			});
 		$$.selection.types.background.type.graph.enter()
 			.append('g')
-				.attr('class', 'ad-axis-chart-background-graph')
-				.style('opacity',0);
+				.attr('class', 'ad-axis-chart-background-graph');
 
 		//save the background in data for use with the legend events
 		$$.selection.types.background.type.graph
-			.transition()
-				.duration($$.animationDuration)
-				.style('opacity',1)
 				.each(function(d){
 						d.background = d3.select(this);
 					});
 		$$.selection.types.background.type.graph.exit()
-			.each(function(d){d.background = null;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
@@ -289,7 +265,7 @@ AD.CHARTS.axisChart = function(){
 		$$.selection.types.foreground.type.each(function(d){
 			var type = d3.select(this);
 			var graphs = type.selectAll('.ad-axis-chart-foreground-graph');
-			d.foregroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
+			d.foregroundGraphs = graphs.filter(function(graph){return !$$.hiddenGraphs[graph.type+'-'+graph.label]});
 		});
 
 	};
@@ -370,7 +346,7 @@ AD.CHARTS.axisChart = function(){
 		$$.selection.types.background.type.each(function(d){
 			var type = d3.select(this);
 			var graphs = type.selectAll('.ad-axis-chart-background-graph');
-			d.backgroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
+			d.backgroundGraphs = graphs.filter(function(graph){return !$$.hiddenGraphs[graph.type+'-'+graph.label]});
 
 			this.adType
 				.animationDuration($$.animationDuration)
@@ -378,7 +354,7 @@ AD.CHARTS.axisChart = function(){
 				.height($$.innerHeight)
 				.foreground(d.foregroundGraphs)
 				.background(d.backgroundGraphs)
-				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}))
+				.data(d.graphs.filter(function(graph){return !$$.hiddenGraphs[graph.type+'-'+graph.label]}))
 				.update();
 		});
 
@@ -721,20 +697,8 @@ AD.CHARTS.axisChart = function(){
 			$$.currentChartData = {};
 		}
 
-		if(chartData.data.types){
+		if(chartData.data.types)
 			$$.currentChartData.types = chartData.data.types;
-
-			//init persistent data links
-			$$.currentChartData.types.forEach(function(type){
-				if(!$$.persistentChartData[type.type])
-					$$.persistentChartData[type.type] = {};
-				type.graphs.forEach(function(graph){
-					if(!$$.persistentChartData[type.type][graph.label])
-						$$.persistentChartData[type.type][graph.label] = {hide:false};
-				});
-			});
-
-		}
 
 		if(chartData.data.labels){
 			$$.currentChartData.labels = chartData.data.labels;
@@ -819,56 +783,41 @@ AD.CHARTS.axisChart = function(){
 				.attr('class','ad-axis-types-foreground');
 
 		$$.legend.on('elementMouseover',function(d){
+			//bring the type and the graph to the front for the foreground and background
+			d.background.node().parentNode.parentNode.appendChild(d.background.node().parentNode);
+			d.background.node().parentNode.appendChild(d.background.node());
+			d.foreground.node().parentNode.parentNode.appendChild(d.foreground.node().parentNode);
+			d.foreground.node().parentNode.appendChild(d.foreground.node());
 
-			if(d.background && d.foreground){
-				var backgroundNode = d.background.node();
-				var foregroundNode = d.foreground.node();
-				//bring the type and the graph to the front for the foreground and background
-				if(backgroundNode.parentNode){
-					backgroundNode.parentNode.appendChild(backgroundNode);
-					if(backgroundNode.parentNode.parentNode)
-						backgroundNode.parentNode.parentNode.appendChild(backgroundNode.parentNode);
-				}
-				if(foregroundNode.parentNode){
-					foregroundNode.parentNode.appendChild(foregroundNode);
-					if(foregroundNode.parentNode.parentNode)
-					foregroundNode.parentNode.parentNode.appendChild(foregroundNode.parentNode);
-				}
-
-				//dim all but the corresponding graph
-				$$.selection.types.foreground.type.graph
-					.transition()
-						.duration($$.animationDuration/2)
-						.style('opacity', 0.2);
-				$$.selection.types.background.type.graph
-					.transition()
-						.duration($$.animationDuration/2)
-						.style('opacity', 0.2);
-				d.background
-					.transition()
-						.duration($$.animationDuration/2)
-						.style('opacity', 1);
-				d.foreground
-					.transition()
-						.duration($$.animationDuration/2)
-						.style('opacity', 1);
-			}
-
-
+			//dim all but the corresponding graph
+			d3.selectAll('g.ad-axis-chart-background-graph').classed('ad-axis-chart-dim', true);
+			d3.selectAll('g.ad-axis-chart-foreground-graph').classed('ad-axis-chart-dim', true);
+			d.background.classed('ad-axis-chart-dim', false);
+			d.foreground.classed('ad-axis-chart-dim', false);
 		})
 		.on('elementMouseout',function(d){
 			//reset dimming
-			$$.selection.types.foreground.type.graph
-				.transition()
-					.duration($$.animationDuration/2)
-					.style('opacity', 1);
-			$$.selection.types.background.type.graph
-				.transition()
-					.duration($$.animationDuration/2)
-					.style('opacity', 1);
+			d3.selectAll('g.ad-axis-chart-background-graph').classed('ad-axis-chart-dim', false);
+			d3.selectAll('g.ad-axis-chart-foreground-graph').classed('ad-axis-chart-dim', false);
 		})
 		.on('elementClick', function(d){
-			$$.persistentChartData[d.type][d.label].hide = !$$.persistentChartData[d.type][d.label].hide;
+			this.hide = !this.hide;
+			$$.hiddenGraphs[d.type+'-'+d.label] = this.hide;
+			var element = d3.select(this).select('circle');
+			if(this.hide){
+				d.background.classed('ad-axis-chart-hide', true);
+				d.foreground.classed('ad-axis-chart-hide', true);
+				element
+					.style('stroke', element.style('fill'))
+					.style('fill-opacity',0)
+					.style('stroke-width','2px');
+			}else{
+				d.background.classed('ad-axis-chart-hide', false);
+				d.foreground.classed('ad-axis-chart-hide', false);
+				element
+					.style('stroke-width','0px')
+					.style('fill-opacity','');
+			}
 			chart.update();
 		});
 
@@ -920,10 +869,7 @@ AD.CHARTS.axisChart = function(){
 			$$.legendData.data.items = [].concat.apply([],
 				$$.currentChartData.types.map(
 					function(type){
-						return type.graphs.map(function(graph,i){
-							graph.open = $$.persistentChartData[type.type][graph.label].hide;
-							return graph;
-						})
+						return type.graphs.map(function(graph){return graph;})
 					}
 				)
 			);

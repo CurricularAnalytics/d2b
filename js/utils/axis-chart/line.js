@@ -67,7 +67,8 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 			var graph = d3.select(this);
 			var path = graph.select('path');
 			if(path.size() == 0){
-				path = graph.append('path');
+				path = graph.append('path')
+					.call(AD.UTILS.bindElementEvents, $$, 'line');
 			}
 
 			if(graphData.interpolate){
@@ -92,7 +93,8 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 			circle.enter()
 				.append('circle')
 					.attr('r', '4')
-					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+					.call(AD.UTILS.bindElementEvents, $$, 'line-point');
 			circle
 					.style('stroke', $$.color(graphData.label))
 					.style('fill', 'white')

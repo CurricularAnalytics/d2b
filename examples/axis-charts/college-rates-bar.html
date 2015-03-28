@@ -25,8 +25,8 @@
 				invert:false, 								//default false
 				hide: false, 									//default false
 				type:'ordinal', 							//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
-				// domain:['Anderson Schools of Management', 'College of Arts and Sciences']			//default [0, 1], set the domain for the chosen scale type
-				// domain:'auto'
+				// domain:['Anderson Schools of Management', 'College of Arts and Sciences']					//default [0, 1], set the domain for the chosen scale type
+				tickData:{'College of Arts and Sciences':{url:'http://google.com'}}									//used if data needs to be supplied to ordinal ticks
 			})
 
 //set the y scale type to quantitative,linear (this is default) and the domain as [0,300]
@@ -87,7 +87,6 @@
 					}
 				]
 			}});
-
 
 //define chart layout
 			var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();

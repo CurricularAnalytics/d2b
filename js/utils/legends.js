@@ -144,7 +144,8 @@ AD.UTILS.LEGENDS.legend = function(){
 				});
 
 		newItem.append('circle')
-				.attr('fill',function(d){return d.color || ((d.colorKey)? color(d.colorKey) : color(d.label));});
+			.style('fill',function(d){return d.color || ((d.colorKey)? color(d.colorKey) : color(d.label))})
+			.style('stroke',function(d){return d.color || ((d.colorKey)? color(d.colorKey) : color(d.label));});
 
 		newItem.append('text')
 				.text(function(d){return d.label;})
@@ -152,6 +153,23 @@ AD.UTILS.LEGENDS.legend = function(){
 		var circle = item.select('circle')
 				.attr('r',scale)
 				.attr('y',scale/2);
+
+		circle
+			.transition()
+				.duration(animationDuration)
+				.style('stroke-width',function(d){
+					if(d.open)
+						return '2px';
+					else
+						return '0px';
+				})
+				.style('fill-opacity', function(d){
+					if(d.open)
+						return 0;
+					else
+						return 1;
+				});
+
 		var text = item.select('text')
 				.style('font-size',scale*2.5+'px')
 				.attr('x',scale*2)

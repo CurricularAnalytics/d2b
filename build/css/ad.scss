@@ -177,64 +177,64 @@ html, body, .ad-container {
 	font-weight:bold;
 	text-anchor:middle;
 }
-
-/*axisChart column specific styles*/
-.ad-svg .ad-bar-columns rect{
-	shape-rendering:crispEdges;
-	fill-opacity:0.65;
-	-webkit-transition: fill-opacity 0.25s;
-    transition: fill-opacity 0.25s;
-}
-.ad-svg .ad-bar-columns rect:hover{
-	fill-opacity:0.8;
-}
-
-.ad-svg .ad-area-columns path{
-	fill-opacity:0.25;
-	stroke-width:1px;
-	-webkit-transition: fill-opacity 0.25s, stroke-width 0.25s;
-    transition: fill-opacity 0.25s, stroke-width 0.25s;
-}
-.ad-svg .ad-area-columns path:hover{
-	fill-opacity:0.5;
-	stroke-width:1.5px;
-}
-
-.ad-svg .ad-scatter-columns circle{
-	stroke-width:1px;
-	stroke:white;
-	stroke-opacity:1;
-	-webkit-transition: stroke-width 0.25s;
-    transition: stroke-width 0.25s;
-}
-.ad-svg .ad-scatter-columns circle:hover{
-	stroke-width:1.5px;
-}
-.ad-svg .ad-line-columns path.ad-line{
-	stroke-width:2px;
-	fill:none;
-	-webkit-transition: stroke-width 0.25s;
-  transition: stroke-width 0.25s;
-}
-.ad-svg .ad-line-columns path.ad-line:hover{
-	stroke-width:4px;
-}
-
-
-/*axisChart legend hover events*/
-.ad-area-columns g.ad-legend-mouseover path{
-	fill-opacity:0.5;
-	stroke-width:1.5px;
-}
-.ad-line-columns g.ad-legend-mouseover path.ad-line{
-	stroke-width:4px;
-}
-.ad-bar-columns g.ad-legend-mouseover rect{
-	fill-opacity:0.8;
-}
-.ad-scatter-columns g.ad-legend-mouseover circle{
-	stroke-width:1.5px;
-}
+//
+// /*axisChart column specific styles*/
+// .ad-svg .ad-bar-columns rect{
+// 	shape-rendering:crispEdges;
+// 	fill-opacity:0.65;
+// 	-webkit-transition: fill-opacity 0.25s;
+//     transition: fill-opacity 0.25s;
+// }
+// .ad-svg .ad-bar-columns rect:hover{
+// 	fill-opacity:0.8;
+// }
+//
+// .ad-svg .ad-area-columns path{
+// 	fill-opacity:0.25;
+// 	stroke-width:1px;
+// 	-webkit-transition: fill-opacity 0.25s, stroke-width 0.25s;
+//     transition: fill-opacity 0.25s, stroke-width 0.25s;
+// }
+// .ad-svg .ad-area-columns path:hover{
+// 	fill-opacity:0.5;
+// 	stroke-width:1.5px;
+// }
+//
+// .ad-svg .ad-scatter-columns circle{
+// 	stroke-width:1px;
+// 	stroke:white;
+// 	stroke-opacity:1;
+// 	-webkit-transition: stroke-width 0.25s;
+//     transition: stroke-width 0.25s;
+// }
+// .ad-svg .ad-scatter-columns circle:hover{
+// 	stroke-width:1.5px;
+// }
+// .ad-svg .ad-line-columns path.ad-line{
+// 	stroke-width:2px;
+// 	fill:none;
+// 	-webkit-transition: stroke-width 0.25s;
+//   transition: stroke-width 0.25s;
+// }
+// .ad-svg .ad-line-columns path.ad-line:hover{
+// 	stroke-width:4px;
+// }
+//
+//
+// /*axisChart legend hover events*/
+// .ad-area-columns g.ad-legend-mouseover path{
+// 	fill-opacity:0.5;
+// 	stroke-width:1.5px;
+// }
+// .ad-line-columns g.ad-legend-mouseover path.ad-line{
+// 	stroke-width:4px;
+// }
+// .ad-bar-columns g.ad-legend-mouseover rect{
+// 	fill-opacity:0.8;
+// }
+// .ad-scatter-columns g.ad-legend-mouseover circle{
+// 	stroke-width:1.5px;
+// }
 
 /*legend styles*/
 /*.ad-legend{
@@ -293,7 +293,24 @@ html, body, .ad-container {
 		}
 	}
 	.ad-axis-types{
+
+		// .ad-axis-chart-dim{
+		// 	-webkit-transition: opacity 0.5s;
+		// 	transition: opacity 0.5s;
+		// 	opacity:0.2;
+		// }
+		// .ad-axis-chart-hide{
+		// 	-webkit-transition: opacity 0.5s;
+		// 	transition: opacity 0.5s;
+		// 	opacity:0;
+		// 	pointer-events:none;
+		// }
+
 		.ad-axis-types-background{
+			// .ad-axis-chart-background-graph{
+			// 	-webkit-transition: opacity 0.5s;
+			// 	transition: opacity 0.5s;
+			// }
 			.ad-line{
 				path{
 					fill:none;
@@ -329,6 +346,10 @@ html, body, .ad-container {
 			}
 		}
 		.ad-axis-types-foreground{
+			// .ad-axis-chart-background-graph{
+			// 	-webkit-transition: opacity 0.5s;
+			// 	transition: opacity 0.5s;
+			// }
 			circle{
 				stroke-width:2px;
 				stroke:white;
