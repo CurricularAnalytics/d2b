@@ -2,11 +2,11 @@
 
 
 /*axis chart*/
-d3b.CHARTS.interactiveBarChart = function(){
+d2b.CHARTS.interactiveBarChart = function(){
 
 	//define axisChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 	var dimensions = {horizontal:innerWidth, vertical:innerHeight};
@@ -25,18 +25,18 @@ d3b.CHARTS.interactiveBarChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d3b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
+	var legend = new d2b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
 	var xFormat = function(value){return value};
 	var yFormat = function(value){return value};
 
 	//init event object
-	var on = d3b.CONSTANTS.DEFAULTEVENTS();
+	var on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	var orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 
@@ -46,8 +46,8 @@ d3b.CHARTS.interactiveBarChart = function(){
 					type: "checkbox",
 					visible: false,
 					enabled: false,
-					maxStacked:d3b.CONSTANTS.DEFAULTHEIGHT(),
-					maxNonStacked:d3b.CONSTANTS.DEFAULTHEIGHT()
+					maxStacked:d2b.CONSTANTS.DEFAULTHEIGHT(),
+					maxNonStacked:d2b.CONSTANTS.DEFAULTHEIGHT()
 				},
 				stacking: {
 					label: "Stack Bars",
@@ -69,7 +69,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 				}
 			};
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 				columns: {},
@@ -95,23 +95,23 @@ d3b.CHARTS.interactiveBarChart = function(){
 	var updateColumn = function(column){
 		var bar = column.svg.selectAll('rect').data(column.data.values, function(d){return d.x});
 		bar.enter().append('rect')
-				.attr('class','d3b-bar-rect')
+				.attr('class','d2b-bar-rect')
 				.style('opacity',0)
 				.attr(orientation.height,0)
 				.attr(orientation.y,(controls.horizontal.enabled)? 0:dimensions.vertical)
-				.on('mouseover.d3b-mouseover',function(d,i){
-					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
+				.on('mouseover.d2b-mouseover',function(d,i){
+					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i,'bar');
 					}
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
-					d3b.UTILS.removeTooltip();
+				.on('mouseout.d2b-mouseout',function(d,i){
+					d2b.UTILS.removeTooltip();
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i,'bar');
 					}
 				})
-				.on('click.d3b-click',function(d,i){
+				.on('click.d2b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i,'bar');
 					}
@@ -313,12 +313,12 @@ d3b.CHARTS.interactiveBarChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = d3b.UTILS.numberFormat(value);
+		xFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 	chart.yFormat = function(value){
 		if(!arguments.length) return yFormat;
-		yFormat = d3b.UTILS.numberFormat(value);
+		yFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -389,7 +389,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','d3b-interactive-bar-chart d3b-svg d3b-container');
+				.attr('class','d2b-interactive-bar-chart d2b-svg d2b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
@@ -397,20 +397,20 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create axis containers
 		selection.group.axes = selection.group
 			.append('g')
-				.attr('class','d3b-axes');
+				.attr('class','d2b-axes');
 		selection.group.axes.x = selection.group.axes
 			.append('g')
-				.attr('class','d3b-x d3b-axis');
+				.attr('class','d2b-x d2b-axis');
 		selection.group.axes.y = selection.group.axes
 			.append('g')
-				.attr('class','d3b-y d3b-axis');
+				.attr('class','d2b-y d2b-axis');
 		selection.group.axes.xLabel = selection.group.axes
 			.append('g')
-				.attr('class','d3b-x-label')
+				.attr('class','d2b-x-label')
 			.append('text');
 		selection.group.axes.yLabel = selection.group.axes
 			.append('g')
-				.attr('class','d3b-y-label')
+				.attr('class','d2b-y-label')
 			.append('text');
 
 
@@ -418,7 +418,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create column containers
 		selection.group.columns = selection.group
 			.append('g')
-				.attr('class','d3b-columns');
+				.attr('class','d2b-columns');
 
 		for(key in currentChartData.columns){
 			currentChartData.columns[key].svg = selection.group.columns
@@ -428,7 +428,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','d3b-controls');
+				.attr('class','d2b-controls');
 
 		//intialize new controls
 		horizontalControls
@@ -441,13 +441,13 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','d3b-legend');
+				.attr('class','d2b-legend');
 
 		//intialize new legend
 		legend
 				.color(color)
 				.selection(selection.legend)
-				.on('elementMouseover.d3b-mouseover',function(d,i){
+				.on('elementMouseover.d2b-mouseover',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/2)
@@ -456,14 +456,14 @@ d3b.CHARTS.interactiveBarChart = function(){
 						.transition()
 							.duration(0)
 							.style('opacity',1);
-					// .classed('d3b-legend-mouseover',true);
+					// .classed('d2b-legend-mouseover',true);
 				})
-				.on('elementMouseout.d3b-mouseout',function(d,i){
+				.on('elementMouseout.d2b-mouseout',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/4)
 							.style('opacity',1);
-					// d.data.svg.classed('d3b-legend-mouseover',false);
+					// d.data.svg.classed('d2b-legend-mouseover',false);
 				});
 
 
@@ -484,7 +484,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		forcedMargin.bottom += 20;
 		forcedMargin.left += 20;
 
@@ -502,7 +502,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 			orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 		}
 
-		var columns = d3b.UTILS.getValues(currentChartData.columns);
+		var columns = d2b.UTILS.getValues(currentChartData.columns);
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
@@ -520,7 +520,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		}
 		legend.width(innerWidth).data(legendData).update();
 
-		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -584,7 +584,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 					yVals.push(bar.y);
 				});
 			});
-			yVals = yVals.concat(d3b.UTILS.getValues(yValsStackedBars));
+			yVals = yVals.concat(d2b.UTILS.getValues(yValsStackedBars));
 		}else{
 			columns.forEach(function(column){
 				if(column.data.values){
@@ -600,10 +600,10 @@ d3b.CHARTS.interactiveBarChart = function(){
 
 		if(scales[orientation.horizontal].type == 'ordinal'){
 			scales[orientation.horizontal].scale.rangeRoundBands([0, dimensions[orientation.horizontal]], .1);
-			domains[orientation.horizontal] = d3b.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
+			domains[orientation.horizontal] = d2b.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
 		}else{
 			scales[orientation.horizontal].scale.range([0, dimensions[orientation.horizontal]])
-			domains[orientation.horizontal] = d3b.UTILS.AXISCHARTS.getDomainLinear(xVals);
+			domains[orientation.horizontal] = d2b.UTILS.AXISCHARTS.getDomainLinear(xVals);
 		}
 		if(controls.yAxisLock.enabled){
 			if(controls.stacking.enabled){
@@ -612,7 +612,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 				domains[orientation.vertical] = [0,controls.yAxisLock.maxNonStacked];
 			}
 		}else{
-			domains[orientation.vertical] = d3b.UTILS.AXISCHARTS.getDomainLinear(yVals);
+			domains[orientation.vertical] = d2b.UTILS.AXISCHARTS.getDomainLinear(yVals);
 		}
 		scales[orientation.vertical].scale.range([dimensions[orientation.vertical], 0]);
 

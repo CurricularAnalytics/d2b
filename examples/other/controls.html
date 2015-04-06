@@ -3,14 +3,14 @@
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d3b.js"></script>
+<script src="../../build/js/d2b.js"></script>
 
 <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
 
 <script>
 //SVG builders
 	function makeRadioButtonsSVG(){
-		var radioButtons = new d3b.UTILS.CONTROLS.radioButtons();
+		var radioButtons = new d2b.UTILS.CONTROLS.radioButtons();
 		radioButtons
 			.select('svg.radio-buttons')
 			.scale(5)
@@ -23,7 +23,7 @@
 	}
 
 	// function makeSelector(){
-	// 	var selector = new d3b.UTILS.CONTROLS.selector();
+	// 	var selector = new d2b.UTILS.CONTROLS.selector();
 	// 	selector
 	// 		.select('.selector')
 	// 		.scale(5)
@@ -36,7 +36,7 @@
 	// }
 
 	function makeCheckboxSVG(){
-		var checkbox = new d3b.UTILS.CONTROLS.checkbox();
+		var checkbox = new d2b.UTILS.CONTROLS.checkbox();
 		checkbox
 			.select('svg.checkbox')
 			.scale(5)
@@ -52,7 +52,7 @@
 //HTML builders
 
 	function makeRadioButtonsHTML(){
-		var radioButtons = new d3b.UTILS.CONTROLS.radioButtons();
+		var radioButtons = new d2b.UTILS.CONTROLS.radioButtons();
 		var container = d3.select('div.radio-buttons');
 		radioButtons
 			.container(container)
@@ -62,7 +62,7 @@
 			.update();
 	}
 	function makeCheckboxHTML(){
-		var checkbox = new d3b.UTILS.CONTROLS.checkbox();
+		var checkbox = new d2b.UTILS.CONTROLS.checkbox();
 		var container = d3.select('div.checkbox');
 		checkbox
 			.container(container)
@@ -72,7 +72,7 @@
 			.update();
 	}
 	function makeControlsHTML(){
-		var controls = new d3b.UTILS.CONTROLS.htmlControls();
+		var controls = new d2b.UTILS.CONTROLS.htmlControls();
 		controls
 			.select('div.controls-set')
 			.scale(5)

@@ -1,15 +1,15 @@
-.d3b-chart-page-container{
+.d2b-chart-page-container{
   position:relative;
-  .d3b-chart-page{
+  .d2b-chart-page{
     position:absolute;
     z-index:0;
-    .d3b-page-chart-layout{
+    .d2b-page-chart-layout{
       position:absolute;
       overflow:hidden;
-      .d3b-chart-layout-wrapper{
+      .d2b-chart-layout-wrapper{
         padding:5px;
         overflow:hidden;
-        .d3b-chart-layout{
+        .d2b-chart-layout{
           border-radius:1px;
           overflow:hidden;
           -webkit-box-shadow: $dashboard_shadow;

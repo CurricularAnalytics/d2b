@@ -1,47 +1,47 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*sunburst chart*/
-d3b.CHARTS.sunburstChart = function(){
+d2b.CHARTS.sunburstChart = function(){
 
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = { data: { partition:{}}};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new d3b.UTILS.LEGENDS.legend();
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new d3b.UTILS.CONTROLS.controls();
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
 
 	//breacrumbs OBJ
-	$$.breadcrumbs = new d3b.UTILS.breadcrumbs();
+	$$.breadcrumbs = new d2b.UTILS.breadcrumbs();
 	$$.breadcrumbs.scale(6)
 
 	//partitioned sunburst data
@@ -310,14 +310,14 @@ d3b.CHARTS.sunburstChart = function(){
 						outer: this.oldArc.outer
 					};
 				})
-				.call(d3b.UTILS.TWEENS.arcTween, $$.arc)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
 				// .attrTween("d", $$.arcTween);
 
 		//tween paths to new positions
 		var pathTransition = $$.selection.arcs.arc.path
 			.transition()
 				.duration($$.animationDuration*1.5)
-				.call(d3b.UTILS.TWEENS.arcTween, $$.arc)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
 				// .attrTween("d", $$.arcTween);
 
 
@@ -409,18 +409,18 @@ d3b.CHARTS.sunburstChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 
 	chart.data = function(chartData, reset){
@@ -440,21 +440,21 @@ d3b.CHARTS.sunburstChart = function(){
 	chart.generate = function(callback) {
 		$$.generateRequired = false;
 
-		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d3b-sunburst')
-				.on('mouseout.d3b-mouseout', $$.sunburstMouseout);
+				.attr('class','d2b-sunburst')
+				.on('mouseout.d2b-mouseout', $$.sunburstMouseout);
 
 
 		$$.selection.arcs = $$.selection.main
 			.append('g')
-				.attr('class','d3b-sunburst-arcs');
+				.attr('class','d2b-sunburst-arcs');
 
 		$$.selection.tooltip = $$.selection.main
 			.append('g')
-				.attr('class','d3b-sunburst-tooltip');
+				.attr('class','d2b-sunburst-tooltip');
 
 		$$.selection.tooltip.text = $$.selection.tooltip
 			.append('text');
@@ -462,7 +462,7 @@ d3b.CHARTS.sunburstChart = function(){
 		//create breadcrumbs container
 		$$.selection.breadcrumbs = $$.selection.group
 			.append('g')
-				.attr('class','d3b-sunburst-breadcrumbs');
+				.attr('class','d2b-sunburst-breadcrumbs');
 
 		$$.controls
 				.selection($$.selection.controls)
@@ -506,7 +506,7 @@ d3b.CHARTS.sunburstChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -516,10 +516,10 @@ d3b.CHARTS.sunburstChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
+		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		$$.selection.breadcrumbs
 			.transition()
@@ -536,7 +536,7 @@ d3b.CHARTS.sunburstChart = function(){
 		// $$.forcedMargin.top += Math.max($$.breadcrumbs.computedHeight(), $$.controls.computedHeight());
 		$$.forcedMargin.top += $$.breadcrumbs.computedHeight();
 
-		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		$$.selection.main
 			.transition()
@@ -568,10 +568,10 @@ d3b.CHARTS.sunburstChart = function(){
 		var newArcs =	$$.selection.arcs.arc.enter().append("g")
 			.attr('class','sunburst-arc')
 			.style('opacity',0)
-			.call(d3b.UTILS.bindElementEvents, $$, 'arc');
+			.call(d2b.UTILS.bindElementEvents, $$, 'arc');
 
 		var newPaths = newArcs.append("path")
-				.on('mouseover.d3b-mouseover',$$.arcMouseover);
+				.on('mouseover.d2b-mouseover',$$.arcMouseover);
 
 		$$.selection.arcs.arc
 			.transition()
@@ -583,8 +583,8 @@ d3b.CHARTS.sunburstChart = function(){
 				.style('fill',$$.arcFill);
 
 		$$.selection.arcs.arc.path
-				.on('click.d3b-click',$$.arcClick)
-				.classed('d3b-pointer-element',true);
+				.on('click.d2b-click',$$.arcClick)
+				.classed('d2b-pointer-element',true);
 
 		$$.updateArcs();
 

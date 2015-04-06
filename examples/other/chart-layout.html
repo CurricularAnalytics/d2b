@@ -2,12 +2,12 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d3b.min.js"></script>
+<script src="../../build/js/d2b.min.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <script>
 	$(document).ready(function(){
 
-		var axisChart = new d3b.CHARTS.axisChart();
+		var axisChart = new d2b.CHARTS.axisChart();
 		axisChart
 			.controls({
 				stackBars: { //only for bar charts
@@ -21,7 +21,7 @@
 			.x({type: 'ordinal',domain:['x1','x2','x3','x4']});
 
 
-		var chartLayout = new d3b.UTILS.CHARTPAGE.chartLayout();
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
 		chartLayout
 				.width($(window).width())
 				.height($(window).height())

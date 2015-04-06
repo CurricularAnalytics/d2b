@@ -1,26 +1,26 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*shapes*/
-d3b.createNameSpace("d3b.UTILS.SHAPES");
+d2b.createNameSpace("d2b.UTILS.SHAPES");
 
 
 /*tooltop utilities*/
 
 /*Bind Tooltip Events*/
-d3b.UTILS.tooltip = function(element, heading, content){
+d2b.UTILS.tooltip = function(element, heading, content){
 	element
-			.on('mouseover.d3b-mouseover-tooltip',function(d,i){
-				d3b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
+			.on('mouseover.d2b-mouseover-tooltip',function(d,i){
+				d2b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
 			})
-			.on('mouseout.d3b-mouseout-tooltip',function(d,i){
-				d3b.UTILS.removeTooltip();
+			.on('mouseout.d2b-mouseout-tooltip',function(d,i){
+				d2b.UTILS.removeTooltip();
 			});
 };
 
-d3b.UTILS.createGeneralTooltip = function(elem, heading, content){
+d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
 	var body = d3.select('body');
 	var adGeneralTooltip = body.append('div')
-			.attr('class','d3b-general-tooltip')
+			.attr('class','d2b-general-tooltip')
 			.html(heading+': '+content)
 			.style('opacity',0);
 
@@ -28,7 +28,7 @@ d3b.UTILS.createGeneralTooltip = function(elem, heading, content){
 		.transition()
 			.duration(50)
 			.style('opacity',1);
-	var scroll = d3b.UTILS.scrollOffset();
+	var scroll = d2b.UTILS.scrollOffset();
 
 	var bodyWidth = body.node().getBoundingClientRect().width;
 	// console.log(bodyWidth)
@@ -39,24 +39,24 @@ d3b.UTILS.createGeneralTooltip = function(elem, heading, content){
 								scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 	pos.top = scroll.top+d3.event.clientY-10;
 
-	d3b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
+	d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
 	elem.on('mousemove',function(){
-		scroll = d3b.UTILS.scrollOffset();
+		scroll = d2b.UTILS.scrollOffset();
 
 		pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
 		scroll.left+d3.event.clientX+10 :
 									scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 		pos.top = scroll.top+d3.event.clientY-10;
 
-		d3b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
+		d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
 	});
 	return adGeneralTooltip;
 };
-d3b.UTILS.removeTooltip = function(){
-	d3.selectAll('.d3b-general-tooltip')
+d2b.UTILS.removeTooltip = function(){
+	d3.selectAll('.d2b-general-tooltip')
 			.remove();
 };
-d3b.UTILS.moveTooltip = function(tooltip, x, y, duration){
+d2b.UTILS.moveTooltip = function(tooltip, x, y, duration){
 	tooltip
 		.transition()
 			.duration(duration)
@@ -69,14 +69,14 @@ d3b.UTILS.moveTooltip = function(tooltip, x, y, duration){
 };
 
 /*extra utilities*/
-d3b.UTILS.scrollOffset = function(){
+d2b.UTILS.scrollOffset = function(){
 	var doc = document.documentElement;
 	var left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
 	var top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
 	return {top:top, left:left};
 };
 
-d3b.UTILS.getValues = function(obj){
+d2b.UTILS.getValues = function(obj){
 	var values = [];
 	for(var key in obj) {
 		obj[key].key = key;
@@ -86,16 +86,16 @@ d3b.UTILS.getValues = function(obj){
 };
 
 /*Axis Chart Utilities*/
-d3b.createNameSpace("d3b.UTILS.AXISCHARTS");
-d3b.UTILS.AXISCHARTS.getDomainLinear = function(values){
+d2b.createNameSpace("d2b.UTILS.AXISCHARTS");
+d2b.UTILS.AXISCHARTS.getDomainLinear = function(values){
 	return [(d3.min(values)<0)? d3.min(values) : 0, d3.max(values)+1]
 };
-d3b.UTILS.AXISCHARTS.getDomainOrdinal = function(values){
+d2b.UTILS.AXISCHARTS.getDomainOrdinal = function(values){
 	return d3.set(values).values();
 };
 
 /*Formating Utilities*/
-d3b.UTILS.niceFormat = function(value, precision){
+d2b.UTILS.niceFormat = function(value, precision){
 	if(!precision)
 		precision = 0;
 	var format = d3.format("."+precision+"f");
@@ -152,7 +152,7 @@ d3b.UTILS.niceFormat = function(value, precision){
 	}
 }
 
-d3b.UTILS.numberFormat = function(preferences){
+d2b.UTILS.numberFormat = function(preferences){
 	var formatString = "";
 	var format;
 	var units = {
@@ -160,7 +160,7 @@ d3b.UTILS.numberFormat = function(preferences){
 		after:(preferences.units.after)?preferences.units.after:"",
 	}
 	if(preferences.nice){
-		return function(value){return units.before + d3b.UTILS.niceFormat(value, preferences.precision) + units.after};
+		return function(value){return units.before + d2b.UTILS.niceFormat(value, preferences.precision) + units.after};
 	}else if(preferences.siPrefixed){
 		if(preferences.precision>-1){
 			formatString += "."+preferences.precision;
@@ -185,7 +185,7 @@ d3b.UTILS.numberFormat = function(preferences){
 	}
 };
 
-d3b.UTILS.textWrap = function(text, width) {
+d2b.UTILS.textWrap = function(text, width) {
   text.each(function() {
     var text = d3.select(this),
         words = text.text().split(/\s+/).reverse(),
@@ -211,9 +211,9 @@ d3b.UTILS.textWrap = function(text, width) {
 
 
 /*Custom Tweens*/
-d3b.createNameSpace("d3b.UTILS.TWEENS");
+d2b.createNameSpace("d2b.UTILS.TWEENS");
 //arc tween from this.oldArc to this.newArc
-d3b.UTILS.TWEENS.arcTween = function(transition, arc){
+d2b.UTILS.TWEENS.arcTween = function(transition, arc){
 	transition.attrTween("d",function(d){
 		var _self = this;
 		var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
@@ -226,20 +226,20 @@ d3b.UTILS.TWEENS.arcTween = function(transition, arc){
 };
 
 /*Events*/
-d3b.UTILS.bind = function(mainKey, element, _chart, data, index, type){
+d2b.UTILS.bind = function(mainKey, element, _chart, data, index, type){
 	for(key in _chart.on[mainKey]){
 		_chart.on[mainKey][key].call(element,data,index,type);
 	}
 }
-d3b.UTILS.bindElementEvents = function(element, _chart, type){
+d2b.UTILS.bindElementEvents = function(element, _chart, type){
 	element
-			.on('mouseover.d3b-element-mouseover',function(d,i){
-				d3b.UTILS.bind('elementMouseover', element, _chart, d, i, type)
+			.on('mouseover.d2b-element-mouseover',function(d,i){
+				d2b.UTILS.bind('elementMouseover', element, _chart, d, i, type)
 			})
-			.on('mouseout.d3b-element-mouseout',function(d,i){
-				d3b.UTILS.bind('elementMouseout', element, _chart, d, i, type)
+			.on('mouseout.d2b-element-mouseout',function(d,i){
+				d2b.UTILS.bind('elementMouseout', element, _chart, d, i, type)
 			})
-			.on('click.d3b-element-click',function(d,i){
-				d3b.UTILS.bind('elementClick', element, _chart, d, i, type)
+			.on('click.d2b-element-click',function(d,i){
+				d2b.UTILS.bind('elementClick', element, _chart, d, i, type)
 			});
 }

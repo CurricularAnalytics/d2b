@@ -3,7 +3,7 @@
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d3b.js"></script>
+<script src="../../build/js/d2b.js"></script>
 <script>
 	$(document).ready(function(){
 
@@ -1107,13 +1107,13 @@
 
 		console.log(data)
 
-		var axisChart = new d3b.CHARTS.axisChart();
+		var axisChart = new d2b.CHARTS.axisChart();
 
 		axisChart.legendOrientation('top').data(data);
 
 //
 //
-// 		var axisChart = new d3b.CHARTS.axisChart();
+// 		var axisChart = new d2b.CHARTS.axisChart();
 //
 // 		axisChart
 // //no need to use select/width/height if imbeding chart into a chartLayout
@@ -1176,7 +1176,7 @@
 //
 
 //define chart layout
-			var chartLayout = new d3b.UTILS.CHARTPAGE.chartLayout();
+			var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
 
 //setup chart layout
 			chartLayout

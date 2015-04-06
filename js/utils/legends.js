@@ -1,16 +1,16 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*LEGEND UTILITIES*/
-d3b.createNameSpace("d3b.UTILS.LEGENDS");
-d3b.UTILS.LEGENDS.legend = function(){
-	var maxWidth = d3b.CONSTANTS.DEFAULTWIDTH(), maxHeight = d3b.CONSTANTS.DEFAULTHEIGHT();
+d2b.createNameSpace("d2b.UTILS.LEGENDS");
+d2b.UTILS.LEGENDS.legend = function(){
+	var maxWidth = d2b.CONSTANTS.DEFAULTWIDTH(), maxHeight = d2b.CONSTANTS.DEFAULTHEIGHT();
 	var innerMaxHeight, innerMaxWidth;
 	var items = [];
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 	var selection;
 	var currentLegendData;
 	var computedWidth=0, computedHeight=0;
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var orientation = 'horizontal';
 	var padding = 5;
 
@@ -120,24 +120,24 @@ d3b.UTILS.LEGENDS.legend = function(){
 		innerMaxWidth = maxWidth - padding*2;
 
 
-		var item = selection.selectAll('g.d3b-legend-item')
+		var item = selection.selectAll('g.d2b-legend-item')
 				.data(currentLegendData.items, function(d){return d.label;});
 
 		var newItem = item.enter()
 			.append('g')
-				.attr('class','d3b-legend-item')
+				.attr('class','d2b-legend-item')
 				.style('opacity',0)
-				.on('mouseover.d3b-mouseover',function(d,i){
+				.on('mouseover.d2b-mouseover',function(d,i){
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i);
 					}
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
+				.on('mouseout.d2b-mouseout',function(d,i){
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i);
 					}
 				})
-				.on('click.d3b-click',function(d,i){
+				.on('click.d2b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i);
 					}

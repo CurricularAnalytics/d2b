@@ -1,12 +1,12 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-d3b.UTILS.breadcrumbs = function(){
-	var maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+d2b.UTILS.breadcrumbs = function(){
+	var maxWidth = d2b.CONSTANTS.DEFAULTWIDTH();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 	var selection;
 	var currentBreadcrumbsData = {items:[]};
 	var computedWidth=0, computedHeight=0;
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
 	var scale = 5;
 
@@ -78,11 +78,11 @@ d3b.UTILS.breadcrumbs = function(){
 			callback;
 		}
 
-		selection.breadcrumb = selection.selectAll('g.d3b-breadcrumb').data(currentBreadcrumbsData.items, function(d){return (d.key)? d.key : i;});
+		selection.breadcrumb = selection.selectAll('g.d2b-breadcrumb').data(currentBreadcrumbsData.items, function(d){return (d.key)? d.key : i;});
 
 		var newBreadcrumbs = selection.breadcrumb.enter()
 			.append('g')
-				.attr('class','d3b-breadcrumb')
+				.attr('class','d2b-breadcrumb')
 				.style('opacity',0);
 
 		newBreadcrumbs.append('path');

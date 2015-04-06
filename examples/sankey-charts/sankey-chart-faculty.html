@@ -2,12 +2,12 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d3b.min.js"></script>
+<script src="../../build/js/d2b.min.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <script>
 	$(document).ready(function(){
 
-		var sankeyChart = new d3b.CHARTS.sankeyChart();
+		var sankeyChart = new d2b.CHARTS.sankeyChart();
 
 		sankeyChart
 			.nodePadding(20)
@@ -84,7 +84,7 @@
 			}
 		}
 
-		var chartLayout = new d3b.UTILS.CHARTPAGE.chartLayout();
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
 
 		chartLayout
 			.select('.sankey-chart')

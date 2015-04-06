@@ -1,11 +1,11 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-d3b.CHARTS.pieChart = function(){
+d2b.CHARTS.pieChart = function(){
 
 	//define axisChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 
@@ -14,14 +14,14 @@ d3b.CHARTS.pieChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d3b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
+	var legend = new d2b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {};
 
@@ -31,7 +31,7 @@ d3b.CHARTS.pieChart = function(){
 			};
 
 	//init event object
-	var on = d3b.CONSTANTS.DEFAULTEVENTS();
+	var on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	var donutRatio = 0;
 
@@ -93,7 +93,7 @@ d3b.CHARTS.pieChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = d3b.UTILS.numberFormat(value);
+		xFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -151,23 +151,23 @@ d3b.CHARTS.pieChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','d3b-pie-chart d3b-svg d3b-container');
+				.attr('class','d2b-pie-chart d2b-svg d2b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.pie = selection.group
 			.append('g')
-				.attr('class','d3b-pie');
+				.attr('class','d2b-pie');
 		// //create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','d3b-legend');
+				.attr('class','d2b-legend');
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','d3b-controls');
+				.attr('class','d2b-controls');
 
 
 		horizontalControls
@@ -181,18 +181,18 @@ d3b.CHARTS.pieChart = function(){
 		legend
 				.color(color)
 				.selection(selection.legend)
-				// .on('elementMouseover.d3b-mouseover',function(d){
+				// .on('elementMouseover.d2b-mouseover',function(d){
 				// 	console.log(d.path)
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1.01)')
 				// 	// 			.style('fill-opacity',0.9);
 				// })
-				// .on('elementMouseout.d3b-mouseout',function(d){
+				// .on('elementMouseout.d2b-mouseout',function(d){
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1)')
 				// 	// 			.style('fill-opacity','');
 				// });
@@ -215,11 +215,11 @@ d3b.CHARTS.pieChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
-		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -258,7 +258,7 @@ d3b.CHARTS.pieChart = function(){
 		// currentChartData.values = pie(currentChartData.values);
 		var arcGroup = selection.group.pie
 					.datum(currentChartData.values)
-				.selectAll("g.d3b-arc")
+				.selectAll("g.d2b-arc")
 					.data(pie,function(d,i){
 						if(d.data.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000);
@@ -270,7 +270,7 @@ d3b.CHARTS.pieChart = function(){
 
 		var newArcGroup = arcGroup.enter()
 			.append('g')
-				.attr('class','d3b-arc')
+				.attr('class','d2b-arc')
 				.style('opacity',0);
 
 		arcGroup
@@ -298,7 +298,7 @@ d3b.CHARTS.pieChart = function(){
 				// .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; });
 
 		// newArcGroup.append('g')
-		// 		.attr('class','d3b-pie-label')
+		// 		.attr('class','d2b-pie-label')
 		// 		.attr("transform", function(d) {
 		// 		    var c = arc.centroid(d),
 		// 		        x = c[0],
@@ -323,8 +323,8 @@ d3b.CHARTS.pieChart = function(){
 						return color(d.data.label);
 					}
 				})
-				.on('mouseover.d3b-mouseover',null)
-				.on('mouseout.d3b-mouseout',null);
+				.on('mouseover.d2b-mouseover',null)
+				.on('mouseout.d2b-mouseout',null);
 		var arcPathTransition = arcPath
 			.transition()
 				.duration(animationDuration)
@@ -341,30 +341,30 @@ d3b.CHARTS.pieChart = function(){
 		arcPathTransition.each("end",function(d){
 			var elem = d3.select(this);
 			elem
-					.on('mouseover.d3b-mouseover',function(d,i){
+					.on('mouseover.d2b-mouseover',function(d,i){
 						elem
 							.transition()
-								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1.01)')
 								.style('fill-opacity',0.9);
 
-						d3b.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
+						d2b.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
 						for(key in on.elementMouseover){
 							on.elementMouseover[key].call(this,d,i,'arc');
 						}
 					})
-					.on('mouseout.d3b-mouseout',function(d,i){
+					.on('mouseout.d2b-mouseout',function(d,i){
 						elem
 							.transition()
-								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1)')
 								.style('fill-opacity','')
-						d3b.UTILS.removeTooltip();
+						d2b.UTILS.removeTooltip();
 						for(key in on.elementMouseout){
 							on.elementMouseout[key].call(this,d,i,'arc');
 						}
 					})
-					.on('click.d3b-click',function(d,i){
+					.on('click.d2b-click',function(d,i){
 						for(key in on.elementClick){
 							on.elementClick[key].call(this,d,i,'arc');
 						}

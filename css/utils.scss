@@ -1,10 +1,10 @@
-.d3b-pointer-element{
+.d2b-pointer-element{
 	cursor:pointer;
 }
-.d3b-chart-layout{
+.d2b-chart-layout{
 	color:$dark_main;
 	font-size:11pt;
-	.d3b-chart-layout-header{
+	.d2b-chart-layout-header{
 		background:$dark_main;
 		color:$lightest;
 		// font-family:$alt1;
@@ -15,23 +15,23 @@
 		position:relative;
 		z-index:10;
 
-		.d3b-chart-layout-title{
+		.d2b-chart-layout-title{
 			font-size:15pt;
 			display:inline-block;
 			margin-right:10px;
 		}
-		.d3b-chart-layout-title-alt{
+		.d2b-chart-layout-title-alt{
 			color:$light;
 			font-size:12pt;
 			display:inline-block;
 		}
-		.d3b-chart-layout-info{
+		.d2b-chart-layout-info{
 			font-size:15pt;
 			float:right;
 		}
 
 	}
-	.d3b-chart-layout-right-notes,.d3b-chart-layout-left-notes,.d3b-chart-layout-footnote{
+	.d2b-chart-layout-right-notes,.d2b-chart-layout-left-notes,.d2b-chart-layout-footnote{
 		position:absolute;
 		font-size:11pt;
 		pointer-events:none;
@@ -39,40 +39,40 @@
 		// overflow:scroll;
 		color:$note;
 	}
-	.d3b-chart-layout-right-notes,.d3b-chart-layout-left-notes{
+	.d2b-chart-layout-right-notes,.d2b-chart-layout-left-notes{
 		font-size:10pt;
 	}
-	.d3b-chart-layout-footnote{
+	.d2b-chart-layout-footnote{
 		width:100%;
 		margin-top:-10px;
 		font-style:italic;
 		text-align:center;
 		font-size:8pt;
 	}
-	.d3b-chart-layout-footnote div{
+	.d2b-chart-layout-footnote div{
 		padding:5px;
 	}
-	.d3b-chart-layout-right-notes ul, .d3b-chart-layout-left-notes ul{
+	.d2b-chart-layout-right-notes ul, .d2b-chart-layout-left-notes ul{
 		padding:5px;
 	}
-	.d3b-chart-layout-right-notes li, .d3b-chart-layout-left-notes li{
+	.d2b-chart-layout-right-notes li, .d2b-chart-layout-left-notes li{
 		border-bottom:1px solid #ddd;
 		padding-bottom:5px;
 	}
 
-	.d3b-chart-layout-chart{
+	.d2b-chart-layout-chart{
 		position:absolute;
 	}
 
 }
 
-.d3b-breadcrumb{
+.d2b-breadcrumb{
 	path{
 		fill:$lightest;
 	}
 }
 
-.d3b-general-tooltip{
+.d2b-general-tooltip{
 	z-index:10000;
 	font-family:$main;
 	font-size:10pt;
@@ -91,7 +91,7 @@
 	        box-shadow: 0 0 5px #555;
 }
 
-.d3b-checkbox-container{
+.d2b-checkbox-container{
 	cursor:pointer;
 	text{
 		fill:$dark_main;
@@ -105,24 +105,24 @@
 	}
 }
 
-.d3b-selector-selected{
-	.d3b-selector-border{
+.d2b-selector-selected{
+	.d2b-selector-border{
 		fill-opacity:0;
 		stroke:$dark_main;
 	}
 }
 
-.d3b-radio-button-container{
+.d2b-radio-button-container{
 	cursor:pointer;
 	text{
 		fill:$dark_main;
 	}
-	circle.d3b-radio-button-inner{
+	circle.d2b-radio-button-inner{
 		stroke:none;
 		stroke-width:0px;
 		fill:$dark_main;
 	}
-	circle.d3b-radio-button-outer{
+	circle.d2b-radio-button-outer{
 		stroke:$dark_main;
 		fill-opacity:0;
 	}

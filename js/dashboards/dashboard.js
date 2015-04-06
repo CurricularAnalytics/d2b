@@ -1,10 +1,10 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-d3b.DASHBOARDS.dashboard = function(){
+d2b.DASHBOARDS.dashboard = function(){
 
 	//define axisChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			margin = d3b.CONSTANTS.DEFAULTMARGIN();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			margin = d2b.CONSTANTS.DEFAULTMARGIN();
 
 	var pageMargin = 210;
 	var pageWidth = width - pageMargin;
@@ -15,12 +15,12 @@ d3b.DASHBOARDS.dashboard = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-  var dashboardCategory = new d3b.UTILS.dashboardCategory();
-	var chartPage = new d3b.UTILS.chartPage();
-  var controls = new d3b.UTILS.CONTROLS.htmlControls();
+  var dashboardCategory = new d2b.UTILS.dashboardCategory();
+	var chartPage = new d2b.UTILS.chartPage();
+  var controls = new d2b.UTILS.CONTROLS.htmlControls();
 
 	var sectionsByKey = {};
 
@@ -46,12 +46,12 @@ d3b.DASHBOARDS.dashboard = function(){
 	// var controls = {
 	// 		};
 
-	// var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	// var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentDashboardData = {
 			};
 
-	var palette = d3b.CONSTANTS.DEFAULTPALETTE;
+	var palette = d2b.CONSTANTS.DEFAULTPALETTE;
 
 	var traversePages = function(pages, categoryName, sectionName){
 		pages.forEach(function(page, i){
@@ -99,11 +99,11 @@ d3b.DASHBOARDS.dashboard = function(){
 	};
 
 	var resetSubSectionGroupBreadcrumbs = function(){
-		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb-sub-section-group-section')
+		selection.container.header.breadcrumbs.svg.selectAll('.d2b-breadcrumb-sub-section-group-section')
 			.transition()
 				.duration(animationDuration/2)
 				.style('opacity',0);
-		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb').each(function(){this.expanded = false;});
+		selection.container.header.breadcrumbs.svg.selectAll('.d2b-breadcrumb').each(function(){this.expanded = false;});
 		selection.container.header.breadcrumbs.svg.style('height','28px');
 	};
 
@@ -112,19 +112,19 @@ d3b.DASHBOARDS.dashboard = function(){
 		var breadcrumbIndentSize = 7;
 
 		//set breadcrumb data keyed by the section name
-		var breadcrumb = selection.container.header.breadcrumbs.svg.selectAll('g.d3b-breadcrumb').data(current.section.position,function(d){return d.section.name;});
+		var breadcrumb = selection.container.header.breadcrumbs.svg.selectAll('g.d2b-breadcrumb').data(current.section.position,function(d){return d.section.name;});
 
 		//enter new breadcrumbs
 		var newBreadcrumb = breadcrumb.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class','d3b-breadcrumb');
+				.attr('class','d2b-breadcrumb');
 
 
 		//init new breadcrumb path and text
-		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
+		newBreadcrumb.append('path').attr('class','d2b-breadcrumb-background');
 
-		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
+		newBreadcrumb.append('path').attr('class','d2b-breadcrumb-foreground');
 
 		newBreadcrumb
 			.append('text')
@@ -138,31 +138,31 @@ d3b.DASHBOARDS.dashboard = function(){
 			var _breadcrumb = this;
 			var elem = d3.select(_breadcrumb);
 			var text = elem.select('text');
-			var foreground = elem.select('path.d3b-breadcrumb-foreground');
-			var background = elem.select('path.d3b-breadcrumb-background');
+			var foreground = elem.select('path.d2b-breadcrumb-foreground');
+			var background = elem.select('path.d2b-breadcrumb-background');
 
 			//set breadCrumb path width according to text width
 			var pathWidth = text.node().getBBox().width+25;
 			var triangle;
 
-			elem.select('g.d3b-breadcrumb-triangle').remove();
+			elem.select('g.d2b-breadcrumb-triangle').remove();
 			//if section is part of a sectionGroup add sub-section dropdown
 
 			if(d.section != current.section){
 				elem
-						.classed('d3b-innactive',false)
-						.on('click.d3b-click',function(d){
+						.classed('d2b-innactive',false)
+						.on('click.d2b-click',function(d){
 							changeCurrentSection(d.section);
 						});
 			}else{
 				elem
-						.classed('d3b-innactive',true)
-						.on('click.d3b-click',null);
+						.classed('d2b-innactive',true)
+						.on('click.d2b-click',null);
 			}
 			if(d.sectionGroup){
 
 				//set data for sub-section, omitting the selected section
-				var sectionBreadcrumb = elem.selectAll('g.d3b-breadcrumb-sub-section-group-section')
+				var sectionBreadcrumb = elem.selectAll('g.d2b-breadcrumb-sub-section-group-section')
 						.data(d.sectionGroup.sections.filter(function(dd){return dd!=d.section;}));
 
 				//init breadcrumb dyExpanded and expanded flags
@@ -173,9 +173,9 @@ d3b.DASHBOARDS.dashboard = function(){
 				var newSectionBreadcrumb = sectionBreadcrumb.enter()
 					.append('g')
 						.style('opacity',0)
-						.attr('class','d3b-breadcrumb-sub-section-group-section');
-				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
-				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
+						.attr('class','d2b-breadcrumb-sub-section-group-section');
+				newSectionBreadcrumb.append('path').attr('class','d2b-breadcrumb-background');
+				newSectionBreadcrumb.append('path').attr('class','d2b-breadcrumb-foreground');
 				newSectionBreadcrumb.append('text')
 					.attr('y',17)
 					.attr('x',15)
@@ -184,8 +184,8 @@ d3b.DASHBOARDS.dashboard = function(){
 				//iterate through sub-section breadcrumbs
 				sectionBreadcrumb.each(function(d){
 							var elem = d3.select(this);
-							var foreground = elem.select('path.d3b-breadcrumb-foreground');
-							var background = elem.select('path.d3b-breadcrumb-background');
+							var foreground = elem.select('path.d2b-breadcrumb-foreground');
+							var background = elem.select('path.d2b-breadcrumb-background');
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
 							foreground
@@ -193,7 +193,7 @@ d3b.DASHBOARDS.dashboard = function(){
 								.attr('transform','translate(4,0)');
 							background
 								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+breadcrumbIndentSize)+' 12.5 L '+pathWidth+' 0 L 0 0 Z');
-						}).on('click.d3b-click',function(d){
+						}).on('click.d2b-click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
 						})
@@ -205,8 +205,8 @@ d3b.DASHBOARDS.dashboard = function(){
 				//add triangle under sectionGroup breadcrumb
 				pathWidth += 15;
 				triangle = elem.append('g')
-						.attr('class','d3b-breadcrumb-triangle')
-						.on('click.d3b-click',function(){
+						.attr('class','d2b-breadcrumb-triangle')
+						.on('click.d2b-click',function(){
 							d3.event.stopPropagation();
 							if(!_breadcrumb.expanded){
 								resetSubSectionGroupBreadcrumbs();
@@ -284,22 +284,22 @@ d3b.DASHBOARDS.dashboard = function(){
 	};
 	var updateCategoryTabs = function(){
 
-		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.d3b-category-tab').data(current.section.categories);
+		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.d2b-category-tab').data(current.section.categories);
 		categoryTab.enter()
 			.append('li')
-				.attr('class','d3b-category-tab')
-				.on('click.d3b-click',changeCurrentCategory);
+				.attr('class','d2b-category-tab')
+				.on('click.d2b-click',changeCurrentCategory);
 		categoryTab
 			.text(function(d){return d.name;})
 			.each(function(d){
 				if(d==current.category){
 					d3.select(this)
-							.classed('d3b-innactive',true)
-							.on('click.d3b-click',null);
+							.classed('d2b-innactive',true)
+							.on('click.d2b-click',null);
 				}else{
 					d3.select(this)
-							.classed('d3b-innactive',false)
-							.on('click.d3b-click',changeCurrentCategory);
+							.classed('d2b-innactive',false)
+							.on('click.d2b-click',changeCurrentCategory);
 				}
 			});
 			categoryTab.exit()
@@ -312,13 +312,13 @@ d3b.DASHBOARDS.dashboard = function(){
 	};
 	var updateSubSections = function(){
 
-		var subSection = selection.container.sidebar.subSections.selectAll('li.d3b-sub-section').data(current.section.sections);
+		var subSection = selection.container.sidebar.subSections.selectAll('li.d2b-sub-section').data(current.section.sections);
 
 		subSection.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','d3b-sub-section')
-				.on('click.d3b-click',changeCurrentSection);
+				.attr('class','d2b-sub-section')
+				.on('click.d2b-click',changeCurrentSection);
 
 		subSection
 				.text(function(d){return d.name})
@@ -336,12 +336,12 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		var subSectionGroupData = current.section.sectionGroups.filter(function(d){return d.sections.length > 0;});
 
-		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.d3b-sub-section-group').data(subSectionGroupData);
+		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.d2b-sub-section-group').data(subSectionGroupData);
 
 		subSectionGroup.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','d3b-sub-section-group');
+				.attr('class','d2b-sub-section-group');
 
 		subSectionGroup
 			.transition()
@@ -366,16 +366,16 @@ d3b.DASHBOARDS.dashboard = function(){
 		var subSectionGroupSections = elem
 			.append('ul')
 				.datum(d)
-				.attr('class','d3b-sub-section-group-sections');
+				.attr('class','d2b-sub-section-group-sections');
 
-		var subSectionGroupSection = subSectionGroupSections.selectAll('li.d3b-sub-section-group-section').data(function(dd){return dd.sections;});
+		var subSectionGroupSection = subSectionGroupSections.selectAll('li.d2b-sub-section-group-section').data(function(dd){return dd.sections;});
 
 		subSectionGroupSection.enter()
 			.append('li')
-				.attr('class','d3b-sub-section-group-section');
+				.attr('class','d2b-sub-section-group-section');
 
 		subSectionGroupSection
-				.on('click.d3b-click',changeCurrentSection);
+				.on('click.d2b-click',changeCurrentSection);
 
 		subSectionGroupSection
 				.text(function(d){return d.name;});
@@ -490,33 +490,33 @@ d3b.DASHBOARDS.dashboard = function(){
 		//create container
 		selection.container = selection
 			.append('div')
-				.attr('class','d3b-dashboard d3b-container');
+				.attr('class','d2b-dashboard d2b-container');
 
 		selection.container.header = selection.container
 			.append('div')
-				.attr('class','d3b-header');
+				.attr('class','d2b-header');
 
 		selection.container.header.navigation = selection.container.header
 			.append('div')
-				.attr('class','d3b-navigation');
+				.attr('class','d2b-navigation');
 
 		selection.container.header.navigation.home = selection.container.header.navigation
 			.append('div')
-				.attr('class','d3b-navigation-home');
+				.attr('class','d2b-navigation-home');
 
 		selection.container.header.navigation.home.append('i').attr('class','fa fa-home')
 
 		selection.container.header.navigation.arrows = selection.container.header.navigation
 			.append('div')
-				.attr('class','d3b-navigation-arrows');
+				.attr('class','d2b-navigation-arrows');
 
 		selection.container.header.navigation.arrows.left = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','d3b-left-arrow');
+				.attr('id','d2b-left-arrow');
 
 		selection.container.header.navigation.arrows.right = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','d3b-right-arrow');
+				.attr('id','d2b-right-arrow');
 
 		selection.container.header.navigation.arrows.left.append('i').attr('class','fa fa-chevron-left')
 
@@ -524,49 +524,49 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		selection.container.header.navigation.categoryTabs = selection.container.header.navigation
 			.append('ul')
-				.attr('class','d3b-category-tabs');
+				.attr('class','d2b-category-tabs');
 
 		selection.container.header.navigation.logo = selection.container.header.navigation
 			.append('img')
-				.attr('class','d3b-dashboard-logo');
+				.attr('class','d2b-dashboard-logo');
 
 		selection.container.header.breadcrumbs = selection.container.header
 			.append('div')
-				.attr('class','d3b-dashboard-breadcrumbs');
+				.attr('class','d2b-dashboard-breadcrumbs');
 
 		selection.container.header.breadcrumbs.svg = selection.container.header.breadcrumbs
 			.append('svg')
-				.attr('class','d3b-dashboard-breadcrumbs-svg');
+				.attr('class','d2b-dashboard-breadcrumbs-svg');
 
 		selection.container.sidebar = selection.container
 			.append('div')
-				.attr('class','d3b-dashboard-sidebar');
+				.attr('class','d2b-dashboard-sidebar');
 
 
 		selection.container.sidebar.sectionNav = selection.container.sidebar
 			.append('div')
-				.attr('class','d3b-sidebar-section-nav d3b-sidebar-container');
+				.attr('class','d2b-sidebar-section-nav d2b-sidebar-container');
 
 		selection.container.sidebar.sectionsHeader = selection.container.sidebar.sectionNav
 			.append('div')
-				.attr('class','d3b-sidebar-header')
+				.attr('class','d2b-sidebar-header')
 				.text('Go To');
 
 		selection.container.sidebar.subSections = selection.container.sidebar.sectionNav
 			.append('ul')
-				.attr('class','d3b-sub-sections');
+				.attr('class','d2b-sub-sections');
 
 		selection.container.sidebar.subSectionGroups = selection.container.sidebar.sectionNav
 			.append('ul')
-				.attr('class','d3b-sub-section-groups');
+				.attr('class','d2b-sub-section-groups');
 
 		selection.container.sidebar.filters = selection.container.sidebar
 			.append('div')
-				.attr('class','d3b-sidebar-filters d3b-sidebar-container');
+				.attr('class','d2b-sidebar-filters d2b-sidebar-container');
 
 		selection.container.sidebar.filtersHeader = selection.container.sidebar.filters
 			.append('div')
-				.attr('class','d3b-sidebar-header')
+				.attr('class','d2b-sidebar-header')
 				.text('Filter By');
 
 		controls.selection(selection.container.sidebar.filters)
@@ -576,19 +576,19 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		selection.container.content = selection.container
 			.append('div')
-				.attr('class','d3b-dashboard-content');
+				.attr('class','d2b-dashboard-content');
 
 		selection.container.content.dashboardCategory = selection.container.content
 			.append('div')
-				.attr('class','d3b-dashboard-category');
+				.attr('class','d2b-dashboard-category');
 
 		// selection.container.content.chartPage = selection.container.content
 		// 	.append('div')
-		// 		.attr('class','d3b-chart-page-container');
+		// 		.attr('class','d2b-chart-page-container');
 
 		dashboardCategory
 			.selection(selection.container.content.dashboardCategory)
-			.on('pageChange.d3b-page-change',function(pageData, iOld, iNew){
+			.on('pageChange.d2b-page-change',function(pageData, iOld, iNew){
 
 				var temp = controlsHidden;
 				if(!pageData.controls)
@@ -640,24 +640,24 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
-					.classed('d3b-innactive',true)
-					.on('click.d3b-click',null);
+					.classed('d2b-innactive',true)
+					.on('click.d2b-click',null);
 		}else{
 			selection.container.header.navigation.home
-					.classed('d3b-innactive',false)
-					.on('click.d3b-click',function(){
+					.classed('d2b-innactive',false)
+					.on('click.d2b-click',function(){
 						changeCurrentSection(currentDashboardData.dashboard.topSection);
 					});
 		}
 
 		if(navigationHistory.position+1 == navigationHistory.array.length){
 			selection.container.header.navigation.arrows.right
-					.classed('d3b-innactive',true)
-					.on('click.d3b-click',null);
+					.classed('d2b-innactive',true)
+					.on('click.d2b-click',null);
 		}else{
 			selection.container.header.navigation.arrows.right
-					.classed('d3b-innactive',false)
-					.on('click.d3b-click',function(){
+					.classed('d2b-innactive',false)
+					.on('click.d2b-click',function(){
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
@@ -670,12 +670,12 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		if(navigationHistory.position == 0){
 			selection.container.header.navigation.arrows.left
-					.classed('d3b-innactive',true)
-					.on('click.d3b-click',null)
+					.classed('d2b-innactive',true)
+					.on('click.d2b-click',null)
 		}else{
 			selection.container.header.navigation.arrows.left
-					.classed('d3b-innactive',false)
-					.on('click.d3b-click',function(){
+					.classed('d2b-innactive',false)
+					.on('click.d2b-click',function(){
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();

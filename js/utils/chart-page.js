@@ -1,9 +1,9 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
-d3b.UTILS.chartPage = function(){
+d2b.UTILS.chartPage = function(){
 
   var $$ = {};
 
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.selection;
 	$$.currentData = {};
 
@@ -11,7 +11,7 @@ d3b.UTILS.chartPage = function(){
 	$$.dataLoaded = false;
 
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
 
 	$$.on = {
@@ -21,11 +21,11 @@ d3b.UTILS.chartPage = function(){
 	$$.init = function(position){
     if($$.animateFrom || !$$.selection.currentPage){
 
-			$$.selection.selectAll('.d3b-chart-page').classed('d3b-chart-page-old', true);
+			$$.selection.selectAll('.d2b-chart-page').classed('d2b-chart-page-old', true);
 
 			$$.selection.currentPage = $$.selection
 				.append('div')
-					.attr('class','d3b-chart-page')
+					.attr('class','d2b-chart-page')
 					.style('opacity',0)
 					.style('left',position.left+'px')
 					.style('top',position.top+'px');
@@ -33,13 +33,13 @@ d3b.UTILS.chartPage = function(){
 	};
 
 	$$.updateGrid = function(charts){
-		var chartLayout = $$.selection.currentPage.selectAll('div.d3b-page-chart-layout').data(charts, function(d, i){return d.chart.key || i;});
+		var chartLayout = $$.selection.currentPage.selectAll('div.d2b-page-chart-layout').data(charts, function(d, i){return d.chart.key || i;});
 
 		var newChartLayout = chartLayout.enter()
 			.append('div')
-				.attr('class','d3b-page-chart-layout')
+				.attr('class','d2b-page-chart-layout')
 				.each(function(d){
-					d3b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
+					d2b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
 					this.chart = d.chart.chart;
 					this.chartLayout = d.chart.chartLayout;
 					this.chartLayout
@@ -111,7 +111,7 @@ d3b.UTILS.chartPage = function(){
 
 	var page = {};
 
-	page.on =				d3b.UTILS.CHARTS.MEMBERS.on(page, $$);
+	page.on =				d2b.UTILS.CHARTS.MEMBERS.on(page, $$);
 
   page.width = function(value){
 		if(!arguments.length) return $$.width;
@@ -198,7 +198,7 @@ d3b.UTILS.chartPage = function(){
 			}
 		}
 
-		$$.selection.selectAll('.d3b-chart-page-old')
+		$$.selection.selectAll('.d2b-chart-page-old')
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)

@@ -2,38 +2,38 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d3b.js"></script>
+<script src="../../build/js/d2b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
-<!-- <script src="//localhost:1337/liverelod3b.js"></script> -->
+<!-- <script src="//localhost:1337/liverelod2b.js"></script> -->
 <script>
 	function defineCustomCharts(){
-		d3b.CHARTS.customBar = function(){
+		d2b.CHARTS.customBar = function(){
 
 			//private store
 			var $$ = {};
 
 			//user set width
-			$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+			$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 			//user set height
-			$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
+			$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 			//inner/outer height/width and margin are modified as sections of the chart are drawn
 			$$.innerHeight = $$.height;
 			$$.innerWidth = $$.width;
 			$$.outerHeight = $$.height;
 			$$.outerWidth = $$.width;
-			$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+			$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 			//force chart regeneration on next update()
 			$$.generateRequired = true;
 			//d3.selection for chart container
 			$$.selection = d3.select('body');
 			//default animation duration
-			$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+			$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 			//color hash to be used
-			$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+			$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 			//carries current data set
 			$$.currentChartData = {};
 			//event object
-			$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+			$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 			$$.guageScale = d3.scale.ordinal();
 
@@ -41,13 +41,13 @@
 			var chart = {};
 
 			//chart setters
-			chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-			chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-			chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-			chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-			chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){});
+			chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+			chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+			chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+			chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+			chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){});
 
-			chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+			chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 			chart.data = function(chartData, reset){
 				if(!arguments.length) return $$.currentChartData;
@@ -69,7 +69,7 @@
 
 				$$.selection.internalChart = $$.selection.append('div');
 
-				$$.internalChart = new d3b.CHARTS[$$.currentChartData.chart.type]();
+				$$.internalChart = new d2b.CHARTS[$$.currentChartData.chart.type]();
 				$$.internalChart.selection($$.selection.internalChart).data($$.currentChartData.chart.data);
 				// if($$.currentChartData.chart.properties){
 				// 	for(key in $$.currentChartData.chart.properties){
@@ -99,7 +99,7 @@
 				}
 
 				//init forcedMargin
-				$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+				$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 				$$.outerWidth = $$.width;
 				$$.outerHeight = $$.height;
 
@@ -139,7 +139,7 @@
 				$$.selection.guages.guage.enter()
 					.append('div')
 						.each(function(d){
-							this.chart = new d3b.CHARTS.guageChart();
+							this.chart = new d2b.CHARTS.guageChart();
 							this.chart
 									.color($$.color)
 									.select(this);
@@ -202,7 +202,7 @@
 
 	function makeDashboard(){
 
-		var bar = new d3b.CHARTS.customBar();
+		var bar = new d2b.CHARTS.customBar();
 
 		bar
 			.width($(window).width())
@@ -212,7 +212,7 @@
 				data
 			)//.update();
 
-		var dashboard = new d3b.DASHBOARDS.dashboard();
+		var dashboard = new d2b.DASHBOARDS.dashboard();
 
 		dashboard
 				// .animationDuration(0)

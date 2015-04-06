@@ -1,11 +1,11 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-d3b.UTILS.CHARTPAGE.chartLayout = function(){
-	var width = d3b.CONSTANTS.DEFAULTWIDTH();
-	var height = d3b.CONSTANTS.DEFAULTHEIGHT();
+d2b.UTILS.CHARTPAGE.chartLayout = function(){
+	var width = d2b.CONSTANTS.DEFAULTWIDTH();
+	var height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	var selection;
 	var currentChartLayoutData = {chartLayout:{}};
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var chart;
 	var generateRequired = true;
 
@@ -83,58 +83,58 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 
 		selection.wrapper = selection
 			.append('div')
-				.attr('class','d3b-chart-layout-wrapper');
+				.attr('class','d2b-chart-layout-wrapper');
 
 		selection.container = selection.wrapper
 			.append('div')
-				.attr('class','d3b-chart-layout d3b-container');
+				.attr('class','d2b-chart-layout d2b-container');
 
 		selection.container.header = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-header');
+				.attr('class','d2b-chart-layout-header');
 
 		selection.container.header.title = selection.container.header
 			.append('div')
-				.attr('class','d3b-chart-layout-title');
+				.attr('class','d2b-chart-layout-title');
 
 		selection.container.header.titleAlt = selection.container.header
 			.append('div')
-				.attr('class','d3b-chart-layout-title-alt');
+				.attr('class','d2b-chart-layout-title-alt');
 
 		selection.container.header.info = selection.container.header
 			.append('div')
-				.attr('class','d3b-chart-layout-info');
+				.attr('class','d2b-chart-layout-info');
 
 		selection.container.chart = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-chart');
+				.attr('class','d2b-chart-layout-chart');
 
 		chart
 			.selection(selection.container.chart);
 
 		selection.container.rightNotes = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-right-notes');
+				.attr('class','d2b-chart-layout-right-notes');
 
 		selection.container.rightNotes.ul = selection.container.rightNotes
 			.append('ul');
 
 		selection.container.leftNotes = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-left-notes');
+				.attr('class','d2b-chart-layout-left-notes');
 
 		selection.container.leftNotes.ul = selection.container.leftNotes
 			.append('ul');
 
 		selection.container.footnote = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-footnote');
+				.attr('class','d2b-chart-layout-footnote');
 		selection.container.footnote.div = selection.container.footnote
 			.append('div');
 
 		selection.container.source = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-source')
+				.attr('class','d2b-chart-layout-source')
 			.append('ul');
 
 
@@ -193,10 +193,10 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 		}else{
 			chartMargin.right+=width * 0.2+5;
 		}
-		var rightNote = selection.container.rightNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
+		var rightNote = selection.container.rightNotes.ul.selectAll('li.d2b-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
 		rightNote.enter()
 			.append('li')
-				.attr('class','d3b-chart-layout-note')
+				.attr('class','d2b-chart-layout-note')
 			.append('div');
 
 		var rightNotesHeight = 0;
@@ -227,10 +227,10 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 			chartMargin.left+=width * 0.2;
 		}
 
-		var leftNote = selection.container.leftNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
+		var leftNote = selection.container.leftNotes.ul.selectAll('li.d2b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
 		leftNote.enter()
 			.append('li')
-				.attr('class','d3b-chart-layout-note')
+				.attr('class','d2b-chart-layout-note')
 			.append('div');
 
 		var leftNotesHeight = 0;
@@ -254,10 +254,10 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 
 
 
-		// var leftNote = selection.container.leftNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
+		// var leftNote = selection.container.leftNotes.ul.selectAll('li.d2b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
 		// leftNote.enter()
 		// 	.append('li')
-		// 		.attr('class','d3b-chart-layout-note');
+		// 		.attr('class','d2b-chart-layout-note');
 		// leftNote
 		// 		.text(function(d){return d});
 		// leftNote.exit()

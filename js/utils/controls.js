@@ -1,8 +1,8 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*CONTROLS UTILITIES*/
-d3b.createNameSpace("d3b.UTILS.CONTROLS");
-d3b.UTILS.CONTROLS.checkbox = function(){
+d2b.createNameSpace("d2b.UTILS.CONTROLS");
+d2b.UTILS.CONTROLS.checkbox = function(){
 
 	var $$ = {};
 
@@ -14,18 +14,18 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 	$$.currentData = {label:'',state:false};
 
 	//init event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	$$.on.change = function(){};
 
 	var control = {};
 
 	// var onChange = function(){};
 
-	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 
 	control.checked = function(value){
 		if(!arguments.length) return $$.currentData.state;
@@ -62,18 +62,18 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 			$$.container.svg = $$.selection;
 		}
 
-		var checkboxContainer = $$.selection.selectAll('g.d3b-checkbox-container').data([$$.currentData]);
+		var checkboxContainer = $$.selection.selectAll('g.d2b-checkbox-container').data([$$.currentData]);
 		var newCheckboxContainer = checkboxContainer.enter()
 			.append('g')
-				.attr('class','d3b-checkbox-container')
-				.on('click.d3b-click',function(d,i){
+				.attr('class','d2b-checkbox-container')
+				.on('click.d2b-click',function(d,i){
 					$$.currentData.state = !$$.currentData.state;
 					for(key in $$.on.change){
 						$$.on.change[key].call(this,d,i,'checkbox');
 					}
 					control.update();
 				})
-				.call(d3b.UTILS.bindElementEvents, $$, 'checkbox');
+				.call(d2b.UTILS.bindElementEvents, $$, 'checkbox');
 
 		newCheckboxContainer
 			.append('rect')
@@ -93,7 +93,7 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 				.attr('stroke-dasharray',2.2*$$.scale)
 		check
 			.transition()
-				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				.attr('stroke-dashoffset',($$.currentData.state)? 0 : 2.2*$$.scale);
 		var box = checkboxContainer.select('rect')
 				.attr('width',$$.scale*2.1+'px')
@@ -132,7 +132,7 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 
 };
 
-d3b.UTILS.CONTROLS.radioButtons = function(){
+d2b.UTILS.CONTROLS.radioButtons = function(){
 	var $$ = {};
 
 	$$.scale = 5;
@@ -143,7 +143,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 	$$.currentData = {label:'',values:[], selected:null};
 
 	//init event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	$$.on.change = function(){};
 
 	$$.resetValues = function(){
@@ -155,11 +155,11 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 	var control = {};
 
 
-	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 
 	control.computedHeight = function(){
 		return $$.computedHeight;
@@ -209,12 +209,12 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 			$$.container.svg = $$.selection;
 		}
 
-		var radioButtonContainer = $$.selection.selectAll('g.d3b-radio-button-container').data($$.currentData.values, function(d){return d.label;});
+		var radioButtonContainer = $$.selection.selectAll('g.d2b-radio-button-container').data($$.currentData.values, function(d){return d.label;});
 
 		var newRadioButtonContainer = radioButtonContainer.enter()
 			.append('g')
-				.attr('class','d3b-radio-button-container')
-				.on('click.d3b-click',function(d,i){
+				.attr('class','d2b-radio-button-container')
+				.on('click.d2b-click',function(d,i){
 					$$.resetValues();
 					d.selected = true;
 					$$.currentData.selected = d;
@@ -223,7 +223,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 					}
 					control.update();
 				})
-				.call(d3b.UTILS.bindElementEvents, $$, 'radio-button');
+				.call(d2b.UTILS.bindElementEvents, $$, 'radio-button');
 
 		radioButtonContainer
 			.attr('transform',function(d,i){
@@ -231,20 +231,20 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 			});
 
 		newRadioButtonContainer.append('circle')
-			.attr('class','d3b-radio-button-inner')
+			.attr('class','d2b-radio-button-inner')
 			.style('fill-opacity',0);
 		newRadioButtonContainer.append('circle')
-			.attr('class','d3b-radio-button-outer');
+			.attr('class','d2b-radio-button-outer');
 
 		newRadioButtonContainer.append('text')
 			.text(function(d){return d.label;});
 
-		var circleInner = radioButtonContainer.select('circle.d3b-radio-button-inner')
+		var circleInner = radioButtonContainer.select('circle.d2b-radio-button-inner')
 				.attr('cy',$$.scale*1.4)
 				.attr('cx',$$.scale*1.4);
 
 
-		var circleOuter = radioButtonContainer.select('circle.d3b-radio-button-outer')
+		var circleOuter = radioButtonContainer.select('circle.d2b-radio-button-outer')
 				.attr('r',$$.scale*1+'px')
 				.attr('cy',$$.scale*1.4)
 				.attr('cx',$$.scale*1.4)
@@ -253,7 +253,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 
 		circleInner
 			.transition()
-				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				.style('fill-opacity',function(d){return (d.selected)? 1: 0;})
 				.attr('r',function(d){return (d.selected)? $$.scale*0.5: 0;});
 
@@ -288,7 +288,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 
 };
 
-// d3b.UTILS.CONTROLS.select = function(){
+// d2b.UTILS.CONTROLS.select = function(){
 // 	var $$ = {};
 //
 // 	$$.scale = 5;
@@ -302,7 +302,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 	$$.expanded = false;
 //
 // 	//init event object
-// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 // 	$$.on.change = function(){};
 //
 // 	$$.resetValues = function(){
@@ -313,10 +313,10 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 	var control = {};
 //
-// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+// 	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 //
 // 	control.computedHeight = function(){
 // 		return $$.computedHeight;
@@ -357,16 +357,16 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 		if(!$$.currentData)
 // 			return console.warn('selector data is null');
 //
-// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+// 		var selectedContainer = $$.selection.selectAll('g.d2b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
 //
 // 		var newSelectedContainer = selectedContainer.enter()
 // 			.append('g')
-// 				.attr('class','d3b-selector-selected');
+// 				.attr('class','d2b-selector-selected');
 //
 // 		newSelectedContainer
 // 			.append('rect')
 // 				.attr('rx',1)
-// 				.attr('class','d3b-selector-border');
+// 				.attr('class','d2b-selector-border');
 //
 // 		var newSelectedSubContainer = newSelectedContainer
 // 			.append('g');
@@ -376,7 +376,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 		newSelectedContainer
 // 			.append('path')
-// 				.attr('class','d3b-selector-triangle');
+// 				.attr('class','d2b-selector-triangle');
 //
 // 		selectedContainer
 // 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
@@ -407,7 +407,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 
 
 //allow imbeded html for selector control
-// d3b.UTILS.CONTROLS.selector = function(){
+// d2b.UTILS.CONTROLS.selector = function(){
 // 	var $$ = {};
 //
 // 	$$.scale = 5;
@@ -421,7 +421,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 	$$.expanded = false;
 //
 // 	//init event object
-// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 // 	$$.on.change = function(){};
 //
 // 	$$.resetValues = function(){
@@ -432,10 +432,10 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 	var control = {};
 //
-// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+// 	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 //
 // 	control.computedHeight = function(){
 // 		return $$.computedHeight;
@@ -476,16 +476,16 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 		if(!$$.currentData)
 // 			return console.warn('selector data is null');
 //
-// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+// 		var selectedContainer = $$.selection.selectAll('g.d2b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
 //
 // 		var newSelectedContainer = selectedContainer.enter()
 // 			.append('g')
-// 				.attr('class','d3b-selector-selected');
+// 				.attr('class','d2b-selector-selected');
 //
 // 		newSelectedContainer
 // 			.append('rect')
 // 				.attr('rx',1)
-// 				.attr('class','d3b-selector-border');
+// 				.attr('class','d2b-selector-border');
 //
 // 		var newSelectedSubContainer = newSelectedContainer
 // 			.append('g');
@@ -495,7 +495,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 		newSelectedContainer
 // 			.append('path')
-// 				.attr('class','d3b-selector-triangle');
+// 				.attr('class','d2b-selector-triangle');
 //
 // 		selectedContainer
 // 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
@@ -524,14 +524,14 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // };
 
-d3b.UTILS.CONTROLS.htmlControls = function(){
+d2b.UTILS.CONTROLS.htmlControls = function(){
 	var $$ = {};
 
-	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.maxWidth = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.currentData;
 	$$.computedWidth=0;
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.controlsHash = {};
 
 	$$.selection;
@@ -554,7 +554,7 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 
 	var controls = {};
 
-	controls.select = d3b.UTILS.CHARTS.MEMBERS.select(controls, $$);
+	controls.select = d2b.UTILS.CHARTS.MEMBERS.select(controls, $$);
 	controls.width = function(value){
 		if(!arguments.length) return $$.maxWidth;
 		$$.maxWidth = value;
@@ -582,7 +582,7 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 		return controls;
 	};
 
-	controls.on =				d3b.UTILS.CHARTS.MEMBERS.on(controls, $$);
+	controls.on =				d2b.UTILS.CHARTS.MEMBERS.on(controls, $$);
 
 	controls.data = function(controlsData, reset){
 		if(!arguments.length) return $$.currentData;
@@ -595,31 +595,31 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 		if(!$$.selection)
 			return console.warn('controls was not given a selection');
 		// console.log($$.currentData.controls)
-		$$.selection.controlContainer = $$.selection.selectAll('div.d3b-control-container').data($$.currentData.controls, function(d){return d.type+'-'+d.key;});
+		$$.selection.controlContainer = $$.selection.selectAll('div.d2b-control-container').data($$.currentData.controls, function(d){return d.type+'-'+d.key;});
 
 		var newControl = $$.selection.controlContainer.enter()
 			.append('div')
-				.attr('class', 'd3b-control-container')
+				.attr('class', 'd2b-control-container')
 
 		newControl
 			.append('div')
-				.attr('class', 'd3b-control-label')
+				.attr('class', 'd2b-control-label')
 				.text(function(d){return d.label+':';});
 
 		newControl
 			.append('div')
-				.attr('class', 'd3b-control')
+				.attr('class', 'd2b-control')
 				.each(function(d){
-					this.control = new d3b.UTILS.CONTROLS[d.type]();
+					this.control = new d2b.UTILS.CONTROLS[d.type]();
 					this.control.container(d3.select(this));
 				});
 
-		$$.selection.controlContainer.control = $$.selection.controlContainer.select('.d3b-control')
+		$$.selection.controlContainer.control = $$.selection.controlContainer.select('.d2b-control')
 			.each(function(d){
 				this.control
 					.scale($$.scale)
 					.data(d)
-					.on('change.d3b-change',function(d,i){
+					.on('change.d2b-change',function(d,i){
 						for(key in $$.on.change){
 							$$.on.change[key].call(this,$$.controlsHash,d,i);
 						}
@@ -646,14 +646,14 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 };
 
 
-d3b.UTILS.CONTROLS.controls = function(){
+d2b.UTILS.CONTROLS.controls = function(){
 	var $$ = {};
 
-	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.maxWidth = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.currentData;
 	$$.computedWidth=0;
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
 	$$.selection;
 	$$.scale = 5;
@@ -729,30 +729,30 @@ d3b.UTILS.CONTROLS.controls = function(){
 		$$.computedWidth = 0;
 
 		if($$.currentData.length > 0){
-			var controls = $$.selection.selectAll('g.d3b-control').data($$.currentData,function(d){return d.label+','+d.type;});
+			var controls = $$.selection.selectAll('g.d2b-control').data($$.currentData,function(d){return d.label+','+d.type;});
 
 			controls.enter()
 				.append('g')
-					.attr('class','d3b-control')
+					.attr('class','d2b-control')
 					.each(function(d){
-						d.control = new d3b.UTILS.CONTROLS[d.type]();
+						d.control = new d2b.UTILS.CONTROLS[d.type]();
 						d.control.selection(d3.select(this))
-							.on('elementClick.d3b-click',function(d,i){
+							.on('elementClick.d2b-click',function(d,i){
 								for(key in on.elementClick){
 									on.elementClick[key].call(this,d,i);
 								}
 							})
-							.on('change.d3b-change',function(d,i){
+							.on('change.d2b-change',function(d,i){
 								for(key in on.change){
 									on.change[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseover.d3b-mouseover',function(d,i){
+							.on('elementMouseover.d2b-mouseover',function(d,i){
 								for(key in on.elementMouseover){
 									on.elementMouseover[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseout.d3b-mouseout',function(d,i){
+							.on('elementMouseout.d2b-mouseout',function(d,i){
 								for(key in on.elementMouseout){
 									on.elementMouseout[key].call(this,d,i);
 								}

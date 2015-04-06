@@ -1,9 +1,9 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*d3b constants*/
-d3b.createNameSpace("d3b.CONSTANTS");
+/*d2b constants*/
+d2b.createNameSpace("d2b.CONSTANTS");
 
-d3b.CONSTANTS = {
+d2b.CONSTANTS = {
   DEFAULTPALETTE: {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"},
   DEFAULTWIDTH: function(){ return 960; },
   DEFAULTHEIGHT: function(){ return 540; },

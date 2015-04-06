@@ -2,71 +2,71 @@
 @import url(http://fonts.googleapis.com/css?family=Quicksand);
 @import url(https://fonts.googleapis.com/css?family=Oswald:400,300,700);
 @import url(https://fonts.googleapis.com/css?family=Droid+Sans:400,700);
-html, body, .d3b-container {
+html, body, .d2b-container {
   height: 100%; }
 
-.d3b-container *, .d3b-container *:before, .d3b-container *:after {
+.d2b-container *, .d2b-container *:before, .d2b-container *:after {
   box-sizing: border-box; }
 
-.d3b-container {
+.d2b-container {
   font-family: "Droid Sans", Arial;
   color: #333; }
-  .d3b-container ul {
+  .d2b-container ul {
     list-style-type: none;
     margin: 0px;
     padding: 0px; }
 
-.d3b-pointer-element {
+.d2b-pointer-element {
   cursor: pointer; }
 
-.d3b-chart-layout {
+.d2b-chart-layout {
   color: #333;
   font-size: 11pt; }
-  .d3b-chart-layout .d3b-chart-layout-header {
+  .d2b-chart-layout .d2b-chart-layout-header {
     background: #333;
     color: #eee;
     padding: 10px;
     position: relative;
     z-index: 10; }
-    .d3b-chart-layout .d3b-chart-layout-header .d3b-chart-layout-title {
+    .d2b-chart-layout .d2b-chart-layout-header .d2b-chart-layout-title {
       font-size: 15pt;
       display: inline-block;
       margin-right: 10px; }
-    .d3b-chart-layout .d3b-chart-layout-header .d3b-chart-layout-title-alt {
+    .d2b-chart-layout .d2b-chart-layout-header .d2b-chart-layout-title-alt {
       color: #bbb;
       font-size: 12pt;
       display: inline-block; }
-    .d3b-chart-layout .d3b-chart-layout-header .d3b-chart-layout-info {
+    .d2b-chart-layout .d2b-chart-layout-header .d2b-chart-layout-info {
       font-size: 15pt;
       float: right; }
-  .d3b-chart-layout .d3b-chart-layout-right-notes, .d3b-chart-layout .d3b-chart-layout-left-notes, .d3b-chart-layout .d3b-chart-layout-footnote {
+  .d2b-chart-layout .d2b-chart-layout-right-notes, .d2b-chart-layout .d2b-chart-layout-left-notes, .d2b-chart-layout .d2b-chart-layout-footnote {
     position: absolute;
     font-size: 11pt;
     pointer-events: none;
     overflow: hidden;
     color: #777; }
-  .d3b-chart-layout .d3b-chart-layout-right-notes, .d3b-chart-layout .d3b-chart-layout-left-notes {
+  .d2b-chart-layout .d2b-chart-layout-right-notes, .d2b-chart-layout .d2b-chart-layout-left-notes {
     font-size: 10pt; }
-  .d3b-chart-layout .d3b-chart-layout-footnote {
+  .d2b-chart-layout .d2b-chart-layout-footnote {
     width: 100%;
     margin-top: -10px;
     font-style: italic;
     text-align: center;
     font-size: 8pt; }
-  .d3b-chart-layout .d3b-chart-layout-footnote div {
+  .d2b-chart-layout .d2b-chart-layout-footnote div {
     padding: 5px; }
-  .d3b-chart-layout .d3b-chart-layout-right-notes ul, .d3b-chart-layout .d3b-chart-layout-left-notes ul {
+  .d2b-chart-layout .d2b-chart-layout-right-notes ul, .d2b-chart-layout .d2b-chart-layout-left-notes ul {
     padding: 5px; }
-  .d3b-chart-layout .d3b-chart-layout-right-notes li, .d3b-chart-layout .d3b-chart-layout-left-notes li {
+  .d2b-chart-layout .d2b-chart-layout-right-notes li, .d2b-chart-layout .d2b-chart-layout-left-notes li {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px; }
-  .d3b-chart-layout .d3b-chart-layout-chart {
+  .d2b-chart-layout .d2b-chart-layout-chart {
     position: absolute; }
 
-.d3b-breadcrumb path {
+.d2b-breadcrumb path {
   fill: #eee; }
 
-.d3b-general-tooltip {
+.d2b-general-tooltip {
   z-index: 10000;
   font-family: "Droid Sans", Arial;
   font-size: 10pt;
@@ -80,55 +80,55 @@ html, body, .d3b-container {
   -webkit-box-shadow: 0 0 5px #555;
   box-shadow: 0 0 5px #555; }
 
-.d3b-checkbox-container {
+.d2b-checkbox-container {
   cursor: pointer; }
-  .d3b-checkbox-container text {
+  .d2b-checkbox-container text {
     fill: #333; }
-  .d3b-checkbox-container rect, .d3b-checkbox-container path {
+  .d2b-checkbox-container rect, .d2b-checkbox-container path {
     stroke: #333;
     fill-opacity: 0; }
-  .d3b-checkbox-container path, .d3b-checkbox-container rect {
+  .d2b-checkbox-container path, .d2b-checkbox-container rect {
     stroke-linejoin: miter; }
 
-.d3b-selector-selected .d3b-selector-border {
+.d2b-selector-selected .d2b-selector-border {
   fill-opacity: 0;
   stroke: #333; }
 
-.d3b-radio-button-container {
+.d2b-radio-button-container {
   cursor: pointer; }
-  .d3b-radio-button-container text {
+  .d2b-radio-button-container text {
     fill: #333; }
-  .d3b-radio-button-container circle.d3b-radio-button-inner {
+  .d2b-radio-button-container circle.d2b-radio-button-inner {
     stroke: none;
     stroke-width: 0px;
     fill: #333; }
-  .d3b-radio-button-container circle.d3b-radio-button-outer {
+  .d2b-radio-button-container circle.d2b-radio-button-outer {
     stroke: #333;
     fill-opacity: 0; }
 
-/*d3b*/
-.d3b-svg {
+/*d2b*/
+.d2b-svg {
   display: block;
   font-family: 'Droid Sans', Arial;
   font-size: 11pt;
   fill: #333; }
 
-/*d3b TOOLTIPS*/
-.d3b-svg .d3b-general-tooltip {
+/*d2b TOOLTIPS*/
+.d2b-svg .d2b-general-tooltip {
   position: absolute;
   pointer-events: none; }
 
 /*multiChart Controls*/
-.d3b-svg .d3b-set-controls-wrapper, .d3b-svg .d3b-display-chart {
+.d2b-svg .d2b-set-controls-wrapper, .d2b-svg .d2b-display-chart {
   display: block; }
 
-.d3b-svg .d3b-set-controls {
+.d2b-svg .d2b-set-controls {
   border: 1px solid #cacaca;
   border-radius: 2px;
   display: table;
   margin: auto; }
 
-.d3b-svg .d3b-set-controls .d3b-set-control {
+.d2b-svg .d2b-set-controls .d2b-set-control {
   display: inline-block;
   padding: 5px 10px;
   cursor: pointer;
@@ -137,10 +137,10 @@ html, body, .d3b-container {
   border-right: 1px solid #ccc;
   background: #f1f1f1; }
 
-.d3b-svg .d3b-set-controls .d3b-set-control:last-child {
+.d2b-svg .d2b-set-controls .d2b-set-control:last-child {
   border-right: 0px solid #ccc; }
 
-.d3b-svg .d3b-set-controls .d3b-set-control.selected {
+.d2b-svg .d2b-set-controls .d2b-set-control.selected {
   -moz-box-shadow: inset 0px 0px 4px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: inset 0px 0px 4px rgba(0, 0, 0, 0.2);
   box-shadow: inset 0px 0px 4px rgba(0, 0, 0, 0.2);
@@ -149,153 +149,153 @@ html, body, .d3b-container {
   font-weight: bold; }
 
 /*pieChart*/
-.d3b-svg .d3b-pie-chart g.d3b-pie-slice path {
+.d2b-svg .d2b-pie-chart g.d2b-pie-slice path {
   stroke-width: 1px;
   stroke: white; }
 
 /*axisChart*/
-.d3b-svg .d3b-axis path {
+.d2b-svg .d2b-axis path {
   fill: none;
   stroke: none; }
 
-.d3b-svg .d3b-axis text {
+.d2b-svg .d2b-axis text {
   font-size: 13px; }
 
-.d3b-svg .d3b-axis .tick line {
+.d2b-svg .d2b-axis .tick line {
   stroke: #ddd; }
 
-.d3b-svg .d3b-x-label text, .d3b-svg .d3b-y-label text {
+.d2b-svg .d2b-x-label text, .d2b-svg .d2b-y-label text {
   font-size: 15px;
   font-weight: bold;
   text-anchor: middle; }
 
 /*legend styles*/
-/*.d3b-legend{
+/*.d2b-legend{
 	font-size:13px;
 }*/
-.d3b-axis-chart .d3b-axes .d3b-label text {
+.d2b-axis-chart .d2b-axes .d2b-label text {
   text-anchor: middle;
   font-size: 15px;
   font-weight: bold; }
-.d3b-axis-chart .d3b-grid path {
+.d2b-axis-chart .d2b-grid path {
   fill: none; }
-.d3b-axis-chart .d3b-grid line {
+.d2b-axis-chart .d2b-grid line {
   stroke-width: 1px;
   stroke: #ddd; }
-.d3b-axis-chart .d3b-grid text {
+.d2b-axis-chart .d2b-grid text {
   display: none;
   opacity: 0; }
-.d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-line path {
+.d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-line path {
   -webkit-transition: stroke-width 0.25s;
   transition: stroke-width 0.25s;
   fill: none;
   stroke-width: 2px; }
-  .d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-line path:hover {
+  .d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-line path:hover {
     stroke-width: 4px; }
-.d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-area path {
+.d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-area path {
   -webkit-transition: fill-opacity 0.25s;
   transition: fill-opacity 0.25s;
   fill-opacity: 0.4; }
-  .d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-area path:hover {
+  .d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-area path:hover {
     fill-opacity: 0.6; }
-.d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-histogram rect {
+.d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-histogram rect {
   -webkit-transition: fill-opacity 0.25s;
   transition: fill-opacity 0.25s;
   fill-opacity: 0.8; }
-  .d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-histogram rect:hover {
+  .d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-histogram rect:hover {
     fill-opacity: 1; }
-.d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-bar rect {
+.d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-bar rect {
   -webkit-transition: fill-opacity 0.25s;
   transition: fill-opacity 0.25s;
   fill-opacity: 0.8; }
-  .d3b-axis-chart .d3b-axis-types .d3b-axis-types-background .d3b-bar rect:hover {
+  .d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-bar rect:hover {
     fill-opacity: 1; }
-.d3b-axis-chart .d3b-axis-types .d3b-axis-types-foreground circle {
+.d2b-axis-chart .d2b-axis-types .d2b-axis-types-foreground circle {
   stroke-width: 2px; }
-.d3b-axis-chart .d3b-axis-types .d3b-bubblePack .d3b-expanded-bubble-indicator {
+.d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator {
   cursor: pointer; }
-  .d3b-axis-chart .d3b-axis-types .d3b-bubblePack .d3b-expanded-bubble-indicator rect {
+  .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator rect {
     fill-opacity: 0.6;
     -webkit-transition: stroke-width 0.25s;
     transition: stroke-width 0.25s;
     stroke-width: 0px; }
-  .d3b-axis-chart .d3b-axis-types .d3b-bubblePack .d3b-expanded-bubble-indicator text {
+  .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator text {
     text-anchor: middle; }
-  .d3b-axis-chart .d3b-axis-types .d3b-bubblePack .d3b-expanded-bubble-indicator:hover rect {
+  .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator:hover rect {
     stroke-width: 2px; }
-.d3b-axis-chart .d3b-axis-types .d3b-bubblePack .d3b-bubble {
+.d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-bubble {
   opacity: 0.7;
   cursor: pointer; }
-.d3b-axis-chart .d3b-axis-types .d3b-bubblePack .d3b-hidden {
+.d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-hidden {
   pointer-events: none; }
-.d3b-axis-chart .d3b-axis-types .d3b-bubblePack circle.d3b-bubble-background {
+.d2b-axis-chart .d2b-axis-types .d2b-bubblePack circle.d2b-bubble-background {
   stroke-width: 2.5px;
   fill: none; }
-.d3b-axis-chart .d3b-axis-types .d3b-bubblePack circle.d3b-bubble-foreground {
+.d2b-axis-chart .d2b-axis-types .d2b-bubblePack circle.d2b-bubble-foreground {
   stroke: none; }
 
-.d3b-sankey-chart .d3b-sankey-labels {
+.d2b-sankey-chart .d2b-sankey-labels {
   font-size: 17pt; }
-  .d3b-sankey-chart .d3b-sankey-labels .d3b-sankey-label-source text {
+  .d2b-sankey-chart .d2b-sankey-labels .d2b-sankey-label-source text {
     text-anchor: start; }
-  .d3b-sankey-chart .d3b-sankey-labels .d3b-sankey-label-destination text {
+  .d2b-sankey-chart .d2b-sankey-labels .d2b-sankey-label-destination text {
     text-anchor: end; }
-.d3b-sankey-chart .d3b-sankey-column-headers .d3b-sankey-column-header text {
+.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header text {
   text-anchor: middle;
   font-weight: bold;
   font-size: 16px; }
-.d3b-sankey-chart .d3b-sankey-column-headers .d3b-sankey-column-header:first-child text {
+.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header:first-child text {
   text-anchor: start; }
-.d3b-sankey-chart .d3b-sankey-column-headers .d3b-sankey-column-header:last-child text {
+.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header:last-child text {
   text-anchor: end; }
-.d3b-sankey-chart .d3b-sankey .d3b-sankey-links path {
+.d2b-sankey-chart .d2b-sankey .d2b-sankey-links path {
   fill: none;
   stroke-opacity: 0.7; }
-  .d3b-sankey-chart .d3b-sankey .d3b-sankey-links path:hover {
+  .d2b-sankey-chart .d2b-sankey .d2b-sankey-links path:hover {
     stroke-opacity: 0.9; }
-.d3b-sankey-chart .d3b-sankey .d3b-sankey-nodes text {
+.d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes text {
   font-size: 10pt;
   font-weight: bold;
   pointer-events: none; }
-.d3b-sankey-chart .d3b-sankey .d3b-sankey-nodes rect {
+.d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes rect {
   fill: #eee;
   stroke-width: 2px;
   stroke: #bbb; }
-  .d3b-sankey-chart .d3b-sankey .d3b-sankey-nodes rect:hover {
+  .d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes rect:hover {
     stroke: #333; }
 
-.d3b-pie-chart .d3b-arc path {
+.d2b-pie-chart .d2b-arc path {
   fill-opacity: 0.8;
   stroke: white; }
-.d3b-pie-chart .d3b-arc text {
+.d2b-pie-chart .d2b-arc text {
   fill: white;
   font-weight: bold;
   pointer-events: none;
   text-anchor: middle; }
 
 /*axisChart column specific styles*/
-.d3b-interactive-bar-chart .d3b-columns rect {
+.d2b-interactive-bar-chart .d2b-columns rect {
   shape-rendering: crispEdges;
   fill-opacity: 0.8;
   -webkit-transition: fill-opacity 0.25s;
   transition: fill-opacity 0.25s; }
-.d3b-interactive-bar-chart .d3b-columns rect:hover {
+.d2b-interactive-bar-chart .d2b-columns rect:hover {
   fill-opacity: 1; }
 
-.d3b-guage-chart path {
+.d2b-guage-chart path {
   fill-opacity: 0.8; }
-.d3b-guage-chart text {
+.d2b-guage-chart text {
   text-anchor: middle; }
 
-.d3b-iframe-chart iframe {
+.d2b-iframe-chart iframe {
   border: 0px; }
 
-.d3b-multi-chart-buttons-wrapper {
+.d2b-multi-chart-buttons-wrapper {
   height: 45px;
   text-align: center;
   padding-top: 10px;
   width: 100%; }
-  .d3b-multi-chart-buttons-wrapper ul.d3b-buttons {
+  .d2b-multi-chart-buttons-wrapper ul.d2b-buttons {
     margin-left: 5px;
     margin-right: 5px;
     padding: 0px;
@@ -305,47 +305,47 @@ html, body, .d3b-container {
     white-space: nowrap;
     border-radius: 2px;
     border: 1px solid #333; }
-    .d3b-multi-chart-buttons-wrapper ul.d3b-buttons li {
+    .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li {
       border-right: 1px solid #333;
       cursor: pointer;
       font-family: "Droid Sans";
       display: inline-block;
       padding: 7px 10px;
       color: #777; }
-      .d3b-multi-chart-buttons-wrapper ul.d3b-buttons li.d3b-selected {
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li.d2b-selected {
         box-shadow: inset 0px 2px 4px #bbb; }
-      .d3b-multi-chart-buttons-wrapper ul.d3b-buttons li.d3b-selected {
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li.d2b-selected {
         background: #eee;
         color: #333; }
-      .d3b-multi-chart-buttons-wrapper ul.d3b-buttons li:hover {
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li:hover {
         background: #eee; }
-      .d3b-multi-chart-buttons-wrapper ul.d3b-buttons li:last-child {
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li:last-child {
         border-right: 0px; }
 
-.d3b-sunburst .d3b-sunburst-arcs path {
+.d2b-sunburst .d2b-sunburst-arcs path {
   fill-opacity: 0.9;
   stroke: white;
   stroke-width: 1;
   -webkit-transition: fill-opacity 0.25s;
   transition: fill-opacity 0.25s; }
-  .d3b-sunburst .d3b-sunburst-arcs path:hover {
+  .d2b-sunburst .d2b-sunburst-arcs path:hover {
     fill-opacity: 1;
     stroke: white; }
 
-.d3b-sunburst-tooltip text {
+.d2b-sunburst-tooltip text {
   pointer-events: none;
   text-anchor: middle; }
-  .d3b-sunburst-tooltip text tspan:first-child {
+  .d2b-sunburst-tooltip text tspan:first-child {
     font-size: 12pt;
     font-weight: bold; }
-  .d3b-sunburst-tooltip text tspan:last-child {
+  .d2b-sunburst-tooltip text tspan:last-child {
     font-size: 16pt; }
 
-.d3b-bubble-chart-buttons-wrapper {
+.d2b-bubble-chart-buttons-wrapper {
   height: 55px;
   text-align: center;
   padding-top: 10px; }
-  .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons {
+  .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons {
     margin-left: 5px;
     margin-right: 5px;
     background: #f8f8f8;
@@ -353,67 +353,67 @@ html, body, .d3b-container {
     white-space: nowrap;
     border-radius: 2px;
     border: 1px solid #333; }
-    .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul {
+    .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul {
       margin: 0px;
       display: inline-block;
       border-right: 1px solid #333;
       cursor: pointer; }
-      .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul:last-child {
+      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul:last-child {
         border-right: 0px; }
-      .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul li {
+      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li {
         color: #777; }
-        .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul li.d3b-selected {
+        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-selected {
           background: #eee;
           color: #333; }
-        .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul li:hover {
+        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li:hover {
           background: #eee; }
-      .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul li.d3b-button {
+      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-button {
         padding: 7px 10px; }
-        .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul li.d3b-button.d3b-selected {
+        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-button.d2b-selected {
           box-shadow: inset 0px 2px 4px #bbb; }
-      .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul li.d3b-color-button {
+      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-color-button {
         padding: 1px 10px;
         border-top: 1px solid #333; }
-        .d3b-bubble-chart-buttons-wrapper ul.d3b-buttons ul li.d3b-color-button.d3b-selected {
+        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-color-button.d2b-selected {
           box-shadow: inset 0px -1px 4px #bbb; }
 
-.d3b-bubble-chart .d3b-bubbles .d3b-bubble circle {
+.d2b-bubble-chart .d2b-bubbles .d2b-bubble circle {
   stroke-width: 1px;
   stroke: #333;
   fill-opacity: 0.85; }
-  .d3b-bubble-chart .d3b-bubbles .d3b-bubble circle:hover {
+  .d2b-bubble-chart .d2b-bubbles .d2b-bubble circle:hover {
     stroke-width: 2px;
     stroke: black !important;
     fill-opacity: 1; }
-.d3b-bubble-chart .tick text {
+.d2b-bubble-chart .tick text {
   font-size: 9pt;
   fill: #333; }
-.d3b-bubble-chart .d3b-groups-axis {
+.d2b-bubble-chart .d2b-groups-axis {
   pointer-events: none; }
-  .d3b-bubble-chart .d3b-groups-axis path {
+  .d2b-bubble-chart .d2b-groups-axis path {
     fill: none; }
-  .d3b-bubble-chart .d3b-groups-axis .tick line {
+  .d2b-bubble-chart .d2b-groups-axis .tick line {
     pointer-events: none;
     stroke-dasharray: 6,4;
     stroke-width: 0.5px;
     stroke: #bbb; }
-.d3b-bubble-chart .d3b-change-axis-legend {
+.d2b-bubble-chart .d2b-change-axis-legend {
   pointer-events: none; }
-  .d3b-bubble-chart .d3b-change-axis-legend path {
+  .d2b-bubble-chart .d2b-change-axis-legend path {
     fill: none; }
-  .d3b-bubble-chart .d3b-change-axis-legend .tick line {
+  .d2b-bubble-chart .d2b-change-axis-legend .tick line {
     stroke-dasharray: 6,4;
     stroke-width: 1px;
     stroke: #bbb; }
-.d3b-bubble-chart .d3b-groups {
+.d2b-bubble-chart .d2b-groups {
   pointer-events: none; }
-  .d3b-bubble-chart .d3b-groups .d3b-group-title {
+  .d2b-bubble-chart .d2b-groups .d2b-group-title {
     text-anchor: middle; }
-  .d3b-bubble-chart .d3b-groups .d3b-group-total {
+  .d2b-bubble-chart .d2b-groups .d2b-group-total {
     font-weight: bold;
     text-anchor: middle; }
 
-.d3b-dashboard .d3b-header {
+.d2b-dashboard .d2b-header {
   border-bottom: 2px solid #555;
   color: #eee;
   background: #333;
@@ -433,36 +433,36 @@ html, body, .d3b-container {
   -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
   -moz-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
   box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5); }
-  .d3b-dashboard .d3b-header .d3b-dashboard-logo {
+  .d2b-dashboard .d2b-header .d2b-dashboard-logo {
     height: 40px;
     float: right;
     margin-right: 10px; }
-  .d3b-dashboard .d3b-header .d3b-navigation-home {
+  .d2b-dashboard .d2b-header .d2b-navigation-home {
     display: inline-block;
     padding: 5px 12px;
     cursor: pointer; }
-  .d3b-dashboard .d3b-header .d3b-navigation-arrows {
+  .d2b-dashboard .d2b-header .d2b-navigation-arrows {
     display: inline-block; }
-    .d3b-dashboard .d3b-header .d3b-navigation-arrows div {
+    .d2b-dashboard .d2b-header .d2b-navigation-arrows div {
       display: inline-block;
       padding: 5px 12px;
       cursor: pointer; }
-  .d3b-dashboard .d3b-header .d3b-category-tabs {
+  .d2b-dashboard .d2b-header .d2b-category-tabs {
     display: inline-block;
     font-family: "Oswald", Arial; }
-    .d3b-dashboard .d3b-header .d3b-category-tabs .d3b-category-tab {
+    .d2b-dashboard .d2b-header .d2b-category-tabs .d2b-category-tab {
       display: inline-block;
       padding: 5px 27px;
       cursor: pointer;
       margin-right: 1px; }
-  .d3b-dashboard .d3b-header .d3b-navigation-home:hover, .d3b-dashboard .d3b-header .d3b-navigation-arrows div:hover, .d3b-dashboard .d3b-header .d3b-category-tab:hover {
+  .d2b-dashboard .d2b-header .d2b-navigation-home:hover, .d2b-dashboard .d2b-header .d2b-navigation-arrows div:hover, .d2b-dashboard .d2b-header .d2b-category-tab:hover {
     background: #555; }
-  .d3b-dashboard .d3b-header .d3b-innactive {
+  .d2b-dashboard .d2b-header .d2b-innactive {
     color: #bbb;
     cursor: auto !important; }
-    .d3b-dashboard .d3b-header .d3b-innactive:hover {
+    .d2b-dashboard .d2b-header .d2b-innactive:hover {
       background: transparent !important; }
-  .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs {
+  .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs {
     -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
     -moz-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
     box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
@@ -474,45 +474,45 @@ html, body, .d3b-container {
     border-top: 2px solid #333;
     overflow: visible;
     position: relative; }
-    .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg {
+    .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg {
       overflow: hidden;
       height: 100%;
       width: 100%;
       position: absolute;
       z-index: 3;
       margin-top: -1px; }
-      .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb {
+      .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb {
         cursor: pointer; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb path:hover {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb path:hover {
           fill: #870026; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb text {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb text {
           pointer-events: none;
           font-size: 11pt;
           fill: #eee; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-background {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-background {
           fill: #870026; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-foreground {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-foreground {
           fill: #c10037; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-triangle rect {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-triangle rect {
           cursor: pointer;
           fill-opacity: 0; }
-          .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-triangle rect:hover {
+          .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-triangle rect:hover {
             fill: #870026; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-triangle path {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-triangle path {
           fill: #eee;
           stroke: 0px;
           pointer-events: none; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-triangle:not(.d3b-breadcrumb-sub-section-group-section):hover rect {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-triangle:not(.d2b-breadcrumb-sub-section-group-section):hover rect {
           fill-opacity: 1; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-sub-section-group-section path {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-sub-section-group-section path {
           cursor: pointer; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb .d3b-breadcrumb-sub-section-group-section text {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb .d2b-breadcrumb-sub-section-group-section text {
           cursor: pointer; }
-      .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb.d3b-innactive {
+      .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb.d2b-innactive {
         cursor: auto; }
-        .d3b-dashboard .d3b-header .d3b-dashboard-breadcrumbs .d3b-dashboard-breadcrumbs-svg .d3b-breadcrumb.d3b-innactive > .d3b-breadcrumb-foreground:hover {
+        .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs .d2b-dashboard-breadcrumbs-svg .d2b-breadcrumb.d2b-innactive > .d2b-breadcrumb-foreground:hover {
           fill: #c10037; }
-.d3b-dashboard .d3b-dashboard-sidebar {
+.d2b-dashboard .d2b-dashboard-sidebar {
   position: fixed;
   top: 78px;
   z-index: 5;
@@ -524,7 +524,7 @@ html, body, .d3b-container {
   font-family: "Droid Sans", Arial;
   font-size: 11pt;
   padding-top: 10px; }
-  .d3b-dashboard .d3b-dashboard-sidebar div.d3b-sidebar-container {
+  .d2b-dashboard .d2b-dashboard-sidebar div.d2b-sidebar-container {
     border-radius: 1px;
     background: #333;
     -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
@@ -533,37 +533,37 @@ html, body, .d3b-container {
     padding: 5px 0px;
     margin-bottom: 10px;
     max-height: 1000px; }
-  .d3b-dashboard .d3b-dashboard-sidebar .d3b-control-container {
+  .d2b-dashboard .d2b-dashboard-sidebar .d2b-control-container {
     padding: 3px 8px 3px 13px; }
-    .d3b-dashboard .d3b-dashboard-sidebar .d3b-control-container .d3b-control {
+    .d2b-dashboard .d2b-dashboard-sidebar .d2b-control-container .d2b-control {
       padding-left: 10px; }
-  .d3b-dashboard .d3b-dashboard-sidebar circle, .d3b-dashboard .d3b-dashboard-sidebar text {
+  .d2b-dashboard .d2b-dashboard-sidebar circle, .d2b-dashboard .d2b-dashboard-sidebar text {
     fill: #eee; }
-  .d3b-dashboard .d3b-dashboard-sidebar rect, .d3b-dashboard .d3b-dashboard-sidebar path, .d3b-dashboard .d3b-dashboard-sidebar circle {
+  .d2b-dashboard .d2b-dashboard-sidebar rect, .d2b-dashboard .d2b-dashboard-sidebar path, .d2b-dashboard .d2b-dashboard-sidebar circle {
     stroke: #eee; }
-  .d3b-dashboard .d3b-dashboard-sidebar .d3b-control-label {
+  .d2b-dashboard .d2b-dashboard-sidebar .d2b-control-label {
     margin-bottom: 3px; }
-  .d3b-dashboard .d3b-dashboard-sidebar .d3b-control {
+  .d2b-dashboard .d2b-dashboard-sidebar .d2b-control {
     margin-bottom: 5px !important; }
-  .d3b-dashboard .d3b-dashboard-sidebar div.d3b-sidebar-header {
+  .d2b-dashboard .d2b-dashboard-sidebar div.d2b-sidebar-header {
     border-bottom: 2px solid #bbb;
     padding: 3px 13px;
     font-size: 20px;
     text-align: center;
     margin-bottom: 3px; }
-  .d3b-dashboard .d3b-dashboard-sidebar ul {
+  .d2b-dashboard .d2b-dashboard-sidebar ul {
     background: #333;
     cursor: pointer; }
-    .d3b-dashboard .d3b-dashboard-sidebar ul li {
+    .d2b-dashboard .d2b-dashboard-sidebar ul li {
       padding: 3px 8px 3px 10px;
       position: relative;
       border-left: 3px solid #333; }
-      .d3b-dashboard .d3b-dashboard-sidebar ul li:hover {
+      .d2b-dashboard .d2b-dashboard-sidebar ul li:hover {
         border-left: 3px solid #c10037;
         background: #555; }
-        .d3b-dashboard .d3b-dashboard-sidebar ul li:hover > ul {
+        .d2b-dashboard .d2b-dashboard-sidebar ul li:hover > ul {
           display: inline-block; }
-    .d3b-dashboard .d3b-dashboard-sidebar ul ul {
+    .d2b-dashboard .d2b-dashboard-sidebar ul ul {
       -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
       -moz-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
       box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
@@ -574,50 +574,50 @@ html, body, .d3b-container {
       z-index: 1000;
       border-left: 1px solid #bbb;
       top: 0px; }
-.d3b-dashboard .d3b-dashboard-content {
+.d2b-dashboard .d2b-dashboard-content {
   height: 100%;
   color: #eee;
   font-family: "Droid Sans", Arial;
   margin-top: 78px; }
 
-.d3b-dashboard-category {
+.d2b-dashboard-category {
   position: relative;
   height: 80px; }
-  .d3b-dashboard-category .d3b-category {
+  .d2b-dashboard-category .d2b-category {
     width: 100%;
     position: absolute;
     margin-left: 5px;
     margin-top: 5px;
     z-index: 1; }
-    .d3b-dashboard-category .d3b-category .d3b-category-label {
+    .d2b-dashboard-category .d2b-category .d2b-category-label {
       margin-top: 5px;
       font-family: "Oswald";
       margin-left: 5px; }
-      .d3b-dashboard-category .d3b-category .d3b-category-label div {
+      .d2b-dashboard-category .d2b-category .d2b-category-label div {
         white-space: nowrap;
         text-transform: capitalize; }
-      .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-section {
+      .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-section {
         display: inline-block;
         font-size: 22pt;
         color: #333;
         margin-bottom: 2px; }
-      .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-category:before {
+      .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-category:before {
         content: ' - '; }
-      .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-category {
+      .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-category {
         margin-left: 8px;
         display: inline-block;
         font-size: 16pt;
         font-size: 22pt;
         font-weight: 300;
         color: #555; }
-      .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-pages {
+      .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-pages {
         font-family: "Droid Sans";
         position: relative;
         color: #eee;
         white-space: normal;
         font-size: 11pt;
         border-radius: 5px; }
-        .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-pages .d3b-page-tab {
+        .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-pages .d2b-page-tab {
           margin-top: 5px;
           margin-bottom: 5px;
           cursor: pointer;
@@ -625,27 +625,27 @@ html, body, .d3b-container {
           background: #c10037;
           border-bottom: 4px solid #870026;
           display: inline-block; }
-          .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-pages .d3b-page-tab:last-child {
+          .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-pages .d2b-page-tab:last-child {
             border-radius: 0px 1px 1px 0px; }
-          .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-pages .d3b-page-tab:first-child {
+          .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-pages .d2b-page-tab:first-child {
             border-radius: 1px 0px 0px 1px; }
-          .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-pages .d3b-page-tab:hover {
+          .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-pages .d2b-page-tab:hover {
             background: #870026; }
-          .d3b-dashboard-category .d3b-category .d3b-category-label .d3b-category-label-pages .d3b-page-tab.d3b-tab-selected {
+          .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-pages .d2b-page-tab.d2b-tab-selected {
             background: #870026; }
 
-.d3b-chart-page-container {
+.d2b-chart-page-container {
   position: relative; }
-  .d3b-chart-page-container .d3b-chart-page {
+  .d2b-chart-page-container .d2b-chart-page {
     position: absolute;
     z-index: 0; }
-    .d3b-chart-page-container .d3b-chart-page .d3b-page-chart-layout {
+    .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout {
       position: absolute;
       overflow: hidden; }
-      .d3b-chart-page-container .d3b-chart-page .d3b-page-chart-layout .d3b-chart-layout-wrapper {
+      .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout .d2b-chart-layout-wrapper {
         padding: 5px;
         overflow: hidden; }
-        .d3b-chart-page-container .d3b-chart-page .d3b-page-chart-layout .d3b-chart-layout-wrapper .d3b-chart-layout {
+        .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout .d2b-chart-layout-wrapper .d2b-chart-layout {
           border-radius: 1px;
           overflow: hidden;
           -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);

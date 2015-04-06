@@ -1,8 +1,8 @@
-.d3b-dashboard{
+.d2b-dashboard{
 
-	.d3b-header{
+	.d2b-header{
 
-		.d3b-dashboard-logo{
+		.d2b-dashboard-logo{
 			// width:190px;
 			height:40px;
 			float:right;
@@ -35,13 +35,13 @@
 	  box-shadow:         $dashboard_shadow;
 
 
-		.d3b-navigation-home{
+		.d2b-navigation-home{
 			display:inline-block;
 			padding:5px 12px;
 			cursor:pointer;
 		}
 
-		.d3b-navigation-arrows{
+		.d2b-navigation-arrows{
 			display:inline-block;
 			div{
 				display:inline-block;
@@ -50,11 +50,11 @@
 			}
 		}
 
-		.d3b-category-tabs{
+		.d2b-category-tabs{
 			display:inline-block;
 			font-family:$alt1;
 
-			.d3b-category-tab{
+			.d2b-category-tab{
 				display:inline-block;
 				padding:5px 27px;
 				cursor:pointer;
@@ -63,11 +63,11 @@
 
 		}
 
-		.d3b-navigation-home:hover, .d3b-navigation-arrows div:hover, .d3b-category-tab:hover{
+		.d2b-navigation-home:hover, .d2b-navigation-arrows div:hover, .d2b-category-tab:hover{
 			background:$hover_dark;
 		}
 
-		.d3b-innactive{
+		.d2b-innactive{
 			color:$light;
 			cursor:auto !important;
 
@@ -77,7 +77,7 @@
 		}
 
 
-		.d3b-dashboard-breadcrumbs{
+		.d2b-dashboard-breadcrumbs{
 		  -webkit-box-shadow: $dashboard_shadow;
 		  -moz-box-shadow:    $dashboard_shadow;
 		  box-shadow:         $dashboard_shadow;
@@ -92,7 +92,7 @@
 			overflow:visible;
 			position:relative;
 
-			.d3b-dashboard-breadcrumbs-svg{
+			.d2b-dashboard-breadcrumbs-svg{
 				overflow:hidden;
 				height:100%;
 				width:100%;
@@ -100,7 +100,7 @@
 				z-index:3;
 				margin-top:-1px;
 
-				.d3b-breadcrumb{
+				.d2b-breadcrumb{
 					cursor:pointer;
 					path{
 						&:hover{
@@ -115,40 +115,40 @@
 						fill:$lightest;
 					}
 
-					.d3b-breadcrumb-background{
+					.d2b-breadcrumb-background{
 						fill:$palette_main_darker;
 					}
-					.d3b-breadcrumb-foreground{
+					.d2b-breadcrumb-foreground{
 						fill:$palette_main;
 					}
 
-					.d3b-breadcrumb-triangle rect{
+					.d2b-breadcrumb-triangle rect{
 						cursor:pointer;
 						fill-opacity:0;
 						&:hover{
 							fill:$palette_main_darker;
 						}
 					}
-					.d3b-breadcrumb-triangle path{
+					.d2b-breadcrumb-triangle path{
 						fill:$lightest;
 						stroke:0px;
 						pointer-events:none;
 					}
-					.d3b-breadcrumb-triangle:not(.d3b-breadcrumb-sub-section-group-section):hover rect{
+					.d2b-breadcrumb-triangle:not(.d2b-breadcrumb-sub-section-group-section):hover rect{
 						fill-opacity:1;
 					}
-					.d3b-breadcrumb-sub-section-group-section path{
+					.d2b-breadcrumb-sub-section-group-section path{
 						cursor:pointer;
 					}
-					.d3b-breadcrumb-sub-section-group-section text{
+					.d2b-breadcrumb-sub-section-group-section text{
 						cursor:pointer;
 					}
 
 				}
 
-				.d3b-breadcrumb.d3b-innactive{
+				.d2b-breadcrumb.d2b-innactive{
 					cursor:auto;
-					& > .d3b-breadcrumb-foreground:hover{
+					& > .d2b-breadcrumb-foreground:hover{
 						fill:$palette_main;
 					}
 				}
@@ -160,7 +160,7 @@
 	}
 
 
-	.d3b-dashboard-sidebar{
+	.d2b-dashboard-sidebar{
 		// -webkit-transform: translateZ(0);
 
 	  // -webkit-box-shadow: 2px 3px 3px $light;
@@ -179,7 +179,7 @@
 		font-size:11pt;
 		padding-top:10px;
 
-		div.d3b-sidebar-container{
+		div.d2b-sidebar-container{
 			border-radius:1px;
 			background:$dark_main;
 			-webkit-box-shadow: $dashboard_shadow;
@@ -194,9 +194,9 @@
 			max-height:1000px;
 		}
 
-		.d3b-control-container{
+		.d2b-control-container{
 			padding: 3px 8px 3px 13px;
-			.d3b-control{
+			.d2b-control{
 				padding-left:10px;
 			}
 		}
@@ -207,15 +207,15 @@
 		rect, path, circle{
 			stroke:$lightest;
 		}
-		.d3b-control-label{
+		.d2b-control-label{
 			// font-size:12px;
 			margin-bottom:3px;
 		}
-		.d3b-control{
+		.d2b-control{
 			margin-bottom:5px !important;
 		}
 
-		// div.d3b-sidebar-container.d3b-hidden{
+		// div.d2b-sidebar-container.d2b-hidden{
 		// 	opacity:0;
 		// 	overflow:hidden;
 		// 	max-height:0px;
@@ -223,7 +223,7 @@
 		// 	padding:0px;
 		// }
 
-		div.d3b-sidebar-header{
+		div.d2b-sidebar-header{
 			// padding:3px 5px 3px 2px;
 			border-bottom:2px solid $light;
 			padding:3px 13px;
@@ -275,7 +275,7 @@
 
 	}
 
-	.d3b-dashboard-content{
+	.d2b-dashboard-content{
 		// overflow-x:hidden;
 		height:100%;
 		color:$lightest;

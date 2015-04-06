@@ -1,15 +1,15 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-bubble-pack*/
-d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
+d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 
@@ -20,7 +20,7 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
   //pack layout
   $$.pack = d3.layout.pack()
@@ -88,9 +88,9 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
   $$.bubbleEnter = function(graph, graphData, bubble){
     newBubble = bubble.enter()
       .append('g')
-        .attr('class', 'd3b-bubble')
-        .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
-        .call(d3b.UTILS.bindElementEvents, $$, 'bubble')
+        .attr('class', 'd2b-bubble')
+        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+        .call(d2b.UTILS.bindElementEvents, $$, 'bubble')
         .attr('transform', function(d){
           if(d.parent){
             if(!$$.persistentData.expandedNodes[d.parent.key])
@@ -102,12 +102,12 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
     newBubble
       .append('circle')
-        .attr('class','d3b-bubble-background')
+        .attr('class','d2b-bubble-background')
         .style('stroke', $$.color(graphData.label));
 
     newBubble
       .append('circle')
-        .attr('class','d3b-bubble-foreground')
+        .attr('class','d2b-bubble-foreground')
         .style('fill', $$.color(graphData.label));
   };
 
@@ -115,21 +115,21 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     //customize bubbles that contain children
     var bubbleWithChildren = bubble
       .filter(function(d){return (d.children)? true:false;})
-      .on('click.d3b-click',function(d){
+      .on('click.d2b-click',function(d){
         $$.persistentData.expandedNodes[d.key] = true;
         chart.update();
       })
       .style('cursor','pointer')
-      .on('mouseover.d3b-mouseover',function(d){
+      .on('mouseover.d2b-mouseover',function(d){
         d3.select(this)
-          .select('.d3b-bubble-background')
+          .select('.d2b-bubble-background')
           .transition()
             .duration($$.animationDuration/2)
             .attr('r', 3+Math.max(0.5,d.r));
       })
-      .on('mouseout.d3b-mouseout',function(d){
+      .on('mouseout.d2b-mouseout',function(d){
           d3.select(this)
-            .select('.d3b-bubble-background')
+            .select('.d2b-bubble-background')
             .transition()
               .duration($$.animationDuration/2)
               .attr('r', Math.max(0.5,d.r));
@@ -137,14 +137,14 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
     //customize bubbles that do not contain children
     bubbleWithChildren
-      .select('.d3b-bubble-background')
+      .select('.d2b-bubble-background')
       .style('stroke', d3.rgb($$.color(graphData.label)).darker(1));
 
     var bubbleWithoutChildren = bubble.filter(function(d){return (d.children)? false:true;})
       .style('cursor','auto');
 
     bubbleWithoutChildren
-      .select('.d3b-bubble-background')
+      .select('.d2b-bubble-background')
       .style('stroke', d3.rgb($$.color(graphData.label)));
 
     //transition visible bubbles
@@ -157,16 +157,16 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
           return false;
         })
-        .classed('d3b-hidden',false)
+        .classed('d2b-hidden',false)
       .transition()
         .duration($$.animationDuration*1.5)
         .style('opacity',0.7)
         .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
     bubbleVisibleTransition
-      .select('circle.d3b-bubble-background')
+      .select('circle.d2b-bubble-background')
         .attr('r', function(d){return Math.max(0.5,d.r);});
     bubbleVisibleTransition
-      .select('circle.d3b-bubble-foreground')
+      .select('circle.d2b-bubble-foreground')
         .attr('r', function(d){return Math.max(0.5,d.r);});
 
     //transition hidden bubbles
@@ -179,7 +179,7 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
           return true;
         })
-        .classed('d3b-hidden',true)
+        .classed('d2b-hidden',true)
       .transition()
         .duration($$.animationDuration*1.5)
         .style('opacity',0)
@@ -192,10 +192,10 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
           return translate;
         });
     bubbleHiddenTransition
-      .select('circle.d3b-bubble-background')
+      .select('circle.d2b-bubble-background')
         .attr('r', function(d){return Math.max(1,d.r);});
     bubbleHiddenTransition
-      .select('circle.d3b-bubble-foreground')
+      .select('circle.d2b-bubble-foreground')
         .attr('r', function(d){return Math.max(1,d.r);});
 
   };
@@ -212,18 +212,18 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	var chart = {};
 
 	//properties that will be set by the axis-chart main code
-	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
@@ -284,24 +284,24 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
 
-      var bubble = graph.selectAll('g.d3b-bubble').data(graphData.packed, function(d){return d.key;});
+      var bubble = graph.selectAll('g.d2b-bubble').data(graphData.packed, function(d){return d.key;});
 
       $$.bubbleEnter(graph, graphData, bubble);
       $$.bubbleUpdate(graph, graphData, bubble);
       $$.bubbleExit(graph, graphData, bubble);
 
-      var expandedBubbleIndicator = graph.selectAll('g.d3b-expanded-bubble-indicator')
+      var expandedBubbleIndicator = graph.selectAll('g.d2b-expanded-bubble-indicator')
         .data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
 
       var newIndicator = expandedBubbleIndicator.enter()
         .append('g')
-          .attr('class', 'd3b-expanded-bubble-indicator')
-          .on('click.d3b-click', function(d){
+          .attr('class', 'd2b-expanded-bubble-indicator')
+          .on('click.d2b-click', function(d){
             $$.resetExpandedNodes(d);
-            d3b.UTILS.removeTooltip();
+            d2b.UTILS.removeTooltip();
             chart.update();
           })
-          .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
+          .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
 
       newIndicator
         .append('rect')

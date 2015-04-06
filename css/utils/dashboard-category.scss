@@ -1,13 +1,13 @@
-.d3b-dashboard-category{
+.d2b-dashboard-category{
   position:relative;
   height:80px;
-  .d3b-category{
+  .d2b-category{
     width:100%;
     position:absolute;
     margin-left:5px;
     margin-top:5px;
     z-index:1;
-    .d3b-category-label{
+    .d2b-category-label{
       margin-top:5px;
       font-family:"Oswald";
       margin-left:5px;
@@ -15,17 +15,17 @@
         white-space:nowrap;
         text-transform: capitalize;
       }
-      .d3b-category-label-section{
+      .d2b-category-label-section{
         display:inline-block;
         // display:block;
         font-size:22pt;
         color:$dark_main;
         margin-bottom:2px;
       }
-      .d3b-category-label-category:before{
+      .d2b-category-label-category:before{
         content:' - ';
       }
-      .d3b-category-label-category{
+      .d2b-category-label-category{
         // text-align:center;
         margin-left:8px;
         display:inline-block;
@@ -34,7 +34,7 @@
         font-weight:300;
         color:$hover_dark;
       }
-      .d3b-category-label-pages{
+      .d2b-category-label-pages{
         // text-align:center;
         font-family:"Droid Sans";
         position:relative;
@@ -42,7 +42,7 @@
         white-space:normal;
         font-size:11pt;
         border-radius:5px;
-        .d3b-page-tab{
+        .d2b-page-tab{
           margin-top:5px;
           margin-bottom:5px;
           cursor:pointer;
@@ -60,7 +60,7 @@
           &:hover{
             background:$palette_main_darker;
           }
-          &.d3b-tab-selected{
+          &.d2b-tab-selected{
             background:$palette_main_darker;
           }
         }

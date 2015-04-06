@@ -1,15 +1,15 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-line*/
-d3b.UTILS.AXISCHART.TYPES.line = function(){
+d2b.UTILS.AXISCHART.TYPES.line = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -17,7 +17,7 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.line = d3.svg.line()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -26,18 +26,18 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.xValues = function(){
     var values = [];
@@ -68,7 +68,7 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(d3b.UTILS.bindElementEvents, $$, 'line');
+					.call(d2b.UTILS.bindElementEvents, $$, 'line');
 			}
 
 			if(graphData.interpolate){
@@ -103,21 +103,21 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 			newPoint
 				.append('circle')
 					.attr('r', 3.5)
-					.on('mouseover.d3b-mouseover',function(){
+					.on('mouseover.d2b-mouseover',function(){
 						d3.select(this)
 							.transition()
 								.duration($$.animationDuration/2)
 								.attr('r',7)
 					})
-					.on('mouseout.d3b-mouseover',function(){
+					.on('mouseout.d2b-mouseover',function(){
 						d3.select(this)
 							.transition()
 								.duration($$.animationDuration/2)
 								.attr('r',3.5)
 					})
 					.style('fill-opacity',0)
-					.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-					.call(d3b.UTILS.bindElementEvents, $$, 'line-point');
+					.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+					.call(d2b.UTILS.bindElementEvents, $$, 'line-point');
 
 
 			point

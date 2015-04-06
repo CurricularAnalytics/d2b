@@ -1,14 +1,14 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 //create root namespace
-var d3b = d3b || {};
+var d2b = d2b || {};
 
 //namespace method for adding new namespaces
-d3b.createNameSpace = function (namespace) {
+d2b.createNameSpace = function (namespace) {
     var nsparts = namespace.split(".");
-    var parent = d3b;
+    var parent = d2b;
 
-    if (nsparts[0] === "d3b") {
+    if (nsparts[0] === "d2b") {
         nsparts = nsparts.slice(1);
     }
 
@@ -23,25 +23,25 @@ d3b.createNameSpace = function (namespace) {
 };
 
 
-/*d3b charts*/
-d3b.createNameSpace("d3b.CHARTS");
+/*d2b charts*/
+d2b.createNameSpace("d2b.CHARTS");
 
-/*d3b charts*/
-d3b.createNameSpace("d3b.DASHBOARDS");
+/*d2b charts*/
+d2b.createNameSpace("d2b.DASHBOARDS");
 
-/*d3b UTILITIES*/
-d3b.createNameSpace("d3b.UTILS");
-/*d3b UTILITIES*/
-d3b.createNameSpace("d3b.UTILS.CHARTPAGE");
+/*d2b UTILITIES*/
+d2b.createNameSpace("d2b.UTILS");
+/*d2b UTILITIES*/
+d2b.createNameSpace("d2b.UTILS.CHARTPAGE");
 
-d3b.createNameSpace("d3b.UTILS.AXISCHART.TYPES");
+d2b.createNameSpace("d2b.UTILS.AXISCHART.TYPES");
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*d3b constants*/
-d3b.createNameSpace("d3b.CONSTANTS");
+/*d2b constants*/
+d2b.createNameSpace("d2b.CONSTANTS");
 
-d3b.CONSTANTS = {
+d2b.CONSTANTS = {
   DEFAULTPALETTE: {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"},
   DEFAULTWIDTH: function(){ return 960; },
   DEFAULTHEIGHT: function(){ return 540; },
@@ -59,8 +59,8 @@ d3b.CONSTANTS = {
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-d3b.UTILS.chartAdapter = function(type, chartData){
-	chartData.chart = new d3b.CHARTS[type];
+d2b.UTILS.chartAdapter = function(type, chartData){
+	chartData.chart = new d2b.CHARTS[type];
 	if(chartData.properties){
 		for(key in chartData.properties){
 			if(chartData.properties[key].args)
@@ -71,11 +71,11 @@ d3b.UTILS.chartAdapter = function(type, chartData){
 	}
 };
 
-d3b.UTILS.chartLayoutAdapter = function(type, chartData){
-	chartData.chart = new d3b.CHARTS[type];
+d2b.UTILS.chartLayoutAdapter = function(type, chartData){
+	chartData.chart = new d2b.CHARTS[type];
 	if(!chartData.chartLayoutData)
 		chartData.chartLayoutData = {};
-	chartData.chartLayout = new d3b.UTILS.CHARTPAGE.chartLayout();
+	chartData.chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
 	chartData.chartLayout
 			.chart(chartData.chart)
 			.data(chartData.chartLayoutData);
@@ -91,11 +91,11 @@ d3b.UTILS.chartLayoutAdapter = function(type, chartData){
 };
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
-d3b.UTILS.chartPage = function(){
+d2b.UTILS.chartPage = function(){
 
   var $$ = {};
 
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.selection;
 	$$.currentData = {};
 
@@ -103,7 +103,7 @@ d3b.UTILS.chartPage = function(){
 	$$.dataLoaded = false;
 
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
 
 	$$.on = {
@@ -113,11 +113,11 @@ d3b.UTILS.chartPage = function(){
 	$$.init = function(position){
     if($$.animateFrom || !$$.selection.currentPage){
 
-			$$.selection.selectAll('.d3b-chart-page').classed('d3b-chart-page-old', true);
+			$$.selection.selectAll('.d2b-chart-page').classed('d2b-chart-page-old', true);
 
 			$$.selection.currentPage = $$.selection
 				.append('div')
-					.attr('class','d3b-chart-page')
+					.attr('class','d2b-chart-page')
 					.style('opacity',0)
 					.style('left',position.left+'px')
 					.style('top',position.top+'px');
@@ -125,13 +125,13 @@ d3b.UTILS.chartPage = function(){
 	};
 
 	$$.updateGrid = function(charts){
-		var chartLayout = $$.selection.currentPage.selectAll('div.d3b-page-chart-layout').data(charts, function(d, i){return d.chart.key || i;});
+		var chartLayout = $$.selection.currentPage.selectAll('div.d2b-page-chart-layout').data(charts, function(d, i){return d.chart.key || i;});
 
 		var newChartLayout = chartLayout.enter()
 			.append('div')
-				.attr('class','d3b-page-chart-layout')
+				.attr('class','d2b-page-chart-layout')
 				.each(function(d){
-					d3b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
+					d2b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
 					this.chart = d.chart.chart;
 					this.chartLayout = d.chart.chartLayout;
 					this.chartLayout
@@ -203,7 +203,7 @@ d3b.UTILS.chartPage = function(){
 
 	var page = {};
 
-	page.on =				d3b.UTILS.CHARTS.MEMBERS.on(page, $$);
+	page.on =				d2b.UTILS.CHARTS.MEMBERS.on(page, $$);
 
   page.width = function(value){
 		if(!arguments.length) return $$.width;
@@ -290,7 +290,7 @@ d3b.UTILS.chartPage = function(){
 			}
 		}
 
-		$$.selection.selectAll('.d3b-chart-page-old')
+		$$.selection.selectAll('.d2b-chart-page-old')
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
@@ -316,12 +316,12 @@ d3b.UTILS.chartPage = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-d3b.UTILS.CHARTPAGE.chartLayout = function(){
-	var width = d3b.CONSTANTS.DEFAULTWIDTH();
-	var height = d3b.CONSTANTS.DEFAULTHEIGHT();
+d2b.UTILS.CHARTPAGE.chartLayout = function(){
+	var width = d2b.CONSTANTS.DEFAULTWIDTH();
+	var height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	var selection;
 	var currentChartLayoutData = {chartLayout:{}};
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var chart;
 	var generateRequired = true;
 
@@ -399,58 +399,58 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 
 		selection.wrapper = selection
 			.append('div')
-				.attr('class','d3b-chart-layout-wrapper');
+				.attr('class','d2b-chart-layout-wrapper');
 
 		selection.container = selection.wrapper
 			.append('div')
-				.attr('class','d3b-chart-layout d3b-container');
+				.attr('class','d2b-chart-layout d2b-container');
 
 		selection.container.header = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-header');
+				.attr('class','d2b-chart-layout-header');
 
 		selection.container.header.title = selection.container.header
 			.append('div')
-				.attr('class','d3b-chart-layout-title');
+				.attr('class','d2b-chart-layout-title');
 
 		selection.container.header.titleAlt = selection.container.header
 			.append('div')
-				.attr('class','d3b-chart-layout-title-alt');
+				.attr('class','d2b-chart-layout-title-alt');
 
 		selection.container.header.info = selection.container.header
 			.append('div')
-				.attr('class','d3b-chart-layout-info');
+				.attr('class','d2b-chart-layout-info');
 
 		selection.container.chart = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-chart');
+				.attr('class','d2b-chart-layout-chart');
 
 		chart
 			.selection(selection.container.chart);
 
 		selection.container.rightNotes = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-right-notes');
+				.attr('class','d2b-chart-layout-right-notes');
 
 		selection.container.rightNotes.ul = selection.container.rightNotes
 			.append('ul');
 
 		selection.container.leftNotes = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-left-notes');
+				.attr('class','d2b-chart-layout-left-notes');
 
 		selection.container.leftNotes.ul = selection.container.leftNotes
 			.append('ul');
 
 		selection.container.footnote = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-footnote');
+				.attr('class','d2b-chart-layout-footnote');
 		selection.container.footnote.div = selection.container.footnote
 			.append('div');
 
 		selection.container.source = selection.container
 			.append('div')
-				.attr('class','d3b-chart-layout-source')
+				.attr('class','d2b-chart-layout-source')
 			.append('ul');
 
 
@@ -509,10 +509,10 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 		}else{
 			chartMargin.right+=width * 0.2+5;
 		}
-		var rightNote = selection.container.rightNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
+		var rightNote = selection.container.rightNotes.ul.selectAll('li.d2b-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
 		rightNote.enter()
 			.append('li')
-				.attr('class','d3b-chart-layout-note')
+				.attr('class','d2b-chart-layout-note')
 			.append('div');
 
 		var rightNotesHeight = 0;
@@ -543,10 +543,10 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 			chartMargin.left+=width * 0.2;
 		}
 
-		var leftNote = selection.container.leftNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
+		var leftNote = selection.container.leftNotes.ul.selectAll('li.d2b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
 		leftNote.enter()
 			.append('li')
-				.attr('class','d3b-chart-layout-note')
+				.attr('class','d2b-chart-layout-note')
 			.append('div');
 
 		var leftNotesHeight = 0;
@@ -570,10 +570,10 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 
 
 
-		// var leftNote = selection.container.leftNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
+		// var leftNote = selection.container.leftNotes.ul.selectAll('li.d2b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
 		// leftNote.enter()
 		// 	.append('li')
-		// 		.attr('class','d3b-chart-layout-note');
+		// 		.attr('class','d2b-chart-layout-note');
 		// leftNote
 		// 		.text(function(d){return d});
 		// leftNote.exit()
@@ -616,23 +616,23 @@ d3b.UTILS.CHARTPAGE.chartLayout = function(){
 }
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
-d3b.UTILS.dashboardCategory = function(){
+d2b.UTILS.dashboardCategory = function(){
 
   var $$ = {};
 
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.selection;
   $$.chartPageSelection;
 	$$.currentData;
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
 
   $$.charts = [];
 
-  // $$.chartPage = new d3b.UTILS.chartPage();
+  // $$.chartPage = new d2b.UTILS.chartPage();
 
-  // $$.chartPage.on('update.d3b-update', function(pageData){
+  // $$.chartPage.on('update.d2b-update', function(pageData){
   //   for(key in $$.on.pageUpdate){
   //     $$.on.pageUpdate[key].call(this,pageData);
   //   }
@@ -649,28 +649,28 @@ d3b.UTILS.dashboardCategory = function(){
 
       $$.currentPageIndex=0;
 
-      $$.selection.selectAll('.d3b-category').classed('d3b-category-old', true);
+      $$.selection.selectAll('.d2b-category').classed('d2b-category-old', true);
 
       $$.selection.currentCategory = $$.selection
         .append('div')
-          .attr('class','d3b-category')
+          .attr('class','d2b-category')
           .style('opacity',0)
           .style('left',position.left+'px')
           .style('top',position.top+'px');
 
       $$.selection.currentCategory.label = $$.selection.currentCategory
         .append('div')
-          .attr('class','d3b-category-label');
+          .attr('class','d2b-category-label');
 
       $$.selection.currentCategory.label.section = $$.selection.currentCategory.label
         .append ('div')
-          .attr('class','d3b-category-label-section');
+          .attr('class','d2b-category-label-section');
       $$.selection.currentCategory.label.category = $$.selection.currentCategory.label
         .append ('div')
-          .attr('class','d3b-category-label-category');
+          .attr('class','d2b-category-label-category');
       $$.selection.currentCategory.label.pages = $$.selection.currentCategory.label
         .append ('div')
-          .attr('class','d3b-category-label-pages');
+          .attr('class','d2b-category-label-pages');
 
       // $$.selection.currentCategory.label.pages.select = $$.selection.currentCategory.label.pages
       //   .append ('select')
@@ -695,7 +695,7 @@ d3b.UTILS.dashboardCategory = function(){
 
       $$.chartPageSelection = $$.selection.chartPage = $$.selection.currentCategory
         .append('div')
-          .attr('class','d3b-chart-page-container');
+          .attr('class','d2b-chart-page-container');
 
       // var pageData;
 
@@ -747,9 +747,9 @@ d3b.UTILS.dashboardCategory = function(){
 
 	var category = {};
 
-  category.on =	d3b.UTILS.CHARTS.MEMBERS.on(category, $$);
+  category.on =	d2b.UTILS.CHARTS.MEMBERS.on(category, $$);
 
-  category.chartPageSelection =	d3b.UTILS.CHARTS.MEMBERS.prop(category, $$, 'chartPageSelection');
+  category.chartPageSelection =	d2b.UTILS.CHARTS.MEMBERS.prop(category, $$, 'chartPageSelection');
 
   category.width = function(value){
 		if(!arguments.length) return $$.width;
@@ -812,20 +812,20 @@ d3b.UTILS.dashboardCategory = function(){
     //   .append('option')
     //     .text(function(d){return d.name});
 
-    $$.selection.currentCategory.label.pages.tab = $$.selection.currentCategory.label.pages.selectAll('.d3b-page-tab').data($$.currentData.pages);
+    $$.selection.currentCategory.label.pages.tab = $$.selection.currentCategory.label.pages.selectAll('.d2b-page-tab').data($$.currentData.pages);
     $$.selection.currentCategory.label.pages.tab.enter()
       .append('div')
-        .attr('class','d3b-page-tab')
+        .attr('class','d2b-page-tab')
         .text(function(d){return d.name})
         .each(function(d,i){
-          d3.select(this).classed('d3b-tab-selected', !i);
+          d3.select(this).classed('d2b-tab-selected', !i);
         });
 
     $$.selection.currentCategory.label.pages.tab
         .on('click', function(pageData, i){
 
-          $$.selection.currentCategory.label.pages.tab.classed('d3b-tab-selected', false);
-          d3.select(this).classed('d3b-tab-selected', true);
+          $$.selection.currentCategory.label.pages.tab.classed('d2b-tab-selected', false);
+          d3.select(this).classed('d2b-tab-selected', true);
 
           for(key in $$.on.pageChange){
             $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,i);
@@ -837,7 +837,7 @@ d3b.UTILS.dashboardCategory = function(){
     //   .width($$.width)
     //   .update()
     //   .animateFrom(null);
-		$$.selection.selectAll('.d3b-category-old')
+		$$.selection.selectAll('.d2b-category-old')
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
@@ -871,8 +871,8 @@ d3b.UTILS.dashboardCategory = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*CONTROLS UTILITIES*/
-d3b.createNameSpace("d3b.UTILS.CONTROLS");
-d3b.UTILS.CONTROLS.checkbox = function(){
+d2b.createNameSpace("d2b.UTILS.CONTROLS");
+d2b.UTILS.CONTROLS.checkbox = function(){
 
 	var $$ = {};
 
@@ -884,18 +884,18 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 	$$.currentData = {label:'',state:false};
 
 	//init event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	$$.on.change = function(){};
 
 	var control = {};
 
 	// var onChange = function(){};
 
-	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 
 	control.checked = function(value){
 		if(!arguments.length) return $$.currentData.state;
@@ -932,18 +932,18 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 			$$.container.svg = $$.selection;
 		}
 
-		var checkboxContainer = $$.selection.selectAll('g.d3b-checkbox-container').data([$$.currentData]);
+		var checkboxContainer = $$.selection.selectAll('g.d2b-checkbox-container').data([$$.currentData]);
 		var newCheckboxContainer = checkboxContainer.enter()
 			.append('g')
-				.attr('class','d3b-checkbox-container')
-				.on('click.d3b-click',function(d,i){
+				.attr('class','d2b-checkbox-container')
+				.on('click.d2b-click',function(d,i){
 					$$.currentData.state = !$$.currentData.state;
 					for(key in $$.on.change){
 						$$.on.change[key].call(this,d,i,'checkbox');
 					}
 					control.update();
 				})
-				.call(d3b.UTILS.bindElementEvents, $$, 'checkbox');
+				.call(d2b.UTILS.bindElementEvents, $$, 'checkbox');
 
 		newCheckboxContainer
 			.append('rect')
@@ -963,7 +963,7 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 				.attr('stroke-dasharray',2.2*$$.scale)
 		check
 			.transition()
-				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				.attr('stroke-dashoffset',($$.currentData.state)? 0 : 2.2*$$.scale);
 		var box = checkboxContainer.select('rect')
 				.attr('width',$$.scale*2.1+'px')
@@ -1002,7 +1002,7 @@ d3b.UTILS.CONTROLS.checkbox = function(){
 
 };
 
-d3b.UTILS.CONTROLS.radioButtons = function(){
+d2b.UTILS.CONTROLS.radioButtons = function(){
 	var $$ = {};
 
 	$$.scale = 5;
@@ -1013,7 +1013,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 	$$.currentData = {label:'',values:[], selected:null};
 
 	//init event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	$$.on.change = function(){};
 
 	$$.resetValues = function(){
@@ -1025,11 +1025,11 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 	var control = {};
 
 
-	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 
 	control.computedHeight = function(){
 		return $$.computedHeight;
@@ -1079,12 +1079,12 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 			$$.container.svg = $$.selection;
 		}
 
-		var radioButtonContainer = $$.selection.selectAll('g.d3b-radio-button-container').data($$.currentData.values, function(d){return d.label;});
+		var radioButtonContainer = $$.selection.selectAll('g.d2b-radio-button-container').data($$.currentData.values, function(d){return d.label;});
 
 		var newRadioButtonContainer = radioButtonContainer.enter()
 			.append('g')
-				.attr('class','d3b-radio-button-container')
-				.on('click.d3b-click',function(d,i){
+				.attr('class','d2b-radio-button-container')
+				.on('click.d2b-click',function(d,i){
 					$$.resetValues();
 					d.selected = true;
 					$$.currentData.selected = d;
@@ -1093,7 +1093,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 					}
 					control.update();
 				})
-				.call(d3b.UTILS.bindElementEvents, $$, 'radio-button');
+				.call(d2b.UTILS.bindElementEvents, $$, 'radio-button');
 
 		radioButtonContainer
 			.attr('transform',function(d,i){
@@ -1101,20 +1101,20 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 			});
 
 		newRadioButtonContainer.append('circle')
-			.attr('class','d3b-radio-button-inner')
+			.attr('class','d2b-radio-button-inner')
 			.style('fill-opacity',0);
 		newRadioButtonContainer.append('circle')
-			.attr('class','d3b-radio-button-outer');
+			.attr('class','d2b-radio-button-outer');
 
 		newRadioButtonContainer.append('text')
 			.text(function(d){return d.label;});
 
-		var circleInner = radioButtonContainer.select('circle.d3b-radio-button-inner')
+		var circleInner = radioButtonContainer.select('circle.d2b-radio-button-inner')
 				.attr('cy',$$.scale*1.4)
 				.attr('cx',$$.scale*1.4);
 
 
-		var circleOuter = radioButtonContainer.select('circle.d3b-radio-button-outer')
+		var circleOuter = radioButtonContainer.select('circle.d2b-radio-button-outer')
 				.attr('r',$$.scale*1+'px')
 				.attr('cy',$$.scale*1.4)
 				.attr('cx',$$.scale*1.4)
@@ -1123,7 +1123,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 
 		circleInner
 			.transition()
-				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				.style('fill-opacity',function(d){return (d.selected)? 1: 0;})
 				.attr('r',function(d){return (d.selected)? $$.scale*0.5: 0;});
 
@@ -1158,7 +1158,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 
 };
 
-// d3b.UTILS.CONTROLS.select = function(){
+// d2b.UTILS.CONTROLS.select = function(){
 // 	var $$ = {};
 //
 // 	$$.scale = 5;
@@ -1172,7 +1172,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 	$$.expanded = false;
 //
 // 	//init event object
-// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 // 	$$.on.change = function(){};
 //
 // 	$$.resetValues = function(){
@@ -1183,10 +1183,10 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 	var control = {};
 //
-// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+// 	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 //
 // 	control.computedHeight = function(){
 // 		return $$.computedHeight;
@@ -1227,16 +1227,16 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 		if(!$$.currentData)
 // 			return console.warn('selector data is null');
 //
-// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+// 		var selectedContainer = $$.selection.selectAll('g.d2b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
 //
 // 		var newSelectedContainer = selectedContainer.enter()
 // 			.append('g')
-// 				.attr('class','d3b-selector-selected');
+// 				.attr('class','d2b-selector-selected');
 //
 // 		newSelectedContainer
 // 			.append('rect')
 // 				.attr('rx',1)
-// 				.attr('class','d3b-selector-border');
+// 				.attr('class','d2b-selector-border');
 //
 // 		var newSelectedSubContainer = newSelectedContainer
 // 			.append('g');
@@ -1246,7 +1246,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 		newSelectedContainer
 // 			.append('path')
-// 				.attr('class','d3b-selector-triangle');
+// 				.attr('class','d2b-selector-triangle');
 //
 // 		selectedContainer
 // 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
@@ -1277,7 +1277,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 
 
 //allow imbeded html for selector control
-// d3b.UTILS.CONTROLS.selector = function(){
+// d2b.UTILS.CONTROLS.selector = function(){
 // 	var $$ = {};
 //
 // 	$$.scale = 5;
@@ -1291,7 +1291,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 	$$.expanded = false;
 //
 // 	//init event object
-// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 // 	$$.on.change = function(){};
 //
 // 	$$.resetValues = function(){
@@ -1302,10 +1302,10 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 	var control = {};
 //
-// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
-// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
-// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
-// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+// 	control.scale = 		d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
 //
 // 	control.computedHeight = function(){
 // 		return $$.computedHeight;
@@ -1346,16 +1346,16 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 // 		if(!$$.currentData)
 // 			return console.warn('selector data is null');
 //
-// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+// 		var selectedContainer = $$.selection.selectAll('g.d2b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
 //
 // 		var newSelectedContainer = selectedContainer.enter()
 // 			.append('g')
-// 				.attr('class','d3b-selector-selected');
+// 				.attr('class','d2b-selector-selected');
 //
 // 		newSelectedContainer
 // 			.append('rect')
 // 				.attr('rx',1)
-// 				.attr('class','d3b-selector-border');
+// 				.attr('class','d2b-selector-border');
 //
 // 		var newSelectedSubContainer = newSelectedContainer
 // 			.append('g');
@@ -1365,7 +1365,7 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // 		newSelectedContainer
 // 			.append('path')
-// 				.attr('class','d3b-selector-triangle');
+// 				.attr('class','d2b-selector-triangle');
 //
 // 		selectedContainer
 // 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
@@ -1394,14 +1394,14 @@ d3b.UTILS.CONTROLS.radioButtons = function(){
 //
 // };
 
-d3b.UTILS.CONTROLS.htmlControls = function(){
+d2b.UTILS.CONTROLS.htmlControls = function(){
 	var $$ = {};
 
-	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.maxWidth = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.currentData;
 	$$.computedWidth=0;
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.controlsHash = {};
 
 	$$.selection;
@@ -1424,7 +1424,7 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 
 	var controls = {};
 
-	controls.select = d3b.UTILS.CHARTS.MEMBERS.select(controls, $$);
+	controls.select = d2b.UTILS.CHARTS.MEMBERS.select(controls, $$);
 	controls.width = function(value){
 		if(!arguments.length) return $$.maxWidth;
 		$$.maxWidth = value;
@@ -1452,7 +1452,7 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 		return controls;
 	};
 
-	controls.on =				d3b.UTILS.CHARTS.MEMBERS.on(controls, $$);
+	controls.on =				d2b.UTILS.CHARTS.MEMBERS.on(controls, $$);
 
 	controls.data = function(controlsData, reset){
 		if(!arguments.length) return $$.currentData;
@@ -1465,31 +1465,31 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 		if(!$$.selection)
 			return console.warn('controls was not given a selection');
 		// console.log($$.currentData.controls)
-		$$.selection.controlContainer = $$.selection.selectAll('div.d3b-control-container').data($$.currentData.controls, function(d){return d.type+'-'+d.key;});
+		$$.selection.controlContainer = $$.selection.selectAll('div.d2b-control-container').data($$.currentData.controls, function(d){return d.type+'-'+d.key;});
 
 		var newControl = $$.selection.controlContainer.enter()
 			.append('div')
-				.attr('class', 'd3b-control-container')
+				.attr('class', 'd2b-control-container')
 
 		newControl
 			.append('div')
-				.attr('class', 'd3b-control-label')
+				.attr('class', 'd2b-control-label')
 				.text(function(d){return d.label+':';});
 
 		newControl
 			.append('div')
-				.attr('class', 'd3b-control')
+				.attr('class', 'd2b-control')
 				.each(function(d){
-					this.control = new d3b.UTILS.CONTROLS[d.type]();
+					this.control = new d2b.UTILS.CONTROLS[d.type]();
 					this.control.container(d3.select(this));
 				});
 
-		$$.selection.controlContainer.control = $$.selection.controlContainer.select('.d3b-control')
+		$$.selection.controlContainer.control = $$.selection.controlContainer.select('.d2b-control')
 			.each(function(d){
 				this.control
 					.scale($$.scale)
 					.data(d)
-					.on('change.d3b-change',function(d,i){
+					.on('change.d2b-change',function(d,i){
 						for(key in $$.on.change){
 							$$.on.change[key].call(this,$$.controlsHash,d,i);
 						}
@@ -1516,14 +1516,14 @@ d3b.UTILS.CONTROLS.htmlControls = function(){
 };
 
 
-d3b.UTILS.CONTROLS.controls = function(){
+d2b.UTILS.CONTROLS.controls = function(){
 	var $$ = {};
 
-	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.maxWidth = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.currentData;
 	$$.computedWidth=0;
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
 	$$.selection;
 	$$.scale = 5;
@@ -1599,30 +1599,30 @@ d3b.UTILS.CONTROLS.controls = function(){
 		$$.computedWidth = 0;
 
 		if($$.currentData.length > 0){
-			var controls = $$.selection.selectAll('g.d3b-control').data($$.currentData,function(d){return d.label+','+d.type;});
+			var controls = $$.selection.selectAll('g.d2b-control').data($$.currentData,function(d){return d.label+','+d.type;});
 
 			controls.enter()
 				.append('g')
-					.attr('class','d3b-control')
+					.attr('class','d2b-control')
 					.each(function(d){
-						d.control = new d3b.UTILS.CONTROLS[d.type]();
+						d.control = new d2b.UTILS.CONTROLS[d.type]();
 						d.control.selection(d3.select(this))
-							.on('elementClick.d3b-click',function(d,i){
+							.on('elementClick.d2b-click',function(d,i){
 								for(key in on.elementClick){
 									on.elementClick[key].call(this,d,i);
 								}
 							})
-							.on('change.d3b-change',function(d,i){
+							.on('change.d2b-change',function(d,i){
 								for(key in on.change){
 									on.change[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseover.d3b-mouseover',function(d,i){
+							.on('elementMouseover.d2b-mouseover',function(d,i){
 								for(key in on.elementMouseover){
 									on.elementMouseover[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseout.d3b-mouseout',function(d,i){
+							.on('elementMouseout.d2b-mouseout',function(d,i){
 								for(key in on.elementMouseout){
 									on.elementMouseout[key].call(this,d,i);
 								}
@@ -1681,26 +1681,26 @@ d3b.UTILS.CONTROLS.controls = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*shapes*/
-d3b.createNameSpace("d3b.UTILS.SHAPES");
+d2b.createNameSpace("d2b.UTILS.SHAPES");
 
 
 /*tooltop utilities*/
 
 /*Bind Tooltip Events*/
-d3b.UTILS.tooltip = function(element, heading, content){
+d2b.UTILS.tooltip = function(element, heading, content){
 	element
-			.on('mouseover.d3b-mouseover-tooltip',function(d,i){
-				d3b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
+			.on('mouseover.d2b-mouseover-tooltip',function(d,i){
+				d2b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
 			})
-			.on('mouseout.d3b-mouseout-tooltip',function(d,i){
-				d3b.UTILS.removeTooltip();
+			.on('mouseout.d2b-mouseout-tooltip',function(d,i){
+				d2b.UTILS.removeTooltip();
 			});
 };
 
-d3b.UTILS.createGeneralTooltip = function(elem, heading, content){
+d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
 	var body = d3.select('body');
 	var adGeneralTooltip = body.append('div')
-			.attr('class','d3b-general-tooltip')
+			.attr('class','d2b-general-tooltip')
 			.html(heading+': '+content)
 			.style('opacity',0);
 
@@ -1708,7 +1708,7 @@ d3b.UTILS.createGeneralTooltip = function(elem, heading, content){
 		.transition()
 			.duration(50)
 			.style('opacity',1);
-	var scroll = d3b.UTILS.scrollOffset();
+	var scroll = d2b.UTILS.scrollOffset();
 
 	var bodyWidth = body.node().getBoundingClientRect().width;
 	// console.log(bodyWidth)
@@ -1719,24 +1719,24 @@ d3b.UTILS.createGeneralTooltip = function(elem, heading, content){
 								scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 	pos.top = scroll.top+d3.event.clientY-10;
 
-	d3b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
+	d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
 	elem.on('mousemove',function(){
-		scroll = d3b.UTILS.scrollOffset();
+		scroll = d2b.UTILS.scrollOffset();
 
 		pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
 		scroll.left+d3.event.clientX+10 :
 									scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 		pos.top = scroll.top+d3.event.clientY-10;
 
-		d3b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
+		d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
 	});
 	return adGeneralTooltip;
 };
-d3b.UTILS.removeTooltip = function(){
-	d3.selectAll('.d3b-general-tooltip')
+d2b.UTILS.removeTooltip = function(){
+	d3.selectAll('.d2b-general-tooltip')
 			.remove();
 };
-d3b.UTILS.moveTooltip = function(tooltip, x, y, duration){
+d2b.UTILS.moveTooltip = function(tooltip, x, y, duration){
 	tooltip
 		.transition()
 			.duration(duration)
@@ -1749,14 +1749,14 @@ d3b.UTILS.moveTooltip = function(tooltip, x, y, duration){
 };
 
 /*extra utilities*/
-d3b.UTILS.scrollOffset = function(){
+d2b.UTILS.scrollOffset = function(){
 	var doc = document.documentElement;
 	var left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
 	var top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
 	return {top:top, left:left};
 };
 
-d3b.UTILS.getValues = function(obj){
+d2b.UTILS.getValues = function(obj){
 	var values = [];
 	for(var key in obj) {
 		obj[key].key = key;
@@ -1766,16 +1766,16 @@ d3b.UTILS.getValues = function(obj){
 };
 
 /*Axis Chart Utilities*/
-d3b.createNameSpace("d3b.UTILS.AXISCHARTS");
-d3b.UTILS.AXISCHARTS.getDomainLinear = function(values){
+d2b.createNameSpace("d2b.UTILS.AXISCHARTS");
+d2b.UTILS.AXISCHARTS.getDomainLinear = function(values){
 	return [(d3.min(values)<0)? d3.min(values) : 0, d3.max(values)+1]
 };
-d3b.UTILS.AXISCHARTS.getDomainOrdinal = function(values){
+d2b.UTILS.AXISCHARTS.getDomainOrdinal = function(values){
 	return d3.set(values).values();
 };
 
 /*Formating Utilities*/
-d3b.UTILS.niceFormat = function(value, precision){
+d2b.UTILS.niceFormat = function(value, precision){
 	if(!precision)
 		precision = 0;
 	var format = d3.format("."+precision+"f");
@@ -1832,7 +1832,7 @@ d3b.UTILS.niceFormat = function(value, precision){
 	}
 }
 
-d3b.UTILS.numberFormat = function(preferences){
+d2b.UTILS.numberFormat = function(preferences){
 	var formatString = "";
 	var format;
 	var units = {
@@ -1840,7 +1840,7 @@ d3b.UTILS.numberFormat = function(preferences){
 		after:(preferences.units.after)?preferences.units.after:"",
 	}
 	if(preferences.nice){
-		return function(value){return units.before + d3b.UTILS.niceFormat(value, preferences.precision) + units.after};
+		return function(value){return units.before + d2b.UTILS.niceFormat(value, preferences.precision) + units.after};
 	}else if(preferences.siPrefixed){
 		if(preferences.precision>-1){
 			formatString += "."+preferences.precision;
@@ -1865,7 +1865,7 @@ d3b.UTILS.numberFormat = function(preferences){
 	}
 };
 
-d3b.UTILS.textWrap = function(text, width) {
+d2b.UTILS.textWrap = function(text, width) {
   text.each(function() {
     var text = d3.select(this),
         words = text.text().split(/\s+/).reverse(),
@@ -1891,9 +1891,9 @@ d3b.UTILS.textWrap = function(text, width) {
 
 
 /*Custom Tweens*/
-d3b.createNameSpace("d3b.UTILS.TWEENS");
+d2b.createNameSpace("d2b.UTILS.TWEENS");
 //arc tween from this.oldArc to this.newArc
-d3b.UTILS.TWEENS.arcTween = function(transition, arc){
+d2b.UTILS.TWEENS.arcTween = function(transition, arc){
 	transition.attrTween("d",function(d){
 		var _self = this;
 		var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
@@ -1906,37 +1906,37 @@ d3b.UTILS.TWEENS.arcTween = function(transition, arc){
 };
 
 /*Events*/
-d3b.UTILS.bind = function(mainKey, element, _chart, data, index, type){
+d2b.UTILS.bind = function(mainKey, element, _chart, data, index, type){
 	for(key in _chart.on[mainKey]){
 		_chart.on[mainKey][key].call(element,data,index,type);
 	}
 }
-d3b.UTILS.bindElementEvents = function(element, _chart, type){
+d2b.UTILS.bindElementEvents = function(element, _chart, type){
 	element
-			.on('mouseover.d3b-element-mouseover',function(d,i){
-				d3b.UTILS.bind('elementMouseover', element, _chart, d, i, type)
+			.on('mouseover.d2b-element-mouseover',function(d,i){
+				d2b.UTILS.bind('elementMouseover', element, _chart, d, i, type)
 			})
-			.on('mouseout.d3b-element-mouseout',function(d,i){
-				d3b.UTILS.bind('elementMouseout', element, _chart, d, i, type)
+			.on('mouseout.d2b-element-mouseout',function(d,i){
+				d2b.UTILS.bind('elementMouseout', element, _chart, d, i, type)
 			})
-			.on('click.d3b-element-click',function(d,i){
-				d3b.UTILS.bind('elementClick', element, _chart, d, i, type)
+			.on('click.d2b-element-click',function(d,i){
+				d2b.UTILS.bind('elementClick', element, _chart, d, i, type)
 			});
 }
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*LEGEND UTILITIES*/
-d3b.createNameSpace("d3b.UTILS.LEGENDS");
-d3b.UTILS.LEGENDS.legend = function(){
-	var maxWidth = d3b.CONSTANTS.DEFAULTWIDTH(), maxHeight = d3b.CONSTANTS.DEFAULTHEIGHT();
+d2b.createNameSpace("d2b.UTILS.LEGENDS");
+d2b.UTILS.LEGENDS.legend = function(){
+	var maxWidth = d2b.CONSTANTS.DEFAULTWIDTH(), maxHeight = d2b.CONSTANTS.DEFAULTHEIGHT();
 	var innerMaxHeight, innerMaxWidth;
 	var items = [];
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 	var selection;
 	var currentLegendData;
 	var computedWidth=0, computedHeight=0;
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var orientation = 'horizontal';
 	var padding = 5;
 
@@ -2046,24 +2046,24 @@ d3b.UTILS.LEGENDS.legend = function(){
 		innerMaxWidth = maxWidth - padding*2;
 
 
-		var item = selection.selectAll('g.d3b-legend-item')
+		var item = selection.selectAll('g.d2b-legend-item')
 				.data(currentLegendData.items, function(d){return d.label;});
 
 		var newItem = item.enter()
 			.append('g')
-				.attr('class','d3b-legend-item')
+				.attr('class','d2b-legend-item')
 				.style('opacity',0)
-				.on('mouseover.d3b-mouseover',function(d,i){
+				.on('mouseover.d2b-mouseover',function(d,i){
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i);
 					}
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
+				.on('mouseout.d2b-mouseout',function(d,i){
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i);
 					}
 				})
-				.on('click.d3b-click',function(d,i){
+				.on('click.d2b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i);
 					}
@@ -2185,13 +2185,13 @@ d3b.UTILS.LEGENDS.legend = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-d3b.UTILS.breadcrumbs = function(){
-	var maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+d2b.UTILS.breadcrumbs = function(){
+	var maxWidth = d2b.CONSTANTS.DEFAULTWIDTH();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 	var selection;
 	var currentBreadcrumbsData = {items:[]};
 	var computedWidth=0, computedHeight=0;
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
 	var scale = 5;
 
@@ -2263,11 +2263,11 @@ d3b.UTILS.breadcrumbs = function(){
 			callback;
 		}
 
-		selection.breadcrumb = selection.selectAll('g.d3b-breadcrumb').data(currentBreadcrumbsData.items, function(d){return (d.key)? d.key : i;});
+		selection.breadcrumb = selection.selectAll('g.d2b-breadcrumb').data(currentBreadcrumbsData.items, function(d){return (d.key)? d.key : i;});
 
 		var newBreadcrumbs = selection.breadcrumb.enter()
 			.append('g')
-				.attr('class','d3b-breadcrumb')
+				.attr('class','d2b-breadcrumb')
 				.style('opacity',0);
 
 		newBreadcrumbs.append('path');
@@ -2333,9 +2333,9 @@ d3b.UTILS.breadcrumbs = function(){
 	return breadcrumbs;
 };
 
-d3b.createNameSpace("d3b.UTILS.CHARTS.MEMBERS");
+d2b.createNameSpace("d2b.UTILS.CHARTS.MEMBERS");
 
-d3b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
   return function(key, value){
 		key = key.split('.');
 		if(!arguments.length) return _chart.on;
@@ -2358,7 +2358,7 @@ d3b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
 	};
 };
 
-d3b.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
   return function(value){
 
     _chart.selection = d3.select(value);
@@ -2368,7 +2368,7 @@ d3b.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
   }
 };
 
-d3b.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
     _chart[property] = value;
@@ -2378,7 +2378,7 @@ d3b.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
   }
 };
 
-d3b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
     if(value.type){
@@ -2407,17 +2407,17 @@ d3b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   }
 };
 
-d3b.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
-    _chart[property] = d3b.UTILS.numberFormat(value);
+    _chart[property] = d2b.UTILS.numberFormat(value);
     if(callback)
       callback(value);
     return chart;
   }
 };
 
-d3b.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
   return function(value){
     if(!arguments.length) return _chart.controlsData;
     for(control in value){
@@ -2431,8 +2431,8 @@ d3b.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
   }
 };
 
-d3b.createNameSpace("d3b.UTILS.CHARTS.HELPERS");
-d3b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
+d2b.createNameSpace("d2b.UTILS.CHARTS.HELPERS");
+d2b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   var legendPadding = 10;
   if(_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left'){
     _chart.legend.orientation('vertical').data(_chart.legendData).height(_chart.innerHeight).update();
@@ -2485,9 +2485,9 @@ d3b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
   _chart.innerWidth = _chart.outerWidth - _chart.forcedMargin.left - _chart.forcedMargin.right;
 };
-d3b.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
+d2b.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
   var controlsPadding = 10;
-  var controlsData = d3b.UTILS.getValues(_chart.controlsData).filter(function(d){return d.visible;});
+  var controlsData = d2b.UTILS.getValues(_chart.controlsData).filter(function(d){return d.visible;});
   controlsData.map(function(d){
     d.data = {state:d.enabled, label:d.label, key:d.key};
   });
@@ -2507,82 +2507,82 @@ d3b.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
   _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
 
 };
-d3b.UTILS.CHARTS.HELPERS.updateDimensions = function(_chart){
+d2b.UTILS.CHARTS.HELPERS.updateDimensions = function(_chart){
 	_chart.outerWidth = _chart.outerWidth - _chart.forcedMargin.right - _chart.forcedMargin.left;
 	_chart.outerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
 	_chart.forcedMargin = {top:0,bottom:0,left:0,right:0};
 	_chart.innerWidth = _chart.outerWidth;
 	_chart.innerHeight = _chart.outerHeight;
 };
-d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
+d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
   //clean container
   _chart.selection.selectAll('*').remove();
 
   //create svg
   _chart.selection.svg = _chart.selection
     .append('svg')
-      .attr('class','d3b-svg d3b-container');
+      .attr('class','d2b-svg d2b-container');
 
   //create group container
-  _chart.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+  _chart.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
   _chart.selection.group = _chart.selection.svg.append('g')
       .attr('transform','translate('+_chart.forcedMargin.left+','+_chart.forcedMargin.top+')');
 
   //create legend container
   _chart.selection.legend = _chart.selection.group
     .append('g')
-      .attr('class','d3b-legend');
+      .attr('class','d2b-legend');
 
   //create controls container
   _chart.selection.controls = _chart.selection.group
     .append('g')
-      .attr('class','d3b-controls');
+      .attr('class','d2b-controls');
 };
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*sunburst chart*/
-d3b.CHARTS.sunburstChart = function(){
+d2b.CHARTS.sunburstChart = function(){
 
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = { data: { partition:{}}};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new d3b.UTILS.LEGENDS.legend();
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new d3b.UTILS.CONTROLS.controls();
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
 
 	//breacrumbs OBJ
-	$$.breadcrumbs = new d3b.UTILS.breadcrumbs();
+	$$.breadcrumbs = new d2b.UTILS.breadcrumbs();
 	$$.breadcrumbs.scale(6)
 
 	//partitioned sunburst data
@@ -2851,14 +2851,14 @@ d3b.CHARTS.sunburstChart = function(){
 						outer: this.oldArc.outer
 					};
 				})
-				.call(d3b.UTILS.TWEENS.arcTween, $$.arc)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
 				// .attrTween("d", $$.arcTween);
 
 		//tween paths to new positions
 		var pathTransition = $$.selection.arcs.arc.path
 			.transition()
 				.duration($$.animationDuration*1.5)
-				.call(d3b.UTILS.TWEENS.arcTween, $$.arc)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
 				// .attrTween("d", $$.arcTween);
 
 
@@ -2950,18 +2950,18 @@ d3b.CHARTS.sunburstChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 
 	chart.data = function(chartData, reset){
@@ -2981,21 +2981,21 @@ d3b.CHARTS.sunburstChart = function(){
 	chart.generate = function(callback) {
 		$$.generateRequired = false;
 
-		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d3b-sunburst')
-				.on('mouseout.d3b-mouseout', $$.sunburstMouseout);
+				.attr('class','d2b-sunburst')
+				.on('mouseout.d2b-mouseout', $$.sunburstMouseout);
 
 
 		$$.selection.arcs = $$.selection.main
 			.append('g')
-				.attr('class','d3b-sunburst-arcs');
+				.attr('class','d2b-sunburst-arcs');
 
 		$$.selection.tooltip = $$.selection.main
 			.append('g')
-				.attr('class','d3b-sunburst-tooltip');
+				.attr('class','d2b-sunburst-tooltip');
 
 		$$.selection.tooltip.text = $$.selection.tooltip
 			.append('text');
@@ -3003,7 +3003,7 @@ d3b.CHARTS.sunburstChart = function(){
 		//create breadcrumbs container
 		$$.selection.breadcrumbs = $$.selection.group
 			.append('g')
-				.attr('class','d3b-sunburst-breadcrumbs');
+				.attr('class','d2b-sunburst-breadcrumbs');
 
 		$$.controls
 				.selection($$.selection.controls)
@@ -3047,7 +3047,7 @@ d3b.CHARTS.sunburstChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -3057,10 +3057,10 @@ d3b.CHARTS.sunburstChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
+		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		$$.selection.breadcrumbs
 			.transition()
@@ -3077,7 +3077,7 @@ d3b.CHARTS.sunburstChart = function(){
 		// $$.forcedMargin.top += Math.max($$.breadcrumbs.computedHeight(), $$.controls.computedHeight());
 		$$.forcedMargin.top += $$.breadcrumbs.computedHeight();
 
-		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		$$.selection.main
 			.transition()
@@ -3109,10 +3109,10 @@ d3b.CHARTS.sunburstChart = function(){
 		var newArcs =	$$.selection.arcs.arc.enter().append("g")
 			.attr('class','sunburst-arc')
 			.style('opacity',0)
-			.call(d3b.UTILS.bindElementEvents, $$, 'arc');
+			.call(d2b.UTILS.bindElementEvents, $$, 'arc');
 
 		var newPaths = newArcs.append("path")
-				.on('mouseover.d3b-mouseover',$$.arcMouseover);
+				.on('mouseover.d2b-mouseover',$$.arcMouseover);
 
 		$$.selection.arcs.arc
 			.transition()
@@ -3124,8 +3124,8 @@ d3b.CHARTS.sunburstChart = function(){
 				.style('fill',$$.arcFill);
 
 		$$.selection.arcs.arc.path
-				.on('click.d3b-click',$$.arcClick)
-				.classed('d3b-pointer-element',true);
+				.on('click.d2b-click',$$.arcClick)
+				.classed('d2b-pointer-element',true);
 
 		$$.updateArcs();
 
@@ -3147,11 +3147,11 @@ d3b.CHARTS.sunburstChart = function(){
 ///////TODO - Change circle packing to custom algorithm that uses cluster packing rather than d3.force layout
 
 /*bubble chart*/
-d3b.CHARTS.bubbleChart = function(){
+d2b.CHARTS.bubbleChart = function(){
 
 	//define chart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT(),
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT(),
 			svgHeight = height-55;
 
 	var innerHeight = height, innerWidth = width;
@@ -3160,14 +3160,14 @@ d3b.CHARTS.bubbleChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d3b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
+	var legend = new d2b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'right';
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {};
 
@@ -3307,8 +3307,8 @@ d3b.CHARTS.bubbleChart = function(){
 			.append('ul');
 
 		newButton.append('li')
-			.attr('class','d3b-button')
-			.on('click.d3b-click',function(d,i){
+			.attr('class','d2b-button')
+			.on('click.d2b-click',function(d,i){
 				current.grouping = d;
 				updateNodeGrouping(d);
 				updateNodeGroup();
@@ -3317,19 +3317,19 @@ d3b.CHARTS.bubbleChart = function(){
 					on.elementClick[key].call(this,d,i,'grouping-button');
 				}
 			})
-			.on('mouseover.d3b-mouseover', function(d,i){
+			.on('mouseover.d2b-mouseover', function(d,i){
 				for(key in on.elementMouseover){
 					on.elementMouseover[key].call(this,d,i,'grouping-button');
 				}
 			})
-			.on('mouseout.d3b-mouseout', function(d,i){
+			.on('mouseout.d2b-mouseout', function(d,i){
 				for(key in on.elementMouseout){
 					on.elementMouseout[key].call(this,d,i,'grouping-button');
 				}
 			});
 		newButton.append('li')
-			.attr('class','d3b-color-button')
-			.on('click.d3b-click',function(d,i){
+			.attr('class','d2b-color-button')
+			.on('click.d2b-click',function(d,i){
 				current.colorGrouping = d;
 				updateNodeGrouping(d, "colorGrouping");
 				chart.update();
@@ -3337,12 +3337,12 @@ d3b.CHARTS.bubbleChart = function(){
 					on.elementClick[key].call(this,d,i,'color-by-grouping-button');
 				}
 			})
-			.on('mouseover.d3b-mouseover', function(d,i){
+			.on('mouseover.d2b-mouseover', function(d,i){
 				for(key in on.elementMouseover){
 					on.elementMouseover[key].call(this,d,i,'color-by-grouping-button');
 				}
 			})
-			.on('mouseout.d3b-mouseout', function(d,i){
+			.on('mouseout.d2b-mouseout', function(d,i){
 				for(key in on.elementMouseout){
 					on.elementMouseout[key].call(this,d,i,'color-by-grouping-button');
 				}
@@ -3354,20 +3354,20 @@ d3b.CHARTS.bubbleChart = function(){
 				.style('opacity',0)
 				.remove();
 
-		selection.buttonsWrapper.buttons.button.grouping = selection.buttonsWrapper.buttons.button.select('li.d3b-button')
+		selection.buttonsWrapper.buttons.button.grouping = selection.buttonsWrapper.buttons.button.select('li.d2b-button')
 				.text(function(d){return d.label;})
-				.classed('d3b-selected',function(d,i){return d == current.grouping;});
+				.classed('d2b-selected',function(d,i){return d == current.grouping;});
 
-		selection.buttonsWrapper.buttons.button.color = selection.buttonsWrapper.buttons.button.select('li.d3b-color-button')
+		selection.buttonsWrapper.buttons.button.color = selection.buttonsWrapper.buttons.button.select('li.d2b-color-button')
 				.html('<i class="fa fa-paint-brush"></i>')
-				.classed('d3b-selected',function(d,i){return d == current.colorGrouping;});
+				.classed('d2b-selected',function(d,i){return d == current.colorGrouping;});
 	};
 
 
 	// update controls
 	var updateControls = function(){
 		//update controls
-		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -3555,7 +3555,7 @@ d3b.CHARTS.bubbleChart = function(){
 		else if(d.change < 0)
 			changeHTML = '('+formatPercent(d.change)+')';
 
-		d3b.UTILS.createGeneralTooltip(d3.select(this), "<b>"+d.label+"</b>", xFormat(d.value)+' '+changeHTML);
+		d2b.UTILS.createGeneralTooltip(d3.select(this), "<b>"+d.label+"</b>", xFormat(d.value)+' '+changeHTML);
 
 		for(key in on.elementMouseover){
 			on.elementMouseover[key].call(this,d,i,'bubble');
@@ -3563,14 +3563,14 @@ d3b.CHARTS.bubbleChart = function(){
 	};
 
 	var bubbleMouseout = function(d,i){
-		d3b.UTILS.removeTooltip();
+		d2b.UTILS.removeTooltip();
 		for(key in on.elementMouseout){
 			on.elementMouseout[key].call(this,d,i,'bubble');
 		}
 	};
 
 	var bubbleClick = function(d,i){
-		d3b.UTILS.removeTooltip();
+		d2b.UTILS.removeTooltip();
 		for(key in on.elementClick){
 			on.elementClick[key].call(this,d,i,'bubble');
 		}
@@ -3611,7 +3611,7 @@ d3b.CHARTS.bubbleChart = function(){
 	//update bubble positioning
 	var updateBubbles = function(){
 
-		selection.group.bubbles.bubble = selection.group.bubbles.selectAll('g.d3b-bubble')
+		selection.group.bubbles.bubble = selection.group.bubbles.selectAll('g.d2b-bubble')
 				.data(current.grouping.nodes.sort(function(a,b){return d3.ascending(b.value, a.value);}),function(d,i){
 					if(d.key == 'unique')
 						return Math.floor((1 + Math.random()) * 0x10000)
@@ -3623,10 +3623,10 @@ d3b.CHARTS.bubbleChart = function(){
 
 		var newBubble = selection.group.bubbles.bubble.enter()
 			.append('g')
-				.attr('class','d3b-bubble')
-				.on('mouseover.d3b-mouseover', bubbleMouseover)
-				.on('mouseout.d3b-mouseout', bubbleMouseout)
-				.on('click.d3b-click', bubbleClick);
+				.attr('class','d2b-bubble')
+				.on('mouseover.d2b-mouseover', bubbleMouseover)
+				.on('mouseout.d2b-mouseout', bubbleMouseout)
+				.on('click.d2b-click', bubbleClick);
 				// .style('opacity',0);
 
 		newBubble.append('circle')
@@ -3746,8 +3746,8 @@ d3b.CHARTS.bubbleChart = function(){
 			.append('g')
 				.style('opacity',0);
 
-		newGroup.append('text').attr('class','d3b-group-title');
-		newGroup.append('text').attr('class','d3b-group-total');
+		newGroup.append('text').attr('class','d2b-group-title');
+		newGroup.append('text').attr('class','d2b-group-total');
 		selection.group.groups.group
 			.each(function(d,i){
 				d.total = d3.sum(d.nodes.map(function(d){return d.value;}));
@@ -3777,7 +3777,7 @@ d3b.CHARTS.bubbleChart = function(){
 
 		var fontSize = Math.min(30,Math.max(8,groupsScales.fontSize((innerWidth + innerHeight)/(current.groups.length))))
 
-		selection.group.groups.group.total = selection.group.groups.group.select('text.d3b-group-total')
+		selection.group.groups.group.total = selection.group.groups.group.select('text.d2b-group-total')
 			// .attr('y', groupsScales.y.rangeBand()/2)
 			.text(function(d){return xFormat(d.total);})
 			.style('font-size', fontSize+'px')
@@ -3788,13 +3788,13 @@ d3b.CHARTS.bubbleChart = function(){
 		});
 
 		// selection.group.groups.group
-		selection.group.groups.group.title = selection.group.groups.group.select('text.d3b-group-title')
+		selection.group.groups.group.title = selection.group.groups.group.select('text.d2b-group-title')
 				.text(function(d){return d.label;})
 				.attr('dy',0)
 				.attr('y',fontSize)
 				// .attr('y',0)
 				.style('font-size', fontSize+'px')
-				.call(d3b.UTILS.textWrap, groupsScales.x.rangeBand()-10);
+				.call(d2b.UTILS.textWrap, groupsScales.x.rangeBand()-10);
 
 		selection.group.groups.group.exit()
 			.transition()
@@ -3841,7 +3841,7 @@ d3b.CHARTS.bubbleChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = d3b.UTILS.numberFormat(value);
+		xFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -3951,28 +3951,28 @@ d3b.CHARTS.bubbleChart = function(){
 		//create button container
 		selection.buttonsWrapper = selection
 			.append('div')
-				.attr('class','d3b-bubble-chart-buttons-wrapper');
+				.attr('class','d2b-bubble-chart-buttons-wrapper');
 
 		selection.buttonsWrapper.buttons = selection.buttonsWrapper
 			.append('ul')
-				.attr('class','d3b-buttons');
+				.attr('class','d2b-buttons');
 
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','d3b-bubble-chart d3b-svg d3b-container');
+				.attr('class','d2b-bubble-chart d2b-svg d2b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.bubbles = selection.group
 			.append('g')
-				.attr('class','d3b-bubbles');
+				.attr('class','d2b-bubbles');
 
 		//create change axis/legend
 		selection.changeAxis = selection.group
 			.append('g')
-				.attr('class','d3b-change-axis-legend');
+				.attr('class','d2b-change-axis-legend');
 
 		selection.changeAxis.legend = selection.changeAxis
 			.append('g');
@@ -3982,12 +3982,12 @@ d3b.CHARTS.bubbleChart = function(){
 
 		selection.group.groups = selection.group
 			.append('g')
-				.attr('class','d3b-groups');
+				.attr('class','d2b-groups');
 
 		//create groups axis
 		selection.groupsAxis = selection.group
 			.append('g')
-				.attr('class','d3b-groups-axis');
+				.attr('class','d2b-groups-axis');
 
 		//init change legend rects
 		selection.changeAxis.legend.rect = selection.changeAxis.legend.selectAll('rect').data([-0.25, -0.05, 0.0, 0.05, 0.25, 1]);
@@ -4004,12 +4004,12 @@ d3b.CHARTS.bubbleChart = function(){
 		//create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','d3b-legend');
+				.attr('class','d2b-legend');
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','d3b-controls');
+				.attr('class','d2b-controls');
 
 
 		horizontalControls
@@ -4051,7 +4051,7 @@ d3b.CHARTS.bubbleChart = function(){
 
 		updateGroupingButtons();
 
-		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
@@ -4088,29 +4088,29 @@ d3b.CHARTS.bubbleChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-d3b.CHARTS.axisChart = function(){
+d2b.CHARTS.axisChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {
 		types:[],
@@ -4121,15 +4121,15 @@ d3b.CHARTS.axisChart = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new d3b.UTILS.LEGENDS.legend();
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new d3b.UTILS.CONTROLS.controls();
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
 
 	$$.rotate = false;
 
@@ -4161,9 +4161,9 @@ d3b.CHARTS.axisChart = function(){
 	}
 
 	//account for any tools defined by the various axis chart types
-	for(type in d3b.UTILS.AXISCHART.TYPES){
-		if(d3b.UTILS.AXISCHART.TYPES[type].tools){
-			var tools = d3b.UTILS.AXISCHART.TYPES[type].tools();
+	for(type in d2b.UTILS.AXISCHART.TYPES){
+		if(d2b.UTILS.AXISCHART.TYPES[type].tools){
+			var tools = d2b.UTILS.AXISCHART.TYPES[type].tools();
 			if(tools){
 
 				//controlsData tools
@@ -4258,12 +4258,12 @@ d3b.CHARTS.axisChart = function(){
 	$$.initGraphs = function(){
 		//enter update exit a foreground svg:g element for each axis-chart-type
 		$$.selection.types.foreground.type = $$.selection.types.foreground
-			.selectAll('g.d3b-axis-type-foreground')
+			.selectAll('g.d2b-axis-type-foreground')
 				.data($$.currentChartData.types, function(d){return d.type;});
 
 		$$.selection.types.foreground.type.enter()
 			.append('g')
-				.attr('class', function(d){return 'd3b-axis-type-foreground d3b-'+d.type;});
+				.attr('class', function(d){return 'd2b-axis-type-foreground d2b-'+d.type;});
 
 		$$.selection.types.foreground.type.exit()
 			.transition()
@@ -4272,7 +4272,7 @@ d3b.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a sub-foreground element for the graphs associated with each type
-		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.d3b-axis-chart-foreground-graph')
+		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.d2b-axis-chart-foreground-graph')
 			.data(
 				function(d){
 					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
@@ -4284,7 +4284,7 @@ d3b.CHARTS.axisChart = function(){
 		$$.selection.types.foreground.type.graph.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class', 'd3b-axis-chart-foreground-graph')
+				.attr('class', 'd2b-axis-chart-foreground-graph')
 				.each(function(graph){
 					$$.persistentChartData[graph.type][graph.label].foreground = d3.select(this);
 				});
@@ -4304,27 +4304,27 @@ d3b.CHARTS.axisChart = function(){
 
 		//enter update exit a background svg:g element for each axis-chart-type
 		$$.selection.types.background.type = $$.selection.types.background
-			.selectAll('g.d3b-axis-type-background')
+			.selectAll('g.d2b-axis-type-background')
 				.data($$.currentChartData.types, function(d){return d.type;});
 
 		$$.selection.types.background.type.enter()
 			.append('g')
-				.attr('class', function(d){return 'd3b-axis-type-background d3b-'+d.type;})
+				.attr('class', function(d){return 'd2b-axis-type-background d2b-'+d.type;})
 				.each(function(d){
 					var masterType = 'axis-chart-';
-					this.adType = new d3b.UTILS.AXISCHART.TYPES[d.type];
+					this.adType = new d2b.UTILS.AXISCHART.TYPES[d.type];
 					this.adType
-						.on('elementClick.d3b-click', function(d,i,type){
+						.on('elementClick.d2b-click', function(d,i,type){
 								for(key in $$.on.elementClick){
 									$$.on.elementClick[key].call(this,d,i,masterType+type);
 								}
 						})
-						.on('elementMouseover.d3b-mouseover', function(d,i,type){
+						.on('elementMouseover.d2b-mouseover', function(d,i,type){
 								for(key in $$.on.elementMouseover){
 									$$.on.elementMouseover[key].call(this,d,i,masterType+type);
 								}
 						})
-						.on('elementMouseout.d3b-mouseout', function(d,i,type){
+						.on('elementMouseout.d2b-mouseout', function(d,i,type){
 								for(key in $$.on.elementMouseout){
 									$$.on.elementMouseout[key].call(this,d,i,masterType+type);
 								}
@@ -4343,7 +4343,7 @@ d3b.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a sub-foreground element for the graphs associated with each type
-		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.d3b-axis-chart-background-graph')
+		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.d2b-axis-chart-background-graph')
 			.data(
 				function(d){
 					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
@@ -4354,7 +4354,7 @@ d3b.CHARTS.axisChart = function(){
 			);
 		$$.selection.types.background.type.graph.enter()
 			.append('g')
-				.attr('class', 'd3b-axis-chart-background-graph')
+				.attr('class', 'd2b-axis-chart-background-graph')
 				.style('opacity',0)
 				.each(function(graph){
 					$$.persistentChartData[graph.type][graph.label].background = d3.select(this);
@@ -4375,7 +4375,7 @@ d3b.CHARTS.axisChart = function(){
 		//store the foreground graphs within the data
 		$$.selection.types.foreground.type.each(function(d){
 			var type = d3.select(this);
-			var graphs = type.selectAll('.d3b-axis-chart-foreground-graph');
+			var graphs = type.selectAll('.d2b-axis-chart-foreground-graph');
 			d.foregroundGraphs = graphs;
 		});
 
@@ -4439,7 +4439,7 @@ d3b.CHARTS.axisChart = function(){
 
 		$$.selection.types.background.type.each(function(d){
 			var type = d3.select(this);
-			var graphs = type.selectAll('.d3b-axis-chart-background-graph');
+			var graphs = type.selectAll('.d2b-axis-chart-background-graph');
 			d.backgroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
 
 			this.adType
@@ -4527,7 +4527,7 @@ d3b.CHARTS.axisChart = function(){
 			var length = this.getComputedTextLength();
 			maxTickLength = Math.max(maxTickLength, length);
 		})
-			.on('click.d3b-element-click', function(d,i){
+			.on('click.d2b-element-click', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -4536,7 +4536,7 @@ d3b.CHARTS.axisChart = function(){
 					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseover.d3b-element-mouseover', function(d,i){
+			.on('mouseover.d2b-element-mouseover', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -4545,7 +4545,7 @@ d3b.CHARTS.axisChart = function(){
 					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseout.d3b-element-mouseout', function(d,i){
+			.on('mouseout.d2b-element-mouseout', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -4556,7 +4556,7 @@ d3b.CHARTS.axisChart = function(){
 			});
 
 		$$.selection.axes.x.text = $$.selection.axes.x.selectAll('text')
-			.on('click.d3b-element-click', function(d,i){
+			.on('click.d2b-element-click', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -4565,7 +4565,7 @@ d3b.CHARTS.axisChart = function(){
 					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseover.d3b-element-mouseover', function(d,i){
+			.on('mouseover.d2b-element-mouseover', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -4574,7 +4574,7 @@ d3b.CHARTS.axisChart = function(){
 					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseout.d3b-element-mouseout', function(d,i){
+			.on('mouseout.d2b-element-mouseout', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -4727,19 +4727,19 @@ d3b.CHARTS.axisChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.xAlias.axis.tickFormat($$.xFormat);});
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.yAlias.axis.tickFormat($$.yFormat);});
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.xAlias.axis.tickFormat($$.xFormat);});
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.yAlias.axis.tickFormat($$.yFormat);});
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	//rotate the chart, set x,y scales accordingly
 	chart.rotate = function(value){
@@ -4757,7 +4757,7 @@ d3b.CHARTS.axisChart = function(){
 	};
 
 	//x/y setters
-	chart.x = d3b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
+	chart.x = d2b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
 		if(value.orientation)
 			$$.xAlias.orientation = value.orientation;
 
@@ -4770,7 +4770,7 @@ d3b.CHARTS.axisChart = function(){
 		}
 
 	});
-	chart.y = d3b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
+	chart.y = d2b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
 		if(value.orientation)
 			$$.yAlias.orientation = value.orientation;
 
@@ -4820,7 +4820,7 @@ d3b.CHARTS.axisChart = function(){
 		$$.generateRequired = false;
 
 		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
-		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		//init legend properties
 		$$.legend
@@ -4830,7 +4830,7 @@ d3b.CHARTS.axisChart = function(){
 		//init control properties
 		$$.controls
 				.selection($$.selection.controls)
-				.on('change.d3b-change',function(d,i){
+				.on('change.d2b-change',function(d,i){
 					$$.controlsData[d.key].enabled = d.state;
 					chart.update();
 				});
@@ -4838,54 +4838,54 @@ d3b.CHARTS.axisChart = function(){
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d3b-axis-chart');
+				.attr('class','d2b-axis-chart');
 
 		$$.selection.axes = $$.selection.main
 			.append('g')
-				.attr('class','d3b-axes');
+				.attr('class','d2b-axes');
 
 		$$.selection.axes.x = $$.selection.axes
 			.append('g')
-				.attr('class','d3b-axis d3b-x');
+				.attr('class','d2b-axis d2b-x');
 
 		$$.selection.axes.x.label = $$.selection.axes.x
 			.append('g')
-				.attr('class','d3b-label');
+				.attr('class','d2b-label');
 		$$.selection.axes.x.label.text = $$.selection.axes.x.label
 			.append('text');
 
 		$$.selection.axes.y = $$.selection.axes
 			.append('g')
-				.attr('class','d3b-axis d3b-y');
+				.attr('class','d2b-axis d2b-y');
 
 		$$.selection.axes.y.label = $$.selection.axes.y
 			.append('g')
-				.attr('class','d3b-label');
+				.attr('class','d2b-label');
 		$$.selection.axes.y.label.text = $$.selection.axes.y.label
 			.append('text')
 		    .attr('transform', 'rotate(-90)');
 
 		$$.selection.grid = $$.selection.main
 			.append('g')
-				.attr('class','d3b-grid');
+				.attr('class','d2b-grid');
 
 		$$.selection.grid.x = $$.selection.grid
 			.append('g')
-				.attr('class','d3b-grid d3b-x');
+				.attr('class','d2b-grid d2b-x');
 
 		$$.selection.grid.y = $$.selection.grid
 			.append('g')
-				.attr('class','d3b-grid d3b-y');
+				.attr('class','d2b-grid d2b-y');
 
 		$$.selection.types = $$.selection.main
 			.append('g')
-				.attr('class','d3b-axis-types');
+				.attr('class','d2b-axis-types');
 		$$.selection.types.background = $$.selection.types
 			.append('g')
-				.attr('class','d3b-axis-types-background');
+				.attr('class','d2b-axis-types-background');
 		$$.selection.types.foreground = $$.selection.types
 			.append('g')
-				.attr('class','d3b-axis-types-foreground');
+				.attr('class','d2b-axis-types-foreground');
 
 		$$.legend.on('elementMouseover',function(d){
 			var background = $$.persistentChartData[d.type][d.label].background;
@@ -4962,7 +4962,7 @@ d3b.CHARTS.axisChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -4972,10 +4972,10 @@ d3b.CHARTS.axisChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
+		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		//save the type of each graph
 		$$.currentChartData.types.forEach(function(type){
@@ -4999,7 +4999,7 @@ d3b.CHARTS.axisChart = function(){
 				)
 			);
 		}
-		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
 			// || ($$.legend.computedWidth() && ($$.legendOrientation == 'top'||$$.legendOrientation == 'bottom'))){
@@ -5011,7 +5011,7 @@ d3b.CHARTS.axisChart = function(){
 				.duration($$.animationDuration)
 				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		$$.initGraphs();
 
@@ -5060,19 +5060,19 @@ d3b.CHARTS.axisChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-//TODO: d3bD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
+//TODO: d2bD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
 //TODO: ATTACH ALL PRIVATE VARIABLES/MEHTODS TO BE STORED ON THE PRIVATE STORE '_'
 
 /*sankey chart*/
-d3b.CHARTS.sankeyChart = function(){
+d2b.CHARTS.sankeyChart = function(){
 
 	//private
 	var _ = {};
-	_.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	_.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	//define axisChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 
@@ -5080,14 +5080,14 @@ d3b.CHARTS.sankeyChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d3b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
+	var legend = new d2b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 				nodes:[],
@@ -5114,7 +5114,7 @@ d3b.CHARTS.sankeyChart = function(){
 			};
 
 	//init event object
-	// var on = d3b.CONSTANTS.DEFAULTEVENTS();
+	// var on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	var xFormat = function(value){return value};
 
@@ -5154,7 +5154,7 @@ d3b.CHARTS.sankeyChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = d3b.UTILS.numberFormat(value);
+		xFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -5209,7 +5209,7 @@ d3b.CHARTS.sankeyChart = function(){
 	// 	return chart;
 	// };
 
-	chart.on = d3b.UTILS.CHARTS.MEMBERS.on(chart, _);
+	chart.on = d2b.UTILS.CHARTS.MEMBERS.on(chart, _);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return currentChartData;
@@ -5247,46 +5247,46 @@ d3b.CHARTS.sankeyChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','d3b-sankey-chart d3b-svg d3b-container');
+				.attr('class','d2b-sankey-chart d2b-svg d2b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.sankey = selection.group
 			.append('g')
-				.attr('class','d3b-sankey');
+				.attr('class','d2b-sankey');
 		selection.group.sankey.links = selection.group.sankey
 			.append('g')
-				.attr('class','d3b-sankey-links');
+				.attr('class','d2b-sankey-links');
 		selection.group.sankey.nodes = selection.group.sankey
 			.append('g')
-				.attr('class','d3b-sankey-nodes');
+				.attr('class','d2b-sankey-nodes');
 
 		selection.group.labels = selection.group
 			.append('g')
-				.attr('class','d3b-sankey-labels');
+				.attr('class','d2b-sankey-labels');
 
 		selection.group.labels.source = selection.group.labels
 			.append('g')
-				.attr('class','d3b-sankey-label-source');
+				.attr('class','d2b-sankey-label-source');
 
 		selection.group.labels.source.text = selection.group.labels.source.append('text').attr('y',23);
 
 		selection.group.labels.destination = selection.group.labels
 			.append('g')
-				.attr('class','d3b-sankey-label-destination');
+				.attr('class','d2b-sankey-label-destination');
 
 		selection.group.labels.destination.text = selection.group.labels.destination.append('text').attr('y',23);
 
 		selection.group.columnHeaders = selection.group
 			.append('g')
-				.attr('class','d3b-sankey-column-headers');
+				.attr('class','d2b-sankey-column-headers');
 
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','d3b-controls');
+				.attr('class','d2b-controls');
 
 
 		horizontalControls
@@ -5303,7 +5303,7 @@ d3b.CHARTS.sankeyChart = function(){
 		// //create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','d3b-legend');
+				.attr('class','d2b-legend');
 
 		// //intialize new legend
 		legend
@@ -5327,11 +5327,11 @@ d3b.CHARTS.sankeyChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
-		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -5453,10 +5453,10 @@ d3b.CHARTS.sankeyChart = function(){
 					.duration(animationDuration)
 					.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
 
-			columnHeader = selection.group.columnHeaders.selectAll('g.d3b-sankey-column-header').data(currentChartData.columnHeaders);
+			columnHeader = selection.group.columnHeaders.selectAll('g.d2b-sankey-column-header').data(currentChartData.columnHeaders);
 			columnHeader.enter()
 				.append('g')
-					.attr('class','d3b-sankey-column-header')
+					.attr('class','d2b-sankey-column-header')
 				.append('text')
 					.attr('y',16)
 					.attr('x',function(d,i){
@@ -5493,7 +5493,7 @@ d3b.CHARTS.sankeyChart = function(){
 				.layout(layout);
 
 
-		var node = selection.group.sankey.nodes.selectAll('g.d3b-sankey-node')
+		var node = selection.group.sankey.nodes.selectAll('g.d2b-sankey-node')
 				.data(currentChartData.nodes,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -5504,16 +5504,16 @@ d3b.CHARTS.sankeyChart = function(){
 					});
 		var newNode = node.enter()
 			.append('g')
-				.attr('class','d3b-sankey-node')
-				.on('mouseover.d3b-mouseover',function(d,i){
-					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
+				.attr('class','d2b-sankey-node')
+				.on('mouseover.d2b-mouseover',function(d,i){
+					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
-					d3b.UTILS.removeTooltip();
+				.on('mouseout.d2b-mouseout',function(d,i){
+					d2b.UTILS.removeTooltip();
 				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',0)
-				.call(d3b.UTILS.bindElementEvents, _, 'node');
+				.call(d2b.UTILS.bindElementEvents, _, 'node');
 		newNode.append('rect');
 		newNode.append('text');
 
@@ -5539,7 +5539,7 @@ d3b.CHARTS.sankeyChart = function(){
 				.attr('x',function(d){return (d.x < innerWidth/2)? sankey.nodeWidth()+5:-5;})
 				.attr('y',function(d){return d.dy/2+5;})
 
-		var link = selection.group.sankey.links.selectAll('g.d3b-sankey-link')
+		var link = selection.group.sankey.links.selectAll('g.d2b-sankey-link')
 				.data(currentChartData.links,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -5551,15 +5551,15 @@ d3b.CHARTS.sankeyChart = function(){
 					});
 		var newLink = link.enter()
 			.append('g')
-				.attr('class','d3b-sankey-link')
-				.on('mouseover.d3b-mouseover',function(d,i){
-					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
+				.attr('class','d2b-sankey-link')
+				.on('mouseover.d2b-mouseover',function(d,i){
+					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
-					d3b.UTILS.removeTooltip();
+				.on('mouseout.d2b-mouseout',function(d,i){
+					d2b.UTILS.removeTooltip();
 				})
 				.style('opacity',0)
-				.call(d3b.UTILS.bindElementEvents, _, 'link');
+				.call(d2b.UTILS.bindElementEvents, _, 'link');
 
 		// console.log(newLink)
 		newLink.append('path');
@@ -5619,11 +5619,11 @@ d3b.CHARTS.sankeyChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-d3b.CHARTS.pieChart = function(){
+d2b.CHARTS.pieChart = function(){
 
 	//define axisChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 
@@ -5632,14 +5632,14 @@ d3b.CHARTS.pieChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d3b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
+	var legend = new d2b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {};
 
@@ -5649,7 +5649,7 @@ d3b.CHARTS.pieChart = function(){
 			};
 
 	//init event object
-	var on = d3b.CONSTANTS.DEFAULTEVENTS();
+	var on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	var donutRatio = 0;
 
@@ -5711,7 +5711,7 @@ d3b.CHARTS.pieChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = d3b.UTILS.numberFormat(value);
+		xFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -5769,23 +5769,23 @@ d3b.CHARTS.pieChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','d3b-pie-chart d3b-svg d3b-container');
+				.attr('class','d2b-pie-chart d2b-svg d2b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.pie = selection.group
 			.append('g')
-				.attr('class','d3b-pie');
+				.attr('class','d2b-pie');
 		// //create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','d3b-legend');
+				.attr('class','d2b-legend');
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','d3b-controls');
+				.attr('class','d2b-controls');
 
 
 		horizontalControls
@@ -5799,18 +5799,18 @@ d3b.CHARTS.pieChart = function(){
 		legend
 				.color(color)
 				.selection(selection.legend)
-				// .on('elementMouseover.d3b-mouseover',function(d){
+				// .on('elementMouseover.d2b-mouseover',function(d){
 				// 	console.log(d.path)
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1.01)')
 				// 	// 			.style('fill-opacity',0.9);
 				// })
-				// .on('elementMouseout.d3b-mouseout',function(d){
+				// .on('elementMouseout.d2b-mouseout',function(d){
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1)')
 				// 	// 			.style('fill-opacity','');
 				// });
@@ -5833,11 +5833,11 @@ d3b.CHARTS.pieChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
-		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -5876,7 +5876,7 @@ d3b.CHARTS.pieChart = function(){
 		// currentChartData.values = pie(currentChartData.values);
 		var arcGroup = selection.group.pie
 					.datum(currentChartData.values)
-				.selectAll("g.d3b-arc")
+				.selectAll("g.d2b-arc")
 					.data(pie,function(d,i){
 						if(d.data.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000);
@@ -5888,7 +5888,7 @@ d3b.CHARTS.pieChart = function(){
 
 		var newArcGroup = arcGroup.enter()
 			.append('g')
-				.attr('class','d3b-arc')
+				.attr('class','d2b-arc')
 				.style('opacity',0);
 
 		arcGroup
@@ -5916,7 +5916,7 @@ d3b.CHARTS.pieChart = function(){
 				// .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; });
 
 		// newArcGroup.append('g')
-		// 		.attr('class','d3b-pie-label')
+		// 		.attr('class','d2b-pie-label')
 		// 		.attr("transform", function(d) {
 		// 		    var c = arc.centroid(d),
 		// 		        x = c[0],
@@ -5941,8 +5941,8 @@ d3b.CHARTS.pieChart = function(){
 						return color(d.data.label);
 					}
 				})
-				.on('mouseover.d3b-mouseover',null)
-				.on('mouseout.d3b-mouseout',null);
+				.on('mouseover.d2b-mouseover',null)
+				.on('mouseout.d2b-mouseout',null);
 		var arcPathTransition = arcPath
 			.transition()
 				.duration(animationDuration)
@@ -5959,30 +5959,30 @@ d3b.CHARTS.pieChart = function(){
 		arcPathTransition.each("end",function(d){
 			var elem = d3.select(this);
 			elem
-					.on('mouseover.d3b-mouseover',function(d,i){
+					.on('mouseover.d2b-mouseover',function(d,i){
 						elem
 							.transition()
-								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1.01)')
 								.style('fill-opacity',0.9);
 
-						d3b.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
+						d2b.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
 						for(key in on.elementMouseover){
 							on.elementMouseover[key].call(this,d,i,'arc');
 						}
 					})
-					.on('mouseout.d3b-mouseout',function(d,i){
+					.on('mouseout.d2b-mouseout',function(d,i){
 						elem
 							.transition()
-								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1)')
 								.style('fill-opacity','')
-						d3b.UTILS.removeTooltip();
+						d2b.UTILS.removeTooltip();
 						for(key in on.elementMouseout){
 							on.elementMouseout[key].call(this,d,i,'arc');
 						}
 					})
-					.on('click.d3b-click',function(d,i){
+					.on('click.d2b-click',function(d,i){
 						for(key in on.elementClick){
 							on.elementClick[key].call(this,d,i,'arc');
 						}
@@ -6023,11 +6023,11 @@ d3b.CHARTS.pieChart = function(){
 
 
 /*axis chart*/
-d3b.CHARTS.interactiveBarChart = function(){
+d2b.CHARTS.interactiveBarChart = function(){
 
 	//define axisChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 	var dimensions = {horizontal:innerWidth, vertical:innerHeight};
@@ -6046,18 +6046,18 @@ d3b.CHARTS.interactiveBarChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d3b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
+	var legend = new d2b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
 	var xFormat = function(value){return value};
 	var yFormat = function(value){return value};
 
 	//init event object
-	var on = d3b.CONSTANTS.DEFAULTEVENTS();
+	var on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	var orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 
@@ -6067,8 +6067,8 @@ d3b.CHARTS.interactiveBarChart = function(){
 					type: "checkbox",
 					visible: false,
 					enabled: false,
-					maxStacked:d3b.CONSTANTS.DEFAULTHEIGHT(),
-					maxNonStacked:d3b.CONSTANTS.DEFAULTHEIGHT()
+					maxStacked:d2b.CONSTANTS.DEFAULTHEIGHT(),
+					maxNonStacked:d2b.CONSTANTS.DEFAULTHEIGHT()
 				},
 				stacking: {
 					label: "Stack Bars",
@@ -6090,7 +6090,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 				}
 			};
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 				columns: {},
@@ -6116,23 +6116,23 @@ d3b.CHARTS.interactiveBarChart = function(){
 	var updateColumn = function(column){
 		var bar = column.svg.selectAll('rect').data(column.data.values, function(d){return d.x});
 		bar.enter().append('rect')
-				.attr('class','d3b-bar-rect')
+				.attr('class','d2b-bar-rect')
 				.style('opacity',0)
 				.attr(orientation.height,0)
 				.attr(orientation.y,(controls.horizontal.enabled)? 0:dimensions.vertical)
-				.on('mouseover.d3b-mouseover',function(d,i){
-					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
+				.on('mouseover.d2b-mouseover',function(d,i){
+					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i,'bar');
 					}
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
-					d3b.UTILS.removeTooltip();
+				.on('mouseout.d2b-mouseout',function(d,i){
+					d2b.UTILS.removeTooltip();
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i,'bar');
 					}
 				})
-				.on('click.d3b-click',function(d,i){
+				.on('click.d2b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i,'bar');
 					}
@@ -6334,12 +6334,12 @@ d3b.CHARTS.interactiveBarChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = d3b.UTILS.numberFormat(value);
+		xFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 	chart.yFormat = function(value){
 		if(!arguments.length) return yFormat;
-		yFormat = d3b.UTILS.numberFormat(value);
+		yFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -6410,7 +6410,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','d3b-interactive-bar-chart d3b-svg d3b-container');
+				.attr('class','d2b-interactive-bar-chart d2b-svg d2b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
@@ -6418,20 +6418,20 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create axis containers
 		selection.group.axes = selection.group
 			.append('g')
-				.attr('class','d3b-axes');
+				.attr('class','d2b-axes');
 		selection.group.axes.x = selection.group.axes
 			.append('g')
-				.attr('class','d3b-x d3b-axis');
+				.attr('class','d2b-x d2b-axis');
 		selection.group.axes.y = selection.group.axes
 			.append('g')
-				.attr('class','d3b-y d3b-axis');
+				.attr('class','d2b-y d2b-axis');
 		selection.group.axes.xLabel = selection.group.axes
 			.append('g')
-				.attr('class','d3b-x-label')
+				.attr('class','d2b-x-label')
 			.append('text');
 		selection.group.axes.yLabel = selection.group.axes
 			.append('g')
-				.attr('class','d3b-y-label')
+				.attr('class','d2b-y-label')
 			.append('text');
 
 
@@ -6439,7 +6439,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create column containers
 		selection.group.columns = selection.group
 			.append('g')
-				.attr('class','d3b-columns');
+				.attr('class','d2b-columns');
 
 		for(key in currentChartData.columns){
 			currentChartData.columns[key].svg = selection.group.columns
@@ -6449,7 +6449,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','d3b-controls');
+				.attr('class','d2b-controls');
 
 		//intialize new controls
 		horizontalControls
@@ -6462,13 +6462,13 @@ d3b.CHARTS.interactiveBarChart = function(){
 		//create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','d3b-legend');
+				.attr('class','d2b-legend');
 
 		//intialize new legend
 		legend
 				.color(color)
 				.selection(selection.legend)
-				.on('elementMouseover.d3b-mouseover',function(d,i){
+				.on('elementMouseover.d2b-mouseover',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/2)
@@ -6477,14 +6477,14 @@ d3b.CHARTS.interactiveBarChart = function(){
 						.transition()
 							.duration(0)
 							.style('opacity',1);
-					// .classed('d3b-legend-mouseover',true);
+					// .classed('d2b-legend-mouseover',true);
 				})
-				.on('elementMouseout.d3b-mouseout',function(d,i){
+				.on('elementMouseout.d2b-mouseout',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/4)
 							.style('opacity',1);
-					// d.data.svg.classed('d3b-legend-mouseover',false);
+					// d.data.svg.classed('d2b-legend-mouseover',false);
 				});
 
 
@@ -6505,7 +6505,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		forcedMargin.bottom += 20;
 		forcedMargin.left += 20;
 
@@ -6523,7 +6523,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 			orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 		}
 
-		var columns = d3b.UTILS.getValues(currentChartData.columns);
+		var columns = d2b.UTILS.getValues(currentChartData.columns);
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
@@ -6541,7 +6541,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 		}
 		legend.width(innerWidth).data(legendData).update();
 
-		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -6605,7 +6605,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 					yVals.push(bar.y);
 				});
 			});
-			yVals = yVals.concat(d3b.UTILS.getValues(yValsStackedBars));
+			yVals = yVals.concat(d2b.UTILS.getValues(yValsStackedBars));
 		}else{
 			columns.forEach(function(column){
 				if(column.data.values){
@@ -6621,10 +6621,10 @@ d3b.CHARTS.interactiveBarChart = function(){
 
 		if(scales[orientation.horizontal].type == 'ordinal'){
 			scales[orientation.horizontal].scale.rangeRoundBands([0, dimensions[orientation.horizontal]], .1);
-			domains[orientation.horizontal] = d3b.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
+			domains[orientation.horizontal] = d2b.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
 		}else{
 			scales[orientation.horizontal].scale.range([0, dimensions[orientation.horizontal]])
-			domains[orientation.horizontal] = d3b.UTILS.AXISCHARTS.getDomainLinear(xVals);
+			domains[orientation.horizontal] = d2b.UTILS.AXISCHARTS.getDomainLinear(xVals);
 		}
 		if(controls.yAxisLock.enabled){
 			if(controls.stacking.enabled){
@@ -6633,7 +6633,7 @@ d3b.CHARTS.interactiveBarChart = function(){
 				domains[orientation.vertical] = [0,controls.yAxisLock.maxNonStacked];
 			}
 		}else{
-			domains[orientation.vertical] = d3b.UTILS.AXISCHARTS.getDomainLinear(yVals);
+			domains[orientation.vertical] = d2b.UTILS.AXISCHARTS.getDomainLinear(yVals);
 		}
 		scales[orientation.vertical].scale.range([dimensions[orientation.vertical], 0]);
 
@@ -6780,36 +6780,36 @@ d3b.CHARTS.interactiveBarChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*guage chart*/
-d3b.CHARTS.guageChart = function(){
+d2b.CHARTS.guageChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
-	$$.percentFormat = d3b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.percentFormat = d2b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
 
 	$$.arc = d3.svg.arc()
@@ -6822,14 +6822,14 @@ d3b.CHARTS.guageChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.color = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.color = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -6853,28 +6853,28 @@ d3b.CHARTS.guageChart = function(){
 	  //create svg
 	  $$.selection.svg = $$.selection
 	    .append('svg')
-	      .attr('class','d3b-template-chart d3b-svg d3b-container');
+	      .attr('class','d2b-template-chart d2b-svg d2b-container');
 
 	  //create group container
-	  $$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
 	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d3b-guage-chart');
+				.attr('class','d2b-guage-chart');
 
 		$$.selection.arcs = $$.selection.main.append('g');
 
 
 		$$.selection.arcHeader = $$.selection.main
 			.append('text')
-				.attr('class','d3b-guage-arc-header');
+				.attr('class','d2b-guage-arc-header');
 
 		$$.selection.arcLabels = $$.selection.main
 			.append('g')
-						.attr('class','d3b-guage-arc-labels');
+						.attr('class','d2b-guage-arc-labels');
 
 		$$.selection.arcLabels.start = $$.selection.arcLabels.append('text')
 				.attr('y', 20)
@@ -6884,7 +6884,7 @@ d3b.CHARTS.guageChart = function(){
 				.text('100%');
 		$$.selection.arcLabels.percent = $$.selection.arcLabels
 			.append('text')
-				.attr('class', 'd3b-guage-arc-percent')
+				.attr('class', 'd2b-guage-arc-percent')
 				.text('0%');
 
 		// $$.selection.arcs.filled = $$.selection.arcs.append('path');
@@ -6909,7 +6909,7 @@ d3b.CHARTS.guageChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -6918,7 +6918,7 @@ d3b.CHARTS.guageChart = function(){
 				.attr('width',$$.width)
 				.attr('height',$$.height);
 
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 
 
@@ -7005,23 +7005,23 @@ d3b.CHARTS.guageChart = function(){
 					this._radiusCurrent = {inner:radius.current.inner, outer:radius.current.outer};
 				})
 		newArc.filter(function(d){return d.filled;})
-				.on('mouseover.d3b-mouseover',function(d,i){
+				.on('mouseover.d2b-mouseover',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1.05)');
-					d3b.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
+					d2b.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
+				.on('mouseout.d2b-mouseout',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1)');
-					d3b.UTILS.removeTooltip();
+					d2b.UTILS.removeTooltip();
 				})
-				.call(d3b.UTILS.bindElementEvents, $$, 'arc');
+				.call(d2b.UTILS.bindElementEvents, $$, 'arc');
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
 			.transition()
@@ -7040,7 +7040,7 @@ d3b.CHARTS.guageChart = function(){
 					};
 				})
 				.style('fill', function(d){return d.color;})
-				.attr('class', 'd3b-arc');
+				.attr('class', 'd2b-arc');
 
 		// $$.selection.main
 			// .transition()
@@ -7105,26 +7105,26 @@ d3b.CHARTS.guageChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*iframe chart*/
-d3b.CHARTS.iframeChart = function(){
+d2b.CHARTS.iframeChart = function(){
 
 	//define iframeChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
 	var generateRequired = true; //using some methods may require the chart to be redrawn
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 			};
 
 	//init event object
-	var on = d3b.CONSTANTS.DEFAULTEVENTS();
+	var on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
@@ -7198,11 +7198,11 @@ d3b.CHARTS.iframeChart = function(){
 
 		selection.div = selection
 			.append('div')
-				.attr('class','d3b-iframe-chart d3b-container');
+				.attr('class','d2b-iframe-chart d2b-container');
 
 		selection.div.iframe = selection.div
 			.append('iframe')
-				.attr('class','d3b-iframe')
+				.attr('class','d2b-iframe')
 				.attr('src',currentChartData.url);
 
 		//auto update chart
@@ -7243,10 +7243,10 @@ d3b.CHARTS.iframeChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*multi chart*/
-d3b.CHARTS.multiChart = function(){
+d2b.CHARTS.multiChart = function(){
 	//define multiChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerWidth, innerHeight;
 
@@ -7254,10 +7254,10 @@ d3b.CHARTS.multiChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 			};
@@ -7304,13 +7304,13 @@ d3b.CHARTS.multiChart = function(){
 		});
 		selection.buttonsWrapper.buttons.button.enter()
 			.append('li')
-			.on('click.d3b-click', buttonClick)
-			.on('mouseover.d3b-mouseover', buttonMouseover)
-			.on('mouseout.d3b-mouseout', buttonMouseout);
+			.on('click.d2b-click', buttonClick)
+			.on('mouseover.d2b-mouseover', buttonMouseover)
+			.on('mouseout.d2b-mouseout', buttonMouseout);
 
 		selection.buttonsWrapper.buttons.button
 			.text(function(d){return d.label;})
-			.classed('d3b-selected',function(d){return d == current.chart;});
+			.classed('d2b-selected',function(d){return d == current.chart;});
 
 	};
 
@@ -7325,17 +7325,17 @@ d3b.CHARTS.multiChart = function(){
 		}
 		var masterType = 'multiChart-'+current.chart.type+'-';
 		adChart
-			.on('elementClick.d3b-click', function(d,i,type){
+			.on('elementClick.d2b-click', function(d,i,type){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i,masterType+type);
 					}
 			})
-			.on('elementMouseover.d3b-mouseover', function(d,i,type){
+			.on('elementMouseover.d2b-mouseover', function(d,i,type){
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i,masterType+type);
 					}
 			})
-			.on('elementMouseout.d3b-mouseout', function(d,i,type){
+			.on('elementMouseout.d2b-mouseout', function(d,i,type){
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i,masterType+type);
 					}
@@ -7346,9 +7346,9 @@ d3b.CHARTS.multiChart = function(){
 		if(!selection.chartWrapper.chart){
 			selection.chartWrapper.chart = selection.chartWrapper
 				.append('div')
-					.attr('class','d3b-multi-chart-chart')
+					.attr('class','d2b-multi-chart-chart')
 					.style('opacity',1);
-			// d3b.UTILS.chartAdapter(current.chart.type, current.chart);
+			// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
 			adChart = current.chart.chart;
 			adChart
 				.selection(selection.chartWrapper.chart)
@@ -7366,10 +7366,10 @@ d3b.CHARTS.multiChart = function(){
 
 				selection.chartWrapper.chart = selection.chartWrapper
 					.append('div')
-						.attr('class','d3b-multi-chart-chart')
+						.attr('class','d2b-multi-chart-chart')
 						.style('opacity',0);
 
-				// d3b.UTILS.chartAdapter(current.chart.type, current.chart);
+				// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
 				adChart = current.chart.chart;
 				adChart
 					.selection(selection.chartWrapper.chart)
@@ -7467,7 +7467,7 @@ d3b.CHARTS.multiChart = function(){
 		currentChartData = chartData.data;
 
 		currentChartData.charts.forEach(function(d){
-			d.chart = new d3b.CHARTS[d.type]();
+			d.chart = new d2b.CHARTS[d.type]();
 		});
 
 		return chart;
@@ -7487,16 +7487,16 @@ d3b.CHARTS.multiChart = function(){
 		//create button container
 		selection.buttonsWrapper = selection
 			.append('div')
-				.attr('class','d3b-multi-chart-buttons-wrapper');
+				.attr('class','d2b-multi-chart-buttons-wrapper');
 
 		selection.buttonsWrapper.buttons = selection.buttonsWrapper
 			.append('ul')
-				.attr('class','d3b-buttons');
+				.attr('class','d2b-buttons');
 
 		// selection.style('position','relative');
 		selection.chartWrapper = selection
 			.append('div')
-				.attr('class','d3b-multi-chart d3b-container');
+				.attr('class','d2b-multi-chart d2b-container');
 
 		// currentChartData.charts.forEach(function(d){
 		// 	d.chart.selection(selection.chartWrapper);
@@ -7545,43 +7545,43 @@ d3b.CHARTS.multiChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-d3b.CHARTS.templateChart = function(){
+d2b.CHARTS.templateChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new d3b.UTILS.LEGENDS.legend();
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new d3b.UTILS.CONTROLS.horizontalControls();
+	$$.controls = new d2b.UTILS.CONTROLS.horizontalControls();
 	//controls data
 	$$.controlsData = {
 				hideLegend: {
@@ -7596,18 +7596,18 @@ d3b.CHARTS.templateChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -7625,7 +7625,7 @@ d3b.CHARTS.templateChart = function(){
 		$$.generateRequired = false;
 
 		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
-		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		//init legend properties
 		$$.legend
@@ -7643,7 +7643,7 @@ d3b.CHARTS.templateChart = function(){
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d3b-main-chart');
+				.attr('class','d2b-main-chart');
 
 		//auto update chart
 		var temp = $$.animationDuration;
@@ -7664,7 +7664,7 @@ d3b.CHARTS.templateChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -7674,10 +7674,10 @@ d3b.CHARTS.templateChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
+		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		//set legend data and update legend viz
 		if($$.controlsData.hideLegend.enabled){
@@ -7686,14 +7686,14 @@ d3b.CHARTS.templateChart = function(){
 			//----replace array with a custom legend builder
 			$$.legendData.data.items = [{'label':'item 1'},{'label':'item 2'},{'label':'item 3'},{'label':'item 4'},{'label':'item 5'},{'label':'item 6'}]
 		}
-		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		$$.selection.main
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//----chart code goes here!
 		//----use innerHeight/innerWidth as the context dimensions and use forcedMargin.|left, right, top, or bottom| as the current positioning margin
@@ -7709,22 +7709,22 @@ d3b.CHARTS.templateChart = function(){
 	return chart;
 };
 
-d3b.UTILS.AXISCHART.scatter = function(){
+d2b.UTILS.AXISCHART.scatter = function(){
   
 };
 
 /* Copyright � 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-bar*/
-d3b.UTILS.AXISCHART.TYPES.bar = function(){
+d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -7732,7 +7732,7 @@ d3b.UTILS.AXISCHART.TYPES.bar = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
   $$.groupScale = d3.scale.ordinal();
 
@@ -7749,18 +7749,18 @@ d3b.UTILS.AXISCHART.TYPES.bar = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
   chart.xValues = function(){
     var values = [];
@@ -7824,8 +7824,8 @@ d3b.UTILS.AXISCHART.TYPES.bar = function(){
       var newBar = bar.enter()
         .append('rect')
         .style('fill', $$.color(graphData.label))
-        .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-				.call(d3b.UTILS.bindElementEvents, $$, 'bar');
+        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+				.call(d2b.UTILS.bindElementEvents, $$, 'bar');
 
       if($$.controlsData.stackBars.enabled){
         newBar
@@ -7898,7 +7898,7 @@ d3b.UTILS.AXISCHART.TYPES.bar = function(){
 	return chart;
 };
 
-d3b.UTILS.AXISCHART.TYPES.bar.tools = function(){
+d2b.UTILS.AXISCHART.TYPES.bar.tools = function(){
   return {
     controlsData:{
       stackBars: {
@@ -7914,15 +7914,15 @@ d3b.UTILS.AXISCHART.TYPES.bar.tools = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-line*/
-d3b.UTILS.AXISCHART.TYPES.line = function(){
+d2b.UTILS.AXISCHART.TYPES.line = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -7930,7 +7930,7 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.line = d3.svg.line()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -7939,18 +7939,18 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.xValues = function(){
     var values = [];
@@ -7981,7 +7981,7 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(d3b.UTILS.bindElementEvents, $$, 'line');
+					.call(d2b.UTILS.bindElementEvents, $$, 'line');
 			}
 
 			if(graphData.interpolate){
@@ -8016,21 +8016,21 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 			newPoint
 				.append('circle')
 					.attr('r', 3.5)
-					.on('mouseover.d3b-mouseover',function(){
+					.on('mouseover.d2b-mouseover',function(){
 						d3.select(this)
 							.transition()
 								.duration($$.animationDuration/2)
 								.attr('r',7)
 					})
-					.on('mouseout.d3b-mouseover',function(){
+					.on('mouseout.d2b-mouseover',function(){
 						d3.select(this)
 							.transition()
 								.duration($$.animationDuration/2)
 								.attr('r',3.5)
 					})
 					.style('fill-opacity',0)
-					.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-					.call(d3b.UTILS.bindElementEvents, $$, 'line-point');
+					.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+					.call(d2b.UTILS.bindElementEvents, $$, 'line-point');
 
 
 			point
@@ -8067,15 +8067,15 @@ d3b.UTILS.AXISCHART.TYPES.line = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-area*/
-d3b.UTILS.AXISCHART.TYPES.area = function(){
+d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -8083,7 +8083,7 @@ d3b.UTILS.AXISCHART.TYPES.area = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.area = d3.svg.area()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -8094,26 +8094,26 @@ d3b.UTILS.AXISCHART.TYPES.area = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	$$.updatePoints = function(graphData, graph, yType){
 
-		$$.foreground.point[yType] = graph.selectAll('g.d3b-'+yType+'-point').data(function(d){return d.values;});
+		$$.foreground.point[yType] = graph.selectAll('g.d2b-'+yType+'-point').data(function(d){return d.values;});
 
 		var newPoint = $$.foreground.point[yType].enter()
 			.append('g')
-				.attr('class','d3b-'+yType+'-point')
+				.attr('class','d2b-'+yType+'-point')
 				.attr('transform',function(d){
 					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d[yType])+')';
 				});
@@ -8126,20 +8126,20 @@ d3b.UTILS.AXISCHART.TYPES.area = function(){
 			.append('circle')
 				.attr('r', 3.5)
 				.style('fill-opacity',0)
-				.on('mouseover.d3b-mouseover',function(){
+				.on('mouseover.d2b-mouseover',function(){
 					d3.select(this)
 						.transition()
 							.duration($$.animationDuration/2)
 							.attr('r',7)
 				})
-				.on('mouseout.d3b-mouseover',function(){
+				.on('mouseout.d2b-mouseover',function(){
 					d3.select(this)
 						.transition()
 							.duration($$.animationDuration/2)
 							.attr('r',3.5)
 				})
-				.call(d3b.UTILS.bindElementEvents, $$, 'area-point-'+yType)
-				.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);});
+				.call(d2b.UTILS.bindElementEvents, $$, 'area-point-'+yType)
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);});
 
 		$$.foreground.point[yType]
 			.selectAll('circle')
@@ -8195,7 +8195,7 @@ d3b.UTILS.AXISCHART.TYPES.area = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(d3b.UTILS.bindElementEvents, $$, 'area');
+					.call(d2b.UTILS.bindElementEvents, $$, 'area');
 			}
 
 			if(graphData.interpolate){
@@ -8236,15 +8236,15 @@ d3b.UTILS.AXISCHART.TYPES.area = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-histogram*/
-d3b.UTILS.AXISCHART.TYPES.histogram = function(){
+d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -8252,7 +8252,7 @@ d3b.UTILS.AXISCHART.TYPES.histogram = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.hist = d3.layout.histogram();
 
@@ -8260,18 +8260,18 @@ d3b.UTILS.AXISCHART.TYPES.histogram = function(){
 	var chart = {};
 
 	//properties that will be set by the axis-chart main code
-	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.xValues = function(){
     var values = [];
@@ -8321,11 +8321,11 @@ d3b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 			var newBar = bar.enter()
 				.append('rect')
-					.call(d3b.UTILS.bindElementEvents, $$, 'histogram-bar')
+					.call(d2b.UTILS.bindElementEvents, $$, 'histogram-bar')
 					.style('fill', $$.color(graphData.label))
 					.attr('y',$$.y.customScale(0))
 					.attr('height',0)
-					.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+					.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 
 			bar
 				.transition()
@@ -8357,15 +8357,15 @@ d3b.UTILS.AXISCHART.TYPES.histogram = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-bubble-pack*/
-d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
+d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 
@@ -8376,7 +8376,7 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
   //pack layout
   $$.pack = d3.layout.pack()
@@ -8444,9 +8444,9 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
   $$.bubbleEnter = function(graph, graphData, bubble){
     newBubble = bubble.enter()
       .append('g')
-        .attr('class', 'd3b-bubble')
-        .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
-        .call(d3b.UTILS.bindElementEvents, $$, 'bubble')
+        .attr('class', 'd2b-bubble')
+        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+        .call(d2b.UTILS.bindElementEvents, $$, 'bubble')
         .attr('transform', function(d){
           if(d.parent){
             if(!$$.persistentData.expandedNodes[d.parent.key])
@@ -8458,12 +8458,12 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
     newBubble
       .append('circle')
-        .attr('class','d3b-bubble-background')
+        .attr('class','d2b-bubble-background')
         .style('stroke', $$.color(graphData.label));
 
     newBubble
       .append('circle')
-        .attr('class','d3b-bubble-foreground')
+        .attr('class','d2b-bubble-foreground')
         .style('fill', $$.color(graphData.label));
   };
 
@@ -8471,21 +8471,21 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     //customize bubbles that contain children
     var bubbleWithChildren = bubble
       .filter(function(d){return (d.children)? true:false;})
-      .on('click.d3b-click',function(d){
+      .on('click.d2b-click',function(d){
         $$.persistentData.expandedNodes[d.key] = true;
         chart.update();
       })
       .style('cursor','pointer')
-      .on('mouseover.d3b-mouseover',function(d){
+      .on('mouseover.d2b-mouseover',function(d){
         d3.select(this)
-          .select('.d3b-bubble-background')
+          .select('.d2b-bubble-background')
           .transition()
             .duration($$.animationDuration/2)
             .attr('r', 3+Math.max(0.5,d.r));
       })
-      .on('mouseout.d3b-mouseout',function(d){
+      .on('mouseout.d2b-mouseout',function(d){
           d3.select(this)
-            .select('.d3b-bubble-background')
+            .select('.d2b-bubble-background')
             .transition()
               .duration($$.animationDuration/2)
               .attr('r', Math.max(0.5,d.r));
@@ -8493,14 +8493,14 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
     //customize bubbles that do not contain children
     bubbleWithChildren
-      .select('.d3b-bubble-background')
+      .select('.d2b-bubble-background')
       .style('stroke', d3.rgb($$.color(graphData.label)).darker(1));
 
     var bubbleWithoutChildren = bubble.filter(function(d){return (d.children)? false:true;})
       .style('cursor','auto');
 
     bubbleWithoutChildren
-      .select('.d3b-bubble-background')
+      .select('.d2b-bubble-background')
       .style('stroke', d3.rgb($$.color(graphData.label)));
 
     //transition visible bubbles
@@ -8513,16 +8513,16 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
           return false;
         })
-        .classed('d3b-hidden',false)
+        .classed('d2b-hidden',false)
       .transition()
         .duration($$.animationDuration*1.5)
         .style('opacity',0.7)
         .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
     bubbleVisibleTransition
-      .select('circle.d3b-bubble-background')
+      .select('circle.d2b-bubble-background')
         .attr('r', function(d){return Math.max(0.5,d.r);});
     bubbleVisibleTransition
-      .select('circle.d3b-bubble-foreground')
+      .select('circle.d2b-bubble-foreground')
         .attr('r', function(d){return Math.max(0.5,d.r);});
 
     //transition hidden bubbles
@@ -8535,7 +8535,7 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
           return true;
         })
-        .classed('d3b-hidden',true)
+        .classed('d2b-hidden',true)
       .transition()
         .duration($$.animationDuration*1.5)
         .style('opacity',0)
@@ -8548,10 +8548,10 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
           return translate;
         });
     bubbleHiddenTransition
-      .select('circle.d3b-bubble-background')
+      .select('circle.d2b-bubble-background')
         .attr('r', function(d){return Math.max(1,d.r);});
     bubbleHiddenTransition
-      .select('circle.d3b-bubble-foreground')
+      .select('circle.d2b-bubble-foreground')
         .attr('r', function(d){return Math.max(1,d.r);});
 
   };
@@ -8568,18 +8568,18 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	var chart = {};
 
 	//properties that will be set by the axis-chart main code
-	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
@@ -8640,24 +8640,24 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
 
-      var bubble = graph.selectAll('g.d3b-bubble').data(graphData.packed, function(d){return d.key;});
+      var bubble = graph.selectAll('g.d2b-bubble').data(graphData.packed, function(d){return d.key;});
 
       $$.bubbleEnter(graph, graphData, bubble);
       $$.bubbleUpdate(graph, graphData, bubble);
       $$.bubbleExit(graph, graphData, bubble);
 
-      var expandedBubbleIndicator = graph.selectAll('g.d3b-expanded-bubble-indicator')
+      var expandedBubbleIndicator = graph.selectAll('g.d2b-expanded-bubble-indicator')
         .data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
 
       var newIndicator = expandedBubbleIndicator.enter()
         .append('g')
-          .attr('class', 'd3b-expanded-bubble-indicator')
-          .on('click.d3b-click', function(d){
+          .attr('class', 'd2b-expanded-bubble-indicator')
+          .on('click.d2b-click', function(d){
             $$.resetExpandedNodes(d);
-            d3b.UTILS.removeTooltip();
+            d2b.UTILS.removeTooltip();
             chart.update();
           })
-          .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
+          .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
 
       newIndicator
         .append('rect')
@@ -8709,11 +8709,11 @@ d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-d3b.DASHBOARDS.dashboard = function(){
+d2b.DASHBOARDS.dashboard = function(){
 
 	//define axisChart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			margin = d3b.CONSTANTS.DEFAULTMARGIN();
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			margin = d2b.CONSTANTS.DEFAULTMARGIN();
 
 	var pageMargin = 210;
 	var pageWidth = width - pageMargin;
@@ -8724,12 +8724,12 @@ d3b.DASHBOARDS.dashboard = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-  var dashboardCategory = new d3b.UTILS.dashboardCategory();
-	var chartPage = new d3b.UTILS.chartPage();
-  var controls = new d3b.UTILS.CONTROLS.htmlControls();
+  var dashboardCategory = new d2b.UTILS.dashboardCategory();
+	var chartPage = new d2b.UTILS.chartPage();
+  var controls = new d2b.UTILS.CONTROLS.htmlControls();
 
 	var sectionsByKey = {};
 
@@ -8755,12 +8755,12 @@ d3b.DASHBOARDS.dashboard = function(){
 	// var controls = {
 	// 		};
 
-	// var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	// var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentDashboardData = {
 			};
 
-	var palette = d3b.CONSTANTS.DEFAULTPALETTE;
+	var palette = d2b.CONSTANTS.DEFAULTPALETTE;
 
 	var traversePages = function(pages, categoryName, sectionName){
 		pages.forEach(function(page, i){
@@ -8808,11 +8808,11 @@ d3b.DASHBOARDS.dashboard = function(){
 	};
 
 	var resetSubSectionGroupBreadcrumbs = function(){
-		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb-sub-section-group-section')
+		selection.container.header.breadcrumbs.svg.selectAll('.d2b-breadcrumb-sub-section-group-section')
 			.transition()
 				.duration(animationDuration/2)
 				.style('opacity',0);
-		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb').each(function(){this.expanded = false;});
+		selection.container.header.breadcrumbs.svg.selectAll('.d2b-breadcrumb').each(function(){this.expanded = false;});
 		selection.container.header.breadcrumbs.svg.style('height','28px');
 	};
 
@@ -8821,19 +8821,19 @@ d3b.DASHBOARDS.dashboard = function(){
 		var breadcrumbIndentSize = 7;
 
 		//set breadcrumb data keyed by the section name
-		var breadcrumb = selection.container.header.breadcrumbs.svg.selectAll('g.d3b-breadcrumb').data(current.section.position,function(d){return d.section.name;});
+		var breadcrumb = selection.container.header.breadcrumbs.svg.selectAll('g.d2b-breadcrumb').data(current.section.position,function(d){return d.section.name;});
 
 		//enter new breadcrumbs
 		var newBreadcrumb = breadcrumb.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class','d3b-breadcrumb');
+				.attr('class','d2b-breadcrumb');
 
 
 		//init new breadcrumb path and text
-		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
+		newBreadcrumb.append('path').attr('class','d2b-breadcrumb-background');
 
-		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
+		newBreadcrumb.append('path').attr('class','d2b-breadcrumb-foreground');
 
 		newBreadcrumb
 			.append('text')
@@ -8847,31 +8847,31 @@ d3b.DASHBOARDS.dashboard = function(){
 			var _breadcrumb = this;
 			var elem = d3.select(_breadcrumb);
 			var text = elem.select('text');
-			var foreground = elem.select('path.d3b-breadcrumb-foreground');
-			var background = elem.select('path.d3b-breadcrumb-background');
+			var foreground = elem.select('path.d2b-breadcrumb-foreground');
+			var background = elem.select('path.d2b-breadcrumb-background');
 
 			//set breadCrumb path width according to text width
 			var pathWidth = text.node().getBBox().width+25;
 			var triangle;
 
-			elem.select('g.d3b-breadcrumb-triangle').remove();
+			elem.select('g.d2b-breadcrumb-triangle').remove();
 			//if section is part of a sectionGroup add sub-section dropdown
 
 			if(d.section != current.section){
 				elem
-						.classed('d3b-innactive',false)
-						.on('click.d3b-click',function(d){
+						.classed('d2b-innactive',false)
+						.on('click.d2b-click',function(d){
 							changeCurrentSection(d.section);
 						});
 			}else{
 				elem
-						.classed('d3b-innactive',true)
-						.on('click.d3b-click',null);
+						.classed('d2b-innactive',true)
+						.on('click.d2b-click',null);
 			}
 			if(d.sectionGroup){
 
 				//set data for sub-section, omitting the selected section
-				var sectionBreadcrumb = elem.selectAll('g.d3b-breadcrumb-sub-section-group-section')
+				var sectionBreadcrumb = elem.selectAll('g.d2b-breadcrumb-sub-section-group-section')
 						.data(d.sectionGroup.sections.filter(function(dd){return dd!=d.section;}));
 
 				//init breadcrumb dyExpanded and expanded flags
@@ -8882,9 +8882,9 @@ d3b.DASHBOARDS.dashboard = function(){
 				var newSectionBreadcrumb = sectionBreadcrumb.enter()
 					.append('g')
 						.style('opacity',0)
-						.attr('class','d3b-breadcrumb-sub-section-group-section');
-				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
-				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
+						.attr('class','d2b-breadcrumb-sub-section-group-section');
+				newSectionBreadcrumb.append('path').attr('class','d2b-breadcrumb-background');
+				newSectionBreadcrumb.append('path').attr('class','d2b-breadcrumb-foreground');
 				newSectionBreadcrumb.append('text')
 					.attr('y',17)
 					.attr('x',15)
@@ -8893,8 +8893,8 @@ d3b.DASHBOARDS.dashboard = function(){
 				//iterate through sub-section breadcrumbs
 				sectionBreadcrumb.each(function(d){
 							var elem = d3.select(this);
-							var foreground = elem.select('path.d3b-breadcrumb-foreground');
-							var background = elem.select('path.d3b-breadcrumb-background');
+							var foreground = elem.select('path.d2b-breadcrumb-foreground');
+							var background = elem.select('path.d2b-breadcrumb-background');
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
 							foreground
@@ -8902,7 +8902,7 @@ d3b.DASHBOARDS.dashboard = function(){
 								.attr('transform','translate(4,0)');
 							background
 								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+breadcrumbIndentSize)+' 12.5 L '+pathWidth+' 0 L 0 0 Z');
-						}).on('click.d3b-click',function(d){
+						}).on('click.d2b-click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
 						})
@@ -8914,8 +8914,8 @@ d3b.DASHBOARDS.dashboard = function(){
 				//add triangle under sectionGroup breadcrumb
 				pathWidth += 15;
 				triangle = elem.append('g')
-						.attr('class','d3b-breadcrumb-triangle')
-						.on('click.d3b-click',function(){
+						.attr('class','d2b-breadcrumb-triangle')
+						.on('click.d2b-click',function(){
 							d3.event.stopPropagation();
 							if(!_breadcrumb.expanded){
 								resetSubSectionGroupBreadcrumbs();
@@ -8993,22 +8993,22 @@ d3b.DASHBOARDS.dashboard = function(){
 	};
 	var updateCategoryTabs = function(){
 
-		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.d3b-category-tab').data(current.section.categories);
+		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.d2b-category-tab').data(current.section.categories);
 		categoryTab.enter()
 			.append('li')
-				.attr('class','d3b-category-tab')
-				.on('click.d3b-click',changeCurrentCategory);
+				.attr('class','d2b-category-tab')
+				.on('click.d2b-click',changeCurrentCategory);
 		categoryTab
 			.text(function(d){return d.name;})
 			.each(function(d){
 				if(d==current.category){
 					d3.select(this)
-							.classed('d3b-innactive',true)
-							.on('click.d3b-click',null);
+							.classed('d2b-innactive',true)
+							.on('click.d2b-click',null);
 				}else{
 					d3.select(this)
-							.classed('d3b-innactive',false)
-							.on('click.d3b-click',changeCurrentCategory);
+							.classed('d2b-innactive',false)
+							.on('click.d2b-click',changeCurrentCategory);
 				}
 			});
 			categoryTab.exit()
@@ -9021,13 +9021,13 @@ d3b.DASHBOARDS.dashboard = function(){
 	};
 	var updateSubSections = function(){
 
-		var subSection = selection.container.sidebar.subSections.selectAll('li.d3b-sub-section').data(current.section.sections);
+		var subSection = selection.container.sidebar.subSections.selectAll('li.d2b-sub-section').data(current.section.sections);
 
 		subSection.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','d3b-sub-section')
-				.on('click.d3b-click',changeCurrentSection);
+				.attr('class','d2b-sub-section')
+				.on('click.d2b-click',changeCurrentSection);
 
 		subSection
 				.text(function(d){return d.name})
@@ -9045,12 +9045,12 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		var subSectionGroupData = current.section.sectionGroups.filter(function(d){return d.sections.length > 0;});
 
-		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.d3b-sub-section-group').data(subSectionGroupData);
+		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.d2b-sub-section-group').data(subSectionGroupData);
 
 		subSectionGroup.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','d3b-sub-section-group');
+				.attr('class','d2b-sub-section-group');
 
 		subSectionGroup
 			.transition()
@@ -9075,16 +9075,16 @@ d3b.DASHBOARDS.dashboard = function(){
 		var subSectionGroupSections = elem
 			.append('ul')
 				.datum(d)
-				.attr('class','d3b-sub-section-group-sections');
+				.attr('class','d2b-sub-section-group-sections');
 
-		var subSectionGroupSection = subSectionGroupSections.selectAll('li.d3b-sub-section-group-section').data(function(dd){return dd.sections;});
+		var subSectionGroupSection = subSectionGroupSections.selectAll('li.d2b-sub-section-group-section').data(function(dd){return dd.sections;});
 
 		subSectionGroupSection.enter()
 			.append('li')
-				.attr('class','d3b-sub-section-group-section');
+				.attr('class','d2b-sub-section-group-section');
 
 		subSectionGroupSection
-				.on('click.d3b-click',changeCurrentSection);
+				.on('click.d2b-click',changeCurrentSection);
 
 		subSectionGroupSection
 				.text(function(d){return d.name;});
@@ -9199,33 +9199,33 @@ d3b.DASHBOARDS.dashboard = function(){
 		//create container
 		selection.container = selection
 			.append('div')
-				.attr('class','d3b-dashboard d3b-container');
+				.attr('class','d2b-dashboard d2b-container');
 
 		selection.container.header = selection.container
 			.append('div')
-				.attr('class','d3b-header');
+				.attr('class','d2b-header');
 
 		selection.container.header.navigation = selection.container.header
 			.append('div')
-				.attr('class','d3b-navigation');
+				.attr('class','d2b-navigation');
 
 		selection.container.header.navigation.home = selection.container.header.navigation
 			.append('div')
-				.attr('class','d3b-navigation-home');
+				.attr('class','d2b-navigation-home');
 
 		selection.container.header.navigation.home.append('i').attr('class','fa fa-home')
 
 		selection.container.header.navigation.arrows = selection.container.header.navigation
 			.append('div')
-				.attr('class','d3b-navigation-arrows');
+				.attr('class','d2b-navigation-arrows');
 
 		selection.container.header.navigation.arrows.left = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','d3b-left-arrow');
+				.attr('id','d2b-left-arrow');
 
 		selection.container.header.navigation.arrows.right = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','d3b-right-arrow');
+				.attr('id','d2b-right-arrow');
 
 		selection.container.header.navigation.arrows.left.append('i').attr('class','fa fa-chevron-left')
 
@@ -9233,49 +9233,49 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		selection.container.header.navigation.categoryTabs = selection.container.header.navigation
 			.append('ul')
-				.attr('class','d3b-category-tabs');
+				.attr('class','d2b-category-tabs');
 
 		selection.container.header.navigation.logo = selection.container.header.navigation
 			.append('img')
-				.attr('class','d3b-dashboard-logo');
+				.attr('class','d2b-dashboard-logo');
 
 		selection.container.header.breadcrumbs = selection.container.header
 			.append('div')
-				.attr('class','d3b-dashboard-breadcrumbs');
+				.attr('class','d2b-dashboard-breadcrumbs');
 
 		selection.container.header.breadcrumbs.svg = selection.container.header.breadcrumbs
 			.append('svg')
-				.attr('class','d3b-dashboard-breadcrumbs-svg');
+				.attr('class','d2b-dashboard-breadcrumbs-svg');
 
 		selection.container.sidebar = selection.container
 			.append('div')
-				.attr('class','d3b-dashboard-sidebar');
+				.attr('class','d2b-dashboard-sidebar');
 
 
 		selection.container.sidebar.sectionNav = selection.container.sidebar
 			.append('div')
-				.attr('class','d3b-sidebar-section-nav d3b-sidebar-container');
+				.attr('class','d2b-sidebar-section-nav d2b-sidebar-container');
 
 		selection.container.sidebar.sectionsHeader = selection.container.sidebar.sectionNav
 			.append('div')
-				.attr('class','d3b-sidebar-header')
+				.attr('class','d2b-sidebar-header')
 				.text('Go To');
 
 		selection.container.sidebar.subSections = selection.container.sidebar.sectionNav
 			.append('ul')
-				.attr('class','d3b-sub-sections');
+				.attr('class','d2b-sub-sections');
 
 		selection.container.sidebar.subSectionGroups = selection.container.sidebar.sectionNav
 			.append('ul')
-				.attr('class','d3b-sub-section-groups');
+				.attr('class','d2b-sub-section-groups');
 
 		selection.container.sidebar.filters = selection.container.sidebar
 			.append('div')
-				.attr('class','d3b-sidebar-filters d3b-sidebar-container');
+				.attr('class','d2b-sidebar-filters d2b-sidebar-container');
 
 		selection.container.sidebar.filtersHeader = selection.container.sidebar.filters
 			.append('div')
-				.attr('class','d3b-sidebar-header')
+				.attr('class','d2b-sidebar-header')
 				.text('Filter By');
 
 		controls.selection(selection.container.sidebar.filters)
@@ -9285,19 +9285,19 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		selection.container.content = selection.container
 			.append('div')
-				.attr('class','d3b-dashboard-content');
+				.attr('class','d2b-dashboard-content');
 
 		selection.container.content.dashboardCategory = selection.container.content
 			.append('div')
-				.attr('class','d3b-dashboard-category');
+				.attr('class','d2b-dashboard-category');
 
 		// selection.container.content.chartPage = selection.container.content
 		// 	.append('div')
-		// 		.attr('class','d3b-chart-page-container');
+		// 		.attr('class','d2b-chart-page-container');
 
 		dashboardCategory
 			.selection(selection.container.content.dashboardCategory)
-			.on('pageChange.d3b-page-change',function(pageData, iOld, iNew){
+			.on('pageChange.d2b-page-change',function(pageData, iOld, iNew){
 
 				var temp = controlsHidden;
 				if(!pageData.controls)
@@ -9349,24 +9349,24 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
-					.classed('d3b-innactive',true)
-					.on('click.d3b-click',null);
+					.classed('d2b-innactive',true)
+					.on('click.d2b-click',null);
 		}else{
 			selection.container.header.navigation.home
-					.classed('d3b-innactive',false)
-					.on('click.d3b-click',function(){
+					.classed('d2b-innactive',false)
+					.on('click.d2b-click',function(){
 						changeCurrentSection(currentDashboardData.dashboard.topSection);
 					});
 		}
 
 		if(navigationHistory.position+1 == navigationHistory.array.length){
 			selection.container.header.navigation.arrows.right
-					.classed('d3b-innactive',true)
-					.on('click.d3b-click',null);
+					.classed('d2b-innactive',true)
+					.on('click.d2b-click',null);
 		}else{
 			selection.container.header.navigation.arrows.right
-					.classed('d3b-innactive',false)
-					.on('click.d3b-click',function(){
+					.classed('d2b-innactive',false)
+					.on('click.d2b-click',function(){
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
@@ -9379,12 +9379,12 @@ d3b.DASHBOARDS.dashboard = function(){
 
 		if(navigationHistory.position == 0){
 			selection.container.header.navigation.arrows.left
-					.classed('d3b-innactive',true)
-					.on('click.d3b-click',null)
+					.classed('d2b-innactive',true)
+					.on('click.d2b-click',null)
 		}else{
 			selection.container.header.navigation.arrows.left
-					.classed('d3b-innactive',false)
-					.on('click.d3b-click',function(){
+					.classed('d2b-innactive',false)
+					.on('click.d2b-click',function(){
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();

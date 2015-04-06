@@ -1,9 +1,9 @@
-.d3b-multi-chart-buttons-wrapper{
+.d2b-multi-chart-buttons-wrapper{
   height:45px;
   text-align:center;
   padding-top:10px;
 	width:100%;
-  ul.d3b-buttons{
+  ul.d2b-buttons{
     margin-left:5px;
     margin-right:5px;
 		padding:0px;
@@ -20,10 +20,10 @@
       display:inline-block;
       padding:7px 10px;
       color:#777;
-      &.d3b-selected{
+      &.d2b-selected{
         box-shadow: inset 0px 2px 4px $light;
       }
-      &.d3b-selected{
+      &.d2b-selected{
         background:$lightest;
         color:$dark_main;
       }
@@ -37,8 +37,8 @@
   }
 }
 
-.d3b-multi-chart{
-	.d3b-multi-chart-chart{
+.d2b-multi-chart{
+	.d2b-multi-chart-chart{
 		// position:absolute;
 		// top:50px;
 		// left:0px;

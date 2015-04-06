@@ -1,36 +1,36 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*guage chart*/
-d3b.CHARTS.guageChart = function(){
+d2b.CHARTS.guageChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
-	$$.percentFormat = d3b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.percentFormat = d2b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
 
 	$$.arc = d3.svg.arc()
@@ -43,14 +43,14 @@ d3b.CHARTS.guageChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.color = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.color = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -74,28 +74,28 @@ d3b.CHARTS.guageChart = function(){
 	  //create svg
 	  $$.selection.svg = $$.selection
 	    .append('svg')
-	      .attr('class','d3b-template-chart d3b-svg d3b-container');
+	      .attr('class','d2b-template-chart d2b-svg d2b-container');
 
 	  //create group container
-	  $$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
 	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d3b-guage-chart');
+				.attr('class','d2b-guage-chart');
 
 		$$.selection.arcs = $$.selection.main.append('g');
 
 
 		$$.selection.arcHeader = $$.selection.main
 			.append('text')
-				.attr('class','d3b-guage-arc-header');
+				.attr('class','d2b-guage-arc-header');
 
 		$$.selection.arcLabels = $$.selection.main
 			.append('g')
-						.attr('class','d3b-guage-arc-labels');
+						.attr('class','d2b-guage-arc-labels');
 
 		$$.selection.arcLabels.start = $$.selection.arcLabels.append('text')
 				.attr('y', 20)
@@ -105,7 +105,7 @@ d3b.CHARTS.guageChart = function(){
 				.text('100%');
 		$$.selection.arcLabels.percent = $$.selection.arcLabels
 			.append('text')
-				.attr('class', 'd3b-guage-arc-percent')
+				.attr('class', 'd2b-guage-arc-percent')
 				.text('0%');
 
 		// $$.selection.arcs.filled = $$.selection.arcs.append('path');
@@ -130,7 +130,7 @@ d3b.CHARTS.guageChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -139,7 +139,7 @@ d3b.CHARTS.guageChart = function(){
 				.attr('width',$$.width)
 				.attr('height',$$.height);
 
-		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 
 
@@ -226,23 +226,23 @@ d3b.CHARTS.guageChart = function(){
 					this._radiusCurrent = {inner:radius.current.inner, outer:radius.current.outer};
 				})
 		newArc.filter(function(d){return d.filled;})
-				.on('mouseover.d3b-mouseover',function(d,i){
+				.on('mouseover.d2b-mouseover',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1.05)');
-					d3b.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
+					d2b.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
 				})
-				.on('mouseout.d3b-mouseout',function(d,i){
+				.on('mouseout.d2b-mouseout',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1)');
-					d3b.UTILS.removeTooltip();
+					d2b.UTILS.removeTooltip();
 				})
-				.call(d3b.UTILS.bindElementEvents, $$, 'arc');
+				.call(d2b.UTILS.bindElementEvents, $$, 'arc');
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
 			.transition()
@@ -261,7 +261,7 @@ d3b.CHARTS.guageChart = function(){
 					};
 				})
 				.style('fill', function(d){return d.color;})
-				.attr('class', 'd3b-arc');
+				.attr('class', 'd2b-arc');
 
 		// $$.selection.main
 			// .transition()

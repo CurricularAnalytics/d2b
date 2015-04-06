@@ -1,21 +1,21 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
-d3b.UTILS.dashboardCategory = function(){
+d2b.UTILS.dashboardCategory = function(){
 
   var $$ = {};
 
-	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
 	$$.selection;
   $$.chartPageSelection;
 	$$.currentData;
 	$$.computedHeight=0;
-	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
 
   $$.charts = [];
 
-  // $$.chartPage = new d3b.UTILS.chartPage();
+  // $$.chartPage = new d2b.UTILS.chartPage();
 
-  // $$.chartPage.on('update.d3b-update', function(pageData){
+  // $$.chartPage.on('update.d2b-update', function(pageData){
   //   for(key in $$.on.pageUpdate){
   //     $$.on.pageUpdate[key].call(this,pageData);
   //   }
@@ -32,28 +32,28 @@ d3b.UTILS.dashboardCategory = function(){
 
       $$.currentPageIndex=0;
 
-      $$.selection.selectAll('.d3b-category').classed('d3b-category-old', true);
+      $$.selection.selectAll('.d2b-category').classed('d2b-category-old', true);
 
       $$.selection.currentCategory = $$.selection
         .append('div')
-          .attr('class','d3b-category')
+          .attr('class','d2b-category')
           .style('opacity',0)
           .style('left',position.left+'px')
           .style('top',position.top+'px');
 
       $$.selection.currentCategory.label = $$.selection.currentCategory
         .append('div')
-          .attr('class','d3b-category-label');
+          .attr('class','d2b-category-label');
 
       $$.selection.currentCategory.label.section = $$.selection.currentCategory.label
         .append ('div')
-          .attr('class','d3b-category-label-section');
+          .attr('class','d2b-category-label-section');
       $$.selection.currentCategory.label.category = $$.selection.currentCategory.label
         .append ('div')
-          .attr('class','d3b-category-label-category');
+          .attr('class','d2b-category-label-category');
       $$.selection.currentCategory.label.pages = $$.selection.currentCategory.label
         .append ('div')
-          .attr('class','d3b-category-label-pages');
+          .attr('class','d2b-category-label-pages');
 
       // $$.selection.currentCategory.label.pages.select = $$.selection.currentCategory.label.pages
       //   .append ('select')
@@ -78,7 +78,7 @@ d3b.UTILS.dashboardCategory = function(){
 
       $$.chartPageSelection = $$.selection.chartPage = $$.selection.currentCategory
         .append('div')
-          .attr('class','d3b-chart-page-container');
+          .attr('class','d2b-chart-page-container');
 
       // var pageData;
 
@@ -130,9 +130,9 @@ d3b.UTILS.dashboardCategory = function(){
 
 	var category = {};
 
-  category.on =	d3b.UTILS.CHARTS.MEMBERS.on(category, $$);
+  category.on =	d2b.UTILS.CHARTS.MEMBERS.on(category, $$);
 
-  category.chartPageSelection =	d3b.UTILS.CHARTS.MEMBERS.prop(category, $$, 'chartPageSelection');
+  category.chartPageSelection =	d2b.UTILS.CHARTS.MEMBERS.prop(category, $$, 'chartPageSelection');
 
   category.width = function(value){
 		if(!arguments.length) return $$.width;
@@ -195,20 +195,20 @@ d3b.UTILS.dashboardCategory = function(){
     //   .append('option')
     //     .text(function(d){return d.name});
 
-    $$.selection.currentCategory.label.pages.tab = $$.selection.currentCategory.label.pages.selectAll('.d3b-page-tab').data($$.currentData.pages);
+    $$.selection.currentCategory.label.pages.tab = $$.selection.currentCategory.label.pages.selectAll('.d2b-page-tab').data($$.currentData.pages);
     $$.selection.currentCategory.label.pages.tab.enter()
       .append('div')
-        .attr('class','d3b-page-tab')
+        .attr('class','d2b-page-tab')
         .text(function(d){return d.name})
         .each(function(d,i){
-          d3.select(this).classed('d3b-tab-selected', !i);
+          d3.select(this).classed('d2b-tab-selected', !i);
         });
 
     $$.selection.currentCategory.label.pages.tab
         .on('click', function(pageData, i){
 
-          $$.selection.currentCategory.label.pages.tab.classed('d3b-tab-selected', false);
-          d3.select(this).classed('d3b-tab-selected', true);
+          $$.selection.currentCategory.label.pages.tab.classed('d2b-tab-selected', false);
+          d3.select(this).classed('d2b-tab-selected', true);
 
           for(key in $$.on.pageChange){
             $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,i);
@@ -220,7 +220,7 @@ d3b.UTILS.dashboardCategory = function(){
     //   .width($$.width)
     //   .update()
     //   .animateFrom(null);
-		$$.selection.selectAll('.d3b-category-old')
+		$$.selection.selectAll('.d2b-category-old')
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)

@@ -1,8 +1,8 @@
-.d3b-bubble-chart-buttons-wrapper{
+.d2b-bubble-chart-buttons-wrapper{
   height:55px;
   text-align:center;
   padding-top:10px;
-  ul.d3b-buttons{
+  ul.d2b-buttons{
     margin-left:5px;
     margin-right:5px;
     background:#f8f8f8;
@@ -18,7 +18,7 @@
       }
       li{
         color:#777;
-        &.d3b-selected{
+        &.d2b-selected{
           background:$lightest;
           color:$dark_main;
         }
@@ -26,16 +26,16 @@
           background:$lightest;
         }
       }
-      li.d3b-button{
+      li.d2b-button{
         padding:7px 10px;
-        &.d3b-selected{
+        &.d2b-selected{
           box-shadow: inset 0px 2px 4px $light;
         }
       }
-      li.d3b-color-button{
+      li.d2b-color-button{
         padding:1px 10px;
         border-top:1px solid $dark_main;
-        &.d3b-selected{
+        &.d2b-selected{
           box-shadow: inset 0px -1px 4px $light;
         }
       };
@@ -46,9 +46,9 @@
   }
 
 }
-.d3b-bubble-chart{
-  .d3b-bubbles{
-    .d3b-bubble{
+.d2b-bubble-chart{
+  .d2b-bubbles{
+    .d2b-bubble{
       circle{
         stroke-width:1px;
         stroke:$dark_main;
@@ -68,7 +68,7 @@
     font-size:9pt;
     fill:$dark_main;
   }
-  .d3b-groups-axis{
+  .d2b-groups-axis{
     pointer-events:none;
     path{
       fill:none;
@@ -82,7 +82,7 @@
       }
     }
   }
-  .d3b-change-axis-legend{
+  .d2b-change-axis-legend{
     pointer-events:none;
     path{
       fill:none;
@@ -95,12 +95,12 @@
       }
     }
   }
-  .d3b-groups{
+  .d2b-groups{
     pointer-events:none;
-    .d3b-group-title{
+    .d2b-group-title{
       text-anchor:middle;
     }
-    .d3b-group-total{
+    .d2b-group-total{
       font-weight:bold;
       text-anchor:middle;
     }

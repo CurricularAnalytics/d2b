@@ -3,11 +3,11 @@
 ///////TODO - Change circle packing to custom algorithm that uses cluster packing rather than d3.force layout
 
 /*bubble chart*/
-d3b.CHARTS.bubbleChart = function(){
+d2b.CHARTS.bubbleChart = function(){
 
 	//define chart variables
-	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
-			height = d3b.CONSTANTS.DEFAULTHEIGHT(),
+	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
+			height = d2b.CONSTANTS.DEFAULTHEIGHT(),
 			svgHeight = height-55;
 
 	var innerHeight = height, innerWidth = width;
@@ -16,14 +16,14 @@ d3b.CHARTS.bubbleChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d3b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
+	var legend = new d2b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'right';
 
-	var color = d3b.CONSTANTS.DEFAULTCOLOR();
+	var color = d2b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {};
 
@@ -163,8 +163,8 @@ d3b.CHARTS.bubbleChart = function(){
 			.append('ul');
 
 		newButton.append('li')
-			.attr('class','d3b-button')
-			.on('click.d3b-click',function(d,i){
+			.attr('class','d2b-button')
+			.on('click.d2b-click',function(d,i){
 				current.grouping = d;
 				updateNodeGrouping(d);
 				updateNodeGroup();
@@ -173,19 +173,19 @@ d3b.CHARTS.bubbleChart = function(){
 					on.elementClick[key].call(this,d,i,'grouping-button');
 				}
 			})
-			.on('mouseover.d3b-mouseover', function(d,i){
+			.on('mouseover.d2b-mouseover', function(d,i){
 				for(key in on.elementMouseover){
 					on.elementMouseover[key].call(this,d,i,'grouping-button');
 				}
 			})
-			.on('mouseout.d3b-mouseout', function(d,i){
+			.on('mouseout.d2b-mouseout', function(d,i){
 				for(key in on.elementMouseout){
 					on.elementMouseout[key].call(this,d,i,'grouping-button');
 				}
 			});
 		newButton.append('li')
-			.attr('class','d3b-color-button')
-			.on('click.d3b-click',function(d,i){
+			.attr('class','d2b-color-button')
+			.on('click.d2b-click',function(d,i){
 				current.colorGrouping = d;
 				updateNodeGrouping(d, "colorGrouping");
 				chart.update();
@@ -193,12 +193,12 @@ d3b.CHARTS.bubbleChart = function(){
 					on.elementClick[key].call(this,d,i,'color-by-grouping-button');
 				}
 			})
-			.on('mouseover.d3b-mouseover', function(d,i){
+			.on('mouseover.d2b-mouseover', function(d,i){
 				for(key in on.elementMouseover){
 					on.elementMouseover[key].call(this,d,i,'color-by-grouping-button');
 				}
 			})
-			.on('mouseout.d3b-mouseout', function(d,i){
+			.on('mouseout.d2b-mouseout', function(d,i){
 				for(key in on.elementMouseout){
 					on.elementMouseout[key].call(this,d,i,'color-by-grouping-button');
 				}
@@ -210,20 +210,20 @@ d3b.CHARTS.bubbleChart = function(){
 				.style('opacity',0)
 				.remove();
 
-		selection.buttonsWrapper.buttons.button.grouping = selection.buttonsWrapper.buttons.button.select('li.d3b-button')
+		selection.buttonsWrapper.buttons.button.grouping = selection.buttonsWrapper.buttons.button.select('li.d2b-button')
 				.text(function(d){return d.label;})
-				.classed('d3b-selected',function(d,i){return d == current.grouping;});
+				.classed('d2b-selected',function(d,i){return d == current.grouping;});
 
-		selection.buttonsWrapper.buttons.button.color = selection.buttonsWrapper.buttons.button.select('li.d3b-color-button')
+		selection.buttonsWrapper.buttons.button.color = selection.buttonsWrapper.buttons.button.select('li.d2b-color-button')
 				.html('<i class="fa fa-paint-brush"></i>')
-				.classed('d3b-selected',function(d,i){return d == current.colorGrouping;});
+				.classed('d2b-selected',function(d,i){return d == current.colorGrouping;});
 	};
 
 
 	// update controls
 	var updateControls = function(){
 		//update controls
-		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -411,7 +411,7 @@ d3b.CHARTS.bubbleChart = function(){
 		else if(d.change < 0)
 			changeHTML = '('+formatPercent(d.change)+')';
 
-		d3b.UTILS.createGeneralTooltip(d3.select(this), "<b>"+d.label+"</b>", xFormat(d.value)+' '+changeHTML);
+		d2b.UTILS.createGeneralTooltip(d3.select(this), "<b>"+d.label+"</b>", xFormat(d.value)+' '+changeHTML);
 
 		for(key in on.elementMouseover){
 			on.elementMouseover[key].call(this,d,i,'bubble');
@@ -419,14 +419,14 @@ d3b.CHARTS.bubbleChart = function(){
 	};
 
 	var bubbleMouseout = function(d,i){
-		d3b.UTILS.removeTooltip();
+		d2b.UTILS.removeTooltip();
 		for(key in on.elementMouseout){
 			on.elementMouseout[key].call(this,d,i,'bubble');
 		}
 	};
 
 	var bubbleClick = function(d,i){
-		d3b.UTILS.removeTooltip();
+		d2b.UTILS.removeTooltip();
 		for(key in on.elementClick){
 			on.elementClick[key].call(this,d,i,'bubble');
 		}
@@ -467,7 +467,7 @@ d3b.CHARTS.bubbleChart = function(){
 	//update bubble positioning
 	var updateBubbles = function(){
 
-		selection.group.bubbles.bubble = selection.group.bubbles.selectAll('g.d3b-bubble')
+		selection.group.bubbles.bubble = selection.group.bubbles.selectAll('g.d2b-bubble')
 				.data(current.grouping.nodes.sort(function(a,b){return d3.ascending(b.value, a.value);}),function(d,i){
 					if(d.key == 'unique')
 						return Math.floor((1 + Math.random()) * 0x10000)
@@ -479,10 +479,10 @@ d3b.CHARTS.bubbleChart = function(){
 
 		var newBubble = selection.group.bubbles.bubble.enter()
 			.append('g')
-				.attr('class','d3b-bubble')
-				.on('mouseover.d3b-mouseover', bubbleMouseover)
-				.on('mouseout.d3b-mouseout', bubbleMouseout)
-				.on('click.d3b-click', bubbleClick);
+				.attr('class','d2b-bubble')
+				.on('mouseover.d2b-mouseover', bubbleMouseover)
+				.on('mouseout.d2b-mouseout', bubbleMouseout)
+				.on('click.d2b-click', bubbleClick);
 				// .style('opacity',0);
 
 		newBubble.append('circle')
@@ -602,8 +602,8 @@ d3b.CHARTS.bubbleChart = function(){
 			.append('g')
 				.style('opacity',0);
 
-		newGroup.append('text').attr('class','d3b-group-title');
-		newGroup.append('text').attr('class','d3b-group-total');
+		newGroup.append('text').attr('class','d2b-group-title');
+		newGroup.append('text').attr('class','d2b-group-total');
 		selection.group.groups.group
 			.each(function(d,i){
 				d.total = d3.sum(d.nodes.map(function(d){return d.value;}));
@@ -633,7 +633,7 @@ d3b.CHARTS.bubbleChart = function(){
 
 		var fontSize = Math.min(30,Math.max(8,groupsScales.fontSize((innerWidth + innerHeight)/(current.groups.length))))
 
-		selection.group.groups.group.total = selection.group.groups.group.select('text.d3b-group-total')
+		selection.group.groups.group.total = selection.group.groups.group.select('text.d2b-group-total')
 			// .attr('y', groupsScales.y.rangeBand()/2)
 			.text(function(d){return xFormat(d.total);})
 			.style('font-size', fontSize+'px')
@@ -644,13 +644,13 @@ d3b.CHARTS.bubbleChart = function(){
 		});
 
 		// selection.group.groups.group
-		selection.group.groups.group.title = selection.group.groups.group.select('text.d3b-group-title')
+		selection.group.groups.group.title = selection.group.groups.group.select('text.d2b-group-title')
 				.text(function(d){return d.label;})
 				.attr('dy',0)
 				.attr('y',fontSize)
 				// .attr('y',0)
 				.style('font-size', fontSize+'px')
-				.call(d3b.UTILS.textWrap, groupsScales.x.rangeBand()-10);
+				.call(d2b.UTILS.textWrap, groupsScales.x.rangeBand()-10);
 
 		selection.group.groups.group.exit()
 			.transition()
@@ -697,7 +697,7 @@ d3b.CHARTS.bubbleChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = d3b.UTILS.numberFormat(value);
+		xFormat = d2b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -807,28 +807,28 @@ d3b.CHARTS.bubbleChart = function(){
 		//create button container
 		selection.buttonsWrapper = selection
 			.append('div')
-				.attr('class','d3b-bubble-chart-buttons-wrapper');
+				.attr('class','d2b-bubble-chart-buttons-wrapper');
 
 		selection.buttonsWrapper.buttons = selection.buttonsWrapper
 			.append('ul')
-				.attr('class','d3b-buttons');
+				.attr('class','d2b-buttons');
 
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','d3b-bubble-chart d3b-svg d3b-container');
+				.attr('class','d2b-bubble-chart d2b-svg d2b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.bubbles = selection.group
 			.append('g')
-				.attr('class','d3b-bubbles');
+				.attr('class','d2b-bubbles');
 
 		//create change axis/legend
 		selection.changeAxis = selection.group
 			.append('g')
-				.attr('class','d3b-change-axis-legend');
+				.attr('class','d2b-change-axis-legend');
 
 		selection.changeAxis.legend = selection.changeAxis
 			.append('g');
@@ -838,12 +838,12 @@ d3b.CHARTS.bubbleChart = function(){
 
 		selection.group.groups = selection.group
 			.append('g')
-				.attr('class','d3b-groups');
+				.attr('class','d2b-groups');
 
 		//create groups axis
 		selection.groupsAxis = selection.group
 			.append('g')
-				.attr('class','d3b-groups-axis');
+				.attr('class','d2b-groups-axis');
 
 		//init change legend rects
 		selection.changeAxis.legend.rect = selection.changeAxis.legend.selectAll('rect').data([-0.25, -0.05, 0.0, 0.05, 0.25, 1]);
@@ -860,12 +860,12 @@ d3b.CHARTS.bubbleChart = function(){
 		//create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','d3b-legend');
+				.attr('class','d2b-legend');
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','d3b-controls');
+				.attr('class','d2b-controls');
 
 
 		horizontalControls
@@ -907,7 +907,7 @@ d3b.CHARTS.bubbleChart = function(){
 
 		updateGroupingButtons();
 
-		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 

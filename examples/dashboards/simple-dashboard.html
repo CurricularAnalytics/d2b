@@ -2,20 +2,20 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d3b.js"></script>
+<script src="../../build/js/d2b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
-<!-- <script src="//localhost:1337/liverelod3b.js"></script> -->
+<!-- <script src="//localhost:1337/liverelod2b.js"></script> -->
 <script>
 	var data = {};
 	var makeDashboard = function(){
-		var dashboard = new d3b.DASHBOARDS.dashboard();
-		d3b.CONSTANTS.DEFAULTPALETTE = {primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"};
+		var dashboard = new d2b.DASHBOARDS.dashboard();
+		d2b.CONSTANTS.DEFAULTPALETTE = {primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"};
 		dashboard
 				// .animationDuration(0)
 				// .palette({primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"})
 				.width($(window).width())
 				.select('.dashboard');
-		// $('.d3b-dashboard-sidebar').append()
+		// $('.d2b-dashboard-sidebar').append()
 		dashboard.data(data).update();
 
 		$(window).resize(function(){
@@ -24,7 +24,7 @@
 					.update();
 		});
 
-		d3.select('.d3b-dashboard-logo')
+		d3.select('.d2b-dashboard-logo')
 			.attr('src', 'http://degrees.unm.edu/assets/layout/Logo-072057a2d0687e68145f541da12b18e3.png')
 			.style('cursor','pointer')
 			.style('opacity',0.95)
@@ -55,7 +55,7 @@ body{
 	/*background-image:url(./images/gplaypattern.png);*/
 	/*background-image:url(./images/white_tiles.png);*/
 }
-.d3b-dashboard-logo{
+.d2b-dashboard-logo{
 	background-image:url(./images/logo.png);
 }
 </style>

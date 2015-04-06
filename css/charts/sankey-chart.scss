@@ -1,15 +1,15 @@
-.d3b-sankey-chart{
-  .d3b-sankey-labels{
+.d2b-sankey-chart{
+  .d2b-sankey-labels{
     font-size: 17pt;
-    .d3b-sankey-label-source text{
+    .d2b-sankey-label-source text{
       text-anchor:start;
     }
-    .d3b-sankey-label-destination text{
+    .d2b-sankey-label-destination text{
       text-anchor:end;
     }
   }
-  .d3b-sankey-column-headers{
-    .d3b-sankey-column-header{
+  .d2b-sankey-column-headers{
+    .d2b-sankey-column-header{
       text{
         text-anchor: middle;
         font-weight: bold;
@@ -24,8 +24,8 @@
     }
   }
 
-  .d3b-sankey{
-    .d3b-sankey-links{
+  .d2b-sankey{
+    .d2b-sankey-links{
       path{
         fill:none;
         stroke-opacity:0.7;
@@ -34,14 +34,14 @@
         }
       }
     }
-    .d3b-sankey-nodes{
+    .d2b-sankey-nodes{
       text{
         font-size:10pt;
         font-weight:bold;
         pointer-events:none;
       }
     }
-    .d3b-sankey-nodes{
+    .d2b-sankey-nodes{
       rect{
         fill:$lightest;
         stroke-width:2px;

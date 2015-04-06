@@ -1,14 +1,14 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 //create root namespace
-var d3b = d3b || {};
+var d2b = d2b || {};
 
 //namespace method for adding new namespaces
-d3b.createNameSpace = function (namespace) {
+d2b.createNameSpace = function (namespace) {
     var nsparts = namespace.split(".");
-    var parent = d3b;
+    var parent = d2b;
 
-    if (nsparts[0] === "d3b") {
+    if (nsparts[0] === "d2b") {
         nsparts = nsparts.slice(1);
     }
 
@@ -23,15 +23,15 @@ d3b.createNameSpace = function (namespace) {
 };
 
 
-/*d3b charts*/
-d3b.createNameSpace("d3b.CHARTS");
+/*d2b charts*/
+d2b.createNameSpace("d2b.CHARTS");
 
-/*d3b charts*/
-d3b.createNameSpace("d3b.DASHBOARDS");
+/*d2b charts*/
+d2b.createNameSpace("d2b.DASHBOARDS");
 
-/*d3b UTILITIES*/
-d3b.createNameSpace("d3b.UTILS");
-/*d3b UTILITIES*/
-d3b.createNameSpace("d3b.UTILS.CHARTPAGE");
+/*d2b UTILITIES*/
+d2b.createNameSpace("d2b.UTILS");
+/*d2b UTILITIES*/
+d2b.createNameSpace("d2b.UTILS.CHARTPAGE");
 
-d3b.createNameSpace("d3b.UTILS.AXISCHART.TYPES");
+d2b.createNameSpace("d2b.UTILS.AXISCHART.TYPES");

@@ -1,5 +1,5 @@
-d3b.createNameSpace("d3b.UTILS.CHARTS.HELPERS");
-d3b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
+d2b.createNameSpace("d2b.UTILS.CHARTS.HELPERS");
+d2b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   var legendPadding = 10;
   if(_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left'){
     _chart.legend.orientation('vertical').data(_chart.legendData).height(_chart.innerHeight).update();
@@ -52,9 +52,9 @@ d3b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
   _chart.innerWidth = _chart.outerWidth - _chart.forcedMargin.left - _chart.forcedMargin.right;
 };
-d3b.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
+d2b.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
   var controlsPadding = 10;
-  var controlsData = d3b.UTILS.getValues(_chart.controlsData).filter(function(d){return d.visible;});
+  var controlsData = d2b.UTILS.getValues(_chart.controlsData).filter(function(d){return d.visible;});
   controlsData.map(function(d){
     d.data = {state:d.enabled, label:d.label, key:d.key};
   });
@@ -74,34 +74,34 @@ d3b.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
   _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
 
 };
-d3b.UTILS.CHARTS.HELPERS.updateDimensions = function(_chart){
+d2b.UTILS.CHARTS.HELPERS.updateDimensions = function(_chart){
 	_chart.outerWidth = _chart.outerWidth - _chart.forcedMargin.right - _chart.forcedMargin.left;
 	_chart.outerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
 	_chart.forcedMargin = {top:0,bottom:0,left:0,right:0};
 	_chart.innerWidth = _chart.outerWidth;
 	_chart.innerHeight = _chart.outerHeight;
 };
-d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
+d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
   //clean container
   _chart.selection.selectAll('*').remove();
 
   //create svg
   _chart.selection.svg = _chart.selection
     .append('svg')
-      .attr('class','d3b-svg d3b-container');
+      .attr('class','d2b-svg d2b-container');
 
   //create group container
-  _chart.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
+  _chart.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
   _chart.selection.group = _chart.selection.svg.append('g')
       .attr('transform','translate('+_chart.forcedMargin.left+','+_chart.forcedMargin.top+')');
 
   //create legend container
   _chart.selection.legend = _chart.selection.group
     .append('g')
-      .attr('class','d3b-legend');
+      .attr('class','d2b-legend');
 
   //create controls container
   _chart.selection.controls = _chart.selection.group
     .append('g')
-      .attr('class','d3b-controls');
+      .attr('class','d2b-controls');
 };
