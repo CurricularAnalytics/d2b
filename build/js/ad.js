@@ -1,14 +1,14 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 //create root namespace
-var AD = AD || {};
+var d3b = d3b || {};
 
 //namespace method for adding new namespaces
-AD.createNameSpace = function (namespace) {
+d3b.createNameSpace = function (namespace) {
     var nsparts = namespace.split(".");
-    var parent = AD;
+    var parent = d3b;
 
-    if (nsparts[0] === "AD") {
+    if (nsparts[0] === "d3b") {
         nsparts = nsparts.slice(1);
     }
 
@@ -23,25 +23,25 @@ AD.createNameSpace = function (namespace) {
 };
 
 
-/*AD charts*/
-AD.createNameSpace("AD.CHARTS");
+/*d3b charts*/
+d3b.createNameSpace("d3b.CHARTS");
 
-/*AD charts*/
-AD.createNameSpace("AD.DASHBOARDS");
+/*d3b charts*/
+d3b.createNameSpace("d3b.DASHBOARDS");
 
-/*AD UTILITIES*/
-AD.createNameSpace("AD.UTILS");
-/*AD UTILITIES*/
-AD.createNameSpace("AD.UTILS.CHARTPAGE");
+/*d3b UTILITIES*/
+d3b.createNameSpace("d3b.UTILS");
+/*d3b UTILITIES*/
+d3b.createNameSpace("d3b.UTILS.CHARTPAGE");
 
-AD.createNameSpace("AD.UTILS.AXISCHART.TYPES");
+d3b.createNameSpace("d3b.UTILS.AXISCHART.TYPES");
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*AD constants*/
-AD.createNameSpace("AD.CONSTANTS");
+/*d3b constants*/
+d3b.createNameSpace("d3b.CONSTANTS");
 
-AD.CONSTANTS = {
+d3b.CONSTANTS = {
   DEFAULTPALETTE: {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"},
   DEFAULTWIDTH: function(){ return 960; },
   DEFAULTHEIGHT: function(){ return 540; },
@@ -54,13 +54,13 @@ AD.CONSTANTS = {
                             		elementClick:function(){}
                             	};
                 },
-  ANIMATIONLENGTHS: function(){ return {normal:500,short:100,long:1000}; }
+  ANIMATIONLENGTHS: function(){ return {normal:500,short:200,long:1000}; }
 }
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-AD.UTILS.chartAdapter = function(type, chartData){
-	chartData.chart = new AD.CHARTS[type];
+d3b.UTILS.chartAdapter = function(type, chartData){
+	chartData.chart = new d3b.CHARTS[type];
 	if(chartData.properties){
 		for(key in chartData.properties){
 			if(chartData.properties[key].args)
@@ -71,11 +71,11 @@ AD.UTILS.chartAdapter = function(type, chartData){
 	}
 };
 
-AD.UTILS.chartLayoutAdapter = function(type, chartData){
-	chartData.chart = new AD.CHARTS[type];
+d3b.UTILS.chartLayoutAdapter = function(type, chartData){
+	chartData.chart = new d3b.CHARTS[type];
 	if(!chartData.chartLayoutData)
 		chartData.chartLayoutData = {};
-	chartData.chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+	chartData.chartLayout = new d3b.UTILS.CHARTPAGE.chartLayout();
 	chartData.chartLayout
 			.chart(chartData.chart)
 			.data(chartData.chartLayoutData);
@@ -91,13 +91,237 @@ AD.UTILS.chartLayoutAdapter = function(type, chartData){
 };
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+d3b.UTILS.chartPage = function(){
 
-AD.UTILS.CHARTPAGE.chartLayout = function(){
-	var width = AD.CONSTANTS.DEFAULTWIDTH();
-	var height = AD.CONSTANTS.DEFAULTHEIGHT();
+  var $$ = {};
+
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.selection;
+	$$.currentData = {};
+
+	$$.modifiedData = {};
+	$$.dataLoaded = false;
+
+	$$.computedHeight=0;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animateFrom = null;
+
+	$$.on = {
+		update: function(){}
+	};
+
+	$$.init = function(position){
+    if($$.animateFrom || !$$.selection.currentPage){
+
+			$$.selection.selectAll('.d3b-chart-page').classed('d3b-chart-page-old', true);
+
+			$$.selection.currentPage = $$.selection
+				.append('div')
+					.attr('class','d3b-chart-page')
+					.style('opacity',0)
+					.style('left',position.left+'px')
+					.style('top',position.top+'px');
+		}
+	};
+
+	$$.updateGrid = function(charts){
+		var chartLayout = $$.selection.currentPage.selectAll('div.d3b-page-chart-layout').data(charts, function(d, i){return d.chart.key || i;});
+
+		var newChartLayout = chartLayout.enter()
+			.append('div')
+				.attr('class','d3b-page-chart-layout')
+				.each(function(d){
+					d3b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
+					this.chart = d.chart.chart;
+					this.chartLayout = d.chart.chartLayout;
+					this.chartLayout
+						.select(this)
+						.width($$.width*d.width)
+						.height(d.height)
+						.animationDuration(0)
+						.update(d.chart.chartLayoutData.chartCallback);
+				});
+
+		chartLayout
+				.each(function(d){
+					this.chart
+						.data(d.chart.properties.data);
+					this.chartLayout
+						.animationDuration($$.animationDuration)
+						.width($$.width*d.width)
+						.update(d.chart.chartLayoutData.chartCallback);
+
+				})
+				.style('left',function(d){return ($$.width * d.x)+'px'})
+				.style('top',function(d){return (d.y)+'px'})
+				.each(function(d){
+					$$.computedHeight = Math.max($$.computedHeight, d.y+d.height);
+				});
+
+		chartLayout.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+
+		$$.selection.currentPage
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',1)
+				.style('left','0px')
+				.style('top','0px');
+
+	};
+
+	var page = {};
+
+  $$.getPosition = function(){
+    var position = {top:0, left:0};
+
+    switch($$.animateFrom){
+      case 'right':
+        position.top = 0;
+        position.left = $$.width;
+        break;
+      case 'left':
+        position.top = 0;
+        position.left = -$$.width;
+        break;
+      case 'top':
+        position.top = -$$.computedHeight;
+        position.left = 0;
+        break;
+      case 'bottom':
+        position.top = $$.computedHeight;
+        position.left = 0;
+        break;
+      default:
+    }
+
+    return position;
+  };
+
+	var page = {};
+
+	page.on =				d3b.UTILS.CHARTS.MEMBERS.on(page, $$);
+
+  page.width = function(value){
+		if(!arguments.length) return $$.width;
+		$$.width = value;
+		return page;
+	};
+  page.computedHeight = function(){
+		return $$.computedHeight;
+	}
+  page.selection = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = value;
+		return page;
+	};
+  page.select = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = d3.select(value);
+		return page;
+	};
+  page.animationDuration = function(value){
+		if(!arguments.length) return $$.animationDuration;
+		$$.animationDuration = value;
+		return page;
+	};
+  page.animateFrom = function(value){
+		if(!arguments.length) return $$.animateFrom;
+		$$.animateFrom = value;
+		return page;
+	};
+
+  page.data = function(data, reset){
+		if(!arguments.length) return $$.currentData;
+
+		$$.currentData = data;
+
+    if(!$$.currentData.charts)
+      $$.currentData.charts = [];
+
+    if(!$$.currentData.controls)
+      $$.currentData.controls = [];
+
+		return page;
+	}
+
+  page.update = function(callback){
+		if(!$$.selection)
+			return console.warn('page was not given a selection');
+
+		var position = $$.getPosition();
+
+    if($$.animateFrom && $$.selection.currentPage){
+      $$.selection.oldPage = $$.selection.currentPage;
+    }
+    $$.init(position);
+
+		$$.computedHeight = 0;
+
+		if($$.currentData.charts.length < 1 && !$$.currentData.url){
+			console.warn('chart page was not provided any charts or url');
+		}else{
+			$$.modifiedData.charts = $$.currentData.charts;
+			$$.modifiedData.controls = $$.currentData.controls;
+
+			var postData = {};
+			$$.currentData.controls.forEach(function(d){
+				postData[d.key] = d;
+			});
+
+			if($$.currentData.url){
+					var my_request = d3.xhr($$.currentData.url)
+					my_request.post(JSON.stringify(postData), function(error,received){
+						var data = JSON.parse(received.response);
+						if(data.charts)
+							$$.modifiedData.charts = data.charts.concat($$.modifiedData.charts);
+
+						$$.updateGrid($$.modifiedData.charts);
+						$$.dataLoaded = true;
+
+					});
+
+			}else{
+				$$.dataLoaded = true;
+				$$.updateGrid($$.modifiedData.charts);
+			}
+		}
+
+		$$.selection.selectAll('.d3b-chart-page-old')
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.style('left',-position.left+'px')
+				.style('top',-position.top+'px')
+				.remove();
+
+		d3.timer.flush();
+
+		if(callback){
+			callback();
+		}
+
+		for(key in $$.on.update){
+			$$.on.update[key].call(this,$$.modifiedData);
+		}
+
+		return page;
+	};
+
+	return page;
+}
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+d3b.UTILS.CHARTPAGE.chartLayout = function(){
+	var width = d3b.CONSTANTS.DEFAULTWIDTH();
+	var height = d3b.CONSTANTS.DEFAULTHEIGHT();
 	var selection;
 	var currentChartLayoutData = {chartLayout:{}};
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var chart;
 	var generateRequired = true;
 
@@ -157,8 +381,14 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		if(chartLayoutData.data.chartLayout.title)
 			currentChartLayoutData.chartLayout.title = chartLayoutData.data.chartLayout.title;
 
+		if(chartLayoutData.data.chartLayout.titleAlt)
+			currentChartLayoutData.chartLayout.titleAlt = chartLayoutData.data.chartLayout.titleAlt;
+
 		if(chartLayoutData.data.chartCallback)
 			currentChartLayoutData.chartCallback = chartLayoutData.data.chartCallback;
+
+		if(chartLayoutData.data.info)
+			currentChartLayoutData.chartLayout.info = chartLayoutData.data.info;
 
 		return chartLayout;
 	};
@@ -169,49 +399,58 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 
 		selection.wrapper = selection
 			.append('div')
-				.attr('class','ad-chart-layout-wrapper');
+				.attr('class','d3b-chart-layout-wrapper');
 
 		selection.container = selection.wrapper
 			.append('div')
-				.attr('class','ad-chart-layout ad-container');
+				.attr('class','d3b-chart-layout d3b-container');
 
-		selection.container.title = selection.container
+		selection.container.header = selection.container
 			.append('div')
-				.attr('class','ad-chart-layout-title');
+				.attr('class','d3b-chart-layout-header');
 
-		selection.container.title.div = selection.container.title
-			.append('div');
+		selection.container.header.title = selection.container.header
+			.append('div')
+				.attr('class','d3b-chart-layout-title');
+
+		selection.container.header.titleAlt = selection.container.header
+			.append('div')
+				.attr('class','d3b-chart-layout-title-alt');
+
+		selection.container.header.info = selection.container.header
+			.append('div')
+				.attr('class','d3b-chart-layout-info');
 
 		selection.container.chart = selection.container
 			.append('div')
-				.attr('class','ad-chart-layout-chart');
+				.attr('class','d3b-chart-layout-chart');
 
 		chart
 			.selection(selection.container.chart);
 
 		selection.container.rightNotes = selection.container
 			.append('div')
-				.attr('class','ad-chart-layout-right-notes');
+				.attr('class','d3b-chart-layout-right-notes');
 
 		selection.container.rightNotes.ul = selection.container.rightNotes
 			.append('ul');
 
 		selection.container.leftNotes = selection.container
 			.append('div')
-				.attr('class','ad-chart-layout-left-notes');
+				.attr('class','d3b-chart-layout-left-notes');
 
 		selection.container.leftNotes.ul = selection.container.leftNotes
 			.append('ul');
 
 		selection.container.footnote = selection.container
 			.append('div')
-				.attr('class','ad-chart-layout-footnote');
+				.attr('class','d3b-chart-layout-footnote');
 		selection.container.footnote.div = selection.container.footnote
 			.append('div');
 
 		selection.container.source = selection.container
 			.append('div')
-				.attr('class','ad-chart-layout-source')
+				.attr('class','d3b-chart-layout-source')
 			.append('ul');
 
 
@@ -240,14 +479,23 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 
 		selection.wrapper
 				.style('width',width+'px')
-				.style('height',height+'px')
-		selection.container.title.div
-				.text(currentChartLayoutData.chartLayout.title)
-				.style('opacity','1');
+				.style('height',height+'px');
+		selection.container.header.title
+				.text(currentChartLayoutData.chartLayout.title);
+		selection.container.header.titleAlt
+				.text(currentChartLayoutData.chartLayout.titleAlt);
+
 		if(currentChartLayoutData.chartLayout.title){
-			chartMargin.top+=selection.container.title.node().getBoundingClientRect().height;
+			selection.container.header.style('opacity',1);
+			chartMargin.top+=selection.container.header.node().getBoundingClientRect().height;
 		}else{
-			selection.container.title.div.style('opacity','0');
+			selection.container.header.style('opacity','0');
+		}
+
+		if(currentChartLayoutData.chartLayout.info){
+			selection.container.header.info.html('<i class="fa fa-info-circle"></i>');
+		}else{
+			selection.container.header.info.selectAll('*').remove();
 		}
 
 		selection.container.footnote.div.text(currentChartLayoutData.chartLayout.footnote);
@@ -261,10 +509,10 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 		}else{
 			chartMargin.right+=width * 0.2+5;
 		}
-		var rightNote = selection.container.rightNotes.ul.selectAll('li.ad-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
+		var rightNote = selection.container.rightNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
 		rightNote.enter()
 			.append('li')
-				.attr('class','ad-chart-layout-note')
+				.attr('class','d3b-chart-layout-note')
 			.append('div');
 
 		var rightNotesHeight = 0;
@@ -295,22 +543,49 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 			chartMargin.left+=width * 0.2;
 		}
 
-		var leftNote = selection.container.leftNotes.ul.selectAll('li.ad-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
+		var leftNote = selection.container.leftNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
 		leftNote.enter()
 			.append('li')
-				.attr('class','ad-chart-layout-note');
-		leftNote
-				.text(function(d){return d});
+				.attr('class','d3b-chart-layout-note')
+			.append('div');
+
+		var leftNotesHeight = 0;
+		leftNote.select('div')
+				.text(function(d){return d})
+				.each(function(d){leftNotesHeight += this.getBoundingClientRect().height;});
+
 		leftNote.exit()
 				.style('opacity',0)
 				.remove();
 
 
-		var leftNotesHeight = selection.container.leftNotes.ul.node().getBoundingClientRect().height;
-		selection.container.leftNotes
-				.style('width',width*0.2+'px')
-				// .style('height',leftNotesHeight+'px')
-				.style('top',(height-leftNotesHeight)/2+'px');
+				selection.container.leftNotes
+						.style('width',width*0.2+'px')
+						.style('left',5+'px');
+						// .style('height',leftNotesHeight+'px')
+						// .style('top',(height-leftNotesHeight)/2+'px');
+
+		leftNote
+			.style('padding-top',Math.max(10,(height - leftNotesHeight)/(1.8*leftNote.size()))+'px');
+
+
+
+		// var leftNote = selection.container.leftNotes.ul.selectAll('li.d3b-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
+		// leftNote.enter()
+		// 	.append('li')
+		// 		.attr('class','d3b-chart-layout-note');
+		// leftNote
+		// 		.text(function(d){return d});
+		// leftNote.exit()
+		// 		.style('opacity',0)
+		// 		.remove();
+		//
+		//
+		// var leftNotesHeight = selection.container.leftNotes.ul.node().getBoundingClientRect().height;
+		// selection.container.leftNotes
+		// 		.style('width',width*0.2+'px')
+		// 		// .style('height',leftNotesHeight+'px')
+		// 		.style('top',(height-leftNotesHeight)/2+'px');
 
 
 		var chartWidth = width-chartMargin.left-chartMargin.right-10,
@@ -340,133 +615,242 @@ AD.UTILS.CHARTPAGE.chartLayout = function(){
 	return chartLayout;
 }
 
-AD.UTILS.chartPage = function(){
-	var width = AD.CONSTANTS.DEFAULTWIDTH();
-	var selection;
-	var currentPageData;
-	var computedHeight=0;
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var animationType = 'forward';
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+d3b.UTILS.dashboardCategory = function(){
 
-	var init = function(){
-		var position = {};
-		if(animationType == 'backward'){
-			position.left = -width+'px';
-		}else{
-			position.left = width+'px';
-		}
-		selection.currentPage = selection
-			.append('div')
-				.attr('class','ad-chart-page-current-page')
-				.style('opacity',0)
-				.style('left',position.left);
-				// .attr('transform',transform);
+  var $$ = {};
+
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.selection;
+  $$.chartPageSelection;
+	$$.currentData;
+	$$.computedHeight=0;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animateFrom = null;
+
+  $$.charts = [];
+
+  // $$.chartPage = new d3b.UTILS.chartPage();
+
+  // $$.chartPage.on('update.d3b-update', function(pageData){
+  //   for(key in $$.on.pageUpdate){
+  //     $$.on.pageUpdate[key].call(this,pageData);
+  //   }
+  // });
+
+  $$.on = {
+    // update: function(){},
+    pageChange: function(){},
+    // pageUpdate: function(){}
+  };
+
+	$$.init = function(position){
+    if($$.animateFrom || !$$.selection.currentCategory){
+
+      $$.currentPageIndex=0;
+
+      $$.selection.selectAll('.d3b-category').classed('d3b-category-old', true);
+
+      $$.selection.currentCategory = $$.selection
+        .append('div')
+          .attr('class','d3b-category')
+          .style('opacity',0)
+          .style('left',position.left+'px')
+          .style('top',position.top+'px');
+
+      $$.selection.currentCategory.label = $$.selection.currentCategory
+        .append('div')
+          .attr('class','d3b-category-label');
+
+      $$.selection.currentCategory.label.section = $$.selection.currentCategory.label
+        .append ('div')
+          .attr('class','d3b-category-label-section');
+      $$.selection.currentCategory.label.category = $$.selection.currentCategory.label
+        .append ('div')
+          .attr('class','d3b-category-label-category');
+      $$.selection.currentCategory.label.pages = $$.selection.currentCategory.label
+        .append ('div')
+          .attr('class','d3b-category-label-pages');
+
+      // $$.selection.currentCategory.label.pages.select = $$.selection.currentCategory.label.pages
+      //   .append ('select')
+      //     .on('change', function(d){
+      //       var selectedIndex = $$.selection.currentCategory.label.pages.select.property('selectedIndex')
+      //       var pageData          = $$.selection.currentCategory.label.pages.select.option[0][selectedIndex].__data__;
+      //       // $$.charts = data.charts;
+      //
+      //       for(key in $$.on.pageChange){
+      //         $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,selectedIndex);
+      //       }
+      //       $$.currentPageIndex = selectedIndex;
+      //
+      //       // $$.chartPage
+      //       //   .data(pageData)
+      //       //   .animateFrom(($$.currentPageIndex < selectedIndex)? 'right' : 'left');
+      //       //
+      //       // category
+      //       //   .animateFrom(null)
+      //       //   .update();
+      //     });
+
+      $$.chartPageSelection = $$.selection.chartPage = $$.selection.currentCategory
+        .append('div')
+          .attr('class','d3b-chart-page-container');
+
+      // var pageData;
+
+      if($$.currentData.pages.length > 0){
+        pageData = $$.currentData.pages[0];
+        $$.selection.currentCategory.label.pages.style('display','');
+      }else{
+        pageData = $$.currentData;
+        $$.selection.currentCategory.label.pages.style('display','none');
+      }
+
+      for(key in $$.on.pageChange){
+        $$.on.pageChange[key].call(this,pageData,0,0);
+      }
+
+      // $$.chartPage
+      //   .selection($$.selection.chartPage)
+      //   .animateFrom(null)
+      //   .data(pageData);
+
+    }
 	};
 
-	var page = {};
+  $$.getPosition = function(){
+    var position = {top:0, left:0};
 
-	page.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return page;
+    switch($$.animateFrom){
+      case 'right':
+        position.top = 0;
+        position.left = $$.width;
+        break;
+      case 'left':
+        position.top = 0;
+        position.left = -$$.width;
+        break;
+      case 'top':
+        position.top = -$$.computedHeight;
+        position.left = 0;
+        break;
+      case 'bottom':
+        position.top = $$.computedHeight;
+        position.left = 0;
+        break;
+      default:
+    }
+
+    return position;
+  };
+
+	var category = {};
+
+  category.on =	d3b.UTILS.CHARTS.MEMBERS.on(category, $$);
+
+  category.chartPageSelection =	d3b.UTILS.CHARTS.MEMBERS.prop(category, $$, 'chartPageSelection');
+
+  category.width = function(value){
+		if(!arguments.length) return $$.width;
+		$$.width = value;
+		return category;
 	};
-	page.computedHeight = function(){
-		return computedHeight;
+  category.computedHeight = function(){
+		return $$.computedHeight;
 	}
-	page.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		return page;
+  category.selection = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = value;
+		return category;
 	};
-	page.select = function(value){
-		if(!arguments.length) return selection;
-		selection = d3.select(value);
-		return page;
+  category.select = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = d3.select(value);
+		return category;
 	};
-	page.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		return page;
+  category.animationDuration = function(value){
+		if(!arguments.length) return $$.animationDuration;
+		$$.animationDuration = value;
+		return category;
 	};
-	page.animationType = function(value){
-		if(!arguments.length) return animationType;
-		animationType = value;
-		return page;
+  category.animateFrom = function(value){
+		if(!arguments.length) return $$.animateFrom;
+		$$.animateFrom = value;
+		return category;
 	};
 
-	page.data = function(pageData, reset){
-		if(!arguments.length) return currentPageData;
-		newData = true;
-		currentPageData = pageData;
-		return page;
+  category.data = function(data, reset){
+		if(!arguments.length) return $$.currentData;
+		// newData = true;
+		$$.currentData = data.data;
+
+    if(!$$.currentData.pages)
+      $$.currentData.pages = [];
+
+		return category;
 	}
 
-	page.update = function(callback){
-		if(!selection)
-			return console.warn('page was not given a selection');
-		var position = {};
+  category.update = function(callback){
+		if(!$$.selection)
+			return console.warn('category was not given a $$.selection');
 
-		if(newData){
-			newData = false;
-			if(selection.currentPage){
-				if(animationType == 'backward'){
-					position.left = width+'px';
-				}else{
-					position.left = -width+'px';
-				}
-				selection.oldPage = selection.currentPage;
-			}
-			init();
-		}
+		var position = $$.getPosition();
 
-		computedHeight = 0;
+    if($$.animateFrom && $$.selection.currentCategory){
+      $$.selection.oldCategory = $$.selection.currentCategory;
+    }
+    $$.init(position);
 
+		$$.computedHeight = 0;
 
+    $$.selection.currentCategory.label.section.text($$.currentData.sectionName)
+    $$.selection.currentCategory.label.category.text($$.currentData.name)
 
-		if(!currentPageData.data.charts || currentPageData.data.charts.length < 1){
-			return console.warn('chart page was not provided any charts')
-		}
-		var chartLayout = selection.currentPage.selectAll('div.ad-page-chart-layout').data(currentPageData.data.charts);
+    // $$.selection.currentCategory.label.pages.select.option = $$.selection.currentCategory.label.pages.select.selectAll('option').data($$.currentData.pages);
+    // $$.selection.currentCategory.label.pages.select.option.enter()
+    //   .append('option')
+    //     .text(function(d){return d.name});
 
-		var newChartLayout = chartLayout.enter()
-			.append('div')
-				.attr('class','ad-page-chart-layout')
-				.each(function(d){
-					if(d.chart.chartLayout){
-						d.chart.chartLayout
-							.select(this)
-							.width(width*d.width)
-							.height(d.height)
-							.animationDuration(0)
-							.update(d.chart.chartLayoutData.chartCallback);
-					}
-				});
+    $$.selection.currentCategory.label.pages.tab = $$.selection.currentCategory.label.pages.selectAll('.d3b-page-tab').data($$.currentData.pages);
+    $$.selection.currentCategory.label.pages.tab.enter()
+      .append('div')
+        .attr('class','d3b-page-tab')
+        .text(function(d){return d.name})
+        .each(function(d,i){
+          d3.select(this).classed('d3b-tab-selected', !i);
+        });
 
-		chartLayout
-				.each(function(d){
-					if(d.chart.chartLayout){
-						d.chart.chartLayout
-								.animationDuration(animationDuration)
-								.width(width*d.width)
-								.update(d.chart.chartLayoutData.chartCallback);
-					}
-				})
-				.style('left',function(d){return (width * d.x)+'px'})
-				.style('top',function(d){return (d.y)+'px'});
+    $$.selection.currentCategory.label.pages.tab
+        .on('click', function(pageData, i){
 
-		if(selection.oldPage){
-			selection.oldPage
-				.transition()
-					.duration(animationDuration)
-					.style('opacity',0)
-					.style('left',position.left)
-					.remove();
-		}
-		selection.currentPage
+          $$.selection.currentCategory.label.pages.tab.classed('d3b-tab-selected', false);
+          d3.select(this).classed('d3b-tab-selected', true);
+
+          for(key in $$.on.pageChange){
+            $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,i);
+          }
+          $$.currentPageIndex = i;
+        })
+
+    // $$.chartPage
+    //   .width($$.width)
+    //   .update()
+    //   .animateFrom(null);
+		$$.selection.selectAll('.d3b-category-old')
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.style('left',-position.left+'px')
+				.style('top',-position.top+'px')
+				.remove();
+
+		$$.selection.currentCategory
+			.transition()
+				.duration($$.animationDuration)
 				.style('opacity',1)
-				.style('left',0+'px');
+				.style('left','0px')
+				.style('top','0px');
 
 		d3.timer.flush();
 
@@ -474,113 +858,93 @@ AD.UTILS.chartPage = function(){
 			callback();
 		}
 
-		return page;
+    // for(key in $$.on.update){
+    //   $$.on.update[key].call(this,$$.currentData);
+    // }
+
+		return category;
 	};
 
-	return page;
+	return category;
 }
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*CONTROLS UTILITIES*/
-AD.createNameSpace("AD.UTILS.CONTROLS");
-AD.UTILS.CONTROLS.checkbox = function(){
-	var scale = 5;
-	var selection;
-	var computedWidth=0, computedHeight=0;
-	var currentCheckboxData = {label:'',state:false};
+d3b.createNameSpace("d3b.UTILS.CONTROLS");
+d3b.UTILS.CONTROLS.checkbox = function(){
+
+	var $$ = {};
+
+	$$.scale = 5;
+	$$.selection;
+	$$.container;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.currentData = {label:'',state:false};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){},
-		elementChange:function(){}
-	};
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on.change = function(){};
 
-	var checkbox = {};
+	var control = {};
 
 	// var onChange = function(){};
 
-	checkbox.scale = function(value){
-		if(!arguments.length) return scale;
-		scale = value;
-		return checkbox;
+	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+
+	control.checked = function(value){
+		if(!arguments.length) return $$.currentData.state;
+		$$.currentData.state = value;
+		return control.update();
 	};
-	checkbox.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		return checkbox;
+	control.computedHeight = function(){
+		return $$.computedHeight;
 	};
-	checkbox.checked = function(value){
-		if(!arguments.length) return currentCheckboxData.state;
-		currentCheckboxData.state = value;
-		return checkbox.update();
-	};
-	checkbox.computedHeight = function(){
-		return computedHeight;
-	};
-	checkbox.computedWidth = function(){
-		return computedWidth;
+	control.computedWidth = function(){
+		return $$.computedWidth;
 	};
 
-	checkbox.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return checkbox;
-	};
-
-	checkbox.data = function(checkboxData, reset){
-		if(!arguments.length) return currentCheckboxData;
-		currentCheckboxData = checkboxData;
-		return checkbox;
+	control.data = function(data, reset){
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = data;
+		return control;
 	}
 
+	control.update = function(callback){
 
-	checkbox.update = function(callback){
+		if(!$$.selection && !$$.container){
+			console.warn('checkbox was not given a selection or html container');
+			return control;
+		}
 
-		if(!selection)
-			return console.warn('checkbox was not given a selection');
+		if(!$$.currentData){
+			console.warn('checkbox data is null');
+			return control;
+		}
 
-		if(!currentCheckboxData)
-			return console.warn('checkboxData is null');
+		if(!$$.selection){
+			$$.selection = $$.container.append('svg');
+			$$.container.svg = $$.selection;
+		}
 
-		var checkboxContainer = selection.selectAll('g.ad-checkbox-container').data([currentCheckboxData]);
+		var checkboxContainer = $$.selection.selectAll('g.d3b-checkbox-container').data([$$.currentData]);
 		var newCheckboxContainer = checkboxContainer.enter()
 			.append('g')
-				.attr('class','ad-checkbox-container')
-				.on('click.ad-click',function(d,i){
-					currentCheckboxData.state = !currentCheckboxData.state;
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,'checkbox');
+				.attr('class','d3b-checkbox-container')
+				.on('click.d3b-click',function(d,i){
+					$$.currentData.state = !$$.currentData.state;
+					for(key in $$.on.change){
+						$$.on.change[key].call(this,d,i,'checkbox');
 					}
-					for(key in on.elementChange){
-						on.elementChange[key].call(this,d,i,'checkbox');
-					}
-					checkbox.update();
+					control.update();
 				})
-				.on('mouseover.ad-mouseover',function(d,i){
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i);
-					}
-				})
-				.on('mouseout.ad-mouseout',function(d,i){
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i);
-					}
-				});
+				.call(d3b.UTILS.bindElementEvents, $$, 'checkbox');
+
 		newCheckboxContainer
 			.append('rect')
 				.attr('rx',1);
@@ -591,87 +955,613 @@ AD.UTILS.CONTROLS.checkbox = function(){
 			.append('text')
 				.text(function(d){return d.label;});
 
+		var checkboxTranslate = 'translate('+0.4*$$.scale+','+0.4*$$.scale+')';
+		var check = checkboxContainer.select('path')
+				.attr('transform',checkboxTranslate)
+				.attr('d',"M"+(0.38)*$$.scale+","+1.06*$$.scale+" l"+0.7*$$.scale+","+0.5*$$.scale+" l"+0.58*$$.scale+","+(-1.19)*$$.scale+"")
+				.style('stroke-width',0.25*$$.scale)
+				.attr('stroke-dasharray',2.2*$$.scale)
+		check
+			.transition()
+				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.attr('stroke-dashoffset',($$.currentData.state)? 0 : 2.2*$$.scale);
+		var box = checkboxContainer.select('rect')
+				.attr('width',$$.scale*2.1+'px')
+				.attr('height',$$.scale*2.1+'px')
+				.attr('transform',checkboxTranslate)
+				.style('stroke-width',0.25*$$.scale);
+
 		var label = checkboxContainer.select('text')
-				.attr('y',scale*2.1)
-				.style('font-size',scale*2.5+'px');
+				.attr('y',$$.scale*2.4)
+				.attr('x',$$.scale*3.2)
+				.style('font-size',$$.scale*2.5+'px');
 
 		var labelLength = label.node().getComputedTextLength();
 
-		var padding = scale;
+		var padding = $$.scale;
 		labelLength += padding;
 
-		var checkboxTranslate = 'translate('+labelLength+',0)';
-		var check = checkboxContainer.select('path')
-				.attr('transform',checkboxTranslate)
-				.attr('d',"M"+(0.38)*scale+","+1.06*scale+" l"+0.7*scale+","+0.5*scale+" l"+0.58*scale+","+(-1.19)*scale+"")
-				.style('stroke-width',0.4*scale)
-				.attr('stroke-dasharray',2.2*scale)
-		check
-			.transition()
-				.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
-				.attr('stroke-dashoffset',(currentCheckboxData.state)? 0 : 2.2*scale);
-		var box = checkboxContainer.select('rect')
-				.attr('width',scale*2.1+'px')
-				.attr('height',scale*2.1+'px')
-				.attr('transform',checkboxTranslate)
-				.style('stroke-width',0.4*scale);
+		$$.computedWidth = labelLength + $$.scale*2.5;
+		$$.computedHeight = $$.scale*2.9;
 
-		computedWidth = labelLength + scale*2.1;
-		computedHeight = scale*2.5;
+		if($$.container){
+			if($$.container.svg){
+				$$.container.svg
+					.attr('width',$$.computedWidth)
+					.attr('height',$$.computedHeight);
+			}
+		}
 
 		if(callback)
 			callback();
 
-		return checkbox;
+		return control;
 	};
 
-	return checkbox;
+	return control;
 
-}
-AD.UTILS.CONTROLS.horizontalControls = function(){
-	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH();
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
-	var selection;
-	var currentControlsData;
-	var computedWidth=0, computedHeight=0;
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+};
 
-	var scale = 5;
+d3b.UTILS.CONTROLS.radioButtons = function(){
+	var $$ = {};
+
+	$$.scale = 5;
+	$$.container;
+	$$.selection;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.currentData = {label:'',values:[], selected:null};
+
+	//init event object
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on.change = function(){};
+
+	$$.resetValues = function(){
+		$$.currentData.values.forEach(function(d){
+			d.selected = false;
+		});
+	};
+
+	var control = {};
+
+
+	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+
+	control.computedHeight = function(){
+		return $$.computedHeight;
+	};
+	control.computedWidth = function(){
+		return $$.computedWidth;
+	};
+
+	control.data = function(data, reset){
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = data;
+
+		var foundSelected = false;
+		$$.currentData.values.forEach(function(d){
+			if(foundSelected)
+				d.selected = false;
+
+			if(d.selected){
+				$$.currentData.selected = d;
+				foundSelected = true;
+			}
+		});
+
+		if(!foundSelected){
+			$$.currentData.selected = $$.currentData.values[0];
+			$$.currentData.values[0].selected = true;
+		}
+
+		return control;
+	}
+
+
+	control.update = function(callback){
+
+		if(!$$.selection && !$$.container){
+			console.warn('radio buttons was not given a selection or html container');
+			return control;
+		}
+
+		if(!$$.currentData){
+			console.warn('radio buttons data is null');
+			return control;
+		}
+
+		if(!$$.selection){
+			$$.selection = $$.container.append('svg');
+			$$.container.svg = $$.selection;
+		}
+
+		var radioButtonContainer = $$.selection.selectAll('g.d3b-radio-button-container').data($$.currentData.values, function(d){return d.label;});
+
+		var newRadioButtonContainer = radioButtonContainer.enter()
+			.append('g')
+				.attr('class','d3b-radio-button-container')
+				.on('click.d3b-click',function(d,i){
+					$$.resetValues();
+					d.selected = true;
+					$$.currentData.selected = d;
+					for(key in $$.on.change){
+						$$.on.change[key].call($$.selection.node(),$$.currentData,i,'radio-buttons');
+					}
+					control.update();
+				})
+				.call(d3b.UTILS.bindElementEvents, $$, 'radio-button');
+
+		radioButtonContainer
+			.attr('transform',function(d,i){
+				return 'translate('+0+','+(i*3.3*$$.scale)+')'
+			});
+
+		newRadioButtonContainer.append('circle')
+			.attr('class','d3b-radio-button-inner')
+			.style('fill-opacity',0);
+		newRadioButtonContainer.append('circle')
+			.attr('class','d3b-radio-button-outer');
+
+		newRadioButtonContainer.append('text')
+			.text(function(d){return d.label;});
+
+		var circleInner = radioButtonContainer.select('circle.d3b-radio-button-inner')
+				.attr('cy',$$.scale*1.4)
+				.attr('cx',$$.scale*1.4);
+
+
+		var circleOuter = radioButtonContainer.select('circle.d3b-radio-button-outer')
+				.attr('r',$$.scale*1+'px')
+				.attr('cy',$$.scale*1.4)
+				.attr('cx',$$.scale*1.4)
+				.style('stroke-width',0.25*$$.scale);
+
+
+		circleInner
+			.transition()
+				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.style('fill-opacity',function(d){return (d.selected)? 1: 0;})
+				.attr('r',function(d){return (d.selected)? $$.scale*0.5: 0;});
+
+		var label = radioButtonContainer.select('text')
+				.attr('y',$$.scale*2.4)
+				.attr('x',$$.scale*3.2)
+				.style('font-size',$$.scale*2.5+'px');
+
+		var labelLength = 0;
+		label.each(function(){
+			labelLength = Math.max(labelLength, this.getComputedTextLength());
+		});
+
+		$$.computedWidth = labelLength + $$.scale*3.4;
+		$$.computedHeight = $$.currentData.values.length*$$.scale*3.2;
+
+		if($$.container){
+			if($$.container.svg){
+				$$.container.svg
+					.attr('width',$$.computedWidth)
+					.attr('height',$$.computedHeight);
+			}
+		}
+
+		if(callback)
+			callback();
+
+		return control;
+	};
+
+	return control;
+
+};
+
+// d3b.UTILS.CONTROLS.select = function(){
+// 	var $$ = {};
+//
+// 	$$.scale = 5;
+// 	$$.selection;
+// 	$$.computedWidth=0;
+// 	$$.computedHeight=0;
+// 	$$.currentData = {label:'',values:[], selected:null};
+//
+// 	$$.maxWidth = 180;
+//
+// 	$$.expanded = false;
+//
+// 	//init event object
+// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on.change = function(){};
+//
+// 	$$.resetValues = function(){
+// 		$$.currentData.values.forEach(function(d){
+// 			d.selected = false;
+// 		});
+// 	};
+//
+// 	var control = {};
+//
+// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+//
+// 	control.computedHeight = function(){
+// 		return $$.computedHeight;
+// 	};
+// 	control.computedWidth = function(){
+// 		return $$.computedWidth;
+// 	};
+//
+// 	control.data = function(data, reset){
+// 		if(!arguments.length) return $$.currentData;
+// 		$$.currentData = data;
+//
+// 		var foundSelected = false;
+// 		$$.currentData.values.forEach(function(d){
+// 			if(foundSelected)
+// 				d.selected = false;
+//
+// 			if(d.selected){
+// 				$$.currentData.selected = d;
+// 				foundSelected = true;
+// 			}
+// 		});
+//
+// 		if(!foundSelected){
+// 			$$.currentData.selected = $$.currentData.values[0];
+// 			$$.currentData.values[0].selected = true;
+// 		}
+//
+// 		return control;
+// 	}
+//
+//
+// 	control.update = function(callback){
+//
+// 		if(!$$.selection)
+// 			return console.warn('selector was not given a $$.selection');
+//
+// 		if(!$$.currentData)
+// 			return console.warn('selector data is null');
+//
+// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+//
+// 		var newSelectedContainer = selectedContainer.enter()
+// 			.append('g')
+// 				.attr('class','d3b-selector-selected');
+//
+// 		newSelectedContainer
+// 			.append('rect')
+// 				.attr('rx',1)
+// 				.attr('class','d3b-selector-border');
+//
+// 		var newSelectedSubContainer = newSelectedContainer
+// 			.append('g');
+//
+// 	  newSelectedSubContainer
+// 			.append('text');
+//
+// 		newSelectedContainer
+// 			.append('path')
+// 				.attr('class','d3b-selector-triangle');
+//
+// 		selectedContainer
+// 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
+//
+// 		selectedContainer.select('rect')
+// 			.attr('stroke-width',0.4*$$.scale)
+// 			.attr('width', $$.maxWidth - 0.8*$$.scale)
+// 			.attr('height', 4*$$.scale)
+//
+// 		selectedContainer.select('text')
+// 				.text(function(d){return d.label});
+//
+// 		selectedContainer.select('path')
+// 				.attr('d','M 0 0 L '+$$.scale*1.8+' 0 L '+$$.scale*0.9+' '+$$.scale*1+' L 0 0 Z');
+//
+// 		$$.computedWidth = 200;
+// 		$$.computedHeight = 200;
+//
+// 		if(callback)
+// 			callback();
+//
+// 		return control;
+// 	};
+//
+// 	return control;
+//
+// };
+
+
+//allow imbeded html for selector control
+// d3b.UTILS.CONTROLS.selector = function(){
+// 	var $$ = {};
+//
+// 	$$.scale = 5;
+// 	$$.selection;
+// 	$$.computedWidth=0;
+// 	$$.computedHeight=0;
+// 	$$.currentData = {label:'',values:[], selected:null};
+//
+// 	$$.maxWidth = 180;
+//
+// 	$$.expanded = false;
+//
+// 	//init event object
+// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on.change = function(){};
+//
+// 	$$.resetValues = function(){
+// 		$$.currentData.values.forEach(function(d){
+// 			d.selected = false;
+// 		});
+// 	};
+//
+// 	var control = {};
+//
+// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+//
+// 	control.computedHeight = function(){
+// 		return $$.computedHeight;
+// 	};
+// 	control.computedWidth = function(){
+// 		return $$.computedWidth;
+// 	};
+//
+// 	control.data = function(data, reset){
+// 		if(!arguments.length) return $$.currentData;
+// 		$$.currentData = data;
+//
+// 		var foundSelected = false;
+// 		$$.currentData.values.forEach(function(d){
+// 			if(foundSelected)
+// 				d.selected = false;
+//
+// 			if(d.selected){
+// 				$$.currentData.selected = d;
+// 				foundSelected = true;
+// 			}
+// 		});
+//
+// 		if(!foundSelected){
+// 			$$.currentData.selected = $$.currentData.values[0];
+// 			$$.currentData.values[0].selected = true;
+// 		}
+//
+// 		return control;
+// 	}
+//
+//
+// 	control.update = function(callback){
+//
+// 		if(!$$.selection)
+// 			return console.warn('selector was not given a $$.selection');
+//
+// 		if(!$$.currentData)
+// 			return console.warn('selector data is null');
+//
+// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+//
+// 		var newSelectedContainer = selectedContainer.enter()
+// 			.append('g')
+// 				.attr('class','d3b-selector-selected');
+//
+// 		newSelectedContainer
+// 			.append('rect')
+// 				.attr('rx',1)
+// 				.attr('class','d3b-selector-border');
+//
+// 		var newSelectedSubContainer = newSelectedContainer
+// 			.append('g');
+//
+// 	  newSelectedSubContainer
+// 			.append('text');
+//
+// 		newSelectedContainer
+// 			.append('path')
+// 				.attr('class','d3b-selector-triangle');
+//
+// 		selectedContainer
+// 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
+//
+// 		selectedContainer.select('rect')
+// 			.attr('stroke-width',0.4*$$.scale)
+// 			.attr('width', $$.maxWidth - 0.8*$$.scale)
+// 			.attr('height', 4*$$.scale)
+//
+// 		selectedContainer.select('text')
+// 				.text(function(d){return d.label});
+//
+// 		selectedContainer.select('path')
+// 				.attr('d','M 0 0 L '+$$.scale*1.8+' 0 L '+$$.scale*0.9+' '+$$.scale*1+' L 0 0 Z');
+//
+// 		$$.computedWidth = 200;
+// 		$$.computedHeight = 200;
+//
+// 		if(callback)
+// 			callback();
+//
+// 		return control;
+// 	};
+//
+// 	return control;
+//
+// };
+
+d3b.UTILS.CONTROLS.htmlControls = function(){
+	var $$ = {};
+
+	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.currentData;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.controlsHash = {};
+
+	$$.selection;
+	$$.scale = 5;
+
+	$$.makeControlsHash = function(){
+		$$.controlsHash = {};
+		$$.currentData.controls.forEach(function(d){
+			$$.controlsHash[d.key] = d;
+		});
+	};
+
+	//init event object
+	$$.on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){},
+		change:function(){}
+	};
+
+	var controls = {};
+
+	controls.select = d3b.UTILS.CHARTS.MEMBERS.select(controls, $$);
+	controls.width = function(value){
+		if(!arguments.length) return $$.maxWidth;
+		$$.maxWidth = value;
+		return controls;
+	};
+	controls.computedHeight = function(){
+		return $$.computedHeight;
+	};
+	controls.computedWidth = function(){
+		return $$.computedWidth;
+	};
+	controls.selection = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = value;
+		return controls;
+	};
+	controls.scale = function(value){
+		if(!arguments.length) return $$.scale;
+		$$.scale = value;
+		return controls;
+	};
+	controls.animationDuration = function(value){
+		if(!arguments.length) return $$.animationDuration;
+		$$.animationDuration = value;
+		return controls;
+	};
+
+	controls.on =				d3b.UTILS.CHARTS.MEMBERS.on(controls, $$);
+
+	controls.data = function(controlsData, reset){
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = controlsData;
+		$$.makeControlsHash();
+		return controls;
+	}
+
+	controls.update = function(callback){
+		if(!$$.selection)
+			return console.warn('controls was not given a selection');
+		// console.log($$.currentData.controls)
+		$$.selection.controlContainer = $$.selection.selectAll('div.d3b-control-container').data($$.currentData.controls, function(d){return d.type+'-'+d.key;});
+
+		var newControl = $$.selection.controlContainer.enter()
+			.append('div')
+				.attr('class', 'd3b-control-container')
+
+		newControl
+			.append('div')
+				.attr('class', 'd3b-control-label')
+				.text(function(d){return d.label+':';});
+
+		newControl
+			.append('div')
+				.attr('class', 'd3b-control')
+				.each(function(d){
+					this.control = new d3b.UTILS.CONTROLS[d.type]();
+					this.control.container(d3.select(this));
+				});
+
+		$$.selection.controlContainer.control = $$.selection.controlContainer.select('.d3b-control')
+			.each(function(d){
+				this.control
+					.scale($$.scale)
+					.data(d)
+					.on('change.d3b-change',function(d,i){
+						for(key in $$.on.change){
+							$$.on.change[key].call(this,$$.controlsHash,d,i);
+						}
+					})
+					.update();
+			});
+
+
+		$$.selection.controlContainer.exit()
+			// .transition()
+			// 	.duration($$.animationDuration)
+			// 	.style('opacity',0)
+				.remove();
+
+
+		if(callback){
+			callback;
+		}
+
+		return controls;
+	};
+
+	return controls;
+};
+
+
+d3b.UTILS.CONTROLS.controls = function(){
+	var $$ = {};
+
+	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.currentData;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+
+	$$.selection;
+	$$.scale = 5;
 
 	//init event object
 	var on = {
 		elementMouseover:function(){},
 		elementMouseout:function(){},
 		elementClick:function(){},
-		elementChange:function(){}
+		change:function(){}
 	};
 
 	var controls = {};
 
 	controls.width = function(value){
-		if(!arguments.length) return maxWidth;
-		maxWidth = value;
+		if(!arguments.length) return $$.maxWidth;
+		$$.maxWidth = value;
 		return controls;
 	};
 	controls.computedHeight = function(){
-		return computedHeight;
+		return $$.computedHeight;
 	};
 	controls.computedWidth = function(){
-		return computedWidth;
+		return $$.computedWidth;
 	};
 	controls.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
+		if(!arguments.length) return $$.selection;
+		$$.selection = value;
 		return controls;
 	};
 	controls.scale = function(value){
-		if(!arguments.length) return scale;
-		scale = value;
+		if(!arguments.length) return $$.scale;
+		$$.scale = value;
 		return controls;
 	};
 	controls.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
+		if(!arguments.length) return $$.animationDuration;
+		$$.animationDuration = value;
 		return controls;
 	};
 
@@ -694,45 +1584,45 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 	};
 
 	controls.data = function(controlsData, reset){
-		if(!arguments.length) return currentControlsData;
-		currentControlsData = controlsData;
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = controlsData;
 		return controls;
 	}
 
 	controls.update = function(callback){
-		if(!selection)
-			return console.warn('controls was not given a selection');
+		if(!$$.selection)
+			return console.warn('controls was not given a $$.selection');
 
-		var xPadding = 3*scale;
-		var yPadding = scale;
-		computedHeight = 0;
-		computedWidth = 0;
+		var xPadding = 3*$$.scale;
+		var yPadding = $$.scale;
+		$$.computedHeight = 0;
+		$$.computedWidth = 0;
 
-		if(currentControlsData.length > 0){
-			var controls = selection.selectAll('g.ad-control').data(currentControlsData,function(d){return d.label+','+d.type;});
+		if($$.currentData.length > 0){
+			var controls = $$.selection.selectAll('g.d3b-control').data($$.currentData,function(d){return d.label+','+d.type;});
 
 			controls.enter()
 				.append('g')
-					.attr('class','ad-control')
+					.attr('class','d3b-control')
 					.each(function(d){
-						d.control = new AD.UTILS.CONTROLS[d.type]();
+						d.control = new d3b.UTILS.CONTROLS[d.type]();
 						d.control.selection(d3.select(this))
-							.on('elementClick.ad-click',function(d,i){
+							.on('elementClick.d3b-click',function(d,i){
 								for(key in on.elementClick){
 									on.elementClick[key].call(this,d,i);
 								}
 							})
-							.on('elementChange',function(d,i){
-								for(key in on.elementChange){
-									on.elementChange[key].call(this,d,i);
+							.on('change.d3b-change',function(d,i){
+								for(key in on.change){
+									on.change[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseover.ad-mouseover',function(d,i){
+							.on('elementMouseover.d3b-mouseover',function(d,i){
 								for(key in on.elementMouseover){
 									on.elementMouseover[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseout.ad-mouseout',function(d,i){
+							.on('elementMouseout.d3b-mouseout',function(d,i){
 								for(key in on.elementMouseout){
 									on.elementMouseout[key].call(this,d,i);
 								}
@@ -745,35 +1635,35 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 			var maxControlRowWidth = 0;
 			controls.each(function(d){
 
-				d.control.scale(scale).data(d.data).update();
+				d.control.scale($$.scale).data(d.data).update();
 
-				if((computedWidth + d.control.computedWidth()) > maxWidth){
-					computedWidth = 0;
-					computedHeight += maxControlHeight + yPadding;
+				if(($$.computedWidth + d.control.computedWidth()) > $$.maxWidth){
+					$$.computedWidth = 0;
+					$$.computedHeight += maxControlHeight + yPadding;
 					maxControlHeight = 0;
 				}
 
 				d3.select(this)
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1)
-						.attr('transform','translate('+computedWidth+','+computedHeight+')');
-				computedWidth += d.control.computedWidth() + xPadding;
+						.attr('transform','translate('+$$.computedWidth+','+$$.computedHeight+')');
+				$$.computedWidth += d.control.computedWidth() + xPadding;
 
 				if(maxControlHeight < d.control.computedHeight()){
 					maxControlHeight = d.control.computedHeight();
 				}
-				if(maxControlRowWidth < computedWidth){
-					maxControlRowWidth = computedWidth;
+				if(maxControlRowWidth < $$.computedWidth){
+					maxControlRowWidth = $$.computedWidth;
 				}
 			});
 
-			computedWidth = maxControlRowWidth - xPadding;
+			$$.computedWidth = maxControlRowWidth - xPadding;
 
-			computedHeight += maxControlHeight;
+			$$.computedHeight += maxControlHeight;
 			controls.exit()
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',0)
 					.remove();
 		}
@@ -791,14 +1681,26 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*shapes*/
-AD.createNameSpace("AD.UTILS.SHAPES");
+d3b.createNameSpace("d3b.UTILS.SHAPES");
 
 
 /*tooltop utilities*/
-AD.UTILS.createGeneralTooltip = function(elem, heading, content){
+
+/*Bind Tooltip Events*/
+d3b.UTILS.tooltip = function(element, heading, content){
+	element
+			.on('mouseover.d3b-mouseover-tooltip',function(d,i){
+				d3b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
+			})
+			.on('mouseout.d3b-mouseout-tooltip',function(d,i){
+				d3b.UTILS.removeTooltip();
+			});
+};
+
+d3b.UTILS.createGeneralTooltip = function(elem, heading, content){
 	var body = d3.select('body');
 	var adGeneralTooltip = body.append('div')
-			.attr('class','ad-general-tooltip')
+			.attr('class','d3b-general-tooltip')
 			.html(heading+': '+content)
 			.style('opacity',0);
 
@@ -806,7 +1708,7 @@ AD.UTILS.createGeneralTooltip = function(elem, heading, content){
 		.transition()
 			.duration(50)
 			.style('opacity',1);
-	var scroll = AD.UTILS.scrollOffset();
+	var scroll = d3b.UTILS.scrollOffset();
 
 	var bodyWidth = body.node().getBoundingClientRect().width;
 	// console.log(bodyWidth)
@@ -817,24 +1719,24 @@ AD.UTILS.createGeneralTooltip = function(elem, heading, content){
 								scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 	pos.top = scroll.top+d3.event.clientY-10;
 
-	AD.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
+	d3b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
 	elem.on('mousemove',function(){
-		scroll = AD.UTILS.scrollOffset();
+		scroll = d3b.UTILS.scrollOffset();
 
 		pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
 		scroll.left+d3.event.clientX+10 :
 									scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
 		pos.top = scroll.top+d3.event.clientY-10;
 
-		AD.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
+		d3b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
 	});
 	return adGeneralTooltip;
 };
-AD.UTILS.removeTooltip = function(){
-	d3.selectAll('.ad-general-tooltip')
+d3b.UTILS.removeTooltip = function(){
+	d3.selectAll('.d3b-general-tooltip')
 			.remove();
 };
-AD.UTILS.moveTooltip = function(tooltip, x, y, duration){
+d3b.UTILS.moveTooltip = function(tooltip, x, y, duration){
 	tooltip
 		.transition()
 			.duration(duration)
@@ -847,14 +1749,14 @@ AD.UTILS.moveTooltip = function(tooltip, x, y, duration){
 };
 
 /*extra utilities*/
-AD.UTILS.scrollOffset = function(){
+d3b.UTILS.scrollOffset = function(){
 	var doc = document.documentElement;
 	var left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
 	var top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
 	return {top:top, left:left};
 };
 
-AD.UTILS.getValues = function(obj){
+d3b.UTILS.getValues = function(obj){
 	var values = [];
 	for(var key in obj) {
 		obj[key].key = key;
@@ -864,16 +1766,16 @@ AD.UTILS.getValues = function(obj){
 };
 
 /*Axis Chart Utilities*/
-AD.createNameSpace("AD.UTILS.AXISCHARTS");
-AD.UTILS.AXISCHARTS.getDomainLinear = function(values){
+d3b.createNameSpace("d3b.UTILS.AXISCHARTS");
+d3b.UTILS.AXISCHARTS.getDomainLinear = function(values){
 	return [(d3.min(values)<0)? d3.min(values) : 0, d3.max(values)+1]
 };
-AD.UTILS.AXISCHARTS.getDomainOrdinal = function(values){
+d3b.UTILS.AXISCHARTS.getDomainOrdinal = function(values){
 	return d3.set(values).values();
 };
 
 /*Formating Utilities*/
-AD.UTILS.niceFormat = function(value, precision){
+d3b.UTILS.niceFormat = function(value, precision){
 	if(!precision)
 		precision = 0;
 	var format = d3.format("."+precision+"f");
@@ -930,7 +1832,7 @@ AD.UTILS.niceFormat = function(value, precision){
 	}
 }
 
-AD.UTILS.numberFormat = function(preferences){
+d3b.UTILS.numberFormat = function(preferences){
 	var formatString = "";
 	var format;
 	var units = {
@@ -938,7 +1840,7 @@ AD.UTILS.numberFormat = function(preferences){
 		after:(preferences.units.after)?preferences.units.after:"",
 	}
 	if(preferences.nice){
-		return function(value){return units.before + AD.UTILS.niceFormat(value, preferences.precision) + units.after};
+		return function(value){return units.before + d3b.UTILS.niceFormat(value, preferences.precision) + units.after};
 	}else if(preferences.siPrefixed){
 		if(preferences.precision>-1){
 			formatString += "."+preferences.precision;
@@ -963,7 +1865,7 @@ AD.UTILS.numberFormat = function(preferences){
 	}
 };
 
-AD.UTILS.textWrap = function(text, width) {
+d3b.UTILS.textWrap = function(text, width) {
   text.each(function() {
     var text = d3.select(this),
         words = text.text().split(/\s+/).reverse(),
@@ -989,9 +1891,9 @@ AD.UTILS.textWrap = function(text, width) {
 
 
 /*Custom Tweens*/
-AD.createNameSpace("AD.UTILS.TWEENS");
+d3b.createNameSpace("d3b.UTILS.TWEENS");
 //arc tween from this.oldArc to this.newArc
-AD.UTILS.TWEENS.arcTween = function(transition, arc){
+d3b.UTILS.TWEENS.arcTween = function(transition, arc){
 	transition.attrTween("d",function(d){
 		var _self = this;
 		var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
@@ -1004,48 +1906,37 @@ AD.UTILS.TWEENS.arcTween = function(transition, arc){
 };
 
 /*Events*/
-AD.UTILS.bind = function(mainKey, element, _chart, data, index, type){
+d3b.UTILS.bind = function(mainKey, element, _chart, data, index, type){
 	for(key in _chart.on[mainKey]){
 		_chart.on[mainKey][key].call(element,data,index,type);
 	}
 }
-AD.UTILS.bindElementEvents = function(element, _chart, type){
+d3b.UTILS.bindElementEvents = function(element, _chart, type){
 	element
-			.on('mouseover.ad-element-mouseover',function(d,i){
-				AD.UTILS.bind('elementMouseover', element, _chart, d, i, type)
+			.on('mouseover.d3b-element-mouseover',function(d,i){
+				d3b.UTILS.bind('elementMouseover', element, _chart, d, i, type)
 			})
-			.on('mouseout.ad-element-mouseout',function(d,i){
-				AD.UTILS.bind('elementMouseout', element, _chart, d, i, type)
+			.on('mouseout.d3b-element-mouseout',function(d,i){
+				d3b.UTILS.bind('elementMouseout', element, _chart, d, i, type)
 			})
-			.on('click.ad-element-click',function(d,i){
-				AD.UTILS.bind('elementClick', element, _chart, d, i, type)
+			.on('click.d3b-element-click',function(d,i){
+				d3b.UTILS.bind('elementClick', element, _chart, d, i, type)
 			});
 }
-
-/*Bind Tooltip Events*/
-AD.UTILS.tooltip = function(element, heading, content){
-	element
-			.on('mouseover.ad-mouseover-tooltip',function(d,i){
-				AD.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
-			})
-			.on('mouseout.ad-mouseout-tooltip',function(d,i){
-				AD.UTILS.removeTooltip();
-			});
-};
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*LEGEND UTILITIES*/
-AD.createNameSpace("AD.UTILS.LEGENDS");
-AD.UTILS.LEGENDS.legend = function(){
-	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH(), maxHeight = AD.CONSTANTS.DEFAULTHEIGHT();
+d3b.createNameSpace("d3b.UTILS.LEGENDS");
+d3b.UTILS.LEGENDS.legend = function(){
+	var maxWidth = d3b.CONSTANTS.DEFAULTWIDTH(), maxHeight = d3b.CONSTANTS.DEFAULTHEIGHT();
 	var innerMaxHeight, innerMaxWidth;
 	var items = [];
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 	var selection;
 	var currentLegendData;
 	var computedWidth=0, computedHeight=0;
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	var orientation = 'horizontal';
 	var padding = 5;
 
@@ -1155,24 +2046,24 @@ AD.UTILS.LEGENDS.legend = function(){
 		innerMaxWidth = maxWidth - padding*2;
 
 
-		var item = selection.selectAll('g.ad-legend-item')
+		var item = selection.selectAll('g.d3b-legend-item')
 				.data(currentLegendData.items, function(d){return d.label;});
 
 		var newItem = item.enter()
 			.append('g')
-				.attr('class','ad-legend-item')
+				.attr('class','d3b-legend-item')
 				.style('opacity',0)
-				.on('mouseover.ad-mouseover',function(d,i){
+				.on('mouseover.d3b-mouseover',function(d,i){
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i);
 					}
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
+				.on('mouseout.d3b-mouseout',function(d,i){
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i);
 					}
 				})
-				.on('click.ad-click',function(d,i){
+				.on('click.d3b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i);
 					}
@@ -1294,13 +2185,13 @@ AD.UTILS.LEGENDS.legend = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-AD.UTILS.breadcrumbs = function(){
-	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH();
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+d3b.UTILS.breadcrumbs = function(){
+	var maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 	var selection;
 	var currentBreadcrumbsData = {items:[]};
 	var computedWidth=0, computedHeight=0;
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
 	var scale = 5;
 
@@ -1372,11 +2263,11 @@ AD.UTILS.breadcrumbs = function(){
 			callback;
 		}
 
-		selection.breadcrumb = selection.selectAll('g.ad-breadcrumb').data(currentBreadcrumbsData.items, function(d){return (d.key)? d.key : i;});
+		selection.breadcrumb = selection.selectAll('g.d3b-breadcrumb').data(currentBreadcrumbsData.items, function(d){return (d.key)? d.key : i;});
 
 		var newBreadcrumbs = selection.breadcrumb.enter()
 			.append('g')
-				.attr('class','ad-breadcrumb')
+				.attr('class','d3b-breadcrumb')
 				.style('opacity',0);
 
 		newBreadcrumbs.append('path');
@@ -1442,9 +2333,9 @@ AD.UTILS.breadcrumbs = function(){
 	return breadcrumbs;
 };
 
-AD.createNameSpace("AD.UTILS.CHARTS.MEMBERS");
+d3b.createNameSpace("d3b.UTILS.CHARTS.MEMBERS");
 
-AD.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
+d3b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
   return function(key, value){
 		key = key.split('.');
 		if(!arguments.length) return _chart.on;
@@ -1467,7 +2358,7 @@ AD.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
 	};
 };
 
-AD.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
+d3b.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
   return function(value){
 
     _chart.selection = d3.select(value);
@@ -1477,7 +2368,7 @@ AD.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
+d3b.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
     _chart[property] = value;
@@ -1487,7 +2378,7 @@ AD.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
+d3b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
     if(value.type){
@@ -1516,17 +2407,17 @@ AD.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
+d3b.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
-    _chart[property] = AD.UTILS.numberFormat(value);
+    _chart[property] = d3b.UTILS.numberFormat(value);
     if(callback)
       callback(value);
     return chart;
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
+d3b.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
   return function(value){
     if(!arguments.length) return _chart.controlsData;
     for(control in value){
@@ -1540,8 +2431,8 @@ AD.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
   }
 };
 
-AD.createNameSpace("AD.UTILS.CHARTS.HELPERS");
-AD.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
+d3b.createNameSpace("d3b.UTILS.CHARTS.HELPERS");
+d3b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   var legendPadding = 10;
   if(_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left'){
     _chart.legend.orientation('vertical').data(_chart.legendData).height(_chart.innerHeight).update();
@@ -1549,15 +2440,32 @@ AD.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   else{
     _chart.legend.orientation('horizontal').data(_chart.legendData).width(_chart.innerWidth).update();
   }
+
   var legendTranslation;
   if(_chart.legendOrientation == 'right')
-    legendTranslation = 'translate('+(_chart.forcedMargin.left+_chart.innerWidth-_chart.legend.computedWidth())+','+((_chart.innerHeight-_chart.legend.computedHeight())/2+_chart.forcedMargin.top)+')';
+    legendTranslation = 'translate('+
+        (_chart.forcedMargin.left+_chart.innerWidth-_chart.legend.computedWidth())
+      +','+
+        ((_chart.innerHeight-_chart.legend.computedHeight())/2+_chart.forcedMargin.top)
+      +')';
   else if(_chart.legendOrientation == 'left')
-    legendTranslation = 'translate('+(_chart.forcedMargin.left)+','+((_chart.innerHeight-_chart.legend.computedHeight())/2+_chart.forcedMargin.top)+')';
+    legendTranslation = 'translate('+
+        (_chart.forcedMargin.left)
+      +','+
+        ((_chart.innerHeight-_chart.legend.computedHeight())/2+_chart.forcedMargin.top)
+      +')';
   else if(_chart.legendOrientation == 'top')
-    legendTranslation = 'translate('+(_chart.forcedMargin.left+(_chart.innerWidth-_chart.legend.computedWidth())/2)+','+_chart.forcedMargin.top+')';
+    legendTranslation = 'translate('+
+        (_chart.forcedMargin.left+(_chart.innerWidth-_chart.legend.computedWidth())/2)
+      +','+
+        _chart.forcedMargin.top
+      +')';
   else
-    legendTranslation = 'translate('+(_chart.forcedMargin.left+(_chart.innerWidth-_chart.legend.computedWidth())/2)+','+(_chart.innerHeight+_chart.forcedMargin.top-_chart.legend.computedHeight())+')';
+    legendTranslation = 'translate('+
+        (_chart.forcedMargin.left+(_chart.innerWidth-_chart.legend.computedWidth())/2)
+      +','+
+        (_chart.innerHeight+_chart.forcedMargin.top-_chart.legend.computedHeight())
+      +')';
 
   _chart.selection.legend
     .transition()
@@ -1577,9 +2485,9 @@ AD.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
   _chart.innerWidth = _chart.outerWidth - _chart.forcedMargin.left - _chart.forcedMargin.right;
 };
-AD.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
+d3b.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
   var controlsPadding = 10;
-  var controlsData = AD.UTILS.getValues(_chart.controlsData).filter(function(d){return d.visible;});
+  var controlsData = d3b.UTILS.getValues(_chart.controlsData).filter(function(d){return d.visible;});
   controlsData.map(function(d){
     d.data = {state:d.enabled, label:d.label, key:d.key};
   });
@@ -1599,82 +2507,82 @@ AD.UTILS.CHARTS.HELPERS.updateControls = function(_chart){
   _chart.innerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
 
 };
-AD.UTILS.CHARTS.HELPERS.updateDimensions = function(_chart){
+d3b.UTILS.CHARTS.HELPERS.updateDimensions = function(_chart){
 	_chart.outerWidth = _chart.outerWidth - _chart.forcedMargin.right - _chart.forcedMargin.left;
 	_chart.outerHeight = _chart.outerHeight - _chart.forcedMargin.top - _chart.forcedMargin.bottom;
 	_chart.forcedMargin = {top:0,bottom:0,left:0,right:0};
 	_chart.innerWidth = _chart.outerWidth;
 	_chart.innerHeight = _chart.outerHeight;
 };
-AD.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
+d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
   //clean container
   _chart.selection.selectAll('*').remove();
 
   //create svg
   _chart.selection.svg = _chart.selection
     .append('svg')
-      .attr('class','ad-svg ad-container');
+      .attr('class','d3b-svg d3b-container');
 
   //create group container
-  _chart.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+  _chart.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
   _chart.selection.group = _chart.selection.svg.append('g')
       .attr('transform','translate('+_chart.forcedMargin.left+','+_chart.forcedMargin.top+')');
 
   //create legend container
   _chart.selection.legend = _chart.selection.group
     .append('g')
-      .attr('class','ad-legend');
+      .attr('class','d3b-legend');
 
   //create controls container
   _chart.selection.controls = _chart.selection.group
     .append('g')
-      .attr('class','ad-controls');
+      .attr('class','d3b-controls');
 };
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*sunburst chart*/
-AD.CHARTS.sunburstChart = function(){
+d3b.CHARTS.sunburstChart = function(){
 
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = { data: { partition:{}}};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new AD.UTILS.LEGENDS.legend();
+	$$.legend = new d3b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new AD.UTILS.CONTROLS.horizontalControls();
+	$$.controls = new d3b.UTILS.CONTROLS.controls();
 
 	//breacrumbs OBJ
-	$$.breadcrumbs = new AD.UTILS.breadcrumbs();
+	$$.breadcrumbs = new d3b.UTILS.breadcrumbs();
 	$$.breadcrumbs.scale(6)
 
 	//partitioned sunburst data
@@ -1943,14 +2851,14 @@ AD.CHARTS.sunburstChart = function(){
 						outer: this.oldArc.outer
 					};
 				})
-				.call(AD.UTILS.TWEENS.arcTween, $$.arc)
+				.call(d3b.UTILS.TWEENS.arcTween, $$.arc)
 				// .attrTween("d", $$.arcTween);
 
 		//tween paths to new positions
 		var pathTransition = $$.selection.arcs.arc.path
 			.transition()
 				.duration($$.animationDuration*1.5)
-				.call(AD.UTILS.TWEENS.arcTween, $$.arc)
+				.call(d3b.UTILS.TWEENS.arcTween, $$.arc)
 				// .attrTween("d", $$.arcTween);
 
 
@@ -2042,18 +2950,18 @@ AD.CHARTS.sunburstChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 
 	chart.data = function(chartData, reset){
@@ -2073,21 +2981,21 @@ AD.CHARTS.sunburstChart = function(){
 	chart.generate = function(callback) {
 		$$.generateRequired = false;
 
-		AD.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','ad-sunburst')
-				.on('mouseout.ad-mouseout', $$.sunburstMouseout);
+				.attr('class','d3b-sunburst')
+				.on('mouseout.d3b-mouseout', $$.sunburstMouseout);
 
 
 		$$.selection.arcs = $$.selection.main
 			.append('g')
-				.attr('class','ad-sunburst-arcs');
+				.attr('class','d3b-sunburst-arcs');
 
 		$$.selection.tooltip = $$.selection.main
 			.append('g')
-				.attr('class','ad-sunburst-tooltip');
+				.attr('class','d3b-sunburst-tooltip');
 
 		$$.selection.tooltip.text = $$.selection.tooltip
 			.append('text');
@@ -2095,11 +3003,11 @@ AD.CHARTS.sunburstChart = function(){
 		//create breadcrumbs container
 		$$.selection.breadcrumbs = $$.selection.group
 			.append('g')
-				.attr('class','ad-sunburst-breadcrumbs');
+				.attr('class','d3b-sunburst-breadcrumbs');
 
 		$$.controls
 				.selection($$.selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					$$.controlsData[d.key].enabled = d.state;
 					if(d.key == 'sort' || d.key == 'hideLegend'){
 						$$.newData = true;
@@ -2139,7 +3047,7 @@ AD.CHARTS.sunburstChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -2149,10 +3057,10 @@ AD.CHARTS.sunburstChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		AD.UTILS.CHARTS.HELPERS.updateControls($$);
+		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		$$.selection.breadcrumbs
 			.transition()
@@ -2169,7 +3077,7 @@ AD.CHARTS.sunburstChart = function(){
 		// $$.forcedMargin.top += Math.max($$.breadcrumbs.computedHeight(), $$.controls.computedHeight());
 		$$.forcedMargin.top += $$.breadcrumbs.computedHeight();
 
-		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		$$.selection.main
 			.transition()
@@ -2201,10 +3109,10 @@ AD.CHARTS.sunburstChart = function(){
 		var newArcs =	$$.selection.arcs.arc.enter().append("g")
 			.attr('class','sunburst-arc')
 			.style('opacity',0)
-			.call(AD.UTILS.bindElementEvents, $$, 'arc');
+			.call(d3b.UTILS.bindElementEvents, $$, 'arc');
 
 		var newPaths = newArcs.append("path")
-				.on('mouseover.ad-mouseover',$$.arcMouseover);
+				.on('mouseover.d3b-mouseover',$$.arcMouseover);
 
 		$$.selection.arcs.arc
 			.transition()
@@ -2216,8 +3124,8 @@ AD.CHARTS.sunburstChart = function(){
 				.style('fill',$$.arcFill);
 
 		$$.selection.arcs.arc.path
-				.on('click.ad-click',$$.arcClick)
-				.classed('ad-pointer-element',true);
+				.on('click.d3b-click',$$.arcClick)
+				.classed('d3b-pointer-element',true);
 
 		$$.updateArcs();
 
@@ -2239,11 +3147,11 @@ AD.CHARTS.sunburstChart = function(){
 ///////TODO - Change circle packing to custom algorithm that uses cluster packing rather than d3.force layout
 
 /*bubble chart*/
-AD.CHARTS.bubbleChart = function(){
+d3b.CHARTS.bubbleChart = function(){
 
 	//define chart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT(),
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT(),
 			svgHeight = height-55;
 
 	var innerHeight = height, innerWidth = width;
@@ -2252,14 +3160,14 @@ AD.CHARTS.bubbleChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
+	var legend = new d3b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'right';
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {};
 
@@ -2399,8 +3307,8 @@ AD.CHARTS.bubbleChart = function(){
 			.append('ul');
 
 		newButton.append('li')
-			.attr('class','ad-button')
-			.on('click.ad-click',function(d,i){
+			.attr('class','d3b-button')
+			.on('click.d3b-click',function(d,i){
 				current.grouping = d;
 				updateNodeGrouping(d);
 				updateNodeGroup();
@@ -2409,19 +3317,19 @@ AD.CHARTS.bubbleChart = function(){
 					on.elementClick[key].call(this,d,i,'grouping-button');
 				}
 			})
-			.on('mouseover.ad-mouseover', function(d,i){
+			.on('mouseover.d3b-mouseover', function(d,i){
 				for(key in on.elementMouseover){
 					on.elementMouseover[key].call(this,d,i,'grouping-button');
 				}
 			})
-			.on('mouseout.ad-mouseout', function(d,i){
+			.on('mouseout.d3b-mouseout', function(d,i){
 				for(key in on.elementMouseout){
 					on.elementMouseout[key].call(this,d,i,'grouping-button');
 				}
 			});
 		newButton.append('li')
-			.attr('class','ad-color-button')
-			.on('click.ad-click',function(d,i){
+			.attr('class','d3b-color-button')
+			.on('click.d3b-click',function(d,i){
 				current.colorGrouping = d;
 				updateNodeGrouping(d, "colorGrouping");
 				chart.update();
@@ -2429,12 +3337,12 @@ AD.CHARTS.bubbleChart = function(){
 					on.elementClick[key].call(this,d,i,'color-by-grouping-button');
 				}
 			})
-			.on('mouseover.ad-mouseover', function(d,i){
+			.on('mouseover.d3b-mouseover', function(d,i){
 				for(key in on.elementMouseover){
 					on.elementMouseover[key].call(this,d,i,'color-by-grouping-button');
 				}
 			})
-			.on('mouseout.ad-mouseout', function(d,i){
+			.on('mouseout.d3b-mouseout', function(d,i){
 				for(key in on.elementMouseout){
 					on.elementMouseout[key].call(this,d,i,'color-by-grouping-button');
 				}
@@ -2446,20 +3354,20 @@ AD.CHARTS.bubbleChart = function(){
 				.style('opacity',0)
 				.remove();
 
-		selection.buttonsWrapper.buttons.button.grouping = selection.buttonsWrapper.buttons.button.select('li.ad-button')
+		selection.buttonsWrapper.buttons.button.grouping = selection.buttonsWrapper.buttons.button.select('li.d3b-button')
 				.text(function(d){return d.label;})
-				.classed('ad-selected',function(d,i){return d == current.grouping;});
+				.classed('d3b-selected',function(d,i){return d == current.grouping;});
 
-		selection.buttonsWrapper.buttons.button.color = selection.buttonsWrapper.buttons.button.select('li.ad-color-button')
+		selection.buttonsWrapper.buttons.button.color = selection.buttonsWrapper.buttons.button.select('li.d3b-color-button')
 				.html('<i class="fa fa-paint-brush"></i>')
-				.classed('ad-selected',function(d,i){return d == current.colorGrouping;});
+				.classed('d3b-selected',function(d,i){return d == current.colorGrouping;});
 	};
 
 
 	// update controls
 	var updateControls = function(){
 		//update controls
-		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -2647,7 +3555,7 @@ AD.CHARTS.bubbleChart = function(){
 		else if(d.change < 0)
 			changeHTML = '('+formatPercent(d.change)+')';
 
-		AD.UTILS.createGeneralTooltip(d3.select(this), "<b>"+d.label+"</b>", xFormat(d.value)+' '+changeHTML);
+		d3b.UTILS.createGeneralTooltip(d3.select(this), "<b>"+d.label+"</b>", xFormat(d.value)+' '+changeHTML);
 
 		for(key in on.elementMouseover){
 			on.elementMouseover[key].call(this,d,i,'bubble');
@@ -2655,14 +3563,14 @@ AD.CHARTS.bubbleChart = function(){
 	};
 
 	var bubbleMouseout = function(d,i){
-		AD.UTILS.removeTooltip();
+		d3b.UTILS.removeTooltip();
 		for(key in on.elementMouseout){
 			on.elementMouseout[key].call(this,d,i,'bubble');
 		}
 	};
 
 	var bubbleClick = function(d,i){
-		AD.UTILS.removeTooltip();
+		d3b.UTILS.removeTooltip();
 		for(key in on.elementClick){
 			on.elementClick[key].call(this,d,i,'bubble');
 		}
@@ -2703,7 +3611,7 @@ AD.CHARTS.bubbleChart = function(){
 	//update bubble positioning
 	var updateBubbles = function(){
 
-		selection.group.bubbles.bubble = selection.group.bubbles.selectAll('g.ad-bubble')
+		selection.group.bubbles.bubble = selection.group.bubbles.selectAll('g.d3b-bubble')
 				.data(current.grouping.nodes.sort(function(a,b){return d3.ascending(b.value, a.value);}),function(d,i){
 					if(d.key == 'unique')
 						return Math.floor((1 + Math.random()) * 0x10000)
@@ -2715,10 +3623,10 @@ AD.CHARTS.bubbleChart = function(){
 
 		var newBubble = selection.group.bubbles.bubble.enter()
 			.append('g')
-				.attr('class','ad-bubble')
-				.on('mouseover.ad-mouseover', bubbleMouseover)
-				.on('mouseout.ad-mouseout', bubbleMouseout)
-				.on('click.ad-click', bubbleClick);
+				.attr('class','d3b-bubble')
+				.on('mouseover.d3b-mouseover', bubbleMouseover)
+				.on('mouseout.d3b-mouseout', bubbleMouseout)
+				.on('click.d3b-click', bubbleClick);
 				// .style('opacity',0);
 
 		newBubble.append('circle')
@@ -2838,8 +3746,8 @@ AD.CHARTS.bubbleChart = function(){
 			.append('g')
 				.style('opacity',0);
 
-		newGroup.append('text').attr('class','ad-group-title');
-		newGroup.append('text').attr('class','ad-group-total');
+		newGroup.append('text').attr('class','d3b-group-title');
+		newGroup.append('text').attr('class','d3b-group-total');
 		selection.group.groups.group
 			.each(function(d,i){
 				d.total = d3.sum(d.nodes.map(function(d){return d.value;}));
@@ -2869,7 +3777,7 @@ AD.CHARTS.bubbleChart = function(){
 
 		var fontSize = Math.min(30,Math.max(8,groupsScales.fontSize((innerWidth + innerHeight)/(current.groups.length))))
 
-		selection.group.groups.group.total = selection.group.groups.group.select('text.ad-group-total')
+		selection.group.groups.group.total = selection.group.groups.group.select('text.d3b-group-total')
 			// .attr('y', groupsScales.y.rangeBand()/2)
 			.text(function(d){return xFormat(d.total);})
 			.style('font-size', fontSize+'px')
@@ -2880,13 +3788,13 @@ AD.CHARTS.bubbleChart = function(){
 		});
 
 		// selection.group.groups.group
-		selection.group.groups.group.title = selection.group.groups.group.select('text.ad-group-title')
+		selection.group.groups.group.title = selection.group.groups.group.select('text.d3b-group-title')
 				.text(function(d){return d.label;})
 				.attr('dy',0)
 				.attr('y',fontSize)
 				// .attr('y',0)
 				.style('font-size', fontSize+'px')
-				.call(AD.UTILS.textWrap, groupsScales.x.rangeBand()-10);
+				.call(d3b.UTILS.textWrap, groupsScales.x.rangeBand()-10);
 
 		selection.group.groups.group.exit()
 			.transition()
@@ -2933,7 +3841,7 @@ AD.CHARTS.bubbleChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
+		xFormat = d3b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -3043,28 +3951,28 @@ AD.CHARTS.bubbleChart = function(){
 		//create button container
 		selection.buttonsWrapper = selection
 			.append('div')
-				.attr('class','ad-bubble-chart-buttons-wrapper');
+				.attr('class','d3b-bubble-chart-buttons-wrapper');
 
 		selection.buttonsWrapper.buttons = selection.buttonsWrapper
 			.append('ul')
-				.attr('class','ad-buttons');
+				.attr('class','d3b-buttons');
 
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','ad-bubble-chart ad-svg ad-container');
+				.attr('class','d3b-bubble-chart d3b-svg d3b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.bubbles = selection.group
 			.append('g')
-				.attr('class','ad-bubbles');
+				.attr('class','d3b-bubbles');
 
 		//create change axis/legend
 		selection.changeAxis = selection.group
 			.append('g')
-				.attr('class','ad-change-axis-legend');
+				.attr('class','d3b-change-axis-legend');
 
 		selection.changeAxis.legend = selection.changeAxis
 			.append('g');
@@ -3074,12 +3982,12 @@ AD.CHARTS.bubbleChart = function(){
 
 		selection.group.groups = selection.group
 			.append('g')
-				.attr('class','ad-groups');
+				.attr('class','d3b-groups');
 
 		//create groups axis
 		selection.groupsAxis = selection.group
 			.append('g')
-				.attr('class','ad-groups-axis');
+				.attr('class','d3b-groups-axis');
 
 		//init change legend rects
 		selection.changeAxis.legend.rect = selection.changeAxis.legend.selectAll('rect').data([-0.25, -0.05, 0.0, 0.05, 0.25, 1]);
@@ -3096,17 +4004,17 @@ AD.CHARTS.bubbleChart = function(){
 		//create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','ad-legend');
+				.attr('class','d3b-legend');
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','ad-controls');
+				.attr('class','d3b-controls');
 
 
 		horizontalControls
 				.selection(selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					controls[d.key].enabled = d.state;
 					if(d.key == 'sort' || d.key == 'hideLegend'){
 						newData = true;
@@ -3143,7 +4051,7 @@ AD.CHARTS.bubbleChart = function(){
 
 		updateGroupingButtons();
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
@@ -3180,29 +4088,29 @@ AD.CHARTS.bubbleChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-AD.CHARTS.axisChart = function(){
+d3b.CHARTS.axisChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {
 		types:[],
@@ -3213,19 +4121,17 @@ AD.CHARTS.axisChart = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new AD.UTILS.LEGENDS.legend();
+	$$.legend = new d3b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new AD.UTILS.CONTROLS.horizontalControls();
+	$$.controls = new d3b.UTILS.CONTROLS.controls();
 
 	$$.rotate = false;
-
-	$$.hiddenGraphs = {};
 
 	//controls data
 	$$.controlsData = {
@@ -3255,9 +4161,9 @@ AD.CHARTS.axisChart = function(){
 	}
 
 	//account for any tools defined by the various axis chart types
-	for(type in AD.UTILS.AXISCHART.TYPES){
-		if(AD.UTILS.AXISCHART.TYPES[type].tools){
-			var tools = AD.UTILS.AXISCHART.TYPES[type].tools();
+	for(type in d3b.UTILS.AXISCHART.TYPES){
+		if(d3b.UTILS.AXISCHART.TYPES[type].tools){
+			var tools = d3b.UTILS.AXISCHART.TYPES[type].tools();
 			if(tools){
 
 				//controlsData tools
@@ -3266,7 +4172,6 @@ AD.CHARTS.axisChart = function(){
 						$$.controlsData[control] = tools.controlsData[control];
 					}
 				}
-
 			}
 		}
 	}
@@ -3295,6 +4200,7 @@ AD.CHARTS.axisChart = function(){
 	$$.x = $$.xAlias;
 	$$.y = $$.yAlias;
 
+	//persistent chart data is used to save data properties that need to persist through a data update
 	$$.persistentChartData = {};
 
 	//update scale domains based on yValues/xValues 'getters' of each graph type
@@ -3352,12 +4258,12 @@ AD.CHARTS.axisChart = function(){
 	$$.initGraphs = function(){
 		//enter update exit a foreground svg:g element for each axis-chart-type
 		$$.selection.types.foreground.type = $$.selection.types.foreground
-			.selectAll('g.ad-axis-type-foreground')
+			.selectAll('g.d3b-axis-type-foreground')
 				.data($$.currentChartData.types, function(d){return d.type;});
 
 		$$.selection.types.foreground.type.enter()
 			.append('g')
-				.attr('class', function(d){return 'ad-axis-type-foreground ad-'+d.type;});
+				.attr('class', function(d){return 'd3b-axis-type-foreground d3b-'+d.type;});
 
 		$$.selection.types.foreground.type.exit()
 			.transition()
@@ -3366,7 +4272,7 @@ AD.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a sub-foreground element for the graphs associated with each type
-		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.ad-axis-chart-foreground-graph')
+		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.d3b-axis-chart-foreground-graph')
 			.data(
 				function(d){
 					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
@@ -3378,17 +4284,19 @@ AD.CHARTS.axisChart = function(){
 		$$.selection.types.foreground.type.graph.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class', 'ad-axis-chart-foreground-graph');
+				.attr('class', 'd3b-axis-chart-foreground-graph')
+				.each(function(graph){
+					$$.persistentChartData[graph.type][graph.label].foreground = d3.select(this);
+				});
 
 		//save the foreground in data for use with the legend events
 		$$.selection.types.foreground.type.graph
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',1)
-				.each(function(d){d.foreground = d3.select(this);});
+				.style('opacity',1);
 
 		$$.selection.types.foreground.type.graph.exit()
-			.each(function(d){d.foreground = null;})
+			.each(function(d){$$.persistentChartData[d.type][d.label].foreground = null;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
@@ -3396,27 +4304,27 @@ AD.CHARTS.axisChart = function(){
 
 		//enter update exit a background svg:g element for each axis-chart-type
 		$$.selection.types.background.type = $$.selection.types.background
-			.selectAll('g.ad-axis-type-background')
+			.selectAll('g.d3b-axis-type-background')
 				.data($$.currentChartData.types, function(d){return d.type;});
 
 		$$.selection.types.background.type.enter()
 			.append('g')
-				.attr('class', function(d){return 'ad-axis-type-background ad-'+d.type;})
+				.attr('class', function(d){return 'd3b-axis-type-background d3b-'+d.type;})
 				.each(function(d){
 					var masterType = 'axis-chart-';
-					this.adType = new AD.UTILS.AXISCHART.TYPES[d.type];
+					this.adType = new d3b.UTILS.AXISCHART.TYPES[d.type];
 					this.adType
-						.on('elementClick.ad-click', function(d,i,type){
+						.on('elementClick.d3b-click', function(d,i,type){
 								for(key in $$.on.elementClick){
 									$$.on.elementClick[key].call(this,d,i,masterType+type);
 								}
 						})
-						.on('elementMouseover.ad-mouseover', function(d,i,type){
+						.on('elementMouseover.d3b-mouseover', function(d,i,type){
 								for(key in $$.on.elementMouseover){
 									$$.on.elementMouseover[key].call(this,d,i,masterType+type);
 								}
 						})
-						.on('elementMouseout.ad-mouseout', function(d,i,type){
+						.on('elementMouseout.d3b-mouseout', function(d,i,type){
 								for(key in $$.on.elementMouseout){
 									$$.on.elementMouseout[key].call(this,d,i,masterType+type);
 								}
@@ -3435,7 +4343,7 @@ AD.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a sub-foreground element for the graphs associated with each type
-		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.ad-axis-chart-background-graph')
+		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.d3b-axis-chart-background-graph')
 			.data(
 				function(d){
 					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
@@ -3446,19 +4354,19 @@ AD.CHARTS.axisChart = function(){
 			);
 		$$.selection.types.background.type.graph.enter()
 			.append('g')
-				.attr('class', 'ad-axis-chart-background-graph')
-				.style('opacity',0);
+				.attr('class', 'd3b-axis-chart-background-graph')
+				.style('opacity',0)
+				.each(function(graph){
+					$$.persistentChartData[graph.type][graph.label].background = d3.select(this);
+				});
 
 		//save the background in data for use with the legend events
 		$$.selection.types.background.type.graph
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',1)
-				.each(function(d){
-						d.background = d3.select(this);
-					});
+				.style('opacity',1);
 		$$.selection.types.background.type.graph.exit()
-			.each(function(d){d.background = null;})
+			.each(function(d){$$.persistentChartData[d.type][d.label].background = null;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
@@ -3467,8 +4375,8 @@ AD.CHARTS.axisChart = function(){
 		//store the foreground graphs within the data
 		$$.selection.types.foreground.type.each(function(d){
 			var type = d3.select(this);
-			var graphs = type.selectAll('.ad-axis-chart-foreground-graph');
-			d.foregroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
+			var graphs = type.selectAll('.d3b-axis-chart-foreground-graph');
+			d.foregroundGraphs = graphs;
 		});
 
 	};
@@ -3483,27 +4391,20 @@ AD.CHARTS.axisChart = function(){
 				position = $$.innerWidth - $$.x.scale(value);
 			else
 				position = $$.x.scale(value);
-
 			if($$.x.type == 'ordinal')
 				position += $$.x.scale.rangeBand()/2;
-
 			if(invert)
 				position = $$.innerWidth - position;
-
 			return position;
 		};
 
 		$$.y.customScale = function(value, invert){
 			var position = 0;
-
 			position = $$.y.scale(value);
-
 			if($$.y.type == 'ordinal')
 				position += $$.y.scale.rangeBand()/2;
-
 			if(invert)
 				position = $$.innerHeight - position;
-
 			return position;
 		};
 
@@ -3515,26 +4416,16 @@ AD.CHARTS.axisChart = function(){
 		//  origin(the x-axis position)
 		//  destination(bar-end position)
 		//}
-		$$.y.customBarScale = function(value){
+		$$.yAlias.customBarScale = function(value){
 			var bar = {y:0,height:0};
 
-			if($$.rotate){
-				bar.origin = $$.x.customScale(0);
-				bar.destination = $$.x.customScale(value);
+			bar.origin = $$.yAlias.customScale(0);
+			bar.destination = $$.yAlias.customScale(value);
 
-				bar.sHeight = bar.origin - bar.destination;
+			bar.sHeight = bar.origin - bar.destination;
 
-				bar.y = Math.min($$.x.customScale(0), bar.destination);
-				bar.height = Math.abs(bar.sHeight);
-			}else{
-				bar.origin = $$.y.customScale(0);
-				bar.destination = $$.y.customScale(value);
-
-				bar.sHeight = bar.origin - bar.destination;
-
-				bar.y = Math.min($$.y.customScale(0), bar.destination);
-				bar.height = Math.abs(bar.sHeight);
-			}
+			bar.y = Math.min($$.yAlias.customScale(0), bar.destination);
+			bar.height = Math.abs(bar.sHeight);
 
 			return bar;
 		};
@@ -3548,7 +4439,7 @@ AD.CHARTS.axisChart = function(){
 
 		$$.selection.types.background.type.each(function(d){
 			var type = d3.select(this);
-			var graphs = type.selectAll('.ad-axis-chart-background-graph');
+			var graphs = type.selectAll('.d3b-axis-chart-background-graph');
 			d.backgroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
 
 			this.adType
@@ -3636,7 +4527,7 @@ AD.CHARTS.axisChart = function(){
 			var length = this.getComputedTextLength();
 			maxTickLength = Math.max(maxTickLength, length);
 		})
-			.on('click.ad-element-click', function(d,i){
+			.on('click.d3b-element-click', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -3645,7 +4536,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseover.ad-element-mouseover', function(d,i){
+			.on('mouseover.d3b-element-mouseover', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -3654,7 +4545,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseout.ad-element-mouseout', function(d,i){
+			.on('mouseout.d3b-element-mouseout', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -3665,7 +4556,7 @@ AD.CHARTS.axisChart = function(){
 			});
 
 		$$.selection.axes.x.text = $$.selection.axes.x.selectAll('text')
-			.on('click.ad-element-click', function(d,i){
+			.on('click.d3b-element-click', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -3674,7 +4565,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseover.ad-element-mouseover', function(d,i){
+			.on('mouseover.d3b-element-mouseover', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -3683,7 +4574,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseout.ad-element-mouseout', function(d,i){
+			.on('mouseout.d3b-element-mouseout', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -3836,19 +4727,19 @@ AD.CHARTS.axisChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.x.axis.tickFormat($$.xFormat);});
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.y.axis.tickFormat($$.yFormat);});
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.xAlias.axis.tickFormat($$.xFormat);});
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.yAlias.axis.tickFormat($$.yFormat);});
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	//rotate the chart, set x,y scales accordingly
 	chart.rotate = function(value){
@@ -3866,7 +4757,7 @@ AD.CHARTS.axisChart = function(){
 	};
 
 	//x/y setters
-	chart.x = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
+	chart.x = d3b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
 		if(value.orientation)
 			$$.xAlias.orientation = value.orientation;
 
@@ -3879,7 +4770,7 @@ AD.CHARTS.axisChart = function(){
 		}
 
 	});
-	chart.y = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
+	chart.y = d3b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
 		if(value.orientation)
 			$$.yAlias.orientation = value.orientation;
 
@@ -3929,7 +4820,7 @@ AD.CHARTS.axisChart = function(){
 		$$.generateRequired = false;
 
 		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
-		AD.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		//init legend properties
 		$$.legend
@@ -3939,69 +4830,70 @@ AD.CHARTS.axisChart = function(){
 		//init control properties
 		$$.controls
 				.selection($$.selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change.d3b-change',function(d,i){
 					$$.controlsData[d.key].enabled = d.state;
-					// $$.updateScaleDomains();
 					chart.update();
 				});
 
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','ad-axis-chart');
+				.attr('class','d3b-axis-chart');
 
 		$$.selection.axes = $$.selection.main
 			.append('g')
-				.attr('class','ad-axes');
+				.attr('class','d3b-axes');
 
 		$$.selection.axes.x = $$.selection.axes
 			.append('g')
-				.attr('class','ad-axis ad-x');
+				.attr('class','d3b-axis d3b-x');
 
 		$$.selection.axes.x.label = $$.selection.axes.x
 			.append('g')
-				.attr('class','ad-label');
+				.attr('class','d3b-label');
 		$$.selection.axes.x.label.text = $$.selection.axes.x.label
 			.append('text');
 
 		$$.selection.axes.y = $$.selection.axes
 			.append('g')
-				.attr('class','ad-axis ad-y');
+				.attr('class','d3b-axis d3b-y');
 
 		$$.selection.axes.y.label = $$.selection.axes.y
 			.append('g')
-				.attr('class','ad-label');
+				.attr('class','d3b-label');
 		$$.selection.axes.y.label.text = $$.selection.axes.y.label
 			.append('text')
 		    .attr('transform', 'rotate(-90)');
 
 		$$.selection.grid = $$.selection.main
 			.append('g')
-				.attr('class','ad-grid');
+				.attr('class','d3b-grid');
 
 		$$.selection.grid.x = $$.selection.grid
 			.append('g')
-				.attr('class','ad-grid ad-x');
+				.attr('class','d3b-grid d3b-x');
 
 		$$.selection.grid.y = $$.selection.grid
 			.append('g')
-				.attr('class','ad-grid ad-y');
+				.attr('class','d3b-grid d3b-y');
 
 		$$.selection.types = $$.selection.main
 			.append('g')
-				.attr('class','ad-axis-types');
+				.attr('class','d3b-axis-types');
 		$$.selection.types.background = $$.selection.types
 			.append('g')
-				.attr('class','ad-axis-types-background');
+				.attr('class','d3b-axis-types-background');
 		$$.selection.types.foreground = $$.selection.types
 			.append('g')
-				.attr('class','ad-axis-types-foreground');
+				.attr('class','d3b-axis-types-foreground');
 
 		$$.legend.on('elementMouseover',function(d){
+			var background = $$.persistentChartData[d.type][d.label].background;
+			var foreground = $$.persistentChartData[d.type][d.label].foreground;
 
-			if(d.background && d.foreground){
-				var backgroundNode = d.background.node();
-				var foregroundNode = d.foreground.node();
+			if(background && foreground){
+				var backgroundNode = background.node();
+				var foregroundNode = foreground.node();
 				//bring the type and the graph to the front for the foreground and background
 				if(backgroundNode.parentNode){
 					backgroundNode.parentNode.appendChild(backgroundNode);
@@ -4011,7 +4903,7 @@ AD.CHARTS.axisChart = function(){
 				if(foregroundNode.parentNode){
 					foregroundNode.parentNode.appendChild(foregroundNode);
 					if(foregroundNode.parentNode.parentNode)
-					foregroundNode.parentNode.parentNode.appendChild(foregroundNode.parentNode);
+						foregroundNode.parentNode.parentNode.appendChild(foregroundNode.parentNode);
 				}
 
 				//dim all but the corresponding graph
@@ -4023,11 +4915,11 @@ AD.CHARTS.axisChart = function(){
 					.transition()
 						.duration($$.animationDuration/2)
 						.style('opacity', 0.2);
-				d.background
+				background
 					.transition()
 						.duration($$.animationDuration/2)
 						.style('opacity', 1);
-				d.foreground
+				foreground
 					.transition()
 						.duration($$.animationDuration/2)
 						.style('opacity', 1);
@@ -4070,7 +4962,7 @@ AD.CHARTS.axisChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -4080,10 +4972,10 @@ AD.CHARTS.axisChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		AD.UTILS.CHARTS.HELPERS.updateControls($$);
+		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		//save the type of each graph
 		$$.currentChartData.types.forEach(function(type){
@@ -4107,7 +4999,7 @@ AD.CHARTS.axisChart = function(){
 				)
 			);
 		}
-		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
 			// || ($$.legend.computedWidth() && ($$.legendOrientation == 'top'||$$.legendOrientation == 'bottom'))){
@@ -4119,7 +5011,7 @@ AD.CHARTS.axisChart = function(){
 				.duration($$.animationDuration)
 				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		$$.initGraphs();
 
@@ -4153,7 +5045,6 @@ AD.CHARTS.axisChart = function(){
 					.attr('transform','');
 		}
 
-
 		$$.updateGraphs();
 
 		d3.timer.flush();
@@ -4169,19 +5060,19 @@ AD.CHARTS.axisChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-//TODO: ADD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
+//TODO: d3bD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
 //TODO: ATTACH ALL PRIVATE VARIABLES/MEHTODS TO BE STORED ON THE PRIVATE STORE '_'
 
 /*sankey chart*/
-AD.CHARTS.sankeyChart = function(){
+d3b.CHARTS.sankeyChart = function(){
 
 	//private
 	var _ = {};
-	_.on = AD.CONSTANTS.DEFAULTEVENTS();
+	_.on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 
@@ -4189,14 +5080,14 @@ AD.CHARTS.sankeyChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
+	var legend = new d3b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 				nodes:[],
@@ -4223,7 +5114,7 @@ AD.CHARTS.sankeyChart = function(){
 			};
 
 	//init event object
-	// var on = AD.CONSTANTS.DEFAULTEVENTS();
+	// var on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	var xFormat = function(value){return value};
 
@@ -4263,7 +5154,7 @@ AD.CHARTS.sankeyChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
+		xFormat = d3b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -4318,7 +5209,7 @@ AD.CHARTS.sankeyChart = function(){
 	// 	return chart;
 	// };
 
-	chart.on = AD.UTILS.CHARTS.MEMBERS.on(chart, _);
+	chart.on = d3b.UTILS.CHARTS.MEMBERS.on(chart, _);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return currentChartData;
@@ -4356,51 +5247,51 @@ AD.CHARTS.sankeyChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','ad-sankey-chart ad-svg ad-container');
+				.attr('class','d3b-sankey-chart d3b-svg d3b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.sankey = selection.group
 			.append('g')
-				.attr('class','ad-sankey');
+				.attr('class','d3b-sankey');
 		selection.group.sankey.links = selection.group.sankey
 			.append('g')
-				.attr('class','ad-sankey-links');
+				.attr('class','d3b-sankey-links');
 		selection.group.sankey.nodes = selection.group.sankey
 			.append('g')
-				.attr('class','ad-sankey-nodes');
+				.attr('class','d3b-sankey-nodes');
 
 		selection.group.labels = selection.group
 			.append('g')
-				.attr('class','ad-sankey-labels');
+				.attr('class','d3b-sankey-labels');
 
 		selection.group.labels.source = selection.group.labels
 			.append('g')
-				.attr('class','ad-sankey-label-source');
+				.attr('class','d3b-sankey-label-source');
 
 		selection.group.labels.source.text = selection.group.labels.source.append('text').attr('y',23);
 
 		selection.group.labels.destination = selection.group.labels
 			.append('g')
-				.attr('class','ad-sankey-label-destination');
+				.attr('class','d3b-sankey-label-destination');
 
 		selection.group.labels.destination.text = selection.group.labels.destination.append('text').attr('y',23);
 
 		selection.group.columnHeaders = selection.group
 			.append('g')
-				.attr('class','ad-sankey-column-headers');
+				.attr('class','d3b-sankey-column-headers');
 
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','ad-controls');
+				.attr('class','d3b-controls');
 
 
 		horizontalControls
 				.selection(selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					controls[d.key].enabled = d.state;
 					if(d.key == 'sort' || d.key == 'hideLegend'){
 						newData = true;
@@ -4412,7 +5303,7 @@ AD.CHARTS.sankeyChart = function(){
 		// //create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','ad-legend');
+				.attr('class','d3b-legend');
 
 		// //intialize new legend
 		legend
@@ -4436,11 +5327,11 @@ AD.CHARTS.sankeyChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
-		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -4562,10 +5453,10 @@ AD.CHARTS.sankeyChart = function(){
 					.duration(animationDuration)
 					.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
 
-			columnHeader = selection.group.columnHeaders.selectAll('g.ad-sankey-column-header').data(currentChartData.columnHeaders);
+			columnHeader = selection.group.columnHeaders.selectAll('g.d3b-sankey-column-header').data(currentChartData.columnHeaders);
 			columnHeader.enter()
 				.append('g')
-					.attr('class','ad-sankey-column-header')
+					.attr('class','d3b-sankey-column-header')
 				.append('text')
 					.attr('y',16)
 					.attr('x',function(d,i){
@@ -4602,7 +5493,7 @@ AD.CHARTS.sankeyChart = function(){
 				.layout(layout);
 
 
-		var node = selection.group.sankey.nodes.selectAll('g.ad-sankey-node')
+		var node = selection.group.sankey.nodes.selectAll('g.d3b-sankey-node')
 				.data(currentChartData.nodes,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -4613,16 +5504,16 @@ AD.CHARTS.sankeyChart = function(){
 					});
 		var newNode = node.enter()
 			.append('g')
-				.attr('class','ad-sankey-node')
-				.on('mouseover.ad-mouseover',function(d,i){
-					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
+				.attr('class','d3b-sankey-node')
+				.on('mouseover.d3b-mouseover',function(d,i){
+					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
-					AD.UTILS.removeTooltip();
+				.on('mouseout.d3b-mouseout',function(d,i){
+					d3b.UTILS.removeTooltip();
 				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',0)
-				.call(AD.UTILS.bindElementEvents, _, 'node');
+				.call(d3b.UTILS.bindElementEvents, _, 'node');
 		newNode.append('rect');
 		newNode.append('text');
 
@@ -4648,7 +5539,7 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('x',function(d){return (d.x < innerWidth/2)? sankey.nodeWidth()+5:-5;})
 				.attr('y',function(d){return d.dy/2+5;})
 
-		var link = selection.group.sankey.links.selectAll('g.ad-sankey-link')
+		var link = selection.group.sankey.links.selectAll('g.d3b-sankey-link')
 				.data(currentChartData.links,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -4660,15 +5551,15 @@ AD.CHARTS.sankeyChart = function(){
 					});
 		var newLink = link.enter()
 			.append('g')
-				.attr('class','ad-sankey-link')
-				.on('mouseover.ad-mouseover',function(d,i){
-					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
+				.attr('class','d3b-sankey-link')
+				.on('mouseover.d3b-mouseover',function(d,i){
+					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
-					AD.UTILS.removeTooltip();
+				.on('mouseout.d3b-mouseout',function(d,i){
+					d3b.UTILS.removeTooltip();
 				})
 				.style('opacity',0)
-				.call(AD.UTILS.bindElementEvents, _, 'link');
+				.call(d3b.UTILS.bindElementEvents, _, 'link');
 
 		// console.log(newLink)
 		newLink.append('path');
@@ -4728,11 +5619,11 @@ AD.CHARTS.sankeyChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-AD.CHARTS.pieChart = function(){
+d3b.CHARTS.pieChart = function(){
 
 	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 
@@ -4741,14 +5632,14 @@ AD.CHARTS.pieChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
+	var legend = new d3b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {};
 
@@ -4758,7 +5649,7 @@ AD.CHARTS.pieChart = function(){
 			};
 
 	//init event object
-	var on = AD.CONSTANTS.DEFAULTEVENTS();
+	var on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	var donutRatio = 0;
 
@@ -4820,7 +5711,7 @@ AD.CHARTS.pieChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
+		xFormat = d3b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -4878,28 +5769,28 @@ AD.CHARTS.pieChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','ad-pie-chart ad-svg ad-container');
+				.attr('class','d3b-pie-chart d3b-svg d3b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.pie = selection.group
 			.append('g')
-				.attr('class','ad-pie');
+				.attr('class','d3b-pie');
 		// //create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','ad-legend');
+				.attr('class','d3b-legend');
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','ad-controls');
+				.attr('class','d3b-controls');
 
 
 		horizontalControls
 				.selection(selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
 				});
@@ -4908,18 +5799,18 @@ AD.CHARTS.pieChart = function(){
 		legend
 				.color(color)
 				.selection(selection.legend)
-				// .on('elementMouseover.ad-mouseover',function(d){
+				// .on('elementMouseover.d3b-mouseover',function(d){
 				// 	console.log(d.path)
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1.01)')
 				// 	// 			.style('fill-opacity',0.9);
 				// })
-				// .on('elementMouseout.ad-mouseout',function(d){
+				// .on('elementMouseout.d3b-mouseout',function(d){
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1)')
 				// 	// 			.style('fill-opacity','');
 				// });
@@ -4942,11 +5833,11 @@ AD.CHARTS.pieChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
-		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -4985,7 +5876,7 @@ AD.CHARTS.pieChart = function(){
 		// currentChartData.values = pie(currentChartData.values);
 		var arcGroup = selection.group.pie
 					.datum(currentChartData.values)
-				.selectAll("g.ad-arc")
+				.selectAll("g.d3b-arc")
 					.data(pie,function(d,i){
 						if(d.data.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000);
@@ -4997,7 +5888,7 @@ AD.CHARTS.pieChart = function(){
 
 		var newArcGroup = arcGroup.enter()
 			.append('g')
-				.attr('class','ad-arc')
+				.attr('class','d3b-arc')
 				.style('opacity',0);
 
 		arcGroup
@@ -5025,7 +5916,7 @@ AD.CHARTS.pieChart = function(){
 				// .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; });
 
 		// newArcGroup.append('g')
-		// 		.attr('class','ad-pie-label')
+		// 		.attr('class','d3b-pie-label')
 		// 		.attr("transform", function(d) {
 		// 		    var c = arc.centroid(d),
 		// 		        x = c[0],
@@ -5050,8 +5941,8 @@ AD.CHARTS.pieChart = function(){
 						return color(d.data.label);
 					}
 				})
-				.on('mouseover.ad-mouseover',null)
-				.on('mouseout.ad-mouseout',null);
+				.on('mouseover.d3b-mouseover',null)
+				.on('mouseout.d3b-mouseout',null);
 		var arcPathTransition = arcPath
 			.transition()
 				.duration(animationDuration)
@@ -5068,30 +5959,30 @@ AD.CHARTS.pieChart = function(){
 		arcPathTransition.each("end",function(d){
 			var elem = d3.select(this);
 			elem
-					.on('mouseover.ad-mouseover',function(d,i){
+					.on('mouseover.d3b-mouseover',function(d,i){
 						elem
 							.transition()
-								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1.01)')
 								.style('fill-opacity',0.9);
 
-						AD.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
+						d3b.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
 						for(key in on.elementMouseover){
 							on.elementMouseover[key].call(this,d,i,'arc');
 						}
 					})
-					.on('mouseout.ad-mouseout',function(d,i){
+					.on('mouseout.d3b-mouseout',function(d,i){
 						elem
 							.transition()
-								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1)')
 								.style('fill-opacity','')
-						AD.UTILS.removeTooltip();
+						d3b.UTILS.removeTooltip();
 						for(key in on.elementMouseout){
 							on.elementMouseout[key].call(this,d,i,'arc');
 						}
 					})
-					.on('click.ad-click',function(d,i){
+					.on('click.d3b-click',function(d,i){
 						for(key in on.elementClick){
 							on.elementClick[key].call(this,d,i,'arc');
 						}
@@ -5132,11 +6023,11 @@ AD.CHARTS.pieChart = function(){
 
 
 /*axis chart*/
-AD.CHARTS.interactiveBarChart = function(){
+d3b.CHARTS.interactiveBarChart = function(){
 
 	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 	var dimensions = {horizontal:innerWidth, vertical:innerHeight};
@@ -5155,18 +6046,18 @@ AD.CHARTS.interactiveBarChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
+	var legend = new d3b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
 	var xFormat = function(value){return value};
 	var yFormat = function(value){return value};
 
 	//init event object
-	var on = AD.CONSTANTS.DEFAULTEVENTS();
+	var on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	var orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 
@@ -5176,8 +6067,8 @@ AD.CHARTS.interactiveBarChart = function(){
 					type: "checkbox",
 					visible: false,
 					enabled: false,
-					maxStacked:AD.CONSTANTS.DEFAULTHEIGHT(),
-					maxNonStacked:AD.CONSTANTS.DEFAULTHEIGHT()
+					maxStacked:d3b.CONSTANTS.DEFAULTHEIGHT(),
+					maxNonStacked:d3b.CONSTANTS.DEFAULTHEIGHT()
 				},
 				stacking: {
 					label: "Stack Bars",
@@ -5199,7 +6090,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				}
 			};
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 				columns: {},
@@ -5225,23 +6116,23 @@ AD.CHARTS.interactiveBarChart = function(){
 	var updateColumn = function(column){
 		var bar = column.svg.selectAll('rect').data(column.data.values, function(d){return d.x});
 		bar.enter().append('rect')
-				.attr('class','ad-bar-rect')
+				.attr('class','d3b-bar-rect')
 				.style('opacity',0)
 				.attr(orientation.height,0)
 				.attr(orientation.y,(controls.horizontal.enabled)? 0:dimensions.vertical)
-				.on('mouseover.ad-mouseover',function(d,i){
-					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
+				.on('mouseover.d3b-mouseover',function(d,i){
+					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i,'bar');
 					}
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
-					AD.UTILS.removeTooltip();
+				.on('mouseout.d3b-mouseout',function(d,i){
+					d3b.UTILS.removeTooltip();
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i,'bar');
 					}
 				})
-				.on('click.ad-click',function(d,i){
+				.on('click.d3b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i,'bar');
 					}
@@ -5443,12 +6334,12 @@ AD.CHARTS.interactiveBarChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
+		xFormat = d3b.UTILS.numberFormat(value);
 		return chart;
 	};
 	chart.yFormat = function(value){
 		if(!arguments.length) return yFormat;
-		yFormat = AD.UTILS.numberFormat(value);
+		yFormat = d3b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -5519,7 +6410,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','ad-interactive-bar-chart ad-svg ad-container');
+				.attr('class','d3b-interactive-bar-chart d3b-svg d3b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
@@ -5527,20 +6418,20 @@ AD.CHARTS.interactiveBarChart = function(){
 		//create axis containers
 		selection.group.axes = selection.group
 			.append('g')
-				.attr('class','ad-axes');
+				.attr('class','d3b-axes');
 		selection.group.axes.x = selection.group.axes
 			.append('g')
-				.attr('class','ad-x ad-axis');
+				.attr('class','d3b-x d3b-axis');
 		selection.group.axes.y = selection.group.axes
 			.append('g')
-				.attr('class','ad-y ad-axis');
+				.attr('class','d3b-y d3b-axis');
 		selection.group.axes.xLabel = selection.group.axes
 			.append('g')
-				.attr('class','ad-x-label')
+				.attr('class','d3b-x-label')
 			.append('text');
 		selection.group.axes.yLabel = selection.group.axes
 			.append('g')
-				.attr('class','ad-y-label')
+				.attr('class','d3b-y-label')
 			.append('text');
 
 
@@ -5548,7 +6439,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		//create column containers
 		selection.group.columns = selection.group
 			.append('g')
-				.attr('class','ad-columns');
+				.attr('class','d3b-columns');
 
 		for(key in currentChartData.columns){
 			currentChartData.columns[key].svg = selection.group.columns
@@ -5558,12 +6449,12 @@ AD.CHARTS.interactiveBarChart = function(){
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','ad-controls');
+				.attr('class','d3b-controls');
 
 		//intialize new controls
 		horizontalControls
 				.selection(selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
 				});
@@ -5571,13 +6462,13 @@ AD.CHARTS.interactiveBarChart = function(){
 		//create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','ad-legend');
+				.attr('class','d3b-legend');
 
 		//intialize new legend
 		legend
 				.color(color)
 				.selection(selection.legend)
-				.on('elementMouseover.ad-mouseover',function(d,i){
+				.on('elementMouseover.d3b-mouseover',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/2)
@@ -5586,14 +6477,14 @@ AD.CHARTS.interactiveBarChart = function(){
 						.transition()
 							.duration(0)
 							.style('opacity',1);
-					// .classed('ad-legend-mouseover',true);
+					// .classed('d3b-legend-mouseover',true);
 				})
-				.on('elementMouseout.ad-mouseout',function(d,i){
+				.on('elementMouseout.d3b-mouseout',function(d,i){
 					selection.group.columns.selectAll('rect')
 						.transition()
 							.duration(animationDuration/4)
 							.style('opacity',1);
-					// d.data.svg.classed('ad-legend-mouseover',false);
+					// d.data.svg.classed('d3b-legend-mouseover',false);
 				});
 
 
@@ -5614,7 +6505,7 @@ AD.CHARTS.interactiveBarChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		forcedMargin.bottom += 20;
 		forcedMargin.left += 20;
 
@@ -5632,7 +6523,7 @@ AD.CHARTS.interactiveBarChart = function(){
 			orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
 		}
 
-		var columns = AD.UTILS.getValues(currentChartData.columns);
+		var columns = d3b.UTILS.getValues(currentChartData.columns);
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
@@ -5650,7 +6541,7 @@ AD.CHARTS.interactiveBarChart = function(){
 		}
 		legend.width(innerWidth).data(legendData).update();
 
-		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -5714,7 +6605,7 @@ AD.CHARTS.interactiveBarChart = function(){
 					yVals.push(bar.y);
 				});
 			});
-			yVals = yVals.concat(AD.UTILS.getValues(yValsStackedBars));
+			yVals = yVals.concat(d3b.UTILS.getValues(yValsStackedBars));
 		}else{
 			columns.forEach(function(column){
 				if(column.data.values){
@@ -5730,10 +6621,10 @@ AD.CHARTS.interactiveBarChart = function(){
 
 		if(scales[orientation.horizontal].type == 'ordinal'){
 			scales[orientation.horizontal].scale.rangeRoundBands([0, dimensions[orientation.horizontal]], .1);
-			domains[orientation.horizontal] = AD.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
+			domains[orientation.horizontal] = d3b.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
 		}else{
 			scales[orientation.horizontal].scale.range([0, dimensions[orientation.horizontal]])
-			domains[orientation.horizontal] = AD.UTILS.AXISCHARTS.getDomainLinear(xVals);
+			domains[orientation.horizontal] = d3b.UTILS.AXISCHARTS.getDomainLinear(xVals);
 		}
 		if(controls.yAxisLock.enabled){
 			if(controls.stacking.enabled){
@@ -5742,7 +6633,7 @@ AD.CHARTS.interactiveBarChart = function(){
 				domains[orientation.vertical] = [0,controls.yAxisLock.maxNonStacked];
 			}
 		}else{
-			domains[orientation.vertical] = AD.UTILS.AXISCHARTS.getDomainLinear(yVals);
+			domains[orientation.vertical] = d3b.UTILS.AXISCHARTS.getDomainLinear(yVals);
 		}
 		scales[orientation.vertical].scale.range([dimensions[orientation.vertical], 0]);
 
@@ -5889,36 +6780,36 @@ AD.CHARTS.interactiveBarChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*guage chart*/
-AD.CHARTS.guageChart = function(){
+d3b.CHARTS.guageChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
-	$$.percentFormat = AD.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.percentFormat = d3b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
 
 	$$.arc = d3.svg.arc()
@@ -5931,13 +6822,14 @@ AD.CHARTS.guageChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.color = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -5961,28 +6853,28 @@ AD.CHARTS.guageChart = function(){
 	  //create svg
 	  $$.selection.svg = $$.selection
 	    .append('svg')
-	      .attr('class','ad-template-chart ad-svg ad-container');
+	      .attr('class','d3b-template-chart d3b-svg d3b-container');
 
 	  //create group container
-	  $$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	  $$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
 	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','ad-guage-chart');
+				.attr('class','d3b-guage-chart');
 
 		$$.selection.arcs = $$.selection.main.append('g');
 
 
 		$$.selection.arcHeader = $$.selection.main
 			.append('text')
-				.attr('class','ad-guage-arc-header');
+				.attr('class','d3b-guage-arc-header');
 
 		$$.selection.arcLabels = $$.selection.main
 			.append('g')
-						.attr('class','ad-guage-arc-labels');
+						.attr('class','d3b-guage-arc-labels');
 
 		$$.selection.arcLabels.start = $$.selection.arcLabels.append('text')
 				.attr('y', 20)
@@ -5992,7 +6884,7 @@ AD.CHARTS.guageChart = function(){
 				.text('100%');
 		$$.selection.arcLabels.percent = $$.selection.arcLabels
 			.append('text')
-				.attr('class', 'ad-guage-arc-percent')
+				.attr('class', 'd3b-guage-arc-percent')
 				.text('0%');
 
 		// $$.selection.arcs.filled = $$.selection.arcs.append('path');
@@ -6017,7 +6909,7 @@ AD.CHARTS.guageChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -6026,7 +6918,7 @@ AD.CHARTS.guageChart = function(){
 				.attr('width',$$.width)
 				.attr('height',$$.height);
 
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 
 
@@ -6053,7 +6945,7 @@ AD.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.percent-Math.PI/2,
-					color: 'rgb(193,0,55)',
+					color: $$.color($$.currentChartData.label),
 					filled:true
 				},
 				{
@@ -6071,7 +6963,7 @@ AD.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
-					color: 'rgb(193,0,55)',
+					color: $$.color($$.currentChartData.label),
 					filled:true
 				},
 				{
@@ -6087,7 +6979,7 @@ AD.CHARTS.guageChart = function(){
 					percent: percent,
 					start:-Math.PI/2,
 					end:-Math.PI/2,
-					color:"rgb(193, 0, 55)",
+					color: $$.color($$.currentChartData.label),
 					filled:true
 				},
 				{
@@ -6113,23 +7005,23 @@ AD.CHARTS.guageChart = function(){
 					this._radiusCurrent = {inner:radius.current.inner, outer:radius.current.outer};
 				})
 		newArc.filter(function(d){return d.filled;})
-				.on('mouseover.ad-mouseover',function(d,i){
+				.on('mouseover.d3b-mouseover',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1.05)');
-					AD.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
+					d3b.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
+				.on('mouseout.d3b-mouseout',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1)');
-					AD.UTILS.removeTooltip();
+					d3b.UTILS.removeTooltip();
 				})
-				.call(AD.UTILS.bindElementEvents, $$, 'arc');
+				.call(d3b.UTILS.bindElementEvents, $$, 'arc');
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
 			.transition()
@@ -6148,7 +7040,7 @@ AD.CHARTS.guageChart = function(){
 					};
 				})
 				.style('fill', function(d){return d.color;})
-				.attr('class', 'ad-arc');
+				.attr('class', 'd3b-arc');
 
 		// $$.selection.main
 			// .transition()
@@ -6213,26 +7105,26 @@ AD.CHARTS.guageChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*iframe chart*/
-AD.CHARTS.iframeChart = function(){
+d3b.CHARTS.iframeChart = function(){
 
 	//define iframeChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var generateRequired = true; //using some methods may require the chart to be redrawn
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 			};
 
 	//init event object
-	var on = AD.CONSTANTS.DEFAULTEVENTS();
+	var on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
@@ -6306,11 +7198,11 @@ AD.CHARTS.iframeChart = function(){
 
 		selection.div = selection
 			.append('div')
-				.attr('class','ad-iframe-chart ad-container');
+				.attr('class','d3b-iframe-chart d3b-container');
 
 		selection.div.iframe = selection.div
 			.append('iframe')
-				.attr('class','ad-iframe')
+				.attr('class','d3b-iframe')
 				.attr('src',currentChartData.url);
 
 		//auto update chart
@@ -6351,10 +7243,10 @@ AD.CHARTS.iframeChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*multi chart*/
-AD.CHARTS.multiChart = function(){
+d3b.CHARTS.multiChart = function(){
 	//define multiChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerWidth, innerHeight;
 
@@ -6362,10 +7254,10 @@ AD.CHARTS.multiChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 			};
@@ -6412,13 +7304,13 @@ AD.CHARTS.multiChart = function(){
 		});
 		selection.buttonsWrapper.buttons.button.enter()
 			.append('li')
-			.on('click.ad-click', buttonClick)
-			.on('mouseover.ad-mouseover', buttonMouseover)
-			.on('mouseout.ad-mouseout', buttonMouseout);
+			.on('click.d3b-click', buttonClick)
+			.on('mouseover.d3b-mouseover', buttonMouseover)
+			.on('mouseout.d3b-mouseout', buttonMouseout);
 
 		selection.buttonsWrapper.buttons.button
 			.text(function(d){return d.label;})
-			.classed('ad-selected',function(d){return d == current.chart;});
+			.classed('d3b-selected',function(d){return d == current.chart;});
 
 	};
 
@@ -6433,17 +7325,17 @@ AD.CHARTS.multiChart = function(){
 		}
 		var masterType = 'multiChart-'+current.chart.type+'-';
 		adChart
-			.on('elementClick.ad-click', function(d,i,type){
+			.on('elementClick.d3b-click', function(d,i,type){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i,masterType+type);
 					}
 			})
-			.on('elementMouseover.ad-mouseover', function(d,i,type){
+			.on('elementMouseover.d3b-mouseover', function(d,i,type){
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i,masterType+type);
 					}
 			})
-			.on('elementMouseout.ad-mouseout', function(d,i,type){
+			.on('elementMouseout.d3b-mouseout', function(d,i,type){
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i,masterType+type);
 					}
@@ -6454,17 +7346,17 @@ AD.CHARTS.multiChart = function(){
 		if(!selection.chartWrapper.chart){
 			selection.chartWrapper.chart = selection.chartWrapper
 				.append('div')
-					.attr('class','ad-multi-chart-chart')
+					.attr('class','d3b-multi-chart-chart')
 					.style('opacity',1);
-			// AD.UTILS.chartAdapter(current.chart.type, current.chart);
+			// d3b.UTILS.chartAdapter(current.chart.type, current.chart);
 			adChart = current.chart.chart;
 			adChart
 				.selection(selection.chartWrapper.chart)
-				.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
+				.data(current.chart.data); //clone data for update
 		}else if(current.chart != previous.chart){
 			if(current.chart.type == previous.chart.type){
 				adChart
-					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
+					.data(current.chart.data); //clone data for update
 			}else{
 				selection.chartWrapper.chart
 					.transition()
@@ -6474,10 +7366,10 @@ AD.CHARTS.multiChart = function(){
 
 				selection.chartWrapper.chart = selection.chartWrapper
 					.append('div')
-						.attr('class','ad-multi-chart-chart')
+						.attr('class','d3b-multi-chart-chart')
 						.style('opacity',0);
 
-				// AD.UTILS.chartAdapter(current.chart.type, current.chart);
+				// d3b.UTILS.chartAdapter(current.chart.type, current.chart);
 				adChart = current.chart.chart;
 				adChart
 					.selection(selection.chartWrapper.chart)
@@ -6575,7 +7467,7 @@ AD.CHARTS.multiChart = function(){
 		currentChartData = chartData.data;
 
 		currentChartData.charts.forEach(function(d){
-			d.chart = new AD.CHARTS[d.type]();
+			d.chart = new d3b.CHARTS[d.type]();
 		});
 
 		return chart;
@@ -6595,16 +7487,16 @@ AD.CHARTS.multiChart = function(){
 		//create button container
 		selection.buttonsWrapper = selection
 			.append('div')
-				.attr('class','ad-multi-chart-buttons-wrapper');
+				.attr('class','d3b-multi-chart-buttons-wrapper');
 
 		selection.buttonsWrapper.buttons = selection.buttonsWrapper
 			.append('ul')
-				.attr('class','ad-buttons');
+				.attr('class','d3b-buttons');
 
 		// selection.style('position','relative');
 		selection.chartWrapper = selection
 			.append('div')
-				.attr('class','ad-multi-chart ad-container');
+				.attr('class','d3b-multi-chart d3b-container');
 
 		// currentChartData.charts.forEach(function(d){
 		// 	d.chart.selection(selection.chartWrapper);
@@ -6653,43 +7545,43 @@ AD.CHARTS.multiChart = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-AD.CHARTS.templateChart = function(){
+d3b.CHARTS.templateChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new AD.UTILS.LEGENDS.legend();
+	$$.legend = new d3b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new AD.UTILS.CONTROLS.horizontalControls();
+	$$.controls = new d3b.UTILS.CONTROLS.horizontalControls();
 	//controls data
 	$$.controlsData = {
 				hideLegend: {
@@ -6704,18 +7596,18 @@ AD.CHARTS.templateChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -6733,7 +7625,7 @@ AD.CHARTS.templateChart = function(){
 		$$.generateRequired = false;
 
 		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
-		AD.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		//init legend properties
 		$$.legend
@@ -6743,7 +7635,7 @@ AD.CHARTS.templateChart = function(){
 		//init control properties
 		$$.controls
 				.selection($$.selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					$$.controlsData[d.key].enabled = d.state;
 					chart.update();
 				});
@@ -6751,7 +7643,7 @@ AD.CHARTS.templateChart = function(){
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','ad-main-chart');
+				.attr('class','d3b-main-chart');
 
 		//auto update chart
 		var temp = $$.animationDuration;
@@ -6772,7 +7664,7 @@ AD.CHARTS.templateChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -6782,10 +7674,10 @@ AD.CHARTS.templateChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		AD.UTILS.CHARTS.HELPERS.updateControls($$);
+		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		//set legend data and update legend viz
 		if($$.controlsData.hideLegend.enabled){
@@ -6794,14 +7686,14 @@ AD.CHARTS.templateChart = function(){
 			//----replace array with a custom legend builder
 			$$.legendData.data.items = [{'label':'item 1'},{'label':'item 2'},{'label':'item 3'},{'label':'item 4'},{'label':'item 5'},{'label':'item 6'}]
 		}
-		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		$$.selection.main
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//----chart code goes here!
 		//----use innerHeight/innerWidth as the context dimensions and use forcedMargin.|left, right, top, or bottom| as the current positioning margin
@@ -6817,22 +7709,22 @@ AD.CHARTS.templateChart = function(){
 	return chart;
 };
 
-AD.UTILS.AXISCHART.scatter = function(){
+d3b.UTILS.AXISCHART.scatter = function(){
   
 };
 
 /* Copyright � 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-bar*/
-AD.UTILS.AXISCHART.TYPES.bar = function(){
+d3b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -6840,7 +7732,7 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 
   $$.groupScale = d3.scale.ordinal();
 
@@ -6857,18 +7749,18 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
   chart.xValues = function(){
     var values = [];
@@ -6929,12 +7821,11 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
       var bar = graph.selectAll('rect').data(graphData.values, function(d,i){
         return d.x;
       });
-
       var newBar = bar.enter()
         .append('rect')
         .style('fill', $$.color(graphData.label))
-        .call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-				.call(AD.UTILS.bindElementEvents, $$, 'bar');
+        .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+				.call(d3b.UTILS.bindElementEvents, $$, 'bar');
 
       if($$.controlsData.stackBars.enabled){
         newBar
@@ -6975,11 +7866,13 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
             .attr('y',$$.y.customScale(0))
             .attr('height',0);
 
+				var spacing = Math.min(1,($$.groupScale.rangeBand()*0.1));
+
         bar
           .transition()
             .duration($$.animationDuration)
-            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+1;})
-            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand()-2);})
+            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+spacing;})
+            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);})
             .attr('y', function(d){return $$.y.customBarScale(d.y).y;})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
@@ -6994,7 +7887,6 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
 		});
 
-
 		d3.timer.flush();
 
 		if(callback)
@@ -7006,7 +7898,7 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	return chart;
 };
 
-AD.UTILS.AXISCHART.TYPES.bar.tools = function(){
+d3b.UTILS.AXISCHART.TYPES.bar.tools = function(){
   return {
     controlsData:{
       stackBars: {
@@ -7022,15 +7914,15 @@ AD.UTILS.AXISCHART.TYPES.bar.tools = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-line*/
-AD.UTILS.AXISCHART.TYPES.line = function(){
+d3b.UTILS.AXISCHART.TYPES.line = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -7038,7 +7930,7 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.line = d3.svg.line()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -7047,18 +7939,18 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.xValues = function(){
     var values = [];
@@ -7089,7 +7981,7 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(AD.UTILS.bindElementEvents, $$, 'line');
+					.call(d3b.UTILS.bindElementEvents, $$, 'line');
 			}
 
 			if(graphData.interpolate){
@@ -7109,21 +8001,51 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
-			var circle = graph.selectAll('circle').data(function(d){return d.values;});
+			var point = graph.selectAll('g').data(function(d){return d.values;});
 
-			circle.enter()
+			newPoint = point.enter()
+				.append('g')
+				.attr('transform',function(d){
+					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')';
+				});
+
+			newPoint
 				.append('circle')
-					.attr('r', '4')
-					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-					.call(AD.UTILS.bindElementEvents, $$, 'line-point');
-			circle
+					.attr('r', 3.5);
+
+			newPoint
+				.append('circle')
+					.attr('r', 3.5)
+					.on('mouseover.d3b-mouseover',function(){
+						d3.select(this)
+							.transition()
+								.duration($$.animationDuration/2)
+								.attr('r',7)
+					})
+					.on('mouseout.d3b-mouseover',function(){
+						d3.select(this)
+							.transition()
+								.duration($$.animationDuration/2)
+								.attr('r',3.5)
+					})
+					.style('fill-opacity',0)
+					.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+					.call(d3b.UTILS.bindElementEvents, $$, 'line-point');
+
+
+			point
+				.selectAll('circle')
 					.style('stroke', $$.color(graphData.label))
-					.style('fill', 'white')
+					.style('fill', 'white');
+
+			point
 				.transition()
 					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.x.customScale(d.x);})
-					.attr('cy',function(d){return $$.y.customScale(d.y);});
-			circle.exit()
+					.attr('transform',function(d){
+						return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')';
+					});
+
+			point.exit()
 				.transition()
 					.duration($$.animationDuration)
 					.style('opacity',0)
@@ -7145,15 +8067,15 @@ AD.UTILS.AXISCHART.TYPES.line = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-area*/
-AD.UTILS.AXISCHART.TYPES.area = function(){
+d3b.UTILS.AXISCHART.TYPES.area = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -7161,7 +8083,7 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.area = d3.svg.area()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -7172,18 +8094,73 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+
+	$$.updatePoints = function(graphData, graph, yType){
+
+		$$.foreground.point[yType] = graph.selectAll('g.d3b-'+yType+'-point').data(function(d){return d.values;});
+
+		var newPoint = $$.foreground.point[yType].enter()
+			.append('g')
+				.attr('class','d3b-'+yType+'-point')
+				.attr('transform',function(d){
+					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d[yType])+')';
+				});
+
+		newPoint
+			.append('circle')
+				.attr('r', 3.5)
+
+		newPoint
+			.append('circle')
+				.attr('r', 3.5)
+				.style('fill-opacity',0)
+				.on('mouseover.d3b-mouseover',function(){
+					d3.select(this)
+						.transition()
+							.duration($$.animationDuration/2)
+							.attr('r',7)
+				})
+				.on('mouseout.d3b-mouseover',function(){
+					d3.select(this)
+						.transition()
+							.duration($$.animationDuration/2)
+							.attr('r',3.5)
+				})
+				.call(d3b.UTILS.bindElementEvents, $$, 'area-point-'+yType)
+				.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);});
+
+		$$.foreground.point[yType]
+			.selectAll('circle')
+				.style('stroke', $$.color(graphData.label))
+				.style('fill', 'white');
+
+		$$.foreground.point[yType]
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform',function(d){
+					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d[yType])+')';
+				});
+
+		$$.foreground.point[yType].exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.attr('r',0)
+				.remove();
+
+	};
 
 	chart.xValues = function(){
     var values = [];
@@ -7218,7 +8195,7 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(AD.UTILS.bindElementEvents, $$, 'area');
+					.call(d3b.UTILS.bindElementEvents, $$, 'area');
 			}
 
 			if(graphData.interpolate){
@@ -7239,56 +8216,10 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
-			$$.foreground.circleY = graph.selectAll('circle.ad-y-point').data(function(d){return d.values;});
+			$$.foreground.point = {};
 
-			$$.foreground.circleY.enter()
-				.append('circle')
-					.attr('class','ad-y-point')
-					.attr('r', '4')
-					.call(AD.UTILS.bindElementEvents, $$, 'area-point-y')
-					.on('mouseover.ad-mouseover',function(d,i){
-						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
-					})
-					.on('mouseout.ad-mouseout',function(d,i){
-						AD.UTILS.removeTooltip();
-					});
-					$$.foreground.circleY
-					.style('stroke', $$.color(graphData.label))
-					.style('fill', 'white')
-				.transition()
-					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.x.customScale(d.x);})
-					.attr('cy',function(d){return $$.y.customScale(d.y);});
-					$$.foreground.circleY.exit()
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0)
-					.attr('r',0)
-					.remove();
-
-
-			$$.foreground.circleY0 = graph.selectAll('circle.ad-y0-point').data(function(d){return d.values;});
-
-			$$.foreground.circleY0.enter()
-				.append('circle')
-					.call(AD.UTILS.bindElementEvents, $$, 'area-point-y0')
-					.attr('class','ad-y0-point')
-					.attr('r', '4')
-					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
-
-			$$.foreground.circleY0
-					.style('stroke', $$.color(graphData.label))
-					.style('fill', 'white')
-				.transition()
-					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.x.customScale(d.x);})
-					.attr('cy',function(d){return $$.y.customScale(d.y0);});
-			$$.foreground.circleY0.exit()
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0)
-					.attr('r',0)
-					.remove();
+			$$.updatePoints(graphData, graph, 'y');
+			$$.updatePoints(graphData, graph, 'y0');
 		});
 
 		d3.timer.flush();
@@ -7305,15 +8236,15 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-histogram*/
-AD.UTILS.AXISCHART.TYPES.histogram = function(){
+d3b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -7321,7 +8252,7 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.hist = d3.layout.histogram();
 
@@ -7329,18 +8260,18 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 	var chart = {};
 
 	//properties that will be set by the axis-chart main code
-	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
 	chart.xValues = function(){
     var values = [];
@@ -7390,11 +8321,11 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 
 			var newBar = bar.enter()
 				.append('rect')
-					.call(AD.UTILS.bindElementEvents, $$, 'histogram-bar')
+					.call(d3b.UTILS.bindElementEvents, $$, 'histogram-bar')
 					.style('fill', $$.color(graphData.label))
 					.attr('y',$$.y.customScale(0))
 					.attr('height',0)
-					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+					.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
 
 			bar
 				.transition()
@@ -7425,13 +8356,367 @@ AD.UTILS.AXISCHART.TYPES.histogram = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-AD.DASHBOARDS.dashboard = function(){
+/*axis-chart-bubble-pack*/
+d3b.UTILS.AXISCHART.TYPES.bubblePack = function(){
+
+	//private store
+	var $$ = {};
+
+	//default animation duration
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+
+  $$.packData = [];
+
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//formatting y values
+	$$.yFormat = function(value){return value};
+	//event object
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+
+  //pack layout
+  $$.pack = d3.layout.pack()
+    .size([500,500])
+    .value(function(d) { return d.size; });
+
+  $$.persistentData = {
+    expandedNodes:{}
+  };
+
+  $$.resetExpandedNodes = function(node){
+    $$.persistentData.expandedNodes[node.key] = false;
+    if(node.children){
+      node.children.forEach(function(child){
+        $$.resetExpandedNodes(child);
+      });
+    }
+  };
+
+  //This function will find the weighted position of all parent nodes based on child x/y/size
+  $$.setParentPositions = function(node){
+    if(node.children){
+      node.x0 = 0;
+      node.y0 = 0;
+      node.children.forEach(function(childNode){
+        $$.setParentPositions(childNode);
+        node.x0 += (childNode.x0 * childNode.value)/node.value;
+        node.y0 += (childNode.y0 * childNode.value)/node.value;
+      });
+    }
+  };
+
+  $$.flatten = function(root) {
+    var nodes = [], i = 0;
+
+    function recurse(node) {
+        if (node.children)
+            node.size = node.children.reduce(function(p, v) { return p + recurse(v); }, 0);
+        if (!node.id)
+            node.id = ++i;
+        nodes.push(node);
+        return node.size;
+    }
+
+    root.size = recurse(root);
+    return nodes;
+  }
+
+  $$.addNodeKey = function(d){
+    d.key = d.name;
+    if(d.parent){
+      d.key += $$.addNodeKey(d.parent);
+    }
+    return d.key;
+  };
+
+  $$.packJoin = function(){
+    var parentPack = {
+      children:$$.currentChartData.map(function(d){return d.pack;})
+    };
+    $$.pack(parentPack);
+    parentPack.children.forEach(function(d){d.parent = null;});
+  }
+
+  $$.bubbleEnter = function(graph, graphData, bubble){
+    newBubble = bubble.enter()
+      .append('g')
+        .attr('class', 'd3b-bubble')
+        .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+        .call(d3b.UTILS.bindElementEvents, $$, 'bubble')
+        .attr('transform', function(d){
+          if(d.parent){
+            if(!$$.persistentData.expandedNodes[d.parent.key])
+              return 'translate('+$$.x.customScale(d.parent.x0)+','+$$.y.customScale(d.parent.y0)+')';
+          }
+          return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
+        })
+        .style('opacity',0);
+
+    newBubble
+      .append('circle')
+        .attr('class','d3b-bubble-background')
+        .style('stroke', $$.color(graphData.label));
+
+    newBubble
+      .append('circle')
+        .attr('class','d3b-bubble-foreground')
+        .style('fill', $$.color(graphData.label));
+  };
+
+  $$.bubbleUpdate = function(graph, graphData, bubble){
+    //customize bubbles that contain children
+    var bubbleWithChildren = bubble
+      .filter(function(d){return (d.children)? true:false;})
+      .on('click.d3b-click',function(d){
+        $$.persistentData.expandedNodes[d.key] = true;
+        chart.update();
+      })
+      .style('cursor','pointer')
+      .on('mouseover.d3b-mouseover',function(d){
+        d3.select(this)
+          .select('.d3b-bubble-background')
+          .transition()
+            .duration($$.animationDuration/2)
+            .attr('r', 3+Math.max(0.5,d.r));
+      })
+      .on('mouseout.d3b-mouseout',function(d){
+          d3.select(this)
+            .select('.d3b-bubble-background')
+            .transition()
+              .duration($$.animationDuration/2)
+              .attr('r', Math.max(0.5,d.r));
+      });
+
+    //customize bubbles that do not contain children
+    bubbleWithChildren
+      .select('.d3b-bubble-background')
+      .style('stroke', d3.rgb($$.color(graphData.label)).darker(1));
+
+    var bubbleWithoutChildren = bubble.filter(function(d){return (d.children)? false:true;})
+      .style('cursor','auto');
+
+    bubbleWithoutChildren
+      .select('.d3b-bubble-background')
+      .style('stroke', d3.rgb($$.color(graphData.label)));
+
+    //transition visible bubbles
+    var bubbleVisibleTransition = bubble.filter(function(d){
+          if(d.parent){
+            if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
+              return true;
+          }else if(!$$.persistentData.expandedNodes[d.key])
+            return true;
+
+          return false;
+        })
+        .classed('d3b-hidden',false)
+      .transition()
+        .duration($$.animationDuration*1.5)
+        .style('opacity',0.7)
+        .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
+    bubbleVisibleTransition
+      .select('circle.d3b-bubble-background')
+        .attr('r', function(d){return Math.max(0.5,d.r);});
+    bubbleVisibleTransition
+      .select('circle.d3b-bubble-foreground')
+        .attr('r', function(d){return Math.max(0.5,d.r);});
+
+    //transition hidden bubbles
+    var bubbleHiddenTransition = bubble.filter(function(d){
+          if(d.parent){
+            if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
+              return false;
+          }else if(!$$.persistentData.expandedNodes[d.key])
+            return false;
+
+          return true;
+        })
+        .classed('d3b-hidden',true)
+      .transition()
+        .duration($$.animationDuration*1.5)
+        .style('opacity',0)
+        .attr('transform', function(d){
+          var translate = '';
+          if(d.parent)
+            translate = 'translate('+$$.x.customScale(d.parent.x0)+','+$$.y.customScale(d.parent.y0)+')';
+          else
+            translate = 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
+          return translate;
+        });
+    bubbleHiddenTransition
+      .select('circle.d3b-bubble-background')
+        .attr('r', function(d){return Math.max(1,d.r);});
+    bubbleHiddenTransition
+      .select('circle.d3b-bubble-foreground')
+        .attr('r', function(d){return Math.max(1,d.r);});
+
+  };
+
+  $$.bubbleExit = function(graph, graphData, bubble){
+    bubble.exit()
+      .transition()
+        .duration($$.animationDuration)
+        .style('opacity',0)
+        .remove();
+  };
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//properties that will be set by the axis-chart main code
+	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+
+	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
+	chart.xValues = function(){
+    var values = [];
+    $$.currentChartData.forEach(function(graphData){
+      values = values.concat(graphData.packed.map(function(v){
+        var val = v.x0;
+        if(v.x0 > 0)
+          val += v.r;
+        else
+          val -= v.r
+        return val;
+      }));
+    });
+    return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+    $$.currentChartData.forEach(function(graphData){
+      values = values.concat(graphData.packed.map(function(v){
+        var val = v.y0;
+        if(v.y0 > 0)
+          val += v.r;
+        else
+          val -= v.r
+        return val;
+      }));
+    });
+		return values;
+	};
+
+	chart.data = function(chartData){
+		if(!arguments.length) return $$.currentChartData;
+		$$.currentChartData = chartData;
+
+    $$.packJoin();
+
+    $$.currentChartData.forEach(function(graphData){
+      $$.setParentPositions(graphData.pack);
+      graphData.packed = $$.flatten(graphData.pack);
+      graphData.packed.forEach($$.addNodeKey);
+    });
+
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+    $$.pack.size([$$.width/2, $$.height/2]);
+    $$.packJoin();
+
+		$$.background.each(function(graphData){
+			var graph = d3.select(this);
+		});
+
+    var indicatorPosition = {x:10, y:10};
+
+		$$.foreground.each(function(graphData){
+			var graph = d3.select(this);
+
+      var bubble = graph.selectAll('g.d3b-bubble').data(graphData.packed, function(d){return d.key;});
+
+      $$.bubbleEnter(graph, graphData, bubble);
+      $$.bubbleUpdate(graph, graphData, bubble);
+      $$.bubbleExit(graph, graphData, bubble);
+
+      var expandedBubbleIndicator = graph.selectAll('g.d3b-expanded-bubble-indicator')
+        .data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
+
+      var newIndicator = expandedBubbleIndicator.enter()
+        .append('g')
+          .attr('class', 'd3b-expanded-bubble-indicator')
+          .on('click.d3b-click', function(d){
+            $$.resetExpandedNodes(d);
+            d3b.UTILS.removeTooltip();
+            chart.update();
+          })
+          .call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
+
+      newIndicator
+        .append('rect')
+          .attr('width', 50)
+          .attr('height', 20)
+          .style('fill', $$.color(graphData.label))
+          .style('stroke', d3.rgb($$.color(graphData.label)).darker(1));
+
+      newIndicator
+        .append('text')
+          .attr('x', 25)
+          .attr('y', 15)
+          .text(function(d){return d.name.substring(0,5);});
+
+      var indicatorTransition = expandedBubbleIndicator
+        .transition()
+          .duration($$.animationDuration);
+
+      indicatorTransition
+        .attr('transform', function(d){
+          indicatorPosition.x += 55;
+          if(indicatorPosition.x > $$.width-20){
+            indicatorPosition.y += 25;
+            indicatorPosition.x = 65;
+          }
+
+          return 'translate('+(indicatorPosition.x - 55)+','+indicatorPosition.y+')';
+        });
+
+      expandedBubbleIndicator.exit()
+        // .transition()
+        //   .duration($$.animationDuration)
+          // .style('opacity',0)
+          .remove();
+
+
+		});
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+d3b.DASHBOARDS.dashboard = function(){
 
 	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			margin = AD.CONSTANTS.DEFAULTMARGIN();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			margin = d3b.CONSTANTS.DEFAULTMARGIN();
 
-	var pageWidth = width - 200;
+	var pageMargin = 210;
+	var pageWidth = width - pageMargin;
 
 	var innerWidth = width;
 
@@ -7439,12 +8724,17 @@ AD.DASHBOARDS.dashboard = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-  var chartPage = new AD.UTILS.chartPage();
+  var dashboardCategory = new d3b.UTILS.dashboardCategory();
+	var chartPage = new d3b.UTILS.chartPage();
+  var controls = new d3b.UTILS.CONTROLS.htmlControls();
 
 	var sectionsByKey = {};
+
+	var controlsHidden = false;
+	var navigationHidden = false;
 
 	var navigationHistory = {};
 	navigationHistory.array = [];
@@ -7458,27 +8748,40 @@ AD.DASHBOARDS.dashboard = function(){
 	};
 	var current = {section:{}, category:{}};
 
+	var currentPage = {};
+
 	var resized = true;
 
 	// var controls = {
 	// 		};
 
-	// var color = AD.CONSTANTS.DEFAULTCOLOR();
+	// var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentDashboardData = {
 			};
 
-	var palette = AD.CONSTANTS.DEFAULTPALETTE;
+	var palette = d3b.CONSTANTS.DEFAULTPALETTE;
 
+	var traversePages = function(pages, categoryName, sectionName){
+		pages.forEach(function(page, i){
+			page.categoryName = categoryName;
+			page.sectionName = sectionName;
+			page.index = i;
 
-	var traverseCategories = function(categories){
+		});
+	};
+
+	var traverseCategories = function(categories, sectionName){
 		if(categories){
 			categories.forEach(function(cat){
-				if(cat.charts){
-					cat.charts.forEach(function(chart){
-						chart.chart = currentDashboardData.dashboard.charts[chart.reference];
-					});
-				};
+				cat.sectionName = sectionName;
+
+				if(!cat.pages){
+					cat.pages = [];
+				}
+
+				traversePages(cat.pages, cat.name, cat.sectionName);
+
 			});
 		}
 	};
@@ -7486,7 +8789,7 @@ AD.DASHBOARDS.dashboard = function(){
 		sections.forEach(function(section){
 			if(section.key)
 				sectionsByKey[section.key] = section;
-			traverseCategories(section.categories);
+			traverseCategories(section.categories, section.name);
 			section.position = position.concat([{section:section, sectionGroup: sectionGroup}]);
 			if(section.sections)
 				traverseSections(position.concat([{section:section, sectionGroup: sectionGroup}]),section.sections);
@@ -7501,48 +8804,41 @@ AD.DASHBOARDS.dashboard = function(){
 		});
 	};
 	var dashboardLayout = function(data){
-		for(chart in data.dashboard.charts){
-			AD.UTILS.chartLayoutAdapter(data.dashboard.charts[chart].type,data.dashboard.charts[chart]);
-
-			//if chart element has a section reference, update to that section
-			data.dashboard.charts[chart].chart.on('elementClick',function(d,i,type){
-				if(d.sectionRefrence)
-					changeCurrentSection(sectionsByKey[d.sectionRefrence]);
-			});
-		}
 		traverseSections([],[data.dashboard.topSection]);
 	};
 
 	var resetSubSectionGroupBreadcrumbs = function(){
-		selection.container.content.breadcrumbs.svg.selectAll('.ad-breadcrumb-sub-section-group-section')
+		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb-sub-section-group-section')
 			.transition()
 				.duration(animationDuration/2)
 				.style('opacity',0);
-		selection.container.content.breadcrumbs.svg.selectAll('.ad-breadcrumb').each(function(){this.expanded = false;});
-		selection.container.content.breadcrumbs.svg.style('height','30px');
+		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb').each(function(){this.expanded = false;});
+		selection.container.header.breadcrumbs.svg.style('height','28px');
 	};
 
 	var updateBreadcrumbs = function(){
 		//breadcrumb indention
-		var breadcrumbIndentSize = 9;
+		var breadcrumbIndentSize = 7;
 
 		//set breadcrumb data keyed by the section name
-		var breadcrumb = selection.container.content.breadcrumbs.svg.selectAll('g.ad-breadcrumb').data(current.section.position,function(d){return d.section.name;});
+		var breadcrumb = selection.container.header.breadcrumbs.svg.selectAll('g.d3b-breadcrumb').data(current.section.position,function(d){return d.section.name;});
 
 		//enter new breadcrumbs
 		var newBreadcrumb = breadcrumb.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class','ad-breadcrumb');
+				.attr('class','d3b-breadcrumb');
+
 
 		//init new breadcrumb path and text
-		newBreadcrumb
-			.append('path')
-				.style('fill',palette.primary);
+		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
+
+		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
+
 		newBreadcrumb
 			.append('text')
 				.text(function(d){return d.section.name;})
-				.attr('y',21)
+				.attr('y',17)
 				.attr('x',15);
 
 		//iterate through all breadcrumbs
@@ -7551,30 +8847,31 @@ AD.DASHBOARDS.dashboard = function(){
 			var _breadcrumb = this;
 			var elem = d3.select(_breadcrumb);
 			var text = elem.select('text');
-			var path = elem.select('path');
+			var foreground = elem.select('path.d3b-breadcrumb-foreground');
+			var background = elem.select('path.d3b-breadcrumb-background');
 
 			//set breadCrumb path width according to text width
 			var pathWidth = text.node().getBBox().width+25;
 			var triangle;
 
-			elem.select('g.ad-breadcrumb-triangle').remove();
+			elem.select('g.d3b-breadcrumb-triangle').remove();
 			//if section is part of a sectionGroup add sub-section dropdown
 
 			if(d.section != current.section){
 				elem
-						.classed('ad-innactive',false)
-						.on('click.ad-click',function(d){
+						.classed('d3b-innactive',false)
+						.on('click.d3b-click',function(d){
 							changeCurrentSection(d.section);
 						});
 			}else{
 				elem
-						.classed('ad-innactive',true)
-						.on('click.ad-click',function(){});
+						.classed('d3b-innactive',true)
+						.on('click.d3b-click',null);
 			}
 			if(d.sectionGroup){
 
 				//set data for sub-section, omitting the selected section
-				var sectionBreadcrumb = elem.selectAll('g.ad-breadcrumb-sub-section-group-section')
+				var sectionBreadcrumb = elem.selectAll('g.d3b-breadcrumb-sub-section-group-section')
 						.data(d.sectionGroup.sections.filter(function(dd){return dd!=d.section;}));
 
 				//init breadcrumb dyExpanded and expanded flags
@@ -7585,40 +8882,45 @@ AD.DASHBOARDS.dashboard = function(){
 				var newSectionBreadcrumb = sectionBreadcrumb.enter()
 					.append('g')
 						.style('opacity',0)
-						.attr('class','ad-breadcrumb-sub-section-group-section');
-				newSectionBreadcrumb.append('path');
+						.attr('class','d3b-breadcrumb-sub-section-group-section');
+				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
+				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
 				newSectionBreadcrumb.append('text')
-					.attr('y',21)
+					.attr('y',17)
 					.attr('x',15)
 					.text(function(d){return d.name;});
 
 				//iterate through sub-section breadcrumbs
 				sectionBreadcrumb.each(function(d){
 							var elem = d3.select(this);
-							var path = elem.select('path');
+							var foreground = elem.select('path.d3b-breadcrumb-foreground');
+							var background = elem.select('path.d3b-breadcrumb-background');
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
-							path
-								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0 Z');
-						}).on('click.ad-click',function(d){
+							foreground
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+breadcrumbIndentSize)+' 12.5 L '+pathWidth+' 0 L 0 0 Z')
+								.attr('transform','translate(4,0)');
+							background
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+breadcrumbIndentSize)+' 12.5 L '+pathWidth+' 0 L 0 0 Z');
+						}).on('click.d3b-click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
 						})
-						.attr('transform',function(d,i){return 'translate(0,'+(34*(i+1))+')';});
+						.attr('transform',function(d,i){return 'translate(0,'+(28*(i+1))+')';});
 
 				//set dyExpanded to be the max size of the dropdown
-				_breadcrumb.dyExpanded = (34*(sectionBreadcrumb.size()+5));
+				_breadcrumb.dyExpanded = (32*(sectionBreadcrumb.size()+5));
 
 				//add triangle under sectionGroup breadcrumb
 				pathWidth += 15;
 				triangle = elem.append('g')
-						.attr('class','ad-breadcrumb-triangle')
-						.on('click.ad-click',function(){
+						.attr('class','d3b-breadcrumb-triangle')
+						.on('click.d3b-click',function(){
 							d3.event.stopPropagation();
 							if(!_breadcrumb.expanded){
 								resetSubSectionGroupBreadcrumbs();
-								selection.container.content.breadcrumbs.svg
-										.style('height',Math.max(30,_breadcrumb.dyExpanded)+'px');
+								selection.container.header.breadcrumbs.svg
+										.style('height',Math.max(25,_breadcrumb.dyExpanded)+'px');
 								sectionBreadcrumb
 									.transition()
 										.duration(animationDuration/2)
@@ -7629,20 +8931,20 @@ AD.DASHBOARDS.dashboard = function(){
 									.transition()
 										.duration(animationDuration/2)
 										.style('opacity',0);
-								selection.container.content.breadcrumbs.svg
-										.style('height',30+'px');
+								selection.container.header.breadcrumbs.svg
+										.style('height',27+'px');
 							}
 							_breadcrumb.expanded = !_breadcrumb.expanded;
 						});
 				triangle.append('rect')
 						.attr('width',20)
-						.attr('height',30)
-						.style('fill',d3.rgb(palette.primary).darker(2))
+						.attr('height',24)
+						.attr('y',0.5)
+						// .style('fill',d3.rgb(palette.primary).darker(2))
 						.attr('transform','translate('+(pathWidth-20)+',0)');
 				triangle.append('path')
-						.attr('d','M 0 0 L 9 0 L 4.5 5 L 0 0')
-						.style('fill','white')
-						.attr('transform','translate('+(pathWidth-15)+',13)');
+						.attr('d','M 0 0 L 9 0 L 4.5 5 L 0 0 Z')
+						.attr('transform','translate('+(pathWidth-15)+',11)');
 			}else{
 
 			}
@@ -7654,10 +8956,18 @@ AD.DASHBOARDS.dashboard = function(){
 				startIndent = 0;
 			if(i+1 == breadcrumb.size())
 				endIndent = 0;
-			path
+
+			foreground
 				.transition()
 					.duration(animationDuration)
-					.attr('d','M 0 0 L '+(startIndent)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+endIndent)+' 15 L '+pathWidth+' 0 L 5 0 Z');
+					.attr('transform','translate(4,0)')
+					.attr('d','M 0 0 L '+(startIndent)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+endIndent)+' 12.5 L '+pathWidth+' 0 L 5 0 Z');
+
+			background
+				.transition()
+					.duration(animationDuration)
+					.attr('d','M 0 0 L '+(startIndent)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+endIndent)+' 12.5 L '+pathWidth+' 0 L 5 0 Z');
+
 			this.dx = pathWidth;
 		});
 
@@ -7667,8 +8977,8 @@ AD.DASHBOARDS.dashboard = function(){
 			.transition()
 				.duration(animationDuration)
 				.attr('transform',function(d){
-					var translation = 'translate('+xCurrent+',0)';
-					xCurrent += this.dx + 2;
+					var translation = 'translate('+xCurrent+',1)';
+					xCurrent += this.dx + 7;
 					return translation;
 				})
 				.style('opacity',1);
@@ -7682,29 +8992,23 @@ AD.DASHBOARDS.dashboard = function(){
 
 	};
 	var updateCategoryTabs = function(){
-		if(!current.section.categories || current.section.categories.length < 1){
-			selection.container.header.navigation.categoryTabs.style('display','none').selectAll("*").remove();
-			return;
-		}else{
-			selection.container.header.navigation.categoryTabs.style('display','');
-		}
 
-		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.ad-category-tab').data(current.section.categories);
+		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.d3b-category-tab').data(current.section.categories);
 		categoryTab.enter()
 			.append('li')
-				.attr('class','ad-category-tab')
-				.on('click.ad-click',changeCurrentCategory);
+				.attr('class','d3b-category-tab')
+				.on('click.d3b-click',changeCurrentCategory);
 		categoryTab
 			.text(function(d){return d.name;})
 			.each(function(d){
 				if(d==current.category){
 					d3.select(this)
-							.classed('ad-innactive',true)
-							.on('click.ad-click',function(){});
+							.classed('d3b-innactive',true)
+							.on('click.d3b-click',null);
 				}else{
 					d3.select(this)
-							.classed('ad-innactive',false)
-							.on('click.ad-click',changeCurrentCategory);
+							.classed('d3b-innactive',false)
+							.on('click.d3b-click',changeCurrentCategory);
 				}
 			});
 			categoryTab.exit()
@@ -7716,20 +9020,14 @@ AD.DASHBOARDS.dashboard = function(){
 
 	};
 	var updateSubSections = function(){
-		if(!current.section.sections || current.section.sections.length < 1){
-			selection.container.sidebar.subSections.style('display','none').selectAll("*").remove();
-			return;
-		}else{
-			selection.container.sidebar.subSections.style('display','');
-		}
 
-		var subSection = selection.container.sidebar.subSections.selectAll('li.ad-sub-section').data(current.section.sections);
+		var subSection = selection.container.sidebar.subSections.selectAll('li.d3b-sub-section').data(current.section.sections);
 
 		subSection.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','ad-sub-section')
-				.on('click.ad-click',changeCurrentSection);
+				.attr('class','d3b-sub-section')
+				.on('click.d3b-click',changeCurrentSection);
 
 		subSection
 				.text(function(d){return d.name})
@@ -7744,24 +9042,15 @@ AD.DASHBOARDS.dashboard = function(){
 				.remove();
 	};
 	var updateSubSectionGroups = function(){
-		if(!current.section.sectionGroups || current.section.sectionGroups.length < 1){
-			selection.container.sidebar.subSectionGroups.style('display','none').selectAll("*").remove();
-			return;
-		}else{
-			var subSectionGroupData = current.section.sectionGroups.filter(function(d){return d.sections.length > 0;});
-			if(subSectionGroupData.length < 1){
-				selection.container.sidebar.subSectionGroups.style('display','none').selectAll("*").remove();
-				return;
-			}else{
-				selection.container.sidebar.subSectionGroups.style('display','');
-			}
-		}
-		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.ad-sub-section-group').data(subSectionGroupData);
+
+		var subSectionGroupData = current.section.sectionGroups.filter(function(d){return d.sections.length > 0;});
+
+		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.d3b-sub-section-group').data(subSectionGroupData);
 
 		subSectionGroup.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','ad-sub-section-group');
+				.attr('class','d3b-sub-section-group');
 
 		subSectionGroup
 			.transition()
@@ -7786,16 +9075,16 @@ AD.DASHBOARDS.dashboard = function(){
 		var subSectionGroupSections = elem
 			.append('ul')
 				.datum(d)
-				.attr('class','ad-sub-section-group-sections');
+				.attr('class','d3b-sub-section-group-sections');
 
-		var subSectionGroupSection = subSectionGroupSections.selectAll('li.ad-sub-section-group-section').data(function(dd){return dd.sections;});
+		var subSectionGroupSection = subSectionGroupSections.selectAll('li.d3b-sub-section-group-section').data(function(dd){return dd.sections;});
 
 		subSectionGroupSection.enter()
 			.append('li')
-				.attr('class','ad-sub-section-group-section');
+				.attr('class','d3b-sub-section-group-section');
 
 		subSectionGroupSection
-				.on('click.ad-click',changeCurrentSection);
+				.on('click.d3b-click',changeCurrentSection);
 
 		subSectionGroupSection
 				.text(function(d){return d.name;});
@@ -7805,6 +9094,15 @@ AD.DASHBOARDS.dashboard = function(){
 		resetSubSectionGroupBreadcrumbs();
 
 		current.section = d;
+
+		if(!current.section.sections)
+			current.section.sections = [];
+
+		if(!current.section.sectionGroups)
+			current.section.sectionGroups = [];
+
+		if(!current.section.categories)
+			current.section.categories = [];
 
 		var newCategory = d.categories.filter(function(d){return d.name == current.category.name;});
 		if(newCategory.length > 0){
@@ -7819,9 +9117,9 @@ AD.DASHBOARDS.dashboard = function(){
 		navigationHistory.pushNew(current);
 		/////Work on proper push/pop/find state later
 		// history.pushState({},'','?category='+(current.category.name)+'&section='+(current.section.name))
-		chartPage
-				.animationType('forward')
-				.data({data:current.category}).update();
+		dashboardCategory
+				.animateFrom('right')
+				.data({data:current.category});
 		return dashboard.update();
 	};
 
@@ -7844,8 +9142,9 @@ AD.DASHBOARDS.dashboard = function(){
 	dashboard.width = function(value){
 		if(!arguments.length) return width;
 		width = value;
-		pageWidth = width - 200;
-		chartPage.width(pageWidth - 10);
+		pageWidth = width - 210;
+		dashboardCategory.width(pageWidth);
+		chartPage.width(pageWidth);
 		resized = true;
 		return dashboard;
 	};
@@ -7869,16 +9168,10 @@ AD.DASHBOARDS.dashboard = function(){
 		return dashboard;
 	};
 
-	//other members
-	// dashboard.controls = function(value){
-	// 	if(!arguments.length) return controls;
-	//
-	// 	return dashboard;
-	// };
 	dashboard.animationDuration = function(value){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
-		chartPage.animationDuration(animationDuration);
+		dashboardCategory.animationDuration(animationDuration);
 
 		return dashboard;
 	};
@@ -7906,33 +9199,33 @@ AD.DASHBOARDS.dashboard = function(){
 		//create container
 		selection.container = selection
 			.append('div')
-				.attr('class','ad-dashboard ad-container');
+				.attr('class','d3b-dashboard d3b-container');
 
 		selection.container.header = selection.container
 			.append('div')
-				.attr('class','ad-header');
+				.attr('class','d3b-header');
 
 		selection.container.header.navigation = selection.container.header
 			.append('div')
-				.attr('class','ad-navigation');
+				.attr('class','d3b-navigation');
 
 		selection.container.header.navigation.home = selection.container.header.navigation
 			.append('div')
-				.attr('class','ad-navigation-home');
+				.attr('class','d3b-navigation-home');
 
 		selection.container.header.navigation.home.append('i').attr('class','fa fa-home')
 
 		selection.container.header.navigation.arrows = selection.container.header.navigation
 			.append('div')
-				.attr('class','ad-navigation-arrows');
+				.attr('class','d3b-navigation-arrows');
 
 		selection.container.header.navigation.arrows.left = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','ad-left-arrow');
+				.attr('id','d3b-left-arrow');
 
 		selection.container.header.navigation.arrows.right = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','ad-right-arrow');
+				.attr('id','d3b-right-arrow');
 
 		selection.container.header.navigation.arrows.left.append('i').attr('class','fa fa-chevron-left')
 
@@ -7940,46 +9233,107 @@ AD.DASHBOARDS.dashboard = function(){
 
 		selection.container.header.navigation.categoryTabs = selection.container.header.navigation
 			.append('ul')
-				.attr('class','ad-category-tabs');
+				.attr('class','d3b-category-tabs');
+
+		selection.container.header.navigation.logo = selection.container.header.navigation
+			.append('img')
+				.attr('class','d3b-dashboard-logo');
+
+		selection.container.header.breadcrumbs = selection.container.header
+			.append('div')
+				.attr('class','d3b-dashboard-breadcrumbs');
+
+		selection.container.header.breadcrumbs.svg = selection.container.header.breadcrumbs
+			.append('svg')
+				.attr('class','d3b-dashboard-breadcrumbs-svg');
 
 		selection.container.sidebar = selection.container
 			.append('div')
-				.attr('class','ad-dashboard-sidebar');
+				.attr('class','d3b-dashboard-sidebar');
 
-		selection.container.sidebar.subSections = selection.container.sidebar
-			.append('ul')
-				.attr('class','ad-sub-sections');
 
-		selection.container.sidebar.subSectionGroups = selection.container.sidebar
+		selection.container.sidebar.sectionNav = selection.container.sidebar
+			.append('div')
+				.attr('class','d3b-sidebar-section-nav d3b-sidebar-container');
+
+		selection.container.sidebar.sectionsHeader = selection.container.sidebar.sectionNav
+			.append('div')
+				.attr('class','d3b-sidebar-header')
+				.text('Go To');
+
+		selection.container.sidebar.subSections = selection.container.sidebar.sectionNav
 			.append('ul')
-				.attr('class','ad-sub-section-groups');
+				.attr('class','d3b-sub-sections');
+
+		selection.container.sidebar.subSectionGroups = selection.container.sidebar.sectionNav
+			.append('ul')
+				.attr('class','d3b-sub-section-groups');
+
+		selection.container.sidebar.filters = selection.container.sidebar
+			.append('div')
+				.attr('class','d3b-sidebar-filters d3b-sidebar-container');
+
+		selection.container.sidebar.filtersHeader = selection.container.sidebar.filters
+			.append('div')
+				.attr('class','d3b-sidebar-header')
+				.text('Filter By');
+
+		controls.selection(selection.container.sidebar.filters)
+			.on('change',function(d){
+				dashboard.update();
+			});
 
 		selection.container.content = selection.container
 			.append('div')
-				.attr('class','ad-dashboard-content');
+				.attr('class','d3b-dashboard-content');
 
-		selection.container.content.breadcrumbs = selection.container.content
+		selection.container.content.dashboardCategory = selection.container.content
 			.append('div')
-				.attr('class','ad-navigation-breadcrumbs');
+				.attr('class','d3b-dashboard-category');
 
-		selection.container.content.breadcrumbs.svg = selection.container.content.breadcrumbs
-			.append('svg')
-				.attr('class','ad-navigation-breadcrumbs-svg');
+		// selection.container.content.chartPage = selection.container.content
+		// 	.append('div')
+		// 		.attr('class','d3b-chart-page-container');
 
-		selection.container.content.chartPage = selection.container.content
-			.append('div')
-				.attr('class','ad-dashboard-chart-page');
+		dashboardCategory
+			.selection(selection.container.content.dashboardCategory)
+			.on('pageChange.d3b-page-change',function(pageData, iOld, iNew){
 
-		chartPage.selection(selection.container.content.chartPage);
+				var temp = controlsHidden;
+				if(!pageData.controls)
+					pageData.controls = [];
+				if(pageData.controls.length > 0){
+					controlsHidden = false;
+					selection.container.sidebar.filters.style('display', 'block');
+				}else{
+					controlsHidden = true;
+					selection.container.sidebar.filters.style('display', 'none');
+				}
+
+				controls
+					.data(pageData)
+					.update(function(){
+					});
+				var animateFrom = null;
+				if(iOld < iNew)
+					animateFrom = 'right';
+				else if(iNew < iOld)
+					animateFrom = 'left';
+				chartPage
+					.selection(dashboardCategory.chartPageSelection())
+					.data(pageData)
+					.animateFrom(animateFrom)
+					.update(function(){
+						if(temp != controlsHidden){
+							dashboard.update();
+						}
+					})
+					.animateFrom(null);
+
+			});
 
 		changeCurrentSection(currentDashboardData.dashboard.topSection);
 
-		//auto update dashboard
-		var temp = animationDuration;
-		// dashboard
-		// 		.animationDuration(0);
-		// 		update(dashboardData);
-		// 		animationDuration(temp);
 		dashboard.update(callback);
 
 		return dashboard;
@@ -7993,54 +9347,50 @@ AD.DASHBOARDS.dashboard = function(){
 			return dashboard.generate(callback);
 		}
 
-		selection.container.content
-			.style('width',pageWidth+'px');
-
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
-					.classed('ad-innactive',true)
-					.on('click.ad-click',function(){});
+					.classed('d3b-innactive',true)
+					.on('click.d3b-click',null);
 		}else{
 			selection.container.header.navigation.home
-					.classed('ad-innactive',false)
-					.on('click.ad-click',function(){
+					.classed('d3b-innactive',false)
+					.on('click.d3b-click',function(){
 						changeCurrentSection(currentDashboardData.dashboard.topSection);
 					});
 		}
 
 		if(navigationHistory.position+1 == navigationHistory.array.length){
 			selection.container.header.navigation.arrows.right
-					.classed('ad-innactive',true)
-					.on('click.ad-click',function(){});
+					.classed('d3b-innactive',true)
+					.on('click.d3b-click',null);
 		}else{
-			// console.log(current.category)
 			selection.container.header.navigation.arrows.right
-					.classed('ad-innactive',false)
-					.on('click.ad-click',function(){
+					.classed('d3b-innactive',false)
+					.on('click.d3b-click',function(){
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage
-								.animationType('forward')
-								.data({data:current.category}).update();
+						dashboardCategory
+								.animateFrom('right')
+								.data({data:current.category});
 						dashboard.update();
 					});
 		}
 
 		if(navigationHistory.position == 0){
 			selection.container.header.navigation.arrows.left
-					.classed('ad-innactive',true)
-					.on('click.ad-click',function(){})
+					.classed('d3b-innactive',true)
+					.on('click.d3b-click',null)
 		}else{
 			selection.container.header.navigation.arrows.left
-					.classed('ad-innactive',false)
-					.on('click.ad-click',function(){
+					.classed('d3b-innactive',false)
+					.on('click.d3b-click',function(){
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage
-								.animationType('backward')
-								.data({data:current.category}).update();
+						dashboardCategory
+								.animateFrom('left')
+								.data({data:current.category});
 						dashboard.update();
 					});
 		}
@@ -8050,16 +9400,48 @@ AD.DASHBOARDS.dashboard = function(){
 				.delay(animationDuration)
 				.duration(animationDuration)
 				.style('width', width+'px');
+
 		updateCategoryTabs();
 		updateBreadcrumbs();
+
+		if(current.section.sections.length == 0 && current.section.sectionGroups.length == 0){
+			navigationHidden = true;
+			selection.container.sidebar.sectionNav
+				.style('display','none');
+			}
+		else{
+			navigationHidden = false;
+			selection.container.sidebar.sectionNav
+				.style('display','block');
+		}
+
 		updateSubSections();
 		updateSubSectionGroups();
 
-		if(resized){
-			resized = false;
-			chartPage
-					.update();
+		if(controlsHidden && navigationHidden){
+			pageMargin = 10;
+		}else{
+			pageMargin = 210
 		}
+
+		pageWidth = width - pageMargin;
+
+		selection.container.content
+			.style('width',pageWidth+'px');
+
+		selection.container.content
+			.transition()
+				.duration(animationDuration)
+				.style('margin-left', pageMargin - 10 + 'px');
+
+		dashboardCategory
+			.width(pageWidth)
+			.update()
+			.animateFrom(null);
+
+		chartPage
+			.width(pageWidth)
+			.update();
 
 		d3.timer.flush();
 

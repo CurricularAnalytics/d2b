@@ -1,6 +1,6 @@
-AD.createNameSpace("AD.UTILS.CHARTS.MEMBERS");
+d2b.createNameSpace("d2b.UTILS.CHARTS.MEMBERS");
 
-AD.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
   return function(key, value){
 		key = key.split('.');
 		if(!arguments.length) return _chart.on;
@@ -23,7 +23,7 @@ AD.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
 	};
 };
 
-AD.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
   return function(value){
 
     _chart.selection = d3.select(value);
@@ -33,7 +33,7 @@ AD.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
     _chart[property] = value;
@@ -43,7 +43,7 @@ AD.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
     if(value.type){
@@ -72,17 +72,17 @@ AD.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
   return function(value){
     if(!arguments.length) return _chart[property];
-    _chart[property] = AD.UTILS.numberFormat(value);
+    _chart[property] = d2b.UTILS.numberFormat(value);
     if(callback)
       callback(value);
     return chart;
   }
 };
 
-AD.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
   return function(value){
     if(!arguments.length) return _chart.controlsData;
     for(control in value){

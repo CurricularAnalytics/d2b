@@ -1,385 +1,219 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+d3b.UTILS.chartPage = function(){
 
-AD.UTILS.CHARTPAGE.chartLayout = function(){
-	var width = AD.CONSTANTS.DEFAULTWIDTH();
-	var height = AD.CONSTANTS.DEFAULTHEIGHT();
-	var selection;
-	var currentChartLayoutData = {chartLayout:{}};
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var chart;
-	var generateRequired = true;
+  var $$ = {};
 
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.selection;
+	$$.currentData = {};
 
-	var chartLayout = {};
+	$$.modifiedData = {};
+	$$.dataLoaded = false;
 
-	chartLayout.chart = function(value){
-		if(!arguments.length) return chart;
-		chart = value;
-		generateRequired = true;
-		return chartLayout;
-	};
-	chartLayout.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chartLayout;
-	};
-	chartLayout.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chartLayout;
-	};
-	chartLayout.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chartLayout;
-	};
-	chartLayout.select = function(value){
-		if(!arguments.length) return selection;
-		selection = d3.select(value);
-		generateRequired = true;
-		return chartLayout;
-	};
-	chartLayout.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		return chartLayout;
+	$$.computedHeight=0;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animateFrom = null;
+
+	$$.on = {
+		update: function(){}
 	};
 
-	chartLayout.data = function(chartLayoutData, reset){
-		if(!arguments.length) return currentChartLayoutData;
-		if(reset){
-			currentChartLayoutData = {chartLayout:{}};
-			generateRequired = true;
+	$$.init = function(position){
+    if($$.animateFrom || !$$.selection.currentPage){
+
+			$$.selection.selectAll('.d3b-chart-page').classed('d3b-chart-page-old', true);
+
+			$$.selection.currentPage = $$.selection
+				.append('div')
+					.attr('class','d3b-chart-page')
+					.style('opacity',0)
+					.style('left',position.left+'px')
+					.style('top',position.top+'px');
 		}
-		// currentChartLayoutData.chartLayout = chartLayoutData.data.chartLayout
-		if(chartLayoutData.data.chartLayout.footnote)
-			currentChartLayoutData.chartLayout.footnote = chartLayoutData.data.chartLayout.footnote;
-
-		if(chartLayoutData.data.chartLayout.rightNotes)
-			currentChartLayoutData.chartLayout.rightNotes = chartLayoutData.data.chartLayout.rightNotes;
-
-		if(chartLayoutData.data.chartLayout.leftNotes)
-			currentChartLayoutData.chartLayout.leftNotes = chartLayoutData.data.chartLayout.leftNotes;
-
-		if(chartLayoutData.data.chartLayout.title)
-			currentChartLayoutData.chartLayout.title = chartLayoutData.data.chartLayout.title;
-
-		if(chartLayoutData.data.chartCallback)
-			currentChartLayoutData.chartCallback = chartLayoutData.data.chartCallback;
-
-		return chartLayout;
 	};
 
-	chartLayout.generate = function(callback){
-
-		selection.selectAll('*').remove();
-
-		selection.wrapper = selection
-			.append('div')
-				.attr('class','ad-chart-layout-wrapper');
-
-		selection.container = selection.wrapper
-			.append('div')
-				.attr('class','ad-chart-layout ad-container');
-
-		selection.container.title = selection.container
-			.append('div')
-				.attr('class','ad-chart-layout-title');
-
-		selection.container.title.div = selection.container.title
-			.append('div');
-
-		selection.container.chart = selection.container
-			.append('div')
-				.attr('class','ad-chart-layout-chart');
-
-		chart
-			.selection(selection.container.chart);
-
-		selection.container.rightNotes = selection.container
-			.append('div')
-				.attr('class','ad-chart-layout-right-notes');
-
-		selection.container.rightNotes.ul = selection.container.rightNotes
-			.append('ul');
-
-		selection.container.leftNotes = selection.container
-			.append('div')
-				.attr('class','ad-chart-layout-left-notes');
-
-		selection.container.leftNotes.ul = selection.container.leftNotes
-			.append('ul');
-
-		selection.container.footnote = selection.container
-			.append('div')
-				.attr('class','ad-chart-layout-footnote');
-		selection.container.footnote.div = selection.container.footnote
-			.append('div');
-
-		selection.container.source = selection.container
-			.append('div')
-				.attr('class','ad-chart-layout-source')
-			.append('ul');
-
-
-		generateRequired = false;
-
-		var tempAnimationDuration = animationDuration;
-		chartLayout
-			.animationDuration(0)
-			.update(callback)
-			.animationDuration(tempAnimationDuration);
-
-		return chartLayout;
-	};
-
-	chartLayout.update = function(callback){
-		if(!selection)
-			return console.warn('chartLayout was not given a selection');
-		if(!chart)
-			return console.warn('chartLayout was not given a chart');
-
-		if(generateRequired)
-			chartLayout.generate(callback);
-		var chartMargin = {
-			top:10,bottom:0,left:0,right:0
-		};
-
-		selection.wrapper
-				.style('width',width+'px')
-				.style('height',height+'px')
-		selection.container.title.div
-				.text(currentChartLayoutData.chartLayout.title)
-				.style('opacity','1');
-		if(currentChartLayoutData.chartLayout.title){
-			chartMargin.top+=selection.container.title.node().getBoundingClientRect().height;
-		}else{
-			selection.container.title.div.style('opacity','0');
-		}
-
-		selection.container.footnote.div.text(currentChartLayoutData.chartLayout.footnote);
-
-		chartMargin.bottom+=selection.container.footnote.node().getBoundingClientRect().height;
-		selection.container.footnote
-				.style('top',(height-chartMargin.bottom)+'px');
-
-		if(!currentChartLayoutData.chartLayout.rightNotes || currentChartLayoutData.chartLayout.rightNotes.length < 1){
-			currentChartLayoutData.chartLayout.rightNotes = [];
-		}else{
-			chartMargin.right+=width * 0.2+5;
-		}
-		var rightNote = selection.container.rightNotes.ul.selectAll('li.ad-chart-layout-note').data(currentChartLayoutData.chartLayout.rightNotes);
-		rightNote.enter()
-			.append('li')
-				.attr('class','ad-chart-layout-note')
-			.append('div');
-
-		var rightNotesHeight = 0;
-		rightNote.select('div')
-				.text(function(d){return d})
-				.each(function(d){rightNotesHeight += this.getBoundingClientRect().height;});
-
-		rightNote.exit()
-				.style('opacity',0)
-				.remove();
-
-		// var rightNotesHeight = selection.container.rightNotes.ul.node().getBoundingClientRect().height;
-		selection.container.rightNotes
-				.style('width',width*0.2+'px')
-				.style('height',height-chartMargin.top+'px')
-				.style('left',width*0.8-5+'px');
-				// .style('top',(height-rightNotesHeight)/2+'px');
-
-		rightNote
-			.style('padding-top',Math.max(10,(height - rightNotesHeight)/(1.8*rightNote.size()))+'px');
-
-
-
-
-		if(!currentChartLayoutData.chartLayout.leftNotes || currentChartLayoutData.chartLayout.leftNotes.length < 1){
-			currentChartLayoutData.chartLayout.leftNotes = [];
-		}else{
-			chartMargin.left+=width * 0.2;
-		}
-
-		var leftNote = selection.container.leftNotes.ul.selectAll('li.ad-chart-layout-note').data(currentChartLayoutData.chartLayout.leftNotes);
-		leftNote.enter()
-			.append('li')
-				.attr('class','ad-chart-layout-note');
-		leftNote
-				.text(function(d){return d});
-		leftNote.exit()
-				.style('opacity',0)
-				.remove();
-
-
-		var leftNotesHeight = selection.container.leftNotes.ul.node().getBoundingClientRect().height;
-		selection.container.leftNotes
-				.style('width',width*0.2+'px')
-				// .style('height',leftNotesHeight+'px')
-				.style('top',(height-leftNotesHeight)/2+'px');
-
-
-		var chartWidth = width-chartMargin.left-chartMargin.right-10,
-				chartHeight = height-chartMargin.top-chartMargin.bottom;
-
-		selection.container.chart
-				.style('left',(chartMargin.left+5)+'px')
-				.style('top',chartMargin.top+'px')
-				.style('width',chartWidth+'px')
-				.style('height',chartHeight+'px');
-
-		chart
-				.width(chartWidth)
-				.height(chartHeight)
-				.animationDuration(animationDuration)
-				.update(currentChartLayoutData.chartCallback);
-
-		d3.timer.flush();
-
-		if(callback){
-			callback();
-		}
-
-		return chartLayout;
-	};
-
-	return chartLayout;
-}
-
-AD.UTILS.chartPage = function(){
-	var width = AD.CONSTANTS.DEFAULTWIDTH();
-	var selection;
-	var currentPageData;
-	var computedHeight=0;
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var animationType = 'forward';
-
-	var init = function(){
-		var position = {};
-		if(animationType == 'backward'){
-			position.left = -width+'px';
-		}else{
-			position.left = width+'px';
-		}
-		selection.currentPage = selection
-			.append('div')
-				.attr('class','ad-chart-page-current-page')
-				.style('opacity',0)
-				.style('left',position.left);
-				// .attr('transform',transform);
-	};
-
-	var page = {};
-
-	page.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return page;
-	};
-	page.computedHeight = function(){
-		return computedHeight;
-	}
-	page.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		return page;
-	};
-	page.select = function(value){
-		if(!arguments.length) return selection;
-		selection = d3.select(value);
-		return page;
-	};
-	page.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		return page;
-	};
-	page.animationType = function(value){
-		if(!arguments.length) return animationType;
-		animationType = value;
-		return page;
-	};
-
-	page.data = function(pageData, reset){
-		if(!arguments.length) return currentPageData;
-		newData = true;
-		currentPageData = pageData;
-		return page;
-	}
-
-	page.update = function(callback){
-		if(!selection)
-			return console.warn('page was not given a selection');
-		var position = {};
-
-		if(newData){
-			newData = false;
-			if(selection.currentPage){
-				if(animationType == 'backward'){
-					position.left = width+'px';
-				}else{
-					position.left = -width+'px';
-				}
-				selection.oldPage = selection.currentPage;
-			}
-			init();
-		}
-
-		computedHeight = 0;
-
-
-
-		if(!currentPageData.data.charts || currentPageData.data.charts.length < 1){
-			return console.warn('chart page was not provided any charts')
-		}
-		var chartLayout = selection.currentPage.selectAll('div.ad-page-chart-layout').data(currentPageData.data.charts);
+	$$.updateGrid = function(charts){
+		var chartLayout = $$.selection.currentPage.selectAll('div.d3b-page-chart-layout').data(charts, function(d, i){return d.chart.key || i;});
 
 		var newChartLayout = chartLayout.enter()
 			.append('div')
-				.attr('class','ad-page-chart-layout')
+				.attr('class','d3b-page-chart-layout')
 				.each(function(d){
-					if(d.chart.chartLayout){
-						d.chart.chartLayout
-							.select(this)
-							.width(width*d.width)
-							.height(d.height)
-							.animationDuration(0)
-							.update(d.chart.chartLayoutData.chartCallback);
-					}
+					d3b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
+					this.chart = d.chart.chart;
+					this.chartLayout = d.chart.chartLayout;
+					this.chartLayout
+						.select(this)
+						.width($$.width*d.width)
+						.height(d.height)
+						.animationDuration(0)
+						.update(d.chart.chartLayoutData.chartCallback);
 				});
 
 		chartLayout
 				.each(function(d){
-					if(d.chart.chartLayout){
-						d.chart.chartLayout
-								.animationDuration(animationDuration)
-								.width(width*d.width)
-								.update(d.chart.chartLayoutData.chartCallback);
-					}
-				})
-				.style('left',function(d){return (width * d.x)+'px'})
-				.style('top',function(d){return (d.y)+'px'});
+					this.chart
+						.data(d.chart.properties.data);
+					this.chartLayout
+						.animationDuration($$.animationDuration)
+						.width($$.width*d.width)
+						.update(d.chart.chartLayoutData.chartCallback);
 
-		if(selection.oldPage){
-			selection.oldPage
-				.transition()
-					.duration(animationDuration)
-					.style('opacity',0)
-					.style('left',position.left)
-					.remove();
-		}
-		selection.currentPage
+				})
+				.style('left',function(d){return ($$.width * d.x)+'px'})
+				.style('top',function(d){return (d.y)+'px'})
+				.each(function(d){
+					$$.computedHeight = Math.max($$.computedHeight, d.y+d.height);
+				});
+
+		chartLayout.exit()
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+
+		$$.selection.currentPage
+			.transition()
+				.duration($$.animationDuration)
 				.style('opacity',1)
-				.style('left',0+'px');
+				.style('left','0px')
+				.style('top','0px');
+
+	};
+
+	var page = {};
+
+  $$.getPosition = function(){
+    var position = {top:0, left:0};
+
+    switch($$.animateFrom){
+      case 'right':
+        position.top = 0;
+        position.left = $$.width;
+        break;
+      case 'left':
+        position.top = 0;
+        position.left = -$$.width;
+        break;
+      case 'top':
+        position.top = -$$.computedHeight;
+        position.left = 0;
+        break;
+      case 'bottom':
+        position.top = $$.computedHeight;
+        position.left = 0;
+        break;
+      default:
+    }
+
+    return position;
+  };
+
+	var page = {};
+
+	page.on =				d3b.UTILS.CHARTS.MEMBERS.on(page, $$);
+
+  page.width = function(value){
+		if(!arguments.length) return $$.width;
+		$$.width = value;
+		return page;
+	};
+  page.computedHeight = function(){
+		return $$.computedHeight;
+	}
+  page.selection = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = value;
+		return page;
+	};
+  page.select = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = d3.select(value);
+		return page;
+	};
+  page.animationDuration = function(value){
+		if(!arguments.length) return $$.animationDuration;
+		$$.animationDuration = value;
+		return page;
+	};
+  page.animateFrom = function(value){
+		if(!arguments.length) return $$.animateFrom;
+		$$.animateFrom = value;
+		return page;
+	};
+
+  page.data = function(data, reset){
+		if(!arguments.length) return $$.currentData;
+
+		$$.currentData = data;
+
+    if(!$$.currentData.charts)
+      $$.currentData.charts = [];
+
+    if(!$$.currentData.controls)
+      $$.currentData.controls = [];
+
+		return page;
+	}
+
+  page.update = function(callback){
+		if(!$$.selection)
+			return console.warn('page was not given a selection');
+
+		var position = $$.getPosition();
+
+    if($$.animateFrom && $$.selection.currentPage){
+      $$.selection.oldPage = $$.selection.currentPage;
+    }
+    $$.init(position);
+
+		$$.computedHeight = 0;
+
+		if($$.currentData.charts.length < 1 && !$$.currentData.url){
+			console.warn('chart page was not provided any charts or url');
+		}else{
+			$$.modifiedData.charts = $$.currentData.charts;
+			$$.modifiedData.controls = $$.currentData.controls;
+
+			var postData = {};
+			$$.currentData.controls.forEach(function(d){
+				postData[d.key] = d;
+			});
+
+			if($$.currentData.url){
+					var my_request = d3.xhr($$.currentData.url)
+					my_request.post(JSON.stringify(postData), function(error,received){
+						var data = JSON.parse(received.response);
+						if(data.charts)
+							$$.modifiedData.charts = data.charts.concat($$.modifiedData.charts);
+
+						$$.updateGrid($$.modifiedData.charts);
+						$$.dataLoaded = true;
+
+					});
+
+			}else{
+				$$.dataLoaded = true;
+				$$.updateGrid($$.modifiedData.charts);
+			}
+		}
+
+		$$.selection.selectAll('.d3b-chart-page-old')
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.style('left',-position.left+'px')
+				.style('top',-position.top+'px')
+				.remove();
 
 		d3.timer.flush();
 
 		if(callback){
 			callback();
+		}
+
+		for(key in $$.on.update){
+			$$.on.update[key].call(this,$$.modifiedData);
 		}
 
 		return page;

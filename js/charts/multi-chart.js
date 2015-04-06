@@ -1,10 +1,10 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*multi chart*/
-AD.CHARTS.multiChart = function(){
+d3b.CHARTS.multiChart = function(){
 	//define multiChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerWidth, innerHeight;
 
@@ -12,10 +12,10 @@ AD.CHARTS.multiChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 			};
@@ -62,13 +62,13 @@ AD.CHARTS.multiChart = function(){
 		});
 		selection.buttonsWrapper.buttons.button.enter()
 			.append('li')
-			.on('click.ad-click', buttonClick)
-			.on('mouseover.ad-mouseover', buttonMouseover)
-			.on('mouseout.ad-mouseout', buttonMouseout);
+			.on('click.d3b-click', buttonClick)
+			.on('mouseover.d3b-mouseover', buttonMouseover)
+			.on('mouseout.d3b-mouseout', buttonMouseout);
 
 		selection.buttonsWrapper.buttons.button
 			.text(function(d){return d.label;})
-			.classed('ad-selected',function(d){return d == current.chart;});
+			.classed('d3b-selected',function(d){return d == current.chart;});
 
 	};
 
@@ -83,17 +83,17 @@ AD.CHARTS.multiChart = function(){
 		}
 		var masterType = 'multiChart-'+current.chart.type+'-';
 		adChart
-			.on('elementClick.ad-click', function(d,i,type){
+			.on('elementClick.d3b-click', function(d,i,type){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i,masterType+type);
 					}
 			})
-			.on('elementMouseover.ad-mouseover', function(d,i,type){
+			.on('elementMouseover.d3b-mouseover', function(d,i,type){
 					for(key in on.elementMouseover){
 						on.elementMouseover[key].call(this,d,i,masterType+type);
 					}
 			})
-			.on('elementMouseout.ad-mouseout', function(d,i,type){
+			.on('elementMouseout.d3b-mouseout', function(d,i,type){
 					for(key in on.elementMouseout){
 						on.elementMouseout[key].call(this,d,i,masterType+type);
 					}
@@ -104,17 +104,17 @@ AD.CHARTS.multiChart = function(){
 		if(!selection.chartWrapper.chart){
 			selection.chartWrapper.chart = selection.chartWrapper
 				.append('div')
-					.attr('class','ad-multi-chart-chart')
+					.attr('class','d3b-multi-chart-chart')
 					.style('opacity',1);
-			// AD.UTILS.chartAdapter(current.chart.type, current.chart);
+			// d3b.UTILS.chartAdapter(current.chart.type, current.chart);
 			adChart = current.chart.chart;
 			adChart
 				.selection(selection.chartWrapper.chart)
-				.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
+				.data(current.chart.data); //clone data for update
 		}else if(current.chart != previous.chart){
 			if(current.chart.type == previous.chart.type){
 				adChart
-					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
+					.data(current.chart.data); //clone data for update
 			}else{
 				selection.chartWrapper.chart
 					.transition()
@@ -124,10 +124,10 @@ AD.CHARTS.multiChart = function(){
 
 				selection.chartWrapper.chart = selection.chartWrapper
 					.append('div')
-						.attr('class','ad-multi-chart-chart')
+						.attr('class','d3b-multi-chart-chart')
 						.style('opacity',0);
 
-				// AD.UTILS.chartAdapter(current.chart.type, current.chart);
+				// d3b.UTILS.chartAdapter(current.chart.type, current.chart);
 				adChart = current.chart.chart;
 				adChart
 					.selection(selection.chartWrapper.chart)
@@ -225,7 +225,7 @@ AD.CHARTS.multiChart = function(){
 		currentChartData = chartData.data;
 
 		currentChartData.charts.forEach(function(d){
-			d.chart = new AD.CHARTS[d.type]();
+			d.chart = new d3b.CHARTS[d.type]();
 		});
 
 		return chart;
@@ -245,16 +245,16 @@ AD.CHARTS.multiChart = function(){
 		//create button container
 		selection.buttonsWrapper = selection
 			.append('div')
-				.attr('class','ad-multi-chart-buttons-wrapper');
+				.attr('class','d3b-multi-chart-buttons-wrapper');
 
 		selection.buttonsWrapper.buttons = selection.buttonsWrapper
 			.append('ul')
-				.attr('class','ad-buttons');
+				.attr('class','d3b-buttons');
 
 		// selection.style('position','relative');
 		selection.chartWrapper = selection
 			.append('div')
-				.attr('class','ad-multi-chart ad-container');
+				.attr('class','d3b-multi-chart d3b-container');
 
 		// currentChartData.charts.forEach(function(d){
 		// 	d.chart.selection(selection.chartWrapper);

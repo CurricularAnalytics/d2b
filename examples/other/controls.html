@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d3b.js"></script>
+
+<script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+
+<script>
+//SVG builders
+	function makeRadioButtonsSVG(){
+		var radioButtons = new d3b.UTILS.CONTROLS.radioButtons();
+		radioButtons
+			.select('svg.radio-buttons')
+			.scale(5)
+			.data({values:[{label:'Option 1', selected:true}, {label:'Option 2'}, {label:'Longer Option 3'}], key:"testRadioButtons"})
+			// .on('change',function(d){console.log(d);})
+			.update();
+		d3.select('svg.radio-buttons')
+				.attr('width',radioButtons.computedWidth())
+				.attr('height',radioButtons.computedHeight());
+	}
+
+	// function makeSelector(){
+	// 	var selector = new d3b.UTILS.CONTROLS.selector();
+	// 	selector
+	// 		.select('.selector')
+	// 		.scale(5)
+	// 		.data({values:[{label:'All'}, {label:'Option 1', selected:true}, {label:'Option 2'}, {label:'Longer Option 3'}], key:"testSelector"})
+	// 		// .on('change',function(d){console.log(d);})
+	// 		.update();
+	// 	d3.select('.selector')
+	// 			.attr('width',selector.computedWidth())
+	// 			.attr('height',selector.computedHeight());
+	// }
+
+	function makeCheckboxSVG(){
+		var checkbox = new d3b.UTILS.CONTROLS.checkbox();
+		checkbox
+			.select('svg.checkbox')
+			.scale(5)
+			.data({state:false, label:"Test Checkbox", key:"testCheckbox"})
+			// .on('change',function(d){console.log(d);})
+			.update();
+		d3.select('svg.checkbox')
+			.attr('width',checkbox.computedWidth())
+			.attr('height',checkbox.computedHeight());
+	}
+
+
+//HTML builders
+
+	function makeRadioButtonsHTML(){
+		var radioButtons = new d3b.UTILS.CONTROLS.radioButtons();
+		var container = d3.select('div.radio-buttons');
+		radioButtons
+			.container(container)
+			.scale(5)
+			.data({values:[{label:'Option 1', selected:true}, {label:'Option 2'}, {label:'Longer Option 3'}], key:"testRadioButtons"})
+			// .on('change',function(d){console.log(d);})
+			.update();
+	}
+	function makeCheckboxHTML(){
+		var checkbox = new d3b.UTILS.CONTROLS.checkbox();
+		var container = d3.select('div.checkbox');
+		checkbox
+			.container(container)
+			.scale(5)
+			.data({state:false, label:"Test Checkbox", key:"testCheckbox"})
+			// .on('change',function(d){console.log(d);})
+			.update();
+	}
+	function makeControlsHTML(){
+		var controls = new d3b.UTILS.CONTROLS.htmlControls();
+		controls
+			.select('div.controls-set')
+			.scale(5)
+			.data({
+				controls:[
+					{values:[{label:'Option 1', selected:true}, {label:'Option 2'}, {label:'Longer Option 3'}], label:'Test Radio Buttons', key:"testRadioButtons", type:"radioButtons"},
+					{values:[{label:'Option 1', selected:true}, {label:'Option 2'}, {label:'Longer Option 3'}], label:'Test Radio Buttons2',  key:"testRadioButtons2", type:"radioButtons"},
+					{state:false, label:"Test Checkbox", key:"testCheckbox", type:"checkbox"},
+					{state:false, label:"Test Checkbox 2", key:"testCheckbox2", type:"checkbox"},
+					{state:false, label:"Test Checkbox 3", key:"testCheckbox3", type:"checkbox"}
+				]
+			})
+			.on('change',function(controls, control, i){
+				console.log(controls);
+			})
+			.update();
+
+	}
+
+//Document Ready
+	$(document).ready(function(){
+		WebFont.load({
+	    google: {
+	      families: ['Droid Sans']
+	    },
+			active: function(){
+				makeCheckboxSVG();
+				makeRadioButtonsSVG();
+
+
+				makeRadioButtonsHTML();
+				makeCheckboxHTML();
+
+				makeControlsHTML();
+
+			}
+	  });
+	});
+</script>
+
+<style>
+	body{
+		font-family:"Droid Sans";
+	}
+	svg{
+		display:block;
+		background:rgba(100,100,100,0.3);
+	}
+</style>
+
+<body>
+<b>To Imbed Controls Into SVG:</b>
+<br /><br />
+Radio Buttons:
+<svg class = 'radio-buttons'></svg>
+Checkbox:
+<svg class = 'checkbox'></svg>
+<!-- Selector:
+<svg class = 'selector'></svg> -->
+
+<br /><br />
+<br /><br />
+
+<b>To Imbed Controls Into HTML:</b>
+<br /><br />
+Radio Buttons:
+<div class = 'radio-buttons'></div>
+Checkbox:
+<div class = 'checkbox'></div>
+<br /><br />
+Controls Set:
+<div class = 'controls-set'></div>
+
+
+
+</body>
+</html>

@@ -1,104 +1,80 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*CONTROLS UTILITIES*/
-AD.createNameSpace("AD.UTILS.CONTROLS");
-AD.UTILS.CONTROLS.checkbox = function(){
-	var scale = 5;
-	var selection;
-	var computedWidth=0, computedHeight=0;
-	var currentCheckboxData = {label:'',state:false};
+d3b.createNameSpace("d3b.UTILS.CONTROLS");
+d3b.UTILS.CONTROLS.checkbox = function(){
+
+	var $$ = {};
+
+	$$.scale = 5;
+	$$.selection;
+	$$.container;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.currentData = {label:'',state:false};
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){},
-		elementChange:function(){}
-	};
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on.change = function(){};
 
-	var checkbox = {};
+	var control = {};
 
 	// var onChange = function(){};
 
-	checkbox.scale = function(value){
-		if(!arguments.length) return scale;
-		scale = value;
-		return checkbox;
+	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+
+	control.checked = function(value){
+		if(!arguments.length) return $$.currentData.state;
+		$$.currentData.state = value;
+		return control.update();
 	};
-	checkbox.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		return checkbox;
+	control.computedHeight = function(){
+		return $$.computedHeight;
 	};
-	checkbox.checked = function(value){
-		if(!arguments.length) return currentCheckboxData.state;
-		currentCheckboxData.state = value;
-		return checkbox.update();
-	};
-	checkbox.computedHeight = function(){
-		return computedHeight;
-	};
-	checkbox.computedWidth = function(){
-		return computedWidth;
+	control.computedWidth = function(){
+		return $$.computedWidth;
 	};
 
-	checkbox.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return checkbox;
-	};
-
-	checkbox.data = function(checkboxData, reset){
-		if(!arguments.length) return currentCheckboxData;
-		currentCheckboxData = checkboxData;
-		return checkbox;
+	control.data = function(data, reset){
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = data;
+		return control;
 	}
 
+	control.update = function(callback){
 
-	checkbox.update = function(callback){
+		if(!$$.selection && !$$.container){
+			console.warn('checkbox was not given a selection or html container');
+			return control;
+		}
 
-		if(!selection)
-			return console.warn('checkbox was not given a selection');
+		if(!$$.currentData){
+			console.warn('checkbox data is null');
+			return control;
+		}
 
-		if(!currentCheckboxData)
-			return console.warn('checkboxData is null');
+		if(!$$.selection){
+			$$.selection = $$.container.append('svg');
+			$$.container.svg = $$.selection;
+		}
 
-		var checkboxContainer = selection.selectAll('g.ad-checkbox-container').data([currentCheckboxData]);
+		var checkboxContainer = $$.selection.selectAll('g.d3b-checkbox-container').data([$$.currentData]);
 		var newCheckboxContainer = checkboxContainer.enter()
 			.append('g')
-				.attr('class','ad-checkbox-container')
-				.on('click.ad-click',function(d,i){
-					currentCheckboxData.state = !currentCheckboxData.state;
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,'checkbox');
+				.attr('class','d3b-checkbox-container')
+				.on('click.d3b-click',function(d,i){
+					$$.currentData.state = !$$.currentData.state;
+					for(key in $$.on.change){
+						$$.on.change[key].call(this,d,i,'checkbox');
 					}
-					for(key in on.elementChange){
-						on.elementChange[key].call(this,d,i,'checkbox');
-					}
-					checkbox.update();
+					control.update();
 				})
-				.on('mouseover.ad-mouseover',function(d,i){
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i);
-					}
-				})
-				.on('mouseout.ad-mouseout',function(d,i){
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i);
-					}
-				});
+				.call(d3b.UTILS.bindElementEvents, $$, 'checkbox');
+
 		newCheckboxContainer
 			.append('rect')
 				.attr('rx',1);
@@ -109,87 +85,613 @@ AD.UTILS.CONTROLS.checkbox = function(){
 			.append('text')
 				.text(function(d){return d.label;});
 
+		var checkboxTranslate = 'translate('+0.4*$$.scale+','+0.4*$$.scale+')';
+		var check = checkboxContainer.select('path')
+				.attr('transform',checkboxTranslate)
+				.attr('d',"M"+(0.38)*$$.scale+","+1.06*$$.scale+" l"+0.7*$$.scale+","+0.5*$$.scale+" l"+0.58*$$.scale+","+(-1.19)*$$.scale+"")
+				.style('stroke-width',0.25*$$.scale)
+				.attr('stroke-dasharray',2.2*$$.scale)
+		check
+			.transition()
+				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.attr('stroke-dashoffset',($$.currentData.state)? 0 : 2.2*$$.scale);
+		var box = checkboxContainer.select('rect')
+				.attr('width',$$.scale*2.1+'px')
+				.attr('height',$$.scale*2.1+'px')
+				.attr('transform',checkboxTranslate)
+				.style('stroke-width',0.25*$$.scale);
+
 		var label = checkboxContainer.select('text')
-				.attr('y',scale*2.1)
-				.style('font-size',scale*2.5+'px');
+				.attr('y',$$.scale*2.4)
+				.attr('x',$$.scale*3.2)
+				.style('font-size',$$.scale*2.5+'px');
 
 		var labelLength = label.node().getComputedTextLength();
 
-		var padding = scale;
+		var padding = $$.scale;
 		labelLength += padding;
 
-		var checkboxTranslate = 'translate('+labelLength+',0)';
-		var check = checkboxContainer.select('path')
-				.attr('transform',checkboxTranslate)
-				.attr('d',"M"+(0.38)*scale+","+1.06*scale+" l"+0.7*scale+","+0.5*scale+" l"+0.58*scale+","+(-1.19)*scale+"")
-				.style('stroke-width',0.4*scale)
-				.attr('stroke-dasharray',2.2*scale)
-		check
-			.transition()
-				.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
-				.attr('stroke-dashoffset',(currentCheckboxData.state)? 0 : 2.2*scale);
-		var box = checkboxContainer.select('rect')
-				.attr('width',scale*2.1+'px')
-				.attr('height',scale*2.1+'px')
-				.attr('transform',checkboxTranslate)
-				.style('stroke-width',0.4*scale);
+		$$.computedWidth = labelLength + $$.scale*2.5;
+		$$.computedHeight = $$.scale*2.9;
 
-		computedWidth = labelLength + scale*2.1;
-		computedHeight = scale*2.5;
+		if($$.container){
+			if($$.container.svg){
+				$$.container.svg
+					.attr('width',$$.computedWidth)
+					.attr('height',$$.computedHeight);
+			}
+		}
 
 		if(callback)
 			callback();
 
-		return checkbox;
+		return control;
 	};
 
-	return checkbox;
+	return control;
 
-}
-AD.UTILS.CONTROLS.horizontalControls = function(){
-	var maxWidth = AD.CONSTANTS.DEFAULTWIDTH();
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
-	var selection;
-	var currentControlsData;
-	var computedWidth=0, computedHeight=0;
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+};
 
-	var scale = 5;
+d3b.UTILS.CONTROLS.radioButtons = function(){
+	var $$ = {};
+
+	$$.scale = 5;
+	$$.container;
+	$$.selection;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.currentData = {label:'',values:[], selected:null};
+
+	//init event object
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.on.change = function(){};
+
+	$$.resetValues = function(){
+		$$.currentData.values.forEach(function(d){
+			d.selected = false;
+		});
+	};
+
+	var control = {};
+
+
+	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+	control.container = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
+	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+
+	control.computedHeight = function(){
+		return $$.computedHeight;
+	};
+	control.computedWidth = function(){
+		return $$.computedWidth;
+	};
+
+	control.data = function(data, reset){
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = data;
+
+		var foundSelected = false;
+		$$.currentData.values.forEach(function(d){
+			if(foundSelected)
+				d.selected = false;
+
+			if(d.selected){
+				$$.currentData.selected = d;
+				foundSelected = true;
+			}
+		});
+
+		if(!foundSelected){
+			$$.currentData.selected = $$.currentData.values[0];
+			$$.currentData.values[0].selected = true;
+		}
+
+		return control;
+	}
+
+
+	control.update = function(callback){
+
+		if(!$$.selection && !$$.container){
+			console.warn('radio buttons was not given a selection or html container');
+			return control;
+		}
+
+		if(!$$.currentData){
+			console.warn('radio buttons data is null');
+			return control;
+		}
+
+		if(!$$.selection){
+			$$.selection = $$.container.append('svg');
+			$$.container.svg = $$.selection;
+		}
+
+		var radioButtonContainer = $$.selection.selectAll('g.d3b-radio-button-container').data($$.currentData.values, function(d){return d.label;});
+
+		var newRadioButtonContainer = radioButtonContainer.enter()
+			.append('g')
+				.attr('class','d3b-radio-button-container')
+				.on('click.d3b-click',function(d,i){
+					$$.resetValues();
+					d.selected = true;
+					$$.currentData.selected = d;
+					for(key in $$.on.change){
+						$$.on.change[key].call($$.selection.node(),$$.currentData,i,'radio-buttons');
+					}
+					control.update();
+				})
+				.call(d3b.UTILS.bindElementEvents, $$, 'radio-button');
+
+		radioButtonContainer
+			.attr('transform',function(d,i){
+				return 'translate('+0+','+(i*3.3*$$.scale)+')'
+			});
+
+		newRadioButtonContainer.append('circle')
+			.attr('class','d3b-radio-button-inner')
+			.style('fill-opacity',0);
+		newRadioButtonContainer.append('circle')
+			.attr('class','d3b-radio-button-outer');
+
+		newRadioButtonContainer.append('text')
+			.text(function(d){return d.label;});
+
+		var circleInner = radioButtonContainer.select('circle.d3b-radio-button-inner')
+				.attr('cy',$$.scale*1.4)
+				.attr('cx',$$.scale*1.4);
+
+
+		var circleOuter = radioButtonContainer.select('circle.d3b-radio-button-outer')
+				.attr('r',$$.scale*1+'px')
+				.attr('cy',$$.scale*1.4)
+				.attr('cx',$$.scale*1.4)
+				.style('stroke-width',0.25*$$.scale);
+
+
+		circleInner
+			.transition()
+				.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.style('fill-opacity',function(d){return (d.selected)? 1: 0;})
+				.attr('r',function(d){return (d.selected)? $$.scale*0.5: 0;});
+
+		var label = radioButtonContainer.select('text')
+				.attr('y',$$.scale*2.4)
+				.attr('x',$$.scale*3.2)
+				.style('font-size',$$.scale*2.5+'px');
+
+		var labelLength = 0;
+		label.each(function(){
+			labelLength = Math.max(labelLength, this.getComputedTextLength());
+		});
+
+		$$.computedWidth = labelLength + $$.scale*3.4;
+		$$.computedHeight = $$.currentData.values.length*$$.scale*3.2;
+
+		if($$.container){
+			if($$.container.svg){
+				$$.container.svg
+					.attr('width',$$.computedWidth)
+					.attr('height',$$.computedHeight);
+			}
+		}
+
+		if(callback)
+			callback();
+
+		return control;
+	};
+
+	return control;
+
+};
+
+// d3b.UTILS.CONTROLS.select = function(){
+// 	var $$ = {};
+//
+// 	$$.scale = 5;
+// 	$$.selection;
+// 	$$.computedWidth=0;
+// 	$$.computedHeight=0;
+// 	$$.currentData = {label:'',values:[], selected:null};
+//
+// 	$$.maxWidth = 180;
+//
+// 	$$.expanded = false;
+//
+// 	//init event object
+// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on.change = function(){};
+//
+// 	$$.resetValues = function(){
+// 		$$.currentData.values.forEach(function(d){
+// 			d.selected = false;
+// 		});
+// 	};
+//
+// 	var control = {};
+//
+// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+//
+// 	control.computedHeight = function(){
+// 		return $$.computedHeight;
+// 	};
+// 	control.computedWidth = function(){
+// 		return $$.computedWidth;
+// 	};
+//
+// 	control.data = function(data, reset){
+// 		if(!arguments.length) return $$.currentData;
+// 		$$.currentData = data;
+//
+// 		var foundSelected = false;
+// 		$$.currentData.values.forEach(function(d){
+// 			if(foundSelected)
+// 				d.selected = false;
+//
+// 			if(d.selected){
+// 				$$.currentData.selected = d;
+// 				foundSelected = true;
+// 			}
+// 		});
+//
+// 		if(!foundSelected){
+// 			$$.currentData.selected = $$.currentData.values[0];
+// 			$$.currentData.values[0].selected = true;
+// 		}
+//
+// 		return control;
+// 	}
+//
+//
+// 	control.update = function(callback){
+//
+// 		if(!$$.selection)
+// 			return console.warn('selector was not given a $$.selection');
+//
+// 		if(!$$.currentData)
+// 			return console.warn('selector data is null');
+//
+// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+//
+// 		var newSelectedContainer = selectedContainer.enter()
+// 			.append('g')
+// 				.attr('class','d3b-selector-selected');
+//
+// 		newSelectedContainer
+// 			.append('rect')
+// 				.attr('rx',1)
+// 				.attr('class','d3b-selector-border');
+//
+// 		var newSelectedSubContainer = newSelectedContainer
+// 			.append('g');
+//
+// 	  newSelectedSubContainer
+// 			.append('text');
+//
+// 		newSelectedContainer
+// 			.append('path')
+// 				.attr('class','d3b-selector-triangle');
+//
+// 		selectedContainer
+// 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
+//
+// 		selectedContainer.select('rect')
+// 			.attr('stroke-width',0.4*$$.scale)
+// 			.attr('width', $$.maxWidth - 0.8*$$.scale)
+// 			.attr('height', 4*$$.scale)
+//
+// 		selectedContainer.select('text')
+// 				.text(function(d){return d.label});
+//
+// 		selectedContainer.select('path')
+// 				.attr('d','M 0 0 L '+$$.scale*1.8+' 0 L '+$$.scale*0.9+' '+$$.scale*1+' L 0 0 Z');
+//
+// 		$$.computedWidth = 200;
+// 		$$.computedHeight = 200;
+//
+// 		if(callback)
+// 			callback();
+//
+// 		return control;
+// 	};
+//
+// 	return control;
+//
+// };
+
+
+//allow imbeded html for selector control
+// d3b.UTILS.CONTROLS.selector = function(){
+// 	var $$ = {};
+//
+// 	$$.scale = 5;
+// 	$$.selection;
+// 	$$.computedWidth=0;
+// 	$$.computedHeight=0;
+// 	$$.currentData = {label:'',values:[], selected:null};
+//
+// 	$$.maxWidth = 180;
+//
+// 	$$.expanded = false;
+//
+// 	//init event object
+// 	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+// 	$$.on.change = function(){};
+//
+// 	$$.resetValues = function(){
+// 		$$.currentData.values.forEach(function(d){
+// 			d.selected = false;
+// 		});
+// 	};
+//
+// 	var control = {};
+//
+// 	control.scale = 		d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'scale');
+// 	control.select = 		d3b.UTILS.CHARTS.MEMBERS.select(control, $$);
+// 	control.selection = d3b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
+// 	control.on =				d3b.UTILS.CHARTS.MEMBERS.on(control, $$);
+//
+// 	control.computedHeight = function(){
+// 		return $$.computedHeight;
+// 	};
+// 	control.computedWidth = function(){
+// 		return $$.computedWidth;
+// 	};
+//
+// 	control.data = function(data, reset){
+// 		if(!arguments.length) return $$.currentData;
+// 		$$.currentData = data;
+//
+// 		var foundSelected = false;
+// 		$$.currentData.values.forEach(function(d){
+// 			if(foundSelected)
+// 				d.selected = false;
+//
+// 			if(d.selected){
+// 				$$.currentData.selected = d;
+// 				foundSelected = true;
+// 			}
+// 		});
+//
+// 		if(!foundSelected){
+// 			$$.currentData.selected = $$.currentData.values[0];
+// 			$$.currentData.values[0].selected = true;
+// 		}
+//
+// 		return control;
+// 	}
+//
+//
+// 	control.update = function(callback){
+//
+// 		if(!$$.selection)
+// 			return console.warn('selector was not given a $$.selection');
+//
+// 		if(!$$.currentData)
+// 			return console.warn('selector data is null');
+//
+// 		var selectedContainer = $$.selection.selectAll('g.d3b-selector-selected').data($$.currentData.values.filter(function(d){return d.selected;}));
+//
+// 		var newSelectedContainer = selectedContainer.enter()
+// 			.append('g')
+// 				.attr('class','d3b-selector-selected');
+//
+// 		newSelectedContainer
+// 			.append('rect')
+// 				.attr('rx',1)
+// 				.attr('class','d3b-selector-border');
+//
+// 		var newSelectedSubContainer = newSelectedContainer
+// 			.append('g');
+//
+// 	  newSelectedSubContainer
+// 			.append('text');
+//
+// 		newSelectedContainer
+// 			.append('path')
+// 				.attr('class','d3b-selector-triangle');
+//
+// 		selectedContainer
+// 			.attr('transform','translate('+0.4*$$.scale+','+0.4*$$.scale+')')
+//
+// 		selectedContainer.select('rect')
+// 			.attr('stroke-width',0.4*$$.scale)
+// 			.attr('width', $$.maxWidth - 0.8*$$.scale)
+// 			.attr('height', 4*$$.scale)
+//
+// 		selectedContainer.select('text')
+// 				.text(function(d){return d.label});
+//
+// 		selectedContainer.select('path')
+// 				.attr('d','M 0 0 L '+$$.scale*1.8+' 0 L '+$$.scale*0.9+' '+$$.scale*1+' L 0 0 Z');
+//
+// 		$$.computedWidth = 200;
+// 		$$.computedHeight = 200;
+//
+// 		if(callback)
+// 			callback();
+//
+// 		return control;
+// 	};
+//
+// 	return control;
+//
+// };
+
+d3b.UTILS.CONTROLS.htmlControls = function(){
+	var $$ = {};
+
+	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.currentData;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.controlsHash = {};
+
+	$$.selection;
+	$$.scale = 5;
+
+	$$.makeControlsHash = function(){
+		$$.controlsHash = {};
+		$$.currentData.controls.forEach(function(d){
+			$$.controlsHash[d.key] = d;
+		});
+	};
+
+	//init event object
+	$$.on = {
+		elementMouseover:function(){},
+		elementMouseout:function(){},
+		elementClick:function(){},
+		change:function(){}
+	};
+
+	var controls = {};
+
+	controls.select = d3b.UTILS.CHARTS.MEMBERS.select(controls, $$);
+	controls.width = function(value){
+		if(!arguments.length) return $$.maxWidth;
+		$$.maxWidth = value;
+		return controls;
+	};
+	controls.computedHeight = function(){
+		return $$.computedHeight;
+	};
+	controls.computedWidth = function(){
+		return $$.computedWidth;
+	};
+	controls.selection = function(value){
+		if(!arguments.length) return $$.selection;
+		$$.selection = value;
+		return controls;
+	};
+	controls.scale = function(value){
+		if(!arguments.length) return $$.scale;
+		$$.scale = value;
+		return controls;
+	};
+	controls.animationDuration = function(value){
+		if(!arguments.length) return $$.animationDuration;
+		$$.animationDuration = value;
+		return controls;
+	};
+
+	controls.on =				d3b.UTILS.CHARTS.MEMBERS.on(controls, $$);
+
+	controls.data = function(controlsData, reset){
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = controlsData;
+		$$.makeControlsHash();
+		return controls;
+	}
+
+	controls.update = function(callback){
+		if(!$$.selection)
+			return console.warn('controls was not given a selection');
+		// console.log($$.currentData.controls)
+		$$.selection.controlContainer = $$.selection.selectAll('div.d3b-control-container').data($$.currentData.controls, function(d){return d.type+'-'+d.key;});
+
+		var newControl = $$.selection.controlContainer.enter()
+			.append('div')
+				.attr('class', 'd3b-control-container')
+
+		newControl
+			.append('div')
+				.attr('class', 'd3b-control-label')
+				.text(function(d){return d.label+':';});
+
+		newControl
+			.append('div')
+				.attr('class', 'd3b-control')
+				.each(function(d){
+					this.control = new d3b.UTILS.CONTROLS[d.type]();
+					this.control.container(d3.select(this));
+				});
+
+		$$.selection.controlContainer.control = $$.selection.controlContainer.select('.d3b-control')
+			.each(function(d){
+				this.control
+					.scale($$.scale)
+					.data(d)
+					.on('change.d3b-change',function(d,i){
+						for(key in $$.on.change){
+							$$.on.change[key].call(this,$$.controlsHash,d,i);
+						}
+					})
+					.update();
+			});
+
+
+		$$.selection.controlContainer.exit()
+			// .transition()
+			// 	.duration($$.animationDuration)
+			// 	.style('opacity',0)
+				.remove();
+
+
+		if(callback){
+			callback;
+		}
+
+		return controls;
+	};
+
+	return controls;
+};
+
+
+d3b.UTILS.CONTROLS.controls = function(){
+	var $$ = {};
+
+	$$.maxWidth = d3b.CONSTANTS.DEFAULTWIDTH();
+	$$.currentData;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+
+	$$.selection;
+	$$.scale = 5;
 
 	//init event object
 	var on = {
 		elementMouseover:function(){},
 		elementMouseout:function(){},
 		elementClick:function(){},
-		elementChange:function(){}
+		change:function(){}
 	};
 
 	var controls = {};
 
 	controls.width = function(value){
-		if(!arguments.length) return maxWidth;
-		maxWidth = value;
+		if(!arguments.length) return $$.maxWidth;
+		$$.maxWidth = value;
 		return controls;
 	};
 	controls.computedHeight = function(){
-		return computedHeight;
+		return $$.computedHeight;
 	};
 	controls.computedWidth = function(){
-		return computedWidth;
+		return $$.computedWidth;
 	};
 	controls.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
+		if(!arguments.length) return $$.selection;
+		$$.selection = value;
 		return controls;
 	};
 	controls.scale = function(value){
-		if(!arguments.length) return scale;
-		scale = value;
+		if(!arguments.length) return $$.scale;
+		$$.scale = value;
 		return controls;
 	};
 	controls.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
+		if(!arguments.length) return $$.animationDuration;
+		$$.animationDuration = value;
 		return controls;
 	};
 
@@ -212,45 +714,45 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 	};
 
 	controls.data = function(controlsData, reset){
-		if(!arguments.length) return currentControlsData;
-		currentControlsData = controlsData;
+		if(!arguments.length) return $$.currentData;
+		$$.currentData = controlsData;
 		return controls;
 	}
 
 	controls.update = function(callback){
-		if(!selection)
-			return console.warn('controls was not given a selection');
+		if(!$$.selection)
+			return console.warn('controls was not given a $$.selection');
 
-		var xPadding = 3*scale;
-		var yPadding = scale;
-		computedHeight = 0;
-		computedWidth = 0;
+		var xPadding = 3*$$.scale;
+		var yPadding = $$.scale;
+		$$.computedHeight = 0;
+		$$.computedWidth = 0;
 
-		if(currentControlsData.length > 0){
-			var controls = selection.selectAll('g.ad-control').data(currentControlsData,function(d){return d.label+','+d.type;});
+		if($$.currentData.length > 0){
+			var controls = $$.selection.selectAll('g.d3b-control').data($$.currentData,function(d){return d.label+','+d.type;});
 
 			controls.enter()
 				.append('g')
-					.attr('class','ad-control')
+					.attr('class','d3b-control')
 					.each(function(d){
-						d.control = new AD.UTILS.CONTROLS[d.type]();
+						d.control = new d3b.UTILS.CONTROLS[d.type]();
 						d.control.selection(d3.select(this))
-							.on('elementClick.ad-click',function(d,i){
+							.on('elementClick.d3b-click',function(d,i){
 								for(key in on.elementClick){
 									on.elementClick[key].call(this,d,i);
 								}
 							})
-							.on('elementChange',function(d,i){
-								for(key in on.elementChange){
-									on.elementChange[key].call(this,d,i);
+							.on('change.d3b-change',function(d,i){
+								for(key in on.change){
+									on.change[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseover.ad-mouseover',function(d,i){
+							.on('elementMouseover.d3b-mouseover',function(d,i){
 								for(key in on.elementMouseover){
 									on.elementMouseover[key].call(this,d,i);
 								}
 							})
-							.on('elementMouseout.ad-mouseout',function(d,i){
+							.on('elementMouseout.d3b-mouseout',function(d,i){
 								for(key in on.elementMouseout){
 									on.elementMouseout[key].call(this,d,i);
 								}
@@ -263,35 +765,35 @@ AD.UTILS.CONTROLS.horizontalControls = function(){
 			var maxControlRowWidth = 0;
 			controls.each(function(d){
 
-				d.control.scale(scale).data(d.data).update();
+				d.control.scale($$.scale).data(d.data).update();
 
-				if((computedWidth + d.control.computedWidth()) > maxWidth){
-					computedWidth = 0;
-					computedHeight += maxControlHeight + yPadding;
+				if(($$.computedWidth + d.control.computedWidth()) > $$.maxWidth){
+					$$.computedWidth = 0;
+					$$.computedHeight += maxControlHeight + yPadding;
 					maxControlHeight = 0;
 				}
 
 				d3.select(this)
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1)
-						.attr('transform','translate('+computedWidth+','+computedHeight+')');
-				computedWidth += d.control.computedWidth() + xPadding;
+						.attr('transform','translate('+$$.computedWidth+','+$$.computedHeight+')');
+				$$.computedWidth += d.control.computedWidth() + xPadding;
 
 				if(maxControlHeight < d.control.computedHeight()){
 					maxControlHeight = d.control.computedHeight();
 				}
-				if(maxControlRowWidth < computedWidth){
-					maxControlRowWidth = computedWidth;
+				if(maxControlRowWidth < $$.computedWidth){
+					maxControlRowWidth = $$.computedWidth;
 				}
 			});
 
-			computedWidth = maxControlRowWidth - xPadding;
+			$$.computedWidth = maxControlRowWidth - xPadding;
 
-			computedHeight += maxControlHeight;
+			$$.computedHeight += maxControlHeight;
 			controls.exit()
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',0)
 					.remove();
 		}

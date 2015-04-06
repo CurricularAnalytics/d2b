@@ -2,12 +2,12 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/ad.js"></script>
+<script src="../../build/js/d3b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <script>
 	$(document).ready(function(){
 
-		var axisChart = new AD.CHARTS.axisChart();
+		var axisChart = new d3b.CHARTS.axisChart();
 
 		axisChart
 //no need to use select/width/height if imbeding chart into a chartLayout
@@ -18,7 +18,7 @@
 //value formatting
 			.xFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:0})
 			.yFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:"%"},precision:0})
-
+			
 //set the x scale properties
 			.x({
 				orientation:'bottom', 						//default 'bottom', can be set to right or left if rotated, bottom or top if not
@@ -89,7 +89,7 @@
 			}});
 
 //define chart layout
-			var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+			var chartLayout = new d3b.UTILS.CHARTPAGE.chartLayout();
 
 //setup chart layout
 			chartLayout

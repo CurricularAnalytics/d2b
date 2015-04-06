@@ -2,27 +2,43 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/ad.min.js"></script>
+<script src="../../build/js/d3b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
-<!-- <script src="//localhost:1337/livereload.js"></script> -->
+<!-- <script src="//localhost:1337/liverelod3b.js"></script> -->
 <script>
-	$(document).ready(function(){
-		var dashboard = new AD.DASHBOARDS.dashboard();
-
+	var data = {};
+	var makeDashboard = function(){
+		var dashboard = new d3b.DASHBOARDS.dashboard();
+		d3b.CONSTANTS.DEFAULTPALETTE = {primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"};
 		dashboard
 				// .animationDuration(0)
-				.palette({primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"})
+				// .palette({primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"})
 				.width($(window).width())
 				.select('.dashboard');
-
-		d3.json('./simple-dashboard.json',function(data){
-			dashboard.data(data).update();
-		});
+		// $('.d3b-dashboard-sidebar').append()
+		dashboard.data(data).update();
 
 		$(window).resize(function(){
 			dashboard
 					.width($(window).width())
 					.update();
+		});
+
+		d3.select('.d3b-dashboard-logo')
+			.attr('src', 'http://degrees.unm.edu/assets/layout/Logo-072057a2d0687e68145f541da12b18e3.png')
+			.style('cursor','pointer')
+			.style('opacity',0.95)
+			.on('click',function(){
+				window.location.href = 'http://unm.edu'
+			})
+
+	};
+
+	$(document).ready(function(){
+
+		d3.json('./simple-dashboard.json',function(d){
+			data = d;
+			makeDashboard();
 		});
 
 	})
@@ -34,7 +50,13 @@
 }
 body{
 	margin:0px;
-	background-image:url(./images/bg_filter.png);
+	background-image:url(./images/tiny_grid.png);
+	/*background-image:url(./images/noisy_grid.png);*/
+	/*background-image:url(./images/gplaypattern.png);*/
+	/*background-image:url(./images/white_tiles.png);*/
+}
+.d3b-dashboard-logo{
+	background-image:url(./images/logo.png);
 }
 </style>
 <body>

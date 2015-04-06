@@ -1,15 +1,15 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-area*/
-AD.UTILS.AXISCHART.TYPES.area = function(){
+d3b.UTILS.AXISCHART.TYPES.area = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -17,7 +17,7 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	$$.area = d3.svg.area()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -28,18 +28,73 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+
+	$$.updatePoints = function(graphData, graph, yType){
+
+		$$.foreground.point[yType] = graph.selectAll('g.d3b-'+yType+'-point').data(function(d){return d.values;});
+
+		var newPoint = $$.foreground.point[yType].enter()
+			.append('g')
+				.attr('class','d3b-'+yType+'-point')
+				.attr('transform',function(d){
+					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d[yType])+')';
+				});
+
+		newPoint
+			.append('circle')
+				.attr('r', 3.5)
+
+		newPoint
+			.append('circle')
+				.attr('r', 3.5)
+				.style('fill-opacity',0)
+				.on('mouseover.d3b-mouseover',function(){
+					d3.select(this)
+						.transition()
+							.duration($$.animationDuration/2)
+							.attr('r',7)
+				})
+				.on('mouseout.d3b-mouseover',function(){
+					d3.select(this)
+						.transition()
+							.duration($$.animationDuration/2)
+							.attr('r',3.5)
+				})
+				.call(d3b.UTILS.bindElementEvents, $$, 'area-point-'+yType)
+				.call(d3b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);});
+
+		$$.foreground.point[yType]
+			.selectAll('circle')
+				.style('stroke', $$.color(graphData.label))
+				.style('fill', 'white');
+
+		$$.foreground.point[yType]
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform',function(d){
+					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d[yType])+')';
+				});
+
+		$$.foreground.point[yType].exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.attr('r',0)
+				.remove();
+
+	};
 
 	chart.xValues = function(){
     var values = [];
@@ -74,7 +129,7 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(AD.UTILS.bindElementEvents, $$, 'area');
+					.call(d3b.UTILS.bindElementEvents, $$, 'area');
 			}
 
 			if(graphData.interpolate){
@@ -95,56 +150,10 @@ AD.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
-			$$.foreground.circleY = graph.selectAll('circle.ad-y-point').data(function(d){return d.values;});
+			$$.foreground.point = {};
 
-			$$.foreground.circleY.enter()
-				.append('circle')
-					.attr('class','ad-y-point')
-					.attr('r', '4')
-					.call(AD.UTILS.bindElementEvents, $$, 'area-point-y')
-					.on('mouseover.ad-mouseover',function(d,i){
-						AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+graphData.label+'</b>',$$.yFormat(d.y));
-					})
-					.on('mouseout.ad-mouseout',function(d,i){
-						AD.UTILS.removeTooltip();
-					});
-					$$.foreground.circleY
-					.style('stroke', $$.color(graphData.label))
-					.style('fill', 'white')
-				.transition()
-					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.x.customScale(d.x);})
-					.attr('cy',function(d){return $$.y.customScale(d.y);});
-					$$.foreground.circleY.exit()
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0)
-					.attr('r',0)
-					.remove();
-
-
-			$$.foreground.circleY0 = graph.selectAll('circle.ad-y0-point').data(function(d){return d.values;});
-
-			$$.foreground.circleY0.enter()
-				.append('circle')
-					.call(AD.UTILS.bindElementEvents, $$, 'area-point-y0')
-					.attr('class','ad-y0-point')
-					.attr('r', '4')
-					.call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
-
-			$$.foreground.circleY0
-					.style('stroke', $$.color(graphData.label))
-					.style('fill', 'white')
-				.transition()
-					.duration($$.animationDuration)
-					.attr('cx',function(d){return $$.x.customScale(d.x);})
-					.attr('cy',function(d){return $$.y.customScale(d.y0);});
-			$$.foreground.circleY0.exit()
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0)
-					.attr('r',0)
-					.remove();
+			$$.updatePoints(graphData, graph, 'y');
+			$$.updatePoints(graphData, graph, 'y0');
 		});
 
 		d3.timer.flush();

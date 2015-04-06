@@ -1,26 +1,26 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*iframe chart*/
-AD.CHARTS.iframeChart = function(){
+d3b.CHARTS.iframeChart = function(){
 
 	//define iframeChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var generateRequired = true; //using some methods may require the chart to be redrawn
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 			};
 
 	//init event object
-	var on = AD.CONSTANTS.DEFAULTEVENTS();
+	var on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
@@ -94,11 +94,11 @@ AD.CHARTS.iframeChart = function(){
 
 		selection.div = selection
 			.append('div')
-				.attr('class','ad-iframe-chart ad-container');
+				.attr('class','d3b-iframe-chart d3b-container');
 
 		selection.div.iframe = selection.div
 			.append('iframe')
-				.attr('class','ad-iframe')
+				.attr('class','d3b-iframe')
 				.attr('src',currentChartData.url);
 
 		//auto update chart

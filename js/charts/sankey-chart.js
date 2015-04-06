@@ -1,18 +1,18 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-//TODO: ADD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
+//TODO: d3bD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
 //TODO: ATTACH ALL PRIVATE VARIABLES/MEHTODS TO BE STORED ON THE PRIVATE STORE '_'
 
 /*sankey chart*/
-AD.CHARTS.sankeyChart = function(){
+d3b.CHARTS.sankeyChart = function(){
 
 	//private
 	var _ = {};
-	_.on = AD.CONSTANTS.DEFAULTEVENTS();
+	_.on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 
@@ -20,14 +20,14 @@ AD.CHARTS.sankeyChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
+	var legend = new d3b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {
 				nodes:[],
@@ -54,7 +54,7 @@ AD.CHARTS.sankeyChart = function(){
 			};
 
 	//init event object
-	// var on = AD.CONSTANTS.DEFAULTEVENTS();
+	// var on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	var xFormat = function(value){return value};
 
@@ -94,7 +94,7 @@ AD.CHARTS.sankeyChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
+		xFormat = d3b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -149,7 +149,7 @@ AD.CHARTS.sankeyChart = function(){
 	// 	return chart;
 	// };
 
-	chart.on = AD.UTILS.CHARTS.MEMBERS.on(chart, _);
+	chart.on = d3b.UTILS.CHARTS.MEMBERS.on(chart, _);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return currentChartData;
@@ -187,51 +187,51 @@ AD.CHARTS.sankeyChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','ad-sankey-chart ad-svg ad-container');
+				.attr('class','d3b-sankey-chart d3b-svg d3b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.sankey = selection.group
 			.append('g')
-				.attr('class','ad-sankey');
+				.attr('class','d3b-sankey');
 		selection.group.sankey.links = selection.group.sankey
 			.append('g')
-				.attr('class','ad-sankey-links');
+				.attr('class','d3b-sankey-links');
 		selection.group.sankey.nodes = selection.group.sankey
 			.append('g')
-				.attr('class','ad-sankey-nodes');
+				.attr('class','d3b-sankey-nodes');
 
 		selection.group.labels = selection.group
 			.append('g')
-				.attr('class','ad-sankey-labels');
+				.attr('class','d3b-sankey-labels');
 
 		selection.group.labels.source = selection.group.labels
 			.append('g')
-				.attr('class','ad-sankey-label-source');
+				.attr('class','d3b-sankey-label-source');
 
 		selection.group.labels.source.text = selection.group.labels.source.append('text').attr('y',23);
 
 		selection.group.labels.destination = selection.group.labels
 			.append('g')
-				.attr('class','ad-sankey-label-destination');
+				.attr('class','d3b-sankey-label-destination');
 
 		selection.group.labels.destination.text = selection.group.labels.destination.append('text').attr('y',23);
 
 		selection.group.columnHeaders = selection.group
 			.append('g')
-				.attr('class','ad-sankey-column-headers');
+				.attr('class','d3b-sankey-column-headers');
 
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','ad-controls');
+				.attr('class','d3b-controls');
 
 
 		horizontalControls
 				.selection(selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					controls[d.key].enabled = d.state;
 					if(d.key == 'sort' || d.key == 'hideLegend'){
 						newData = true;
@@ -243,7 +243,7 @@ AD.CHARTS.sankeyChart = function(){
 		// //create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','ad-legend');
+				.attr('class','d3b-legend');
 
 		// //intialize new legend
 		legend
@@ -267,11 +267,11 @@ AD.CHARTS.sankeyChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
-		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -393,10 +393,10 @@ AD.CHARTS.sankeyChart = function(){
 					.duration(animationDuration)
 					.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
 
-			columnHeader = selection.group.columnHeaders.selectAll('g.ad-sankey-column-header').data(currentChartData.columnHeaders);
+			columnHeader = selection.group.columnHeaders.selectAll('g.d3b-sankey-column-header').data(currentChartData.columnHeaders);
 			columnHeader.enter()
 				.append('g')
-					.attr('class','ad-sankey-column-header')
+					.attr('class','d3b-sankey-column-header')
 				.append('text')
 					.attr('y',16)
 					.attr('x',function(d,i){
@@ -433,7 +433,7 @@ AD.CHARTS.sankeyChart = function(){
 				.layout(layout);
 
 
-		var node = selection.group.sankey.nodes.selectAll('g.ad-sankey-node')
+		var node = selection.group.sankey.nodes.selectAll('g.d3b-sankey-node')
 				.data(currentChartData.nodes,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -444,16 +444,16 @@ AD.CHARTS.sankeyChart = function(){
 					});
 		var newNode = node.enter()
 			.append('g')
-				.attr('class','ad-sankey-node')
-				.on('mouseover.ad-mouseover',function(d,i){
-					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
+				.attr('class','d3b-sankey-node')
+				.on('mouseover.d3b-mouseover',function(d,i){
+					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
-					AD.UTILS.removeTooltip();
+				.on('mouseout.d3b-mouseout',function(d,i){
+					d3b.UTILS.removeTooltip();
 				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',0)
-				.call(AD.UTILS.bindElementEvents, _, 'node');
+				.call(d3b.UTILS.bindElementEvents, _, 'node');
 		newNode.append('rect');
 		newNode.append('text');
 
@@ -479,7 +479,7 @@ AD.CHARTS.sankeyChart = function(){
 				.attr('x',function(d){return (d.x < innerWidth/2)? sankey.nodeWidth()+5:-5;})
 				.attr('y',function(d){return d.dy/2+5;})
 
-		var link = selection.group.sankey.links.selectAll('g.ad-sankey-link')
+		var link = selection.group.sankey.links.selectAll('g.d3b-sankey-link')
 				.data(currentChartData.links,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -491,15 +491,15 @@ AD.CHARTS.sankeyChart = function(){
 					});
 		var newLink = link.enter()
 			.append('g')
-				.attr('class','ad-sankey-link')
-				.on('mouseover.ad-mouseover',function(d,i){
-					AD.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
+				.attr('class','d3b-sankey-link')
+				.on('mouseover.d3b-mouseover',function(d,i){
+					d3b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
-					AD.UTILS.removeTooltip();
+				.on('mouseout.d3b-mouseout',function(d,i){
+					d3b.UTILS.removeTooltip();
 				})
 				.style('opacity',0)
-				.call(AD.UTILS.bindElementEvents, _, 'link');
+				.call(d3b.UTILS.bindElementEvents, _, 'link');
 
 		// console.log(newLink)
 		newLink.append('path');

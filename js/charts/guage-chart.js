@@ -1,36 +1,36 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*guage chart*/
-AD.CHARTS.guageChart = function(){
+d3b.CHARTS.guageChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
-	$$.percentFormat = AD.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
+	$$.percentFormat = d3b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
 
 	$$.arc = d3.svg.arc()
@@ -43,13 +43,14 @@ AD.CHARTS.guageChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.color = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -73,28 +74,28 @@ AD.CHARTS.guageChart = function(){
 	  //create svg
 	  $$.selection.svg = $$.selection
 	    .append('svg')
-	      .attr('class','ad-template-chart ad-svg ad-container');
+	      .attr('class','d3b-template-chart d3b-svg d3b-container');
 
 	  //create group container
-	  $$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	  $$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
 	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','ad-guage-chart');
+				.attr('class','d3b-guage-chart');
 
 		$$.selection.arcs = $$.selection.main.append('g');
 
 
 		$$.selection.arcHeader = $$.selection.main
 			.append('text')
-				.attr('class','ad-guage-arc-header');
+				.attr('class','d3b-guage-arc-header');
 
 		$$.selection.arcLabels = $$.selection.main
 			.append('g')
-						.attr('class','ad-guage-arc-labels');
+						.attr('class','d3b-guage-arc-labels');
 
 		$$.selection.arcLabels.start = $$.selection.arcLabels.append('text')
 				.attr('y', 20)
@@ -104,7 +105,7 @@ AD.CHARTS.guageChart = function(){
 				.text('100%');
 		$$.selection.arcLabels.percent = $$.selection.arcLabels
 			.append('text')
-				.attr('class', 'ad-guage-arc-percent')
+				.attr('class', 'd3b-guage-arc-percent')
 				.text('0%');
 
 		// $$.selection.arcs.filled = $$.selection.arcs.append('path');
@@ -129,7 +130,7 @@ AD.CHARTS.guageChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -138,7 +139,7 @@ AD.CHARTS.guageChart = function(){
 				.attr('width',$$.width)
 				.attr('height',$$.height);
 
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 
 
@@ -165,7 +166,7 @@ AD.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.percent-Math.PI/2,
-					color: 'rgb(193,0,55)',
+					color: $$.color($$.currentChartData.label),
 					filled:true
 				},
 				{
@@ -183,7 +184,7 @@ AD.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
-					color: 'rgb(193,0,55)',
+					color: $$.color($$.currentChartData.label),
 					filled:true
 				},
 				{
@@ -199,7 +200,7 @@ AD.CHARTS.guageChart = function(){
 					percent: percent,
 					start:-Math.PI/2,
 					end:-Math.PI/2,
-					color:"rgb(193, 0, 55)",
+					color: $$.color($$.currentChartData.label),
 					filled:true
 				},
 				{
@@ -225,23 +226,23 @@ AD.CHARTS.guageChart = function(){
 					this._radiusCurrent = {inner:radius.current.inner, outer:radius.current.outer};
 				})
 		newArc.filter(function(d){return d.filled;})
-				.on('mouseover.ad-mouseover',function(d,i){
+				.on('mouseover.d3b-mouseover',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1.05)');
-					AD.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
+					d3b.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
 				})
-				.on('mouseout.ad-mouseout',function(d,i){
+				.on('mouseout.d3b-mouseout',function(d,i){
 					var arc = d3.select(this);
 					arc
 						.transition()
 							.duration($$.animationDuration/4)
 							.attr('transform','scale(1)');
-					AD.UTILS.removeTooltip();
+					d3b.UTILS.removeTooltip();
 				})
-				.call(AD.UTILS.bindElementEvents, $$, 'arc');
+				.call(d3b.UTILS.bindElementEvents, $$, 'arc');
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
 			.transition()
@@ -260,7 +261,7 @@ AD.CHARTS.guageChart = function(){
 					};
 				})
 				.style('fill', function(d){return d.color;})
-				.attr('class', 'ad-arc');
+				.attr('class', 'd3b-arc');
 
 		// $$.selection.main
 			// .transition()

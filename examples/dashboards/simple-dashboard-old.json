@@ -1,0 +1,2370 @@
+{
+	"dashboard": {
+		"charts": {
+			"1": {
+				"type":"axisChart",
+				"properties":{
+					"xScale":{"type": "ordinal"},
+					"controls":{
+						"yAxisLock": {
+							"visible": true,
+							"maxStacked": 780,
+							"maxNonStacked": 312
+						},
+						"stacking": {
+							"visible": true,
+							"enabled":true
+						}
+					},
+				"data":{
+									"data":{
+										"labels":{
+										"x":"Template x label",
+										"y":"Template y label"
+									},
+									"columns":[
+										{
+											"label":"data 1",
+											"type":"area,spline",
+											"values":[
+												{"x":"x1","y":67},
+												{"x":"x2","y":211},
+												{"x":"x3","y":346},
+												{"x":"x4","y":113}
+											]
+										},
+										{
+											"label":"data 2",
+											"type":"line,basis",
+											"values":[
+												{"x":"x1","y":100},
+												{"x":"x3","y":11},
+												{"x":"x4","y":130}
+											]
+										},
+										{
+											"label":"data 3",
+											"type":"area,cardinal-open",
+											"values":[
+												{"x":"x1","y":110},
+												{"x":"x4","y":20}
+											]
+										},
+										{
+											"label":"data 4",
+											"type":"bar",
+											"values":[
+												{"x":"x1","y":105},
+												{"x":"x2","y":611},
+												{"x":"x4","y":211}
+											]
+										},
+										{
+											"label":"data 5",
+											"type":"scatter",
+											"values":[
+												{"x":"x1","y":37},
+												{"x":"x2","y":111},
+												{"x":"x3","y":146},
+												{"x":"x4","y":213}
+											]
+										},
+										{
+											"label":"data 6",
+											"type":"bar",
+											"values":[
+												{"x":"x1","y":200},
+												{"x":"x2","y":143},
+												{"x":"x3","y":46},
+												{"x":"x4","y":128}
+											]
+										}
+									]
+								}
+			}},
+				"chartLayoutData":{"data":{"chartLayout":{
+					"title":"Title",
+					"footnote":"* This is something important to note for the chart",
+					"source":["Office of Institutional Analytics", "Student Data Mart", "Fall 2013"],
+					"leftNotes":["Here is a note on the left side of the chart", "And Another"]}}
+				}
+			},
+			"2": {
+				"type":"interactiveBarChart",
+				"properties":{
+					"xScale":{"type":"ordinal"},
+					"controls":{
+						"yAxisLock": {
+							"visible": false
+						},
+						"stacking": {
+							"visible": true
+						},
+						"horizontal": {
+							"visible": true,
+							"enabled": true
+						}
+					},
+				"data":{
+					"data":{
+										"labels":{
+											"x":"Template x label",
+											"y":"Template y label"
+										},
+										"columns":[
+											{
+												"label":"data 1",
+												"values":[
+													{"x":"freshmen","y":67},
+													{"x":"sophmores","y":211},
+													{"x":"juniors","y":346},
+													{"x":"Seniors","y":113}
+												]
+											},
+											{
+												"label":"data 2",
+												"values":[
+													{"x":"freshmen","y":100},
+													{"x":"juniors","y":11},
+													{"x":"Seniors","y":130}
+												]
+											},
+											{
+												"label":"data 3",
+												"values":[
+													{"x":"freshmen","y":110},
+													{"x":"Seniors","y":20}
+												]
+											},
+											{
+												"label":"data 4",
+												"values":[
+													{"x":"freshmen","y":105},
+													{"x":"sophmores","y":611},
+													{"x":"Seniors","y":211}
+												]
+											},
+											{
+												"label":"data 5",
+												"values":[
+													{"x":"freshmen","y":37},
+													{"x":"sophmores","y":111},
+													{"x":"juniors","y":146},
+													{"x":"Seniors","y":213}
+												]
+											},
+											{
+												"label":"data 6",
+												"values":[
+													{"x":"freshmen","y":200},
+													{"x":"sophmores","y":143},
+													{"x":"juniors","y":46},
+													{"x":"Seniors","y":128}
+												]
+											}
+										]
+									}
+							}},
+				"chartLayoutData":{"data":{"chartLayout":{
+					"title":"Title"}}
+				}
+			},
+			"3": {
+				"type":"axisChart",
+				"properties":{
+					"xScale":{"type": "ordinal"},
+					"controls":{
+						"yAxisLock": {
+							"visible": true,
+							"maxStacked": 780,
+							"maxNonStacked": 312
+						},
+						"stacking": {
+							"visible": true,
+							"enabled":true
+						}
+					},
+				"data":{
+									"data":{
+										"labels":{
+										"x":"Template x label",
+										"y":"Template y label"
+									},
+									"columns":[
+										{
+											"label":"data 1",
+											"type":"area,spline",
+											"values":[
+												{"x":"x1","y":67},
+												{"x":"x2","y":211},
+												{"x":"x3","y":346},
+												{"x":"x4","y":113}
+											]
+										},
+										{
+											"label":"data 2",
+											"type":"line,basis",
+											"values":[
+												{"x":"x1","y":100},
+												{"x":"x3","y":11},
+												{"x":"x4","y":130}
+											]
+										},
+										{
+											"label":"data 3",
+											"type":"area,cardinal-open",
+											"values":[
+												{"x":"x1","y":110},
+												{"x":"x4","y":20}
+											]
+										},
+										{
+											"label":"data 4",
+											"type":"bar",
+											"values":[
+												{"x":"x1","y":105},
+												{"x":"x2","y":611},
+												{"x":"x4","y":211}
+											]
+										},
+										{
+											"label":"data 5",
+											"type":"scatter",
+											"values":[
+												{"x":"x1","y":37},
+												{"x":"x2","y":111},
+												{"x":"x3","y":146},
+												{"x":"x4","y":213}
+											]
+										},
+										{
+											"label":"data 6",
+											"type":"bar",
+											"values":[
+												{"x":"x1","y":200},
+												{"x":"x2","y":143},
+												{"x":"x3","y":46},
+												{"x":"x4","y":128}
+											]
+										}
+									]
+								}
+			}},
+				"chartLayoutData":{"data":{"chartLayout":{
+					"title":"Title"}}
+				}
+			},
+			"4": {
+				"type":"axisChart",
+				"properties":{
+					"controls":{
+						"yAxisLock": {
+							"visible": false
+						},
+						"stacking": {
+							"visible": true
+						}
+					},
+				"data":{
+									"data":{
+										"labels":{
+										"x":"Template x label",
+										"y":"Template y label"
+									},
+									"columns":[
+										{
+											"label":"data 1",
+											"type":"area,spline",
+											"values":[
+												{"x":1,"y":67},
+												{"x":5,"y":211},
+												{"x":10,"y":346},
+												{"x":13,"y":113}
+											]
+										},
+										{
+											"label":"data 2",
+											"type":"line,basis",
+											"values":[
+												{"x":3,"y":100},
+												{"x":8,"y":11},
+												{"x":10,"y":130}
+											]
+										},
+										{
+											"label":"data 3",
+											"type":"area,cardinal-open",
+											"values":[
+												{"x":1,"y":110},
+												{"x":10,"y":20}
+											]
+										},
+										{
+											"label":"data 4",
+											"type":"bar",
+											"values":[
+												{"x":5,"y":105},
+												{"x":10,"y":611},
+												{"x":13,"y":211}
+											]
+										},
+										{
+											"label":"data 5",
+											"type":"scatter",
+											"values":[
+												{"x":3,"y":37},
+												{"x":8,"y":111},
+												{"x":13,"y":146},
+												{"x":16,"y":213}
+											]
+										},
+										{
+											"label":"data 6",
+											"type":"bar",
+											"values":[
+												{"x":2,"y":200},
+												{"x":3,"y":143},
+												{"x":13,"y":46},
+												{"x":16,"y":128}
+											]
+										}
+									]
+								}
+								}},
+				"chartLayoutData":{"data":{"chartLayout":{
+					"title":"Title"}}
+				}
+			},
+			"5": {
+				"type":"sankeyChart",
+				"properties":{"xFormat":{"siPrefixed":true,"separateThousands":false,"units":{"before":"$"},"precision":4},
+				"data":{
+
+						"data":{
+							"labels":{"source":"Source","destination":"Expenditures"},
+							"links":[
+								{"source":0, "target":6, "value":19595476, "colorBy":"source"},
+								{"source":0, "target":7, "value":4074464, "colorBy":"source"},
+								{"source":0, "target":8, "value":164936060, "colorBy":"source"},
+								{"source":1, "target":8, "value":134007480, "colorBy":"source"},
+								{"source":1, "target":9, "value":3464088, "colorBy":"source"},
+								{"source":2, "target":10, "value":21000000, "colorBy":"source"},
+								{"source":3, "target":8, "value":126006, "colorBy":"source"},
+								{"source":3, "target":11, "value":8102863, "colorBy":"source"},
+								{"source":4, "target":8, "value":2310071, "colorBy":"source"},
+								{"source":5, "target":8, "value":254624, "colorBy":"source"},
+								{"source":5, "target":12, "value":850000, "colorBy":"source"},
+								{"source":8, "target":13, "value":170411956, "colorBy":"target"},
+								{"source":8, "target":14, "value":37093519, "colorBy":"target"},
+								{"source":8, "target":15, "value":33221061, "colorBy":"target"},
+								{"source":8, "target":16, "value":35735864, "colorBy":"target"},
+								{"source":8, "target":17, "value":17281907, "colorBy":"target"},
+								{"source":8, "target":18, "value":1809376, "colorBy":"target"},
+								{"source":8, "target":19, "value":6080558, "colorBy":"target"}
+							],
+							"nodes":[
+								{"id":0,"px":0,"py":0,"name":"State Appropriation","shortName":"State Appropriation","colorKey":"State Appropriation"},
+								{"id":1,"px":0,"py":1,"name":"Tuition","shortName":"Tuition","colorKey":"Tuition"},
+								{"id":2,"px":0,"py":2,"name":"Indirect Costs","shortName":"Indirect Costs","colorKey":"Indirect Costs"},
+								{"id":3,"px":0,"py":3,"name":"State Land & Permanent Fund","shortName":"State Land & Permanent Fund","colorKey":"State Land & Permanent Fund"},
+								{"id":4,"px":0,"py":4,"name":"Interest, Reserves & Misc. Fees","shortName":"Interest, Reserves & Misc. Fees","colorKey":"Interest, Reserves & Misc. Fees"},
+								{"id":5,"px":0,"py":5,"name":"Winrock Endowment","shortName":"Winrock Endowment","colorKey":"Winrock Endowment"},
+								{"id":6,"px":1,"py":0,"name":"Transfer to HSC Instructional Programs","shortName":"Transfer to HSC Instructional Programs","colorKey":"State Appropriation"},
+								{"id":7,"px":1,"py":1,"name":"Scholarship Transfer","shortName":"Scholarship Transfer","colorKey":"State Appropriation"},
+								{"id":8,"px":1,"py":2,"name":"I&G Pooled Revenue","shortName":"I&G Pooled Revenue"},
+								{"id":9,"px":1,"py":3,"name":"Bad Dept Allowance & Credit Card Fees","shortName":"Bad Dept Allowance & Credit Card Fees","colorKey":"Tuition"},
+								{"id":10,"px":1,"py":4,"name":"Transfer to Research","shortName":"Transfer to Research","colorKey":"Indirect Costs"},
+								{"id":11,"px":1,"py":5,"name":"Transfer to BR&R","shortName":"Transfer to BR&R","colorKey":"State Land & Permanent Fund"},
+								{"id":12,"px":1,"py":6,"name":"Transfer to Student Aid","shortName":"Transfer to Student Aid","colorKey":"Winrock Endowment"},
+								{"id":13,"px":2,"py":0,"name":"Instruction","shortName":"Instruction","colorKey":"Education and Related Expenses"},
+								{"id":14,"px":2,"py":1,"name":"Operations and Maint.","shortName":"Operations and Maint.","colorKey":"Non Educational"},
+								{"id":15,"px":2,"py":2,"name":"Academic Support","shortName":"Academic Support","colorKey":"Education and Related Expenses"},
+								{"id":16,"px":2,"py":3,"name":"Institutional Support","shortName":"Institutional Support","colorKey":"Non Educational"},
+								{"id":17,"px":2,"py":4,"name":"Student Services","shortName":"Student Services","colorKey":"Education and Related Expenses"},
+								{"id":18,"px":2,"py":5,"name":"Plant-Capital","shortName":"Plant-Capital","colorKey":"Non Educational"},
+								{"id":19,"px":2,"py":6,"name":"Student Aid","shortName":"Student Aid","colorKey":"Education and Related Expenses"}
+							]
+					}
+
+					}},
+				"chartLayoutData":{
+					"data":{"chartLayout":{
+					"title":"UNM Pooled Revenue Flow",
+					"source":["Office of Institutional Analytics", "Student Data Mart", "Fall 2013"]}}
+				}
+			},
+			"6":{
+				"type":"pieChart",
+				"properties":{
+					"data":{
+					"data":{
+						"values":[
+							{"key":"Freshmen", "label":"Freshmen","value":21031},
+							{"key":"Sophomores", "label":"Sophomores","value":16093},
+							{"key":"Juniors", "label":"Juniors","value":9080},
+							{"key":"Seniors", "label":"Seniors","value":6577},
+							{"key":"Graduate", "label":"Graduate","value":5632}
+						]
+					}}
+				},
+				"chartLayoutData":{
+					"data":{"chartLayout":{
+					"title":"Title"}}
+				}
+			},
+			"7": {
+				"type":"interactiveBarChart",
+				"properties":{
+					"yFormat":{"units":{"after":"%"}},
+					"xScale":{"type":"ordinal"},
+					"controls":{
+						"yAxisLock": {
+							"visible": false
+						},
+						"stacking": {
+							"visible": true
+						},
+						"horizontal": {
+							"visible": false,
+							"enabled": true
+						}
+					},
+				"data":{
+					"data":{
+										"labels":{
+											"x":"School/College",
+											"y":"Percentage"
+										},
+										"columns":[
+											{
+												"label":"Retention Rate",
+												"values":[
+													{"x":"Anderson Schools of Management","y":77.82},
+													{"x":"College of Arts and Sciences","y":82.92},
+													{"x":"College of Education","y":76.92},
+													{"x":"College of Fine Arts","y":76.19},
+													{"x":"College of College of Nursing","y":76},
+													{"x":"College of Pharmacy","y":82.35},
+													{"x":"School of Arch. and Planning","y":75.38},
+													{"x":"School of Engineering *","y":78.42,"sectionRefrence":"Engineering"},
+													{"x":"School of Medicine","y":78.03},
+													{"x":"University College","y":76.92}
+												]
+											},{
+												"label":"Intended major 6-year graduation rate",
+												"values":[
+													{"x":"Anderson Schools of Management","y":22.18},
+													{"x":"College of Arts and Sciences","y":19.35},
+													{"x":"College of Education","y":13.13},
+													{"x":"College of Fine Arts","y":19.58},
+													{"x":"College of College of Nursing","y":10.29},
+													{"x":"College of Pharmacy","y":12.94},
+													{"x":"School of Arch. and Planning","y":14.52},
+													{"x":"School of Engineering *","y":27.91,"sectionRefrence":"Engineering"},
+													{"x":"School of Medicine","y":1.02},
+													{"x":"University College","y":0.21}
+												]
+											},
+											{
+												"label":"Program-accepted major 6-year graduation rate",
+												"values":[
+													{"x":"Anderson Schools of Management","y":52.91},
+													{"x":"College of Arts and Sciences","y":54.59},
+													{"x":"College of Education","y":52.2},
+													{"x":"College of Fine Arts","y":51.09},
+													{"x":"College of College of Nursing","y":31.97},
+													{"x":"College of Pharmacy","y":47.92},
+													{"x":"School of Arch. and Planning","y":56.45},
+													{"x":"School of Engineering *","y":48.58,"sectionRefrence":"Engineering"},
+													{"x":"School of Medicine","y":25.33},
+													{"x":"University College","y":14.51}
+												]
+											}
+										]
+									}
+							}},
+				"chartLayoutData":{
+					"data":{"chartLayout":{
+					"title":"2013 Undergraduate Student Success Rates (2007 First-Time Full-Time Cohort)",
+					"footnote":"* The intended major graduation rate for the School of Engineering is for the school as a whole, not for individual programs."
+					}}}
+			},
+			"8":{
+				"type":"iframeChart",
+				"properties":{
+					"data":{
+					"data":{
+						"url":"http://studentflows.unm.edu"
+					}
+					}},
+				"chartLayoutData":{
+					"data":{"chartLayout":{
+					"title":"UNM Student Flow"}}
+				}
+			},
+			"9":{
+				"type":"bubbleChart",
+				"properties":{
+					"xFormat":{"nice":true,"siPrefixed":false,"units":{"before":"$"}, "separateThousands":false,"precision":1},
+					"controls":{"sortByChange":{"visible":true},"hideLegend":{"visible":true},"colorByChange":{"visible":true}},
+					"data":{
+						"data":{"groupings":[{"label":"Total Budget"},{"label":"Organizations","default_color_grouping":true},{"label":"Expense Types"}],"nodes":[{"label":"Associate VP for Facilities Mgmt - Salary","key":"Associate VP for Facilities Mgmt - Salary","value":0,"change":1,"enrollments":["All Departments","New","Salary"]},{"label":"Associate VP for Facilities Mgmt - Operating Expense","key":"Associate VP for Facilities Mgmt - Operating Expense","value":0,"change":1,"enrollments":["All Departments","New","Operating Expense"]},{"label":"Associate VP for Facilities Mgmt - Fringe Benefit","key":"Associate VP for Facilities Mgmt - Fringe Benefit","value":0,"change":1,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"Controller - Salary","key":"Controller - Salary","value":9519430.0,"change":0.056135170319759634,"enrollments":["All Departments","New","Salary"]},{"label":"Controller - Operating Expense","key":"Controller - Operating Expense","value":6265331.0,"change":-0.02747694279739977,"enrollments":["All Departments","New","Operating Expense"]},{"label":"Controller - Fringe Benefit","key":"Controller - Fringe Benefit","value":915455.0,"change":0.26072981321552174,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"EVP Admin Independent Offices - Salary","key":"EVP Admin Independent Offices - Salary","value":3819366.0,"change":0.07922181407177169,"enrollments":["All Departments","New","Salary"]},{"label":"EVP Admin Independent Offices - Operating Expense","key":"EVP Admin Independent Offices - Operating Expense","value":3066199.0,"change":-0.46696251282527346,"enrollments":["All Departments","New","Operating Expense"]},{"label":"EVP Admin Independent Offices - Fringe Benefit","key":"EVP Admin Independent Offices - Fringe Benefit","value":68927090.0,"change":0.05967063068576575,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"EVP Administration - Salary","key":"EVP Administration - Salary","value":5913324.0,"change":0.038036612088909204,"enrollments":["All Departments","New","Salary"]},{"label":"EVP Administration - Operating Expense","key":"EVP Administration - Operating Expense","value":4586544.0,"change":0.25328524815574965,"enrollments":["All Departments","New","Operating Expense"]},{"label":"EVP Administration - Fringe Benefit","key":"EVP Administration - Fringe Benefit","value":69000.0,"change":-0.06756756756756757,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"Government & Community Relations - Salary","key":"Government & Community Relations - Salary","value":339222.0,"change":0.9124027511557109,"enrollments":["All Departments","New","Salary"]},{"label":"Government & Community Relations - Operating Expense","key":"Government & Community Relations - Operating Expense","value":328465.0,"change":0.3783676038606798,"enrollments":["All Departments","New","Operating Expense"]},{"label":"Government & Community Relations - Fringe Benefit","key":"Government & Community Relations - Fringe Benefit","value":21067.0,"change":2.784264415304473,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"Human Resources HR - Salary","key":"Human Resources HR - Salary","value":3704281.0,"change":0.093588937403868,"enrollments":["All Departments","New","Salary"]},{"label":"Human Resources HR - Operating Expense","key":"Human Resources HR - Operating Expense","value":1062971.0,"change":-0.15295513567829586,"enrollments":["All Departments","New","Operating Expense"]},{"label":"Human Resources HR - Fringe Benefit","key":"Human Resources HR - Fringe Benefit","value":1133209.0,"change":0.019104917870616432,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"Information Technologies - Salary","key":"Information Technologies - Salary","value":11841076.0,"change":0.007850304251209736,"enrollments":["All Departments","New","Salary"]},{"label":"Information Technologies - Operating Expense","key":"Information Technologies - Operating Expense","value":21066740.0,"change":-0.016280164177288236,"enrollments":["All Departments","New","Operating Expense"]},{"label":"Information Technologies - Fringe Benefit","key":"Information Technologies - Fringe Benefit","value":2907408.0,"change":-0.04715854177707032,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"Information Technology Services - Salary","key":"Information Technology Services - Salary","value":0.0,"change":1,"enrollments":["All Departments","New","Salary"]},{"label":"Information Technology Services - Operating Expense","key":"Information Technology Services - Operating Expense","value":0.0,"change":1,"enrollments":["All Departments","New","Operating Expense"]},{"label":"Information Technology Services - Fringe Benefit","key":"Information Technology Services - Fringe Benefit","value":0.0,"change":1,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"Intercollegiate Athletics - Salary","key":"Intercollegiate Athletics - Salary","value":11186150.0,"change":0.022836301844399845,"enrollments":["All Departments","New","Salary"]},{"label":"Intercollegiate Athletics - Operating Expense","key":"Intercollegiate Athletics - Operating Expense","value":19449780.0,"change":0.07302612955759212,"enrollments":["All Departments","New","Operating Expense"]},{"label":"Intercollegiate Athletics - Fringe Benefit","key":"Intercollegiate Athletics - Fringe Benefit","value":2982607.0,"change":5.029410315052321e-05,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"VP Institutional Support Services - Salary","key":"VP Institutional Support Services - Salary","value":29974625.0,"change":0.020399218529524202,"enrollments":["All Departments","New","Salary"]},{"label":"VP Institutional Support Services - Operating Expense","key":"VP Institutional Support Services - Operating Expense","value":81731331.0,"change":-0.015187339995400747,"enrollments":["All Departments","New","Operating Expense"]},{"label":"VP Institutional Support Services - Fringe Benefit","key":"VP Institutional Support Services - Fringe Benefit","value":10843684.0,"change":0.05823548631260742,"enrollments":["All Departments","New","Fringe Benefit"]},{"label":"President Admin Indpnt Office - Salary","key":"President Admin Indpnt Office - Salary","value":5253818.0,"change":0.021531654481683055,"enrollments":["All Departments","President Executive","Salary"]},{"label":"President Admin Indpnt Office - Operating Expense","key":"President Admin Indpnt Office - Operating Expense","value":1303005.0,"change":-0.09092082460071833,"enrollments":["All Departments","President Executive","Operating Expense"]},{"label":"President Admin Indpnt Office - Fringe Benefit","key":"President Admin Indpnt Office - Fringe Benefit","value":90974.0,"change":-0.17438969053453127,"enrollments":["All Departments","President Executive","Fringe Benefit"]},{"label":"UNM West and Branch Initiatives - Salary","key":"UNM West and Branch Initiatives - Salary","value":638802.0,"change":0.45090272304606854,"enrollments":["All Departments","President Executive","Salary"]},{"label":"UNM West and Branch Initiatives - Operating Expense","key":"UNM West and Branch Initiatives - Operating Expense","value":1082561.0,"change":0.1905157804559666,"enrollments":["All Departments","President Executive","Operating Expense"]},{"label":"UNM West and Branch Initiatives - Fringe Benefit","key":"UNM West and Branch Initiatives - Fringe Benefit","value":190508.0,"change":0.3924394807624839,"enrollments":["All Departments","President Executive","Fringe Benefit"]},{"label":"Academic Affairs Monitoring - Salary","key":"Academic Affairs Monitoring - Salary","value":0,"change":1,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"Academic Affairs Monitoring - Operating Expense","key":"Academic Affairs Monitoring - Operating Expense","value":0.0,"change":1,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"Academic Affairs Monitoring - Fringe Benefit","key":"Academic Affairs Monitoring - Fringe Benefit","value":0,"change":1,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"Anderson Schools of Management ASM - Salary","key":"Anderson Schools of Management ASM - Salary","value":12132449.0,"change":0.04825474032160668,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"Anderson Schools of Management ASM - Operating Expense","key":"Anderson Schools of Management ASM - Operating Expense","value":2370506.0,"change":0.07333914714466701,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"Anderson Schools of Management ASM - Fringe Benefit","key":"Anderson Schools of Management ASM - Fringe Benefit","value":539923.0,"change":-0.009689915371437586,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"College of Arts Sciences A S - Salary","key":"College of Arts Sciences A S - Salary","value":60470691.0,"change":0.06647427316737653,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"College of Arts Sciences A S - Operating Expense","key":"College of Arts Sciences A S - Operating Expense","value":12766380.0,"change":-0.0011354450064987639,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"College of Arts Sciences A S - Fringe Benefit","key":"College of Arts Sciences A S - Fringe Benefit","value":3658005.0,"change":0.23163617153591015,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"College of Education COE - Salary","key":"College of Education COE - Salary","value":14269347.0,"change":-0.013588764932422899,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"College of Education COE - Operating Expense","key":"College of Education COE - Operating Expense","value":2956800.0,"change":-0.17729274555173807,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"College of Education COE - Fringe Benefit","key":"College of Education COE - Fringe Benefit","value":481738.0,"change":-0.2534989958594699,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"College of Fine Arts CFA - Salary","key":"College of Fine Arts CFA - Salary","value":10989841.0,"change":0.0436754583905076,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"College of Fine Arts CFA - Operating Expense","key":"College of Fine Arts CFA - Operating Expense","value":4282053.0,"change":-0.018347639558770838,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"College of Fine Arts CFA - Fringe Benefit","key":"College of Fine Arts CFA - Fringe Benefit","value":426363.0,"change":0.044288125090317695,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"Continuing Education Cont Ed - Salary","key":"Continuing Education Cont Ed - Salary","value":4220257.0,"change":-0.1389984060199524,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"Continuing Education Cont Ed - Operating Expense","key":"Continuing Education Cont Ed - Operating Expense","value":637299.0,"change":-0.5900026891439644,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"Continuing Education Cont Ed - Fringe Benefit","key":"Continuing Education Cont Ed - Fringe Benefit","value":552071.0,"change":-0.612821126026646,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"Extended University Ext Univ - Salary","key":"Extended University Ext Univ - Salary","value":4355875.0,"change":0.07230750407850423,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"Extended University Ext Univ - Operating Expense","key":"Extended University Ext Univ - Operating Expense","value":2745548.0,"change":0.7022980466851185,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"Extended University Ext Univ - Fringe Benefit","key":"Extended University Ext Univ - Fringe Benefit","value":1525767.0,"change":0.11270441590870638,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"Honors College - Salary","key":"Honors College - Salary","value":1413568.0,"change":0.47625572302242425,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"Honors College - Operating Expense","key":"Honors College - Operating Expense","value":347567.0,"change":0.03253875358719483,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"Honors College - Fringe Benefit","key":"Honors College - Fringe Benefit","value":22631.0,"change":1.5286033519553073,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"Provost Administrative Units - Salary","key":"Provost Administrative Units - Salary","value":13324145.0,"change":0.08228351864380401,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"Provost Administrative Units - Operating Expense","key":"Provost Administrative Units - Operating Expense","value":8141267.0,"change":0.0610982795548408,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"Provost Administrative Units - Fringe Benefit","key":"Provost Administrative Units - Fringe Benefit","value":1687412.0,"change":0.1594950590909497,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"School of Architecture Planning - Salary","key":"School of Architecture Planning - Salary","value":3848416.0,"change":0.03743976329089491,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"School of Architecture Planning - Operating Expense","key":"School of Architecture Planning - Operating Expense","value":700995.0,"change":-0.07088249561946469,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"School of Architecture Planning - Fringe Benefit","key":"School of Architecture Planning - Fringe Benefit","value":64772.0,"change":-0.013479141599524803,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"School of Engineering - Salary","key":"School of Engineering - Salary","value":16053324.0,"change":0.04938645175498547,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"School of Engineering - Operating Expense","key":"School of Engineering - Operating Expense","value":4280401.0,"change":-0.10843850551633237,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"School of Engineering - Fringe Benefit","key":"School of Engineering - Fringe Benefit","value":492789.0,"change":-0.057467461053678504,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"School of Law LAW - Salary","key":"School of Law LAW - Salary","value":9383773.0,"change":-0.021491829352972933,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"School of Law LAW - Operating Expense","key":"School of Law LAW - Operating Expense","value":4091745.0,"change":0.046475138528490605,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"School of Law LAW - Fringe Benefit","key":"School of Law LAW - Fringe Benefit","value":442183.0,"change":0.2847546465917246,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"School of Public Administration - Salary","key":"School of Public Administration - Salary","value":1306551.0,"change":-0.006956731909304828,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"School of Public Administration - Operating Expense","key":"School of Public Administration - Operating Expense","value":253516.0,"change":0.08554496484512157,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"School of Public Administration - Fringe Benefit","key":"School of Public Administration - Fringe Benefit","value":33526.0,"change":0.0,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"University College UC - Salary","key":"University College UC - Salary","value":2044361.0,"change":-0.09412722340532066,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"University College UC - Operating Expense","key":"University College UC - Operating Expense","value":327964.0,"change":-0.3287390575526169,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"University College UC - Fringe Benefit","key":"University College UC - Fringe Benefit","value":0.0,"change":-1.0,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"University Libraries - Salary","key":"University Libraries - Salary","value":9329411.0,"change":0.03261166966914052,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"University Libraries - Operating Expense","key":"University Libraries - Operating Expense","value":3614701.0,"change":0.007031976954750854,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"University Libraries - Fringe Benefit","key":"University Libraries - Fringe Benefit","value":131428.0,"change":0.06837266394075615,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"Vice President for Research - Salary","key":"Vice President for Research - Salary","value":4957379.0,"change":-0.07612970244220801,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"Vice President for Research - Operating Expense","key":"Vice President for Research - Operating Expense","value":7970008.0,"change":-0.09046788476136959,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"Vice President for Research - Fringe Benefit","key":"Vice President for Research - Fringe Benefit","value":1358866.0,"change":-0.14429416513539622,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"VP Division of Enrollment Mgmt - Salary","key":"VP Division of Enrollment Mgmt - Salary","value":5035261.0,"change":0.03592104036878935,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"VP Division of Enrollment Mgmt - Operating Expense","key":"VP Division of Enrollment Mgmt - Operating Expense","value":55538766.0,"change":-0.004441679779743333,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"VP Division of Enrollment Mgmt - Fringe Benefit","key":"VP Division of Enrollment Mgmt - Fringe Benefit","value":0.0,"change":1,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"VP for Equity & Inclusion - Salary","key":"VP for Equity & Inclusion - Salary","value":671188.0,"change":0.3542664595145376,"enrollments":["All Departments","Provost Academic Affairs","Salary"]},{"label":"VP for Equity & Inclusion - Operating Expense","key":"VP for Equity & Inclusion - Operating Expense","value":387534.0,"change":0.2616435412773549,"enrollments":["All Departments","Provost Academic Affairs","Operating Expense"]},{"label":"VP for Equity & Inclusion - Fringe Benefit","key":"VP for Equity & Inclusion - Fringe Benefit","value":7000.0,"change":-0.536178107606679,"enrollments":["All Departments","Provost Academic Affairs","Fringe Benefit"]},{"label":"Assoc. VP Student Life (ACD) - Salary","key":"Assoc. VP Student Life (ACD) - Salary","value":4572440.0,"change":0.20267772574800436,"enrollments":["All Departments","VP for Student Affairs","Salary"]},{"label":"Assoc. VP Student Life (ACD) - Operating Expense","key":"Assoc. VP Student Life (ACD) - Operating Expense","value":3768437.0,"change":0.10926493816447361,"enrollments":["All Departments","VP for Student Affairs","Operating Expense"]},{"label":"Assoc. VP Student Life (ACD) - Fringe Benefit","key":"Assoc. VP Student Life (ACD) - Fringe Benefit","value":765050.0,"change":0.0025711320319543748,"enrollments":["All Departments","VP for Student Affairs","Fringe Benefit"]},{"label":"Associate VP Student Services - Salary","key":"Associate VP Student Services - Salary","value":2873984.0,"change":-0.013110186483380222,"enrollments":["All Departments","VP for Student Affairs","Salary"]},{"label":"Associate VP Student Services - Operating Expense","key":"Associate VP Student Services - Operating Expense","value":1463781.0,"change":0.09153405103983428,"enrollments":["All Departments","VP for Student Affairs","Operating Expense"]},{"label":"Associate VP Student Services - Fringe Benefit","key":"Associate VP Student Services - Fringe Benefit","value":197003.0,"change":-0.13780849136289833,"enrollments":["All Departments","VP for Student Affairs","Fringe Benefit"]},{"label":"VP Student Affairs Administration - Salary","key":"VP Student Affairs Administration - Salary","value":1304048.0,"change":0.021487258903805918,"enrollments":["All Departments","VP for Student Affairs","Salary"]},{"label":"VP Student Affairs Administration - Operating Expense","key":"VP Student Affairs Administration - Operating Expense","value":775366.0,"change":-0.10689920096570614,"enrollments":["All Departments","VP for Student Affairs","Operating Expense"]},{"label":"VP Student Affairs Administration - Fringe Benefit","key":"VP Student Affairs Administration - Fringe Benefit","value":35600.0,"change":0.0,"enrollments":["All Departments","VP for Student Affairs","Fringe Benefit"]},{"label":"VP Student Affairs Indpndnt Dept ID - Salary","key":"VP Student Affairs Indpndnt Dept ID - Salary","value":5371539.0,"change":0.05324996284288954,"enrollments":["All Departments","VP for Student Affairs","Salary"]},{"label":"VP Student Affairs Indpndnt Dept ID - Operating Expense","key":"VP Student Affairs Indpndnt Dept ID - Operating Expense","value":3192893.0,"change":0.07015318819473888,"enrollments":["All Departments","VP for Student Affairs","Operating Expense"]},{"label":"VP Student Affairs Indpndnt Dept ID - Fringe Benefit","key":"VP Student Affairs Indpndnt Dept ID - Fringe Benefit","value":1332577.0,"change":0.04597470182613098,"enrollments":["All Departments","VP for Student Affairs","Fringe Benefit"]},{"label":"College of Nursing - Salary","key":"College of Nursing - Salary","value":7918279.0,"change":0.08818031548696209,"enrollments":["All Departments","VP Health Sciences Center","Salary"]},{"label":"College of Nursing - Operating Expense","key":"College of Nursing - Operating Expense","value":1305082.0,"change":0.05323973942629883,"enrollments":["All Departments","VP Health Sciences Center","Operating Expense"]},{"label":"College of Nursing - Fringe Benefit","key":"College of Nursing - Fringe Benefit","value":705955.0,"change":0.07939898413824527,"enrollments":["All Departments","VP Health Sciences Center","Fringe Benefit"]},{"label":"College of Pharmacy - Salary","key":"College of Pharmacy - Salary","value":8170267.0,"change":0.047563468796258127,"enrollments":["All Departments","VP Health Sciences Center","Salary"]},{"label":"College of Pharmacy - Operating Expense","key":"College of Pharmacy - Operating Expense","value":2125982.0,"change":0.01502352573268752,"enrollments":["All Departments","VP Health Sciences Center","Operating Expense"]},{"label":"College of Pharmacy - Fringe Benefit","key":"College of Pharmacy - Fringe Benefit","value":1041698.0,"change":0.04902861194023839,"enrollments":["All Departments","VP Health Sciences Center","Fringe Benefit"]},{"label":"College of Population Health - Salary","key":"College of Population Health - Salary","value":0.0,"change":1,"enrollments":["All Departments","VP Health Sciences Center","Salary"]},{"label":"College of Population Health - Operating Expense","key":"College of Population Health - Operating Expense","value":0.0,"change":1,"enrollments":["All Departments","VP Health Sciences Center","Operating Expense"]},{"label":"College of Population Health - Fringe Benefit","key":"College of Population Health - Fringe Benefit","value":0,"change":1,"enrollments":["All Departments","VP Health Sciences Center","Fringe Benefit"]},{"label":"HS Library and  Informatics Center - Salary","key":"HS Library and  Informatics Center - Salary","value":3616268.0,"change":0.03237435641967361,"enrollments":["All Departments","VP Health Sciences Center","Salary"]},{"label":"HS Library and  Informatics Center - Operating Expense","key":"HS Library and  Informatics Center - Operating Expense","value":1564462.0,"change":0.25644864136414525,"enrollments":["All Departments","VP Health Sciences Center","Operating Expense"]},{"label":"HS Library and  Informatics Center - Fringe Benefit","key":"HS Library and  Informatics Center - Fringe Benefit","value":120796.0,"change":-0.07172113825511607,"enrollments":["All Departments","VP Health Sciences Center","Fringe Benefit"]},{"label":"HSC VP Research - Salary","key":"HSC VP Research - Salary","value":3100341.0,"change":0.14926962681017858,"enrollments":["All Departments","VP Health Sciences Center","Salary"]},{"label":"HSC VP Research - Operating Expense","key":"HSC VP Research - Operating Expense","value":1895999.0,"change":0.32112660942710736,"enrollments":["All Departments","VP Health Sciences Center","Operating Expense"]},{"label":"HSC VP Research - Fringe Benefit","key":"HSC VP Research - Fringe Benefit","value":1092261.0,"change":0.23798130324201058,"enrollments":["All Departments","VP Health Sciences Center","Fringe Benefit"]},{"label":"School of Medicine - Salary","key":"School of Medicine - Salary","value":227190342.0,"change":0.05558888870938778,"enrollments":["All Departments","VP Health Sciences Center","Salary"]},{"label":"School of Medicine - Operating Expense","key":"School of Medicine - Operating Expense","value":44550872.0,"change":0.0010389479891015393,"enrollments":["All Departments","VP Health Sciences Center","Operating Expense"]},{"label":"School of Medicine - Fringe Benefit","key":"School of Medicine - Fringe Benefit","value":50701340.0,"change":0.10370660378970613,"enrollments":["All Departments","VP Health Sciences Center","Fringe Benefit"]},{"label":"VP HSC Administration - Salary","key":"VP HSC Administration - Salary","value":18286779.0,"change":-0.47835282100516324,"enrollments":["All Departments","VP Health Sciences Center","Salary"]},{"label":"VP HSC Administration - Operating Expense","key":"VP HSC Administration - Operating Expense","value":16242647.0,"change":-0.23621393321271492,"enrollments":["All Departments","VP Health Sciences Center","Operating Expense"]},{"label":"VP HSC Administration - Fringe Benefit","key":"VP HSC Administration - Fringe Benefit","value":27752146.0,"change":0.07814539455399583,"enrollments":["All Departments","VP Health Sciences Center","Fringe Benefit"]}]}
+				}},
+			"chartLayoutData":{
+				"data":{
+					"chartLayout":{
+						"title":"UNM's Budget Breakdown",
+						"footnote":"Try sorting by change to see how the budget has adjusted over the past year."
+					}
+				}
+			}
+			},
+			"10":{
+				"type":"bubbleChart",
+				"properties":{
+					"xFormat":{"nice":true,"siPrefixed":false,"units":{"after":" students"}, "separateThousands":false,"precision":0},
+					"controls":{"sortByChange":{"visible":true},"hideLegend":{"visible":true},"colorByChange":{"visible":true}},
+					"data":{
+						"data":{
+							"groupings":[{"label":"All Majors","description":""},{"label":"College","description":"","default_color_grouping":true},{"label":"Department","description":"","hideLegend":true},{"label":"STEM","description":""}],
+							"nodes":[
+								{"label":"Electrical Engineering","key":"Electrical Engineering","value":27,"change":0.2153840853832662,"enrollments":["UNM","Engineering","Electrical and Computer Engineering","STEM"]},
+								{"label":"Computer Engineering","key":"Computer Engineering","value":36,"change":0.09330425066873431,"enrollments":["UNM","Engineering","Electrical and Computer Engineering","STEM"]},
+								{"label":"Mechanical Engineering","key":"Mechanical Engineering","value":99,"change":0.09147983123548328,"enrollments":["UNM","Engineering","Mechanical Engineering","STEM"]},
+								{"label":"Computer Science","key":"Computer Science","value":41,"change":-0.14654975342564283,"enrollments":["UNM","Engineering","Computer Science","STEM"]},
+								{"label":"Nuclear Engineering","key":"Nuclear Engineering","value":124,"change":0.032452120911329985,"enrollments":["UNM","Engineering","Nuclear Engineering","STEM"]},
+								{"label":"Chemical Engineering","key":"Chemical Engineering","value":53,"change":0.22598899821750817,"enrollments":["UNM","Engineering","Chemical & Biological Engineering","STEM"]},
+								{"label":"Civil Engineering","key":"Civil Engineering","value":29,"change":-0.24145599561743436,"enrollments":["UNM","Engineering","Civil Engineering","STEM"]},
+								{"label":"Architecture","key":"Architecture","value":35,"change":0.07889381730929017,"enrollments":["UNM","Architecture & Planning","Architecture",null]},
+								{"label":"Environmental Design","key":"Environmental Design","value":95,"change":-0.15736206863075494,"enrollments":["UNM","Architecture & Planning","Environmental Design",null]},
+								{"label":"American Studies","key":"American Studies","value":47,"change":-0.13514595022425055,"enrollments":["UNM","Arts and Sciences Humanities","American Studies",null]},
+								{"label":"English","key":"English","value":105,"change":0.04822751213796437,"enrollments":["UNM","Arts and Sciences Humanities","English",null]},
+								{"label":"English-Philosophy","key":"English-Philosophy","value":51,"change":0.047596823517233135,"enrollments":["UNM","Arts and Sciences Humanities","English",null]},
+								{"label":"African American Studies","key":"African American Studies","value":37,"change":-0.19764601830393075,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"African Studies","key":"African Studies","value":81,"change":0.17524510882794855,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"French","key":"French","value":40,"change":-0.1717602110467851,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"German","key":"German","value":84,"change":-0.10968692377209663,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"Portuguese","key":"Portuguese","value":125,"change":-0.2272451464086771,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"Russian","key":"Russian","value":60,"change":0.037812724336981775,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"Russian Studies","key":"Russian Studies","value":57,"change":-0.19903682875446974,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"Spanish","key":"Spanish","value":104,"change":0.1335695135872811,"enrollments":["UNM","Arts and Sciences Humanities","Foregin Languages & Literature",null]},
+								{"label":"History","key":"History","value":113,"change":-0.07521757017821074,"enrollments":["UNM","Arts and Sciences Humanities","History",null]},
+								{"label":"Women Studies","key":"Women Studies","value":114,"change":-0.19663663976825774,"enrollments":["UNM","Arts and Sciences Humanities","Women Studies",null]},
+								{"label":"Asrophysics","key":"Asrophysics","value":55,"change":0.11107636769302189,"enrollments":["UNM","Arts and Sciences Natural Sciences","Physics & Astronomy","STEM"]},
+								{"label":"Physics","key":"Physics","value":104,"change":-0.27169117354787886,"enrollments":["UNM","Arts and Sciences Natural Sciences","Physics & Astronomy","STEM"]},
+								{"label":"Physics & Astrophysics","key":"Physics & Astrophysics","value":113,"change":0.17773129041306673,"enrollments":["UNM","Arts and Sciences Natural Sciences","Physics & Astronomy","STEM"]},
+								{"label":"Environmental Sciences","key":"Environmental Sciences","value":104,"change":0.21867769514210522,"enrollments":["UNM","Arts and Sciences Natural Sciences","Environmental Sciences","STEM"]},
+								{"label":"Geography","key":"Geography","value":61,"change":-0.06296571590937673,"enrollments":["UNM","Arts and Sciences Natural Sciences","Geography","STEM"]},
+								{"label":"Statistics","key":"Statistics","value":110,"change":-0.2638173958752304,"enrollments":["UNM","Arts and Sciences Natural Sciences","Statistics","STEM"]},
+								{"label":"Anthropology","key":"Anthropology","value":74,"change":-0.09809250240214169,"enrollments":["UNM","Arts and Sciences Social Sciences","Anthropology",null]},
+								{"label":"Communications","key":"Communications","value":52,"change":0.1075115778017789,"enrollments":["UNM","Arts and Sciences Social Sciences","Communications",null]},
+								{"label":"Journalism & Mass Communications","key":"Journalism & Mass Communications","value":101,"change":-0.15495079471729695,"enrollments":["UNM","Arts and Sciences Social Sciences","Communications",null]},
+								{"label":"Mass Communications","key":"Mass Communications","value":112,"change":-0.27610115124844015,"enrollments":["UNM","Arts and Sciences Social Sciences","Communications",null]},
+								{"label":"Linguistics","key":"Linguistics","value":54,"change":0.06507804072462021,"enrollments":["UNM","Arts and Sciences Social Sciences","Linguistics",null]},
+								{"label":"Political Science","key":"Political Science","value":85,"change":0.038031063275411725,"enrollments":["UNM","Arts and Sciences Social Sciences","Political Science",null]},
+								{"label":"Psychology","key":"Psychology","value":125,"change":0.1592942588031292,"enrollments":["UNM","Arts and Sciences Social Sciences","Psychology",null]},
+								{"label":"Speech & Hearing Sciences","key":"Speech & Hearing Sciences","value":27,"change":0.2502039837185293,"enrollments":["UNM","Arts and Sciences Social Sciences","Speech & Hearing Sciences",null]},
+								{"label":"Signed Language Interpretating","key":"Signed Language Interpretating","value":62,"change":-0.048711353726685044,"enrollments":["UNM","Arts and Sciences Social Sciences","Signed Language Interpretating",null]},
+								{"label":"Sociology","key":"Sociology","value":46,"change":0.20538272769190372,"enrollments":["UNM","Arts and Sciences Social Sciences","Sociology",null]},
+								{"label":"Art Education","key":"Art Education","value":98,"change":0.09820338143035769,"enrollments":["UNM","Education","Department of Educational Specialties",null]},
+								{"label":"Special Education","key":"Special Education","value":35,"change":0.036934533063322304,"enrollments":["UNM","Education","Department of Educational Specialties",null]},
+								{"label":"Athletic Training","key":"Athletic Training","value":109,"change":0.2672069658525288,"enrollments":["UNM","Education","Department of Health, Exercise, and Sports Sciences",null]},
+								{"label":"Exercise Science","key":"Exercise Science","value":102,"change":-0.0071365357842296355,"enrollments":["UNM","Education","Department of Health, Exercise, and Sports Sciences",null]},
+								{"label":"Health Education","key":"Health Education","value":87,"change":-0.29988382011651993,"enrollments":["UNM","Education","Department of Health, Exercise, and Sports Sciences",null]},
+								{"label":"Physical Education Teacher Education","key":"Physical Education Teacher Education","value":72,"change":-0.24715630570426583,"enrollments":["UNM","Education","Department of Health, Exercise, and Sports Sciences",null]},
+								{"label":"Sport Administration","key":"Sport Administration","value":107,"change":-0.27744656447321175,"enrollments":["UNM","Education","Department of Health, Exercise, and Sports Sciences",null]},
+								{"label":"Counselor Education","key":"Counselor Education","value":109,"change":0.029547151504084466,"enrollments":["UNM","Education","Department of Individual, Family, and Community Education",null]},
+								{"label":"Early Childhood Multicultural Education","key":"Early Childhood Multicultural Education","value":28,"change":0.06058337017893791,"enrollments":["UNM","Education","Department of Individual, Family, and Community Education",null]},
+								{"label":"Educational Psychology","key":"Educational Psychology","value":70,"change":-0.05158176342956722,"enrollments":["UNM","Education","Department of Individual, Family, and Community Education",null]},
+								{"label":"Family Studies","key":"Family Studies","value":110,"change":0.14363694414496422,"enrollments":["UNM","Education","Department of Individual, Family, and Community Education",null]},
+								{"label":"Nutrition","key":"Nutrition","value":50,"change":0.025615539913997055,"enrollments":["UNM","Education","Department of Individual, Family, and Community Education",null]},
+								{"label":"Language, Literacy, and Sociocultural Studies","key":"Language, Literacy, and Sociocultural Studies","value":82,"change":0.23761806031689048,"enrollments":["UNM","Education","Department of Language, Literacy, and Sociocultural Studies",null]},
+								{"label":"Educational Linguistics","key":"Educational Linguistics","value":77,"change":0.2819431945681572,"enrollments":["UNM","Education","Department of Language, Literacy, and Sociocultural Studies",null]},
+								{"label":"Elementary Education","key":"Elementary Education","value":59,"change":-0.17265471182763575,"enrollments":["UNM","Education","Department of Teacher Education, Educational Leadership & Policy",null]},{"label":"Secondary Education","key":"Secondary Education","value":93,"change":-0.27946782410144805,"enrollments":["UNM","Education","Department of Teacher Education, Educational Leadership & Policy",null]},{"label":"Educational Leadership","key":"Educational Leadership","value":125,"change":-0.051397003792226316,"enrollments":["UNM","Education","Department of Teacher Education, Educational Leadership & Policy",null]},{"label":"Teacher Education Graduate Degrees and Post Master's Certificates","key":"Teacher Education Graduate Degrees and Post Master's Certificates","value":102,"change":0.024849660554900763,"enrollments":["UNM","Education","Department of Teacher Education, Educational Leadership & Policy",null]},{"label":"Online MA in Education Program","key":"Online MA in Education Program","value":113,"change":-0.15428581405431033,"enrollments":["UNM","Education","Department of Teacher Education, Educational Leadership & Policy",null]},{"label":"Medical Laboratory Sciences","key":"Medical Laboratory Sciences","value":96,"change":0.1819030713289976,"enrollments":["UNM","Medicine","Medical Laboratory Sciences","STEM"]},{"label":"Nuclear Medical Imaging","key":"Nuclear Medical Imaging","value":45,"change":0.009152001002803445,"enrollments":["UNM","Medicine","Nuclear Medical Imaging","STEM"]},{"label":"Physician Assistant Studies","key":"Physician Assistant Studies","value":115,"change":-0.1799053733702749,"enrollments":["UNM","Medicine","Physician Assistant Studies","STEM"]},{"label":"Radiography","key":"Radiography","value":119,"change":-0.25872698072344064,"enrollments":["UNM","Medicine","Radiography","STEM"]},{"label":"University Studies","key":"University Studies","value":73,"change":-0.11525877113454043,"enrollments":["UNM","University College","University Studies",null]},{"label":"Native American Studies","key":"Native American Studies","value":67,"change":0.11791477357037365,"enrollments":["UNM","University College","Native American Studies",null]},{"label":"Biology","key":"Biology","value":58,"change":0.006629855744540691,"enrollments":["UNM","Arts and Sciences Natural Sciences","Biology","STEM"]},{"label":"Chemistry","key":"Chemistry","value":53,"change":0.023205432901158927,"enrollments":["UNM","Arts and Sciences Natural Sciences","Chemistry","STEM"]},{"label":"Math","key":"Math","value":47,"change":-0.18377487757243216,"enrollments":["UNM","Arts and Sciences Natural Sciences","Mathematics","STEM"]},{"label":"Criminology","key":"Criminology","value":63,"change":-0.00858197626657784,"enrollments":["UNM","Arts and Sciences Social Sciences","Criminology",null]},{"label":"Art","key":"Art","value":30,"change":0.21705067148432136,"enrollments":["UNM","Fine Arts","Art & Art History",null]},{"label":"Art History","key":"Art History","value":44,"change":0.1699571404606104,"enrollments":["UNM","Fine Arts","Art & Art History",null]},{"label":"Dance","key":"Dance","value":28,"change":-0.05287723797373473,"enrollments":["UNM","Fine Arts","Theatre & Dance",null]},{"label":"Theatre","key":"Theatre","value":119,"change":0.0711144792381674,"enrollments":["UNM","Fine Arts","Theatre & Dance",null]},{"label":"Music","key":"Music","value":33,"change":-0.07069320841692388,"enrollments":["UNM","Fine Arts","Music",null]},{"label":"Media Arts","key":"Media Arts","value":83,"change":0.011758301965892315,"enrollments":["UNM","Fine Arts","Cinematic Arts",null]},{"label":"Emergency Medical Services","key":"Emergency Medical Services","value":66,"change":0.07030212334357201,"enrollments":["UNM","Medicine","Emergency Medicine",null]},{"label":"Dental Hygiene","key":"Dental Hygiene","value":70,"change":-0.234376908140257,"enrollments":["UNM","Medicine","Dental",null]},{"label":"Nursing","key":"Nursing","value":113,"change":-0.25620624781586226,"enrollments":["UNM","Nursing","Nursing",null]},{"label":"Doctor of Pharmacy","key":"Doctor of Pharmacy","value":37,"change":0.14813829478807747,"enrollments":["UNM","Pharmacy","Doctor of Pharmacy",null]}]
+						}
+					}
+				},
+			"chartLayoutData":{
+				"data":{"chartLayout":{
+				"title":"UNM Student Enrollments"}}
+			}
+			}
+		},
+		"topSection":{
+			"key":"University_of_New_Mexico",
+			"name":"University of New Mexico",
+			"categories":[
+				{
+					"name":"Student",
+					"charts":[
+						{
+							"reference":2,
+							"x":0,
+							"y":0,
+							"width":0.5,
+							"height":500
+						},
+						{
+							"reference":3,
+							"x":0.5,
+							"y":0,
+							"width":0.5,
+							"height":500
+						}
+					]
+				},
+				{"name":"Faculty",
+					"charts":[
+						{
+							"reference":7,
+							"x":0,
+							"y":0,
+							"width":1,
+							"height":700
+						},
+						{
+							"reference":5,
+							"x":0,
+							"y":700,
+							"width":1,
+							"height":700
+						},
+						{
+							"reference":10,
+							"x":0,
+							"y":1400,
+							"width":1,
+							"height":700
+						},
+						{
+							"reference":1,
+							"x":0,
+							"y":2100,
+							"width":0.6,
+							"height":500
+						},
+						{
+							"reference":6,
+							"x":0.6,
+							"y":2100,
+							"width":0.4,
+							"height":500
+						}
+					]},
+				{
+					"name":"Financial",
+					"charts":[
+						{
+							"reference":7,
+							"x":0,
+							"y":0,
+							"width":1,
+							"height":700
+						},
+						{
+							"reference":5,
+							"x":0,
+							"y":700,
+							"width":1,
+							"height":700
+						},
+						{
+							"reference":1,
+							"x":0,
+							"y":1400,
+							"width":0.6,
+							"height":500
+						},
+						{
+							"reference":6,
+							"x":0.6,
+							"y":1400,
+							"width":0.4,
+							"height":500
+						},
+						{
+							"reference":2,
+							"x":0,
+							"y":1900,
+							"width":0.5,
+							"height":500
+						},
+						{
+							"reference":3,
+							"x":0.5,
+							"y":1900,
+							"width":0.5,
+							"height":500
+						},
+						{
+							"reference":9,
+							"x":0,
+							"y":2400,
+							"width":1,
+							"height":850
+						},
+						{
+							"reference":8,
+							"x":0,
+							"y":3250,
+							"width":1,
+							"height":700
+						}
+					]
+				}
+			],
+			"sections":[
+				{
+					"name":"Template Subsection",
+					"categories":[
+						{
+							"name":"Student",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						},
+						{"name":"Faculty",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]},
+						{
+							"name":"Financial",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						}
+					],
+					"sections":[
+						{
+							"name":"Nested Subsection",
+							"categories":[
+								{
+									"name":"Student",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]
+								},
+								{"name":"Faculty",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]},
+								{
+									"name":"Financial",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]
+								}
+							]
+						},
+						{
+							"name":"Nested Subsection 2",
+							"categories":[
+								{
+									"name":"Student",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]
+								},
+								{"name":"Faculty",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]},
+								{
+									"name":"Financial",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]
+								}
+							]
+						}
+				]},
+				{
+					"name":"Template Subsection 2",
+					"categories":[
+						{
+							"name":"Student",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						},
+						{"name":"Faculty",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]},
+						{
+							"name":"Financial",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						}
+					]
+
+				},
+				{
+					"name":"Template Subsection 3",
+					"categories":[
+						{
+							"name":"Student",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						},
+						{"name":"Faculty",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]},
+						{
+							"name":"Financial",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						}
+					]
+				},
+				{
+					"name":"Template Subsection 4",
+					"categories":[
+						{
+							"name":"Student",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						},
+						{"name":"Faculty",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]},
+						{
+							"name":"Financial",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						}
+					]
+				},
+				{
+					"name":"Template Subsection 5",
+					"categories":[
+						{
+							"name":"Student",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						},
+						{"name":"Faculty",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]},
+						{
+							"name":"Financial",
+							"charts":[
+								{
+									"reference":7,
+									"x":0,
+									"y":0,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":5,
+									"x":0,
+									"y":700,
+									"width":1,
+									"height":700
+								},
+								{
+									"reference":1,
+									"x":0,
+									"y":1400,
+									"width":0.6,
+									"height":500
+								},
+								{
+									"reference":6,
+									"x":0.6,
+									"y":1400,
+									"width":0.4,
+									"height":500
+								},
+								{
+									"reference":2,
+									"x":0,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"reference":3,
+									"x":0.5,
+									"y":1900,
+									"width":0.5,
+									"height":500
+								}
+							]
+						}
+					]
+				}
+			],
+			"sectionGroups":[
+				{
+					"name":"Branch",
+					"sections":[
+						{
+							"name":"Main Campus",
+							"categories":[
+								{
+									"name":"Student",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]
+								},
+								{"name":"Faculty",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]},
+								{
+									"name":"Financial",
+									"charts":[
+										{
+											"reference":7,
+											"x":0,
+											"y":0,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":5,
+											"x":0,
+											"y":700,
+											"width":1,
+											"height":700
+										},
+										{
+											"reference":1,
+											"x":0,
+											"y":1400,
+											"width":0.6,
+											"height":500
+										},
+										{
+											"reference":6,
+											"x":0.6,
+											"y":1400,
+											"width":0.4,
+											"height":500
+										},
+										{
+											"reference":2,
+											"x":0,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										},
+										{
+											"reference":3,
+											"x":0.5,
+											"y":1900,
+											"width":0.5,
+											"height":500
+										}
+									]
+								}
+							],
+							"sectionGroups":[
+								{
+									"name":"College",
+									"sections":[
+										{
+											"name":"Architecture and Planning",
+											"categories":[
+												{
+													"name":"Student",
+													"charts":[
+														{
+															"reference":7,
+															"x":0,
+															"y":0,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":5,
+															"x":0,
+															"y":700,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":1,
+															"x":0,
+															"y":1400,
+															"width":0.6,
+															"height":500
+														},
+														{
+															"reference":6,
+															"x":0.6,
+															"y":1400,
+															"width":0.4,
+															"height":500
+														},
+														{
+															"reference":2,
+															"x":0,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														},
+														{
+															"reference":3,
+															"x":0.5,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														}
+													]
+												},
+												{"name":"Faculty",
+													"charts":[
+														{
+															"reference":7,
+															"x":0,
+															"y":0,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":5,
+															"x":0,
+															"y":700,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":1,
+															"x":0,
+															"y":1400,
+															"width":0.6,
+															"height":500
+														},
+														{
+															"reference":6,
+															"x":0.6,
+															"y":1400,
+															"width":0.4,
+															"height":500
+														},
+														{
+															"reference":2,
+															"x":0,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														},
+														{
+															"reference":3,
+															"x":0.5,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														}
+													]},
+												{
+													"name":"Financial",
+													"charts":[
+														{
+															"reference":7,
+															"x":0,
+															"y":0,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":5,
+															"x":0,
+															"y":700,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":1,
+															"x":0,
+															"y":1400,
+															"width":0.6,
+															"height":500
+														},
+														{
+															"reference":6,
+															"x":0.6,
+															"y":1400,
+															"width":0.4,
+															"height":500
+														},
+														{
+															"reference":2,
+															"x":0,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														},
+														{
+															"reference":3,
+															"x":0.5,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														}
+													]
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{
+															"name":"Architecture",
+															"categories":[
+																{"name":"Student"},
+																{"name":"Faculty"},
+																{"name":"Financial"}
+															]
+														},
+														{
+															"name":"Environmental Design",
+															"categories":[
+																{"name":"Student"},
+																{"name":"Faculty"},
+																{"name":"Financial"}
+															]
+														}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Arts and Sciences",
+											"categories":[
+												{"name":"Student"},
+												{"name":"Faculty"},
+												{"name":"Financial"}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Education",
+											"categories":[
+												{"name":"Student"},
+												{"name":"Faculty"},
+												{"name":"Financial"}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Engineering",
+											"key":"Engineering",
+											"categories":[
+												{
+													"name":"Student",
+													"charts":[
+														{
+															"reference":7,
+															"x":0,
+															"y":0,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":5,
+															"x":0,
+															"y":700,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":1,
+															"x":0,
+															"y":1400,
+															"width":0.6,
+															"height":500
+														},
+														{
+															"reference":6,
+															"x":0.6,
+															"y":1400,
+															"width":0.4,
+															"height":500
+														},
+														{
+															"reference":2,
+															"x":0,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														},
+														{
+															"reference":3,
+															"x":0.5,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														}
+													]
+												},
+												{"name":"Faculty",
+													"charts":[
+														{
+															"reference":7,
+															"x":0,
+															"y":0,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":5,
+															"x":0,
+															"y":700,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":1,
+															"x":0,
+															"y":1400,
+															"width":0.6,
+															"height":500
+														},
+														{
+															"reference":6,
+															"x":0.6,
+															"y":1400,
+															"width":0.4,
+															"height":500
+														},
+														{
+															"reference":2,
+															"x":0,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														},
+														{
+															"reference":3,
+															"x":0.5,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														}
+													]},
+												{
+													"name":"Financial",
+													"charts":[
+														{
+															"reference":7,
+															"x":0,
+															"y":0,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":5,
+															"x":0,
+															"y":700,
+															"width":1,
+															"height":700
+														},
+														{
+															"reference":1,
+															"x":0,
+															"y":1400,
+															"width":0.6,
+															"height":500
+														},
+														{
+															"reference":6,
+															"x":0.6,
+															"y":1400,
+															"width":0.4,
+															"height":500
+														},
+														{
+															"reference":2,
+															"x":0,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														},
+														{
+															"reference":3,
+															"x":0.5,
+															"y":1900,
+															"width":0.5,
+															"height":500
+														}
+													]
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Fine Arts",
+											"categories":[
+												{"name":"Student"},
+												{"name":"Faculty"},
+												{"name":"Financial"}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Medicine",
+											"categories":[
+												{"name":"Student"},
+												{"name":"Faculty"},
+												{"name":"Financial"}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Nursing",
+											"categories":[
+												{"name":"Student"},
+												{"name":"Faculty"},
+												{"name":"Financial"}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Pharmacy",
+											"categories":[
+												{"name":"Student"},
+												{"name":"Faculty"},
+												{"name":"Financial"}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"University College",
+											"categories":[
+												{"name":"Student"},
+												{"name":"Faculty"},
+												{"name":"Financial"}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										}
+									]
+								}
+							]
+						},
+						{
+							"name":"UNM West",
+							"categories":[
+								{"name":"Student"},
+								{"name":"Faculty"},
+								{"name":"Financial"}
+							]
+						},
+						{
+							"name":"Gallup",
+							"categories":[
+								{"name":"Student"},
+								{"name":"Faculty"},
+								{"name":"Financial"}
+							]
+						},
+						{
+							"name":"Los Alamos",
+							"categories":[
+								{"name":"Student"},
+								{"name":"Faculty"},
+								{"name":"Financial"}
+							]
+						},
+						{
+							"name":"Taos",
+							"categories":[
+								{"name":"Student"},
+								{"name":"Faculty"},
+								{"name":"Financial"}
+							]
+						},
+						{
+							"name":"Valencia",
+							"categories":[
+								{"name":"Student"},
+								{"name":"Faculty"},
+								{"name":"Financial"}
+							]
+						}
+					]
+				}
+			]
+		}
+
+	}
+}

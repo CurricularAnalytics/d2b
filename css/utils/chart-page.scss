@@ -1,0 +1,23 @@
+.d3b-chart-page-container{
+  position:relative;
+  .d3b-chart-page{
+    position:absolute;
+    z-index:0;
+    .d3b-page-chart-layout{
+      position:absolute;
+      overflow:hidden;
+      .d3b-chart-layout-wrapper{
+        padding:5px;
+        overflow:hidden;
+        .d3b-chart-layout{
+          border-radius:1px;
+          overflow:hidden;
+          -webkit-box-shadow: $dashboard_shadow;
+          -moz-box-shadow:    $dashboard_shadow;
+          box-shadow:         $dashboard_shadow;
+          background:white;
+        }
+      }
+    }
+  }
+}

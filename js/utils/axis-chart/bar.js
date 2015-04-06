@@ -1,15 +1,15 @@
 /* Copyright � 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*axis-chart-bar*/
-AD.UTILS.AXISCHART.TYPES.bar = function(){
+d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	//private store
 	var $$ = {};
 
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {};
 	//formatting x values
@@ -17,7 +17,7 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
   $$.groupScale = d3.scale.ordinal();
 
@@ -34,18 +34,18 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	chart.foreground = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
-	chart.background = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.x = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
-	chart.y = 									AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.width = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 						  AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
-	chart.color = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 
   chart.xValues = function(){
     var values = [];
@@ -106,12 +106,11 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
       var bar = graph.selectAll('rect').data(graphData.values, function(d,i){
         return d.x;
       });
-
       var newBar = bar.enter()
         .append('rect')
         .style('fill', $$.color(graphData.label))
-        .call(AD.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-				.call(AD.UTILS.bindElementEvents, $$, 'bar');
+        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+				.call(d2b.UTILS.bindElementEvents, $$, 'bar');
 
       if($$.controlsData.stackBars.enabled){
         newBar
@@ -152,11 +151,13 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
             .attr('y',$$.y.customScale(0))
             .attr('height',0);
 
+				var spacing = Math.min(1,($$.groupScale.rangeBand()*0.1));
+
         bar
           .transition()
             .duration($$.animationDuration)
-            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+1;})
-            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand()-2);})
+            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+spacing;})
+            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);})
             .attr('y', function(d){return $$.y.customBarScale(d.y).y;})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
@@ -171,7 +172,6 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 
 		});
 
-
 		d3.timer.flush();
 
 		if(callback)
@@ -183,7 +183,7 @@ AD.UTILS.AXISCHART.TYPES.bar = function(){
 	return chart;
 };
 
-AD.UTILS.AXISCHART.TYPES.bar.tools = function(){
+d2b.UTILS.AXISCHART.TYPES.bar.tools = function(){
   return {
     controlsData:{
       stackBars: {

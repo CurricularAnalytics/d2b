@@ -1,12 +1,13 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-AD.DASHBOARDS.dashboard = function(){
+d3b.DASHBOARDS.dashboard = function(){
 
 	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			margin = AD.CONSTANTS.DEFAULTMARGIN();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			margin = d3b.CONSTANTS.DEFAULTMARGIN();
 
-	var pageWidth = width - 200;
+	var pageMargin = 210;
+	var pageWidth = width - pageMargin;
 
 	var innerWidth = width;
 
@@ -14,12 +15,17 @@ AD.DASHBOARDS.dashboard = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-  var chartPage = new AD.UTILS.chartPage();
+  var dashboardCategory = new d3b.UTILS.dashboardCategory();
+	var chartPage = new d3b.UTILS.chartPage();
+  var controls = new d3b.UTILS.CONTROLS.htmlControls();
 
 	var sectionsByKey = {};
+
+	var controlsHidden = false;
+	var navigationHidden = false;
 
 	var navigationHistory = {};
 	navigationHistory.array = [];
@@ -33,27 +39,40 @@ AD.DASHBOARDS.dashboard = function(){
 	};
 	var current = {section:{}, category:{}};
 
+	var currentPage = {};
+
 	var resized = true;
 
 	// var controls = {
 	// 		};
 
-	// var color = AD.CONSTANTS.DEFAULTCOLOR();
+	// var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentDashboardData = {
 			};
 
-	var palette = AD.CONSTANTS.DEFAULTPALETTE;
+	var palette = d3b.CONSTANTS.DEFAULTPALETTE;
 
+	var traversePages = function(pages, categoryName, sectionName){
+		pages.forEach(function(page, i){
+			page.categoryName = categoryName;
+			page.sectionName = sectionName;
+			page.index = i;
 
-	var traverseCategories = function(categories){
+		});
+	};
+
+	var traverseCategories = function(categories, sectionName){
 		if(categories){
 			categories.forEach(function(cat){
-				if(cat.charts){
-					cat.charts.forEach(function(chart){
-						chart.chart = currentDashboardData.dashboard.charts[chart.reference];
-					});
-				};
+				cat.sectionName = sectionName;
+
+				if(!cat.pages){
+					cat.pages = [];
+				}
+
+				traversePages(cat.pages, cat.name, cat.sectionName);
+
 			});
 		}
 	};
@@ -61,7 +80,7 @@ AD.DASHBOARDS.dashboard = function(){
 		sections.forEach(function(section){
 			if(section.key)
 				sectionsByKey[section.key] = section;
-			traverseCategories(section.categories);
+			traverseCategories(section.categories, section.name);
 			section.position = position.concat([{section:section, sectionGroup: sectionGroup}]);
 			if(section.sections)
 				traverseSections(position.concat([{section:section, sectionGroup: sectionGroup}]),section.sections);
@@ -76,48 +95,41 @@ AD.DASHBOARDS.dashboard = function(){
 		});
 	};
 	var dashboardLayout = function(data){
-		for(chart in data.dashboard.charts){
-			AD.UTILS.chartLayoutAdapter(data.dashboard.charts[chart].type,data.dashboard.charts[chart]);
-
-			//if chart element has a section reference, update to that section
-			data.dashboard.charts[chart].chart.on('elementClick',function(d,i,type){
-				if(d.sectionRefrence)
-					changeCurrentSection(sectionsByKey[d.sectionRefrence]);
-			});
-		}
 		traverseSections([],[data.dashboard.topSection]);
 	};
 
 	var resetSubSectionGroupBreadcrumbs = function(){
-		selection.container.content.breadcrumbs.svg.selectAll('.ad-breadcrumb-sub-section-group-section')
+		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb-sub-section-group-section')
 			.transition()
 				.duration(animationDuration/2)
 				.style('opacity',0);
-		selection.container.content.breadcrumbs.svg.selectAll('.ad-breadcrumb').each(function(){this.expanded = false;});
-		selection.container.content.breadcrumbs.svg.style('height','30px');
+		selection.container.header.breadcrumbs.svg.selectAll('.d3b-breadcrumb').each(function(){this.expanded = false;});
+		selection.container.header.breadcrumbs.svg.style('height','28px');
 	};
 
 	var updateBreadcrumbs = function(){
 		//breadcrumb indention
-		var breadcrumbIndentSize = 9;
+		var breadcrumbIndentSize = 7;
 
 		//set breadcrumb data keyed by the section name
-		var breadcrumb = selection.container.content.breadcrumbs.svg.selectAll('g.ad-breadcrumb').data(current.section.position,function(d){return d.section.name;});
+		var breadcrumb = selection.container.header.breadcrumbs.svg.selectAll('g.d3b-breadcrumb').data(current.section.position,function(d){return d.section.name;});
 
 		//enter new breadcrumbs
 		var newBreadcrumb = breadcrumb.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class','ad-breadcrumb');
+				.attr('class','d3b-breadcrumb');
+
 
 		//init new breadcrumb path and text
-		newBreadcrumb
-			.append('path')
-				.style('fill',palette.primary);
+		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
+
+		newBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
+
 		newBreadcrumb
 			.append('text')
 				.text(function(d){return d.section.name;})
-				.attr('y',21)
+				.attr('y',17)
 				.attr('x',15);
 
 		//iterate through all breadcrumbs
@@ -126,30 +138,31 @@ AD.DASHBOARDS.dashboard = function(){
 			var _breadcrumb = this;
 			var elem = d3.select(_breadcrumb);
 			var text = elem.select('text');
-			var path = elem.select('path');
+			var foreground = elem.select('path.d3b-breadcrumb-foreground');
+			var background = elem.select('path.d3b-breadcrumb-background');
 
 			//set breadCrumb path width according to text width
 			var pathWidth = text.node().getBBox().width+25;
 			var triangle;
 
-			elem.select('g.ad-breadcrumb-triangle').remove();
+			elem.select('g.d3b-breadcrumb-triangle').remove();
 			//if section is part of a sectionGroup add sub-section dropdown
 
 			if(d.section != current.section){
 				elem
-						.classed('ad-innactive',false)
-						.on('click.ad-click',function(d){
+						.classed('d3b-innactive',false)
+						.on('click.d3b-click',function(d){
 							changeCurrentSection(d.section);
 						});
 			}else{
 				elem
-						.classed('ad-innactive',true)
-						.on('click.ad-click',function(){});
+						.classed('d3b-innactive',true)
+						.on('click.d3b-click',null);
 			}
 			if(d.sectionGroup){
 
 				//set data for sub-section, omitting the selected section
-				var sectionBreadcrumb = elem.selectAll('g.ad-breadcrumb-sub-section-group-section')
+				var sectionBreadcrumb = elem.selectAll('g.d3b-breadcrumb-sub-section-group-section')
 						.data(d.sectionGroup.sections.filter(function(dd){return dd!=d.section;}));
 
 				//init breadcrumb dyExpanded and expanded flags
@@ -160,40 +173,45 @@ AD.DASHBOARDS.dashboard = function(){
 				var newSectionBreadcrumb = sectionBreadcrumb.enter()
 					.append('g')
 						.style('opacity',0)
-						.attr('class','ad-breadcrumb-sub-section-group-section');
-				newSectionBreadcrumb.append('path');
+						.attr('class','d3b-breadcrumb-sub-section-group-section');
+				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-background');
+				newSectionBreadcrumb.append('path').attr('class','d3b-breadcrumb-foreground');
 				newSectionBreadcrumb.append('text')
-					.attr('y',21)
+					.attr('y',17)
 					.attr('x',15)
 					.text(function(d){return d.name;});
 
 				//iterate through sub-section breadcrumbs
 				sectionBreadcrumb.each(function(d){
 							var elem = d3.select(this);
-							var path = elem.select('path');
+							var foreground = elem.select('path.d3b-breadcrumb-foreground');
+							var background = elem.select('path.d3b-breadcrumb-background');
 							var text = elem.select('text');
 							var pathWidth = text.node().getBBox().width+25;
-							path
-								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+breadcrumbIndentSize)+' 15 L '+pathWidth+' 0 L 0 0 Z');
-						}).on('click.ad-click',function(d){
+							foreground
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+breadcrumbIndentSize)+' 12.5 L '+pathWidth+' 0 L 0 0 Z')
+								.attr('transform','translate(4,0)');
+							background
+								.attr('d','M 0 0 L '+(breadcrumbIndentSize)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+breadcrumbIndentSize)+' 12.5 L '+pathWidth+' 0 L 0 0 Z');
+						}).on('click.d3b-click',function(d){
 							d3.event.stopPropagation();
 							changeCurrentSection(d);
 						})
-						.attr('transform',function(d,i){return 'translate(0,'+(34*(i+1))+')';});
+						.attr('transform',function(d,i){return 'translate(0,'+(28*(i+1))+')';});
 
 				//set dyExpanded to be the max size of the dropdown
-				_breadcrumb.dyExpanded = (34*(sectionBreadcrumb.size()+5));
+				_breadcrumb.dyExpanded = (32*(sectionBreadcrumb.size()+5));
 
 				//add triangle under sectionGroup breadcrumb
 				pathWidth += 15;
 				triangle = elem.append('g')
-						.attr('class','ad-breadcrumb-triangle')
-						.on('click.ad-click',function(){
+						.attr('class','d3b-breadcrumb-triangle')
+						.on('click.d3b-click',function(){
 							d3.event.stopPropagation();
 							if(!_breadcrumb.expanded){
 								resetSubSectionGroupBreadcrumbs();
-								selection.container.content.breadcrumbs.svg
-										.style('height',Math.max(30,_breadcrumb.dyExpanded)+'px');
+								selection.container.header.breadcrumbs.svg
+										.style('height',Math.max(25,_breadcrumb.dyExpanded)+'px');
 								sectionBreadcrumb
 									.transition()
 										.duration(animationDuration/2)
@@ -204,20 +222,20 @@ AD.DASHBOARDS.dashboard = function(){
 									.transition()
 										.duration(animationDuration/2)
 										.style('opacity',0);
-								selection.container.content.breadcrumbs.svg
-										.style('height',30+'px');
+								selection.container.header.breadcrumbs.svg
+										.style('height',27+'px');
 							}
 							_breadcrumb.expanded = !_breadcrumb.expanded;
 						});
 				triangle.append('rect')
 						.attr('width',20)
-						.attr('height',30)
-						.style('fill',d3.rgb(palette.primary).darker(2))
+						.attr('height',24)
+						.attr('y',0.5)
+						// .style('fill',d3.rgb(palette.primary).darker(2))
 						.attr('transform','translate('+(pathWidth-20)+',0)');
 				triangle.append('path')
-						.attr('d','M 0 0 L 9 0 L 4.5 5 L 0 0')
-						.style('fill','white')
-						.attr('transform','translate('+(pathWidth-15)+',13)');
+						.attr('d','M 0 0 L 9 0 L 4.5 5 L 0 0 Z')
+						.attr('transform','translate('+(pathWidth-15)+',11)');
 			}else{
 
 			}
@@ -229,10 +247,18 @@ AD.DASHBOARDS.dashboard = function(){
 				startIndent = 0;
 			if(i+1 == breadcrumb.size())
 				endIndent = 0;
-			path
+
+			foreground
 				.transition()
 					.duration(animationDuration)
-					.attr('d','M 0 0 L '+(startIndent)+' 15 L 0 30 L '+pathWidth+' 30 L '+(pathWidth+endIndent)+' 15 L '+pathWidth+' 0 L 5 0 Z');
+					.attr('transform','translate(4,0)')
+					.attr('d','M 0 0 L '+(startIndent)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+endIndent)+' 12.5 L '+pathWidth+' 0 L 5 0 Z');
+
+			background
+				.transition()
+					.duration(animationDuration)
+					.attr('d','M 0 0 L '+(startIndent)+' 12.5 L 0 25 L '+pathWidth+' 25 L '+(pathWidth+endIndent)+' 12.5 L '+pathWidth+' 0 L 5 0 Z');
+
 			this.dx = pathWidth;
 		});
 
@@ -242,8 +268,8 @@ AD.DASHBOARDS.dashboard = function(){
 			.transition()
 				.duration(animationDuration)
 				.attr('transform',function(d){
-					var translation = 'translate('+xCurrent+',0)';
-					xCurrent += this.dx + 2;
+					var translation = 'translate('+xCurrent+',1)';
+					xCurrent += this.dx + 7;
 					return translation;
 				})
 				.style('opacity',1);
@@ -257,29 +283,23 @@ AD.DASHBOARDS.dashboard = function(){
 
 	};
 	var updateCategoryTabs = function(){
-		if(!current.section.categories || current.section.categories.length < 1){
-			selection.container.header.navigation.categoryTabs.style('display','none').selectAll("*").remove();
-			return;
-		}else{
-			selection.container.header.navigation.categoryTabs.style('display','');
-		}
 
-		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.ad-category-tab').data(current.section.categories);
+		var categoryTab = selection.container.header.navigation.categoryTabs.selectAll('li.d3b-category-tab').data(current.section.categories);
 		categoryTab.enter()
 			.append('li')
-				.attr('class','ad-category-tab')
-				.on('click.ad-click',changeCurrentCategory);
+				.attr('class','d3b-category-tab')
+				.on('click.d3b-click',changeCurrentCategory);
 		categoryTab
 			.text(function(d){return d.name;})
 			.each(function(d){
 				if(d==current.category){
 					d3.select(this)
-							.classed('ad-innactive',true)
-							.on('click.ad-click',function(){});
+							.classed('d3b-innactive',true)
+							.on('click.d3b-click',null);
 				}else{
 					d3.select(this)
-							.classed('ad-innactive',false)
-							.on('click.ad-click',changeCurrentCategory);
+							.classed('d3b-innactive',false)
+							.on('click.d3b-click',changeCurrentCategory);
 				}
 			});
 			categoryTab.exit()
@@ -291,20 +311,14 @@ AD.DASHBOARDS.dashboard = function(){
 
 	};
 	var updateSubSections = function(){
-		if(!current.section.sections || current.section.sections.length < 1){
-			selection.container.sidebar.subSections.style('display','none').selectAll("*").remove();
-			return;
-		}else{
-			selection.container.sidebar.subSections.style('display','');
-		}
 
-		var subSection = selection.container.sidebar.subSections.selectAll('li.ad-sub-section').data(current.section.sections);
+		var subSection = selection.container.sidebar.subSections.selectAll('li.d3b-sub-section').data(current.section.sections);
 
 		subSection.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','ad-sub-section')
-				.on('click.ad-click',changeCurrentSection);
+				.attr('class','d3b-sub-section')
+				.on('click.d3b-click',changeCurrentSection);
 
 		subSection
 				.text(function(d){return d.name})
@@ -319,24 +333,15 @@ AD.DASHBOARDS.dashboard = function(){
 				.remove();
 	};
 	var updateSubSectionGroups = function(){
-		if(!current.section.sectionGroups || current.section.sectionGroups.length < 1){
-			selection.container.sidebar.subSectionGroups.style('display','none').selectAll("*").remove();
-			return;
-		}else{
-			var subSectionGroupData = current.section.sectionGroups.filter(function(d){return d.sections.length > 0;});
-			if(subSectionGroupData.length < 1){
-				selection.container.sidebar.subSectionGroups.style('display','none').selectAll("*").remove();
-				return;
-			}else{
-				selection.container.sidebar.subSectionGroups.style('display','');
-			}
-		}
-		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.ad-sub-section-group').data(subSectionGroupData);
+
+		var subSectionGroupData = current.section.sectionGroups.filter(function(d){return d.sections.length > 0;});
+
+		var subSectionGroup = selection.container.sidebar.subSectionGroups.selectAll('li.d3b-sub-section-group').data(subSectionGroupData);
 
 		subSectionGroup.enter()
 			.append('li')
 				.style('opacity',0)
-				.attr('class','ad-sub-section-group');
+				.attr('class','d3b-sub-section-group');
 
 		subSectionGroup
 			.transition()
@@ -361,16 +366,16 @@ AD.DASHBOARDS.dashboard = function(){
 		var subSectionGroupSections = elem
 			.append('ul')
 				.datum(d)
-				.attr('class','ad-sub-section-group-sections');
+				.attr('class','d3b-sub-section-group-sections');
 
-		var subSectionGroupSection = subSectionGroupSections.selectAll('li.ad-sub-section-group-section').data(function(dd){return dd.sections;});
+		var subSectionGroupSection = subSectionGroupSections.selectAll('li.d3b-sub-section-group-section').data(function(dd){return dd.sections;});
 
 		subSectionGroupSection.enter()
 			.append('li')
-				.attr('class','ad-sub-section-group-section');
+				.attr('class','d3b-sub-section-group-section');
 
 		subSectionGroupSection
-				.on('click.ad-click',changeCurrentSection);
+				.on('click.d3b-click',changeCurrentSection);
 
 		subSectionGroupSection
 				.text(function(d){return d.name;});
@@ -380,6 +385,15 @@ AD.DASHBOARDS.dashboard = function(){
 		resetSubSectionGroupBreadcrumbs();
 
 		current.section = d;
+
+		if(!current.section.sections)
+			current.section.sections = [];
+
+		if(!current.section.sectionGroups)
+			current.section.sectionGroups = [];
+
+		if(!current.section.categories)
+			current.section.categories = [];
 
 		var newCategory = d.categories.filter(function(d){return d.name == current.category.name;});
 		if(newCategory.length > 0){
@@ -394,9 +408,9 @@ AD.DASHBOARDS.dashboard = function(){
 		navigationHistory.pushNew(current);
 		/////Work on proper push/pop/find state later
 		// history.pushState({},'','?category='+(current.category.name)+'&section='+(current.section.name))
-		chartPage
-				.animationType('forward')
-				.data({data:current.category}).update();
+		dashboardCategory
+				.animateFrom('right')
+				.data({data:current.category});
 		return dashboard.update();
 	};
 
@@ -419,8 +433,9 @@ AD.DASHBOARDS.dashboard = function(){
 	dashboard.width = function(value){
 		if(!arguments.length) return width;
 		width = value;
-		pageWidth = width - 200;
-		chartPage.width(pageWidth - 10);
+		pageWidth = width - 210;
+		dashboardCategory.width(pageWidth);
+		chartPage.width(pageWidth);
 		resized = true;
 		return dashboard;
 	};
@@ -444,16 +459,10 @@ AD.DASHBOARDS.dashboard = function(){
 		return dashboard;
 	};
 
-	//other members
-	// dashboard.controls = function(value){
-	// 	if(!arguments.length) return controls;
-	//
-	// 	return dashboard;
-	// };
 	dashboard.animationDuration = function(value){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
-		chartPage.animationDuration(animationDuration);
+		dashboardCategory.animationDuration(animationDuration);
 
 		return dashboard;
 	};
@@ -481,33 +490,33 @@ AD.DASHBOARDS.dashboard = function(){
 		//create container
 		selection.container = selection
 			.append('div')
-				.attr('class','ad-dashboard ad-container');
+				.attr('class','d3b-dashboard d3b-container');
 
 		selection.container.header = selection.container
 			.append('div')
-				.attr('class','ad-header');
+				.attr('class','d3b-header');
 
 		selection.container.header.navigation = selection.container.header
 			.append('div')
-				.attr('class','ad-navigation');
+				.attr('class','d3b-navigation');
 
 		selection.container.header.navigation.home = selection.container.header.navigation
 			.append('div')
-				.attr('class','ad-navigation-home');
+				.attr('class','d3b-navigation-home');
 
 		selection.container.header.navigation.home.append('i').attr('class','fa fa-home')
 
 		selection.container.header.navigation.arrows = selection.container.header.navigation
 			.append('div')
-				.attr('class','ad-navigation-arrows');
+				.attr('class','d3b-navigation-arrows');
 
 		selection.container.header.navigation.arrows.left = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','ad-left-arrow');
+				.attr('id','d3b-left-arrow');
 
 		selection.container.header.navigation.arrows.right = selection.container.header.navigation.arrows
 			.append('div')
-				.attr('id','ad-right-arrow');
+				.attr('id','d3b-right-arrow');
 
 		selection.container.header.navigation.arrows.left.append('i').attr('class','fa fa-chevron-left')
 
@@ -515,46 +524,107 @@ AD.DASHBOARDS.dashboard = function(){
 
 		selection.container.header.navigation.categoryTabs = selection.container.header.navigation
 			.append('ul')
-				.attr('class','ad-category-tabs');
+				.attr('class','d3b-category-tabs');
+
+		selection.container.header.navigation.logo = selection.container.header.navigation
+			.append('img')
+				.attr('class','d3b-dashboard-logo');
+
+		selection.container.header.breadcrumbs = selection.container.header
+			.append('div')
+				.attr('class','d3b-dashboard-breadcrumbs');
+
+		selection.container.header.breadcrumbs.svg = selection.container.header.breadcrumbs
+			.append('svg')
+				.attr('class','d3b-dashboard-breadcrumbs-svg');
 
 		selection.container.sidebar = selection.container
 			.append('div')
-				.attr('class','ad-dashboard-sidebar');
+				.attr('class','d3b-dashboard-sidebar');
 
-		selection.container.sidebar.subSections = selection.container.sidebar
-			.append('ul')
-				.attr('class','ad-sub-sections');
 
-		selection.container.sidebar.subSectionGroups = selection.container.sidebar
+		selection.container.sidebar.sectionNav = selection.container.sidebar
+			.append('div')
+				.attr('class','d3b-sidebar-section-nav d3b-sidebar-container');
+
+		selection.container.sidebar.sectionsHeader = selection.container.sidebar.sectionNav
+			.append('div')
+				.attr('class','d3b-sidebar-header')
+				.text('Go To');
+
+		selection.container.sidebar.subSections = selection.container.sidebar.sectionNav
 			.append('ul')
-				.attr('class','ad-sub-section-groups');
+				.attr('class','d3b-sub-sections');
+
+		selection.container.sidebar.subSectionGroups = selection.container.sidebar.sectionNav
+			.append('ul')
+				.attr('class','d3b-sub-section-groups');
+
+		selection.container.sidebar.filters = selection.container.sidebar
+			.append('div')
+				.attr('class','d3b-sidebar-filters d3b-sidebar-container');
+
+		selection.container.sidebar.filtersHeader = selection.container.sidebar.filters
+			.append('div')
+				.attr('class','d3b-sidebar-header')
+				.text('Filter By');
+
+		controls.selection(selection.container.sidebar.filters)
+			.on('change',function(d){
+				dashboard.update();
+			});
 
 		selection.container.content = selection.container
 			.append('div')
-				.attr('class','ad-dashboard-content');
+				.attr('class','d3b-dashboard-content');
 
-		selection.container.content.breadcrumbs = selection.container.content
+		selection.container.content.dashboardCategory = selection.container.content
 			.append('div')
-				.attr('class','ad-navigation-breadcrumbs');
+				.attr('class','d3b-dashboard-category');
 
-		selection.container.content.breadcrumbs.svg = selection.container.content.breadcrumbs
-			.append('svg')
-				.attr('class','ad-navigation-breadcrumbs-svg');
+		// selection.container.content.chartPage = selection.container.content
+		// 	.append('div')
+		// 		.attr('class','d3b-chart-page-container');
 
-		selection.container.content.chartPage = selection.container.content
-			.append('div')
-				.attr('class','ad-dashboard-chart-page');
+		dashboardCategory
+			.selection(selection.container.content.dashboardCategory)
+			.on('pageChange.d3b-page-change',function(pageData, iOld, iNew){
 
-		chartPage.selection(selection.container.content.chartPage);
+				var temp = controlsHidden;
+				if(!pageData.controls)
+					pageData.controls = [];
+				if(pageData.controls.length > 0){
+					controlsHidden = false;
+					selection.container.sidebar.filters.style('display', 'block');
+				}else{
+					controlsHidden = true;
+					selection.container.sidebar.filters.style('display', 'none');
+				}
+
+				controls
+					.data(pageData)
+					.update(function(){
+					});
+				var animateFrom = null;
+				if(iOld < iNew)
+					animateFrom = 'right';
+				else if(iNew < iOld)
+					animateFrom = 'left';
+				chartPage
+					.selection(dashboardCategory.chartPageSelection())
+					.data(pageData)
+					.animateFrom(animateFrom)
+					.update(function(){
+						if(temp != controlsHidden){
+							dashboard.update();
+						}
+					})
+					.animateFrom(null);
+
+			});
 
 		changeCurrentSection(currentDashboardData.dashboard.topSection);
 
-		//auto update dashboard
-		var temp = animationDuration;
-		// dashboard
-		// 		.animationDuration(0);
-		// 		update(dashboardData);
-		// 		animationDuration(temp);
 		dashboard.update(callback);
 
 		return dashboard;
@@ -568,54 +638,50 @@ AD.DASHBOARDS.dashboard = function(){
 			return dashboard.generate(callback);
 		}
 
-		selection.container.content
-			.style('width',pageWidth+'px');
-
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
-					.classed('ad-innactive',true)
-					.on('click.ad-click',function(){});
+					.classed('d3b-innactive',true)
+					.on('click.d3b-click',null);
 		}else{
 			selection.container.header.navigation.home
-					.classed('ad-innactive',false)
-					.on('click.ad-click',function(){
+					.classed('d3b-innactive',false)
+					.on('click.d3b-click',function(){
 						changeCurrentSection(currentDashboardData.dashboard.topSection);
 					});
 		}
 
 		if(navigationHistory.position+1 == navigationHistory.array.length){
 			selection.container.header.navigation.arrows.right
-					.classed('ad-innactive',true)
-					.on('click.ad-click',function(){});
+					.classed('d3b-innactive',true)
+					.on('click.d3b-click',null);
 		}else{
-			// console.log(current.category)
 			selection.container.header.navigation.arrows.right
-					.classed('ad-innactive',false)
-					.on('click.ad-click',function(){
+					.classed('d3b-innactive',false)
+					.on('click.d3b-click',function(){
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage
-								.animationType('forward')
-								.data({data:current.category}).update();
+						dashboardCategory
+								.animateFrom('right')
+								.data({data:current.category});
 						dashboard.update();
 					});
 		}
 
 		if(navigationHistory.position == 0){
 			selection.container.header.navigation.arrows.left
-					.classed('ad-innactive',true)
-					.on('click.ad-click',function(){})
+					.classed('d3b-innactive',true)
+					.on('click.d3b-click',null)
 		}else{
 			selection.container.header.navigation.arrows.left
-					.classed('ad-innactive',false)
-					.on('click.ad-click',function(){
+					.classed('d3b-innactive',false)
+					.on('click.d3b-click',function(){
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
-						chartPage
-								.animationType('backward')
-								.data({data:current.category}).update();
+						dashboardCategory
+								.animateFrom('left')
+								.data({data:current.category});
 						dashboard.update();
 					});
 		}
@@ -625,16 +691,48 @@ AD.DASHBOARDS.dashboard = function(){
 				.delay(animationDuration)
 				.duration(animationDuration)
 				.style('width', width+'px');
+
 		updateCategoryTabs();
 		updateBreadcrumbs();
+
+		if(current.section.sections.length == 0 && current.section.sectionGroups.length == 0){
+			navigationHidden = true;
+			selection.container.sidebar.sectionNav
+				.style('display','none');
+			}
+		else{
+			navigationHidden = false;
+			selection.container.sidebar.sectionNav
+				.style('display','block');
+		}
+
 		updateSubSections();
 		updateSubSectionGroups();
 
-		if(resized){
-			resized = false;
-			chartPage
-					.update();
+		if(controlsHidden && navigationHidden){
+			pageMargin = 10;
+		}else{
+			pageMargin = 210
 		}
+
+		pageWidth = width - pageMargin;
+
+		selection.container.content
+			.style('width',pageWidth+'px');
+
+		selection.container.content
+			.transition()
+				.duration(animationDuration)
+				.style('margin-left', pageMargin - 10 + 'px');
+
+		dashboardCategory
+			.width(pageWidth)
+			.update()
+			.animateFrom(null);
+
+		chartPage
+			.width(pageWidth)
+			.update();
 
 		d3.timer.flush();
 

@@ -1,8 +1,8 @@
-.ad-bubble-chart-buttons-wrapper{
+.d3b-bubble-chart-buttons-wrapper{
   height:55px;
   text-align:center;
   padding-top:10px;
-  ul.ad-buttons{
+  ul.d3b-buttons{
     margin-left:5px;
     margin-right:5px;
     background:#f8f8f8;
@@ -18,7 +18,7 @@
       }
       li{
         color:#777;
-        &.ad-selected{
+        &.d3b-selected{
           background:$lightest;
           color:$dark_main;
         }
@@ -26,16 +26,16 @@
           background:$lightest;
         }
       }
-      li.ad-button{
+      li.d3b-button{
         padding:7px 10px;
-        &.ad-selected{
+        &.d3b-selected{
           box-shadow: inset 0px 2px 4px $light;
         }
       }
-      li.ad-color-button{
+      li.d3b-color-button{
         padding:1px 10px;
         border-top:1px solid $dark_main;
-        &.ad-selected{
+        &.d3b-selected{
           box-shadow: inset 0px -1px 4px $light;
         }
       };
@@ -46,9 +46,9 @@
   }
 
 }
-.ad-bubble-chart{
-  .ad-bubbles{
-    .ad-bubble{
+.d3b-bubble-chart{
+  .d3b-bubbles{
+    .d3b-bubble{
       circle{
         stroke-width:1px;
         stroke:$dark_main;
@@ -68,7 +68,7 @@
     font-size:9pt;
     fill:$dark_main;
   }
-  .ad-groups-axis{
+  .d3b-groups-axis{
     pointer-events:none;
     path{
       fill:none;
@@ -82,7 +82,7 @@
       }
     }
   }
-  .ad-change-axis-legend{
+  .d3b-change-axis-legend{
     pointer-events:none;
     path{
       fill:none;
@@ -95,12 +95,12 @@
       }
     }
   }
-  .ad-groups{
+  .d3b-groups{
     pointer-events:none;
-    .ad-group-title{
+    .d3b-group-title{
       text-anchor:middle;
     }
-    .ad-group-total{
+    .d3b-group-total{
       font-weight:bold;
       text-anchor:middle;
     }

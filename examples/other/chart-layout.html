@@ -2,28 +2,26 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/ad.min.js"></script>
+<script src="../../build/js/d3b.min.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <script>
 	$(document).ready(function(){
 
-		var axisChart = new AD.CHARTS.axisChart();
+		var axisChart = new d3b.CHARTS.axisChart();
 		axisChart
 			.controls({
-				yAxisLock: {
-					visible: false,
-					maxStacked: 780,
-					maxNonStacked: 312
+				stackBars: { //only for bar charts
+					visible: true,
+					enabled:true
 				},
-				stacking: { //only for bar charts
-					visible: false,
+				lockXAxis: {
 					enabled:true
 				}
 			})
-			.xScale({type: 'ordinal'});
+			.x({type: 'ordinal',domain:['x1','x2','x3','x4']});
 
 
-		var chartLayout = new AD.UTILS.CHARTPAGE.chartLayout();
+		var chartLayout = new d3b.UTILS.CHARTPAGE.chartLayout();
 		chartLayout
 				.width($(window).width())
 				.height($(window).height())
@@ -35,65 +33,69 @@
 						x:'Template x label',
 						y:'Template y label'
 					},
-					columns:[
+					types:[
 						{
-							label:'data 1',
-							type:'area,spline',
-							values:[
-								{x:'x1',y:67},
-								{x:'x2',y:211},
-								{x:'x3',y:346},
-								{x:'x4',y:113}
+							type:'area',
+							graphs:[
+								{
+									label:'data 1',
+									interpolate:'cardinal',
+									values:[
+										{x:'x1',y:67,y0:0},
+										{x:'x2',y:211,y0:0},
+										{x:'x3',y:-346,y0:0},
+										{x:'x4',y:113,y0:0}
+									]
+								},
+								{
+									label:'data 3',
+									interpolate:'cardinal-open',
+									values:[
+										{x:'x1',y:110,y0:0},
+										{x:'x4',y:20,y0:0}
+									]
+								}
 							]
 						},
 						{
-							label:'data 2',
-							type:'line,basis',
-							values:[
-								{x:'x1',y:100},
-								{x:'x3',y:11},
-								{x:'x4',y:130}
-							]
-						},
-						{
-							label:'data 3',
-							type:'area,cardinal-open',
-							values:[
-								{x:'x1',y:110},
-								{x:'x4',y:20}
-							]
-						},
-						{
-							label:'data 4',
 							type:'bar',
-							values:[
-								{x:'x1',y:105},
-								{x:'x2',y:611},
-								{x:'x4',y:211}
+							graphs:[
+								{
+									label:'data 4',
+									values:[
+										{x:'x1',y:105},
+										{x:'x2',y:611},
+										{x:'x4',y:211}
+									]
+								},
+								{
+									label:'data 6',
+									values:[
+										{x:'x1',y:200},
+										{x:'x2',y:-143},
+										{x:'x3',y:-46},
+										{x:'x4',y:128}
+									]
+								}
 							]
 						},
 						{
-							label:'data 5',
-							type:'scatter',
-							values:[
-								{x:'x1',y:37},
-								{x:'x2',y:111},
-								{x:'x3',y:146},
-								{x:'x4',y:213}
-							]
-						},
-						{
-							label:'data 6',
-							type:'bar',
-							values:[
-								{x:'x1',y:200},
-								{x:'x2',y:143},
-								{x:'x3',y:46},
-								{x:'x4',y:128}
+							type:'line',
+							graphs:[
+								{
+									label:'data 2',
+									interpolate:'basis',
+									values:[
+										{x:'x1',y:100},
+										{x:'x3',y:11},
+										{x:'x4',y:130}
+									]
+								}
 							]
 						}
 					]
-			}}
+				}
+			}
 		);
 
 
@@ -101,7 +103,8 @@
 			"data":
 			{
 				"chartLayout":{
-					"title":"Here is the title of the chart",
+					"title":"Chart Title",
+					"titleAlt":"This is a cool chart",
 					"footnote":"* This is something important to note for the chart",
 					"source":["Office of Institutional Analytics", "Student Data Mart", "Fall 2013"],
 					"leftNotes":["Here is a note on the left side of the chart", "And Another"],

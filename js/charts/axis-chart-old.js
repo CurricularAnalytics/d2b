@@ -1,29 +1,29 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-AD.CHARTS.axisChart = function(){
+d3b.CHARTS.axisChart = function(){
 
 	//private store
 	var $$ = {};
 
 	//user set width
-	$$.width = AD.CONSTANTS.DEFAULTWIDTH();
+	$$.width = d3b.CONSTANTS.DEFAULTWIDTH();
 	//user set height
-	$$.height = AD.CONSTANTS.DEFAULTHEIGHT();
+	$$.height = d3b.CONSTANTS.DEFAULTHEIGHT();
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
 	$$.outerHeight = $$.height;
 	$$.outerWidth = $$.width;
-	$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	//force chart regeneration on next update()
 	$$.generateRequired = true;
 	//d3.selection for chart container
 	$$.selection = d3.select('body');
 	//default animation duration
-	$$.animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	//color hash to be used
-	$$.color = AD.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d3b.CONSTANTS.DEFAULTCOLOR();
 	//carries current data set
 	$$.currentChartData = {
 		types:[],
@@ -34,15 +34,15 @@ AD.CHARTS.axisChart = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = AD.CONSTANTS.DEFAULTEVENTS();
+	$$.on = d3b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
-	$$.legend = new AD.UTILS.LEGENDS.legend();
+	$$.legend = new d3b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new AD.UTILS.CONTROLS.horizontalControls();
+	$$.controls = new d3b.UTILS.CONTROLS.horizontalControls();
 
 	$$.rotate = false;
 
@@ -76,9 +76,9 @@ AD.CHARTS.axisChart = function(){
 	}
 
 	//account for any tools defined by the various axis chart types
-	for(type in AD.UTILS.AXISCHART.TYPES){
-		if(AD.UTILS.AXISCHART.TYPES[type].tools){
-			var tools = AD.UTILS.AXISCHART.TYPES[type].tools();
+	for(type in d3b.UTILS.AXISCHART.TYPES){
+		if(d3b.UTILS.AXISCHART.TYPES[type].tools){
+			var tools = d3b.UTILS.AXISCHART.TYPES[type].tools();
 			if(tools){
 
 				//controlsData tools
@@ -173,10 +173,10 @@ AD.CHARTS.axisChart = function(){
 	//initialize axis-chart-type containers and graph containers
 	$$.initGraphs = function(){
 		//enter update exit a foreground svg:g element for each axis-chart-type
-		$$.selection.types.foreground.type = $$.selection.types.foreground.selectAll('g.ad-axis-type-foreground').data($$.currentChartData.types, function(d){return d.type;});
+		$$.selection.types.foreground.type = $$.selection.types.foreground.selectAll('g.d3b-axis-type-foreground').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.foreground.type.enter()
 			.append('g')
-				.attr('class', function(d){return 'ad-axis-type-foreground ad-'+d.type;});
+				.attr('class', function(d){return 'd3b-axis-type-foreground d3b-'+d.type;});
 		$$.selection.types.foreground.type.exit()
 			.transition()
 				.duration($$.animationDuration)
@@ -184,7 +184,7 @@ AD.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a sub-foreground element for the graphs associated with each type
-		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.ad-axis-chart-foreground-graph')
+		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.d3b-axis-chart-foreground-graph')
 			.data(
 				function(d){
 					return d.graphs
@@ -195,7 +195,7 @@ AD.CHARTS.axisChart = function(){
 			);
 		$$.selection.types.foreground.type.graph.enter()
 			.append('g')
-				.attr('class', 'ad-axis-chart-foreground-graph');
+				.attr('class', 'd3b-axis-chart-foreground-graph');
 		//save the foreground in data for use with the legend events
 		$$.selection.types.foreground.type.graph
 				.each(function(d){d.foreground = d3.select(this);});
@@ -206,25 +206,25 @@ AD.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a background svg:g element for each axis-chart-type
-		$$.selection.types.background.type = $$.selection.types.background.selectAll('g.ad-axis-type-background').data($$.currentChartData.types, function(d){return d.type;});
+		$$.selection.types.background.type = $$.selection.types.background.selectAll('g.d3b-axis-type-background').data($$.currentChartData.types, function(d){return d.type;});
 		$$.selection.types.background.type.enter()
 			.append('g')
-				.attr('class', function(d){return 'ad-axis-type-background ad-'+d.type;})
+				.attr('class', function(d){return 'd3b-axis-type-background d3b-'+d.type;})
 				.each(function(d){
 					var masterType = 'axis-chart-';
-					this.adType = new AD.UTILS.AXISCHART.TYPES[d.type];
+					this.adType = new d3b.UTILS.AXISCHART.TYPES[d.type];
 					this.adType
-						.on('elementClick.ad-click', function(d,i,type){
+						.on('elementClick.d3b-click', function(d,i,type){
 								for(key in $$.on.elementClick){
 									$$.on.elementClick[key].call(this,d,i,masterType+type);
 								}
 						})
-						.on('elementMouseover.ad-mouseover', function(d,i,type){
+						.on('elementMouseover.d3b-mouseover', function(d,i,type){
 								for(key in $$.on.elementMouseover){
 									$$.on.elementMouseover[key].call(this,d,i,masterType+type);
 								}
 						})
-						.on('elementMouseout.ad-mouseout', function(d,i,type){
+						.on('elementMouseout.d3b-mouseout', function(d,i,type){
 								for(key in $$.on.elementMouseout){
 									$$.on.elementMouseout[key].call(this,d,i,masterType+type);
 								}
@@ -243,12 +243,12 @@ AD.CHARTS.axisChart = function(){
 				.remove();
 
 		//enter update exit a sub-foreground element for the graphs associated with each type
-		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.ad-axis-chart-background-graph').data(function(d){return d.graphs;},function(d,i){
+		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.d3b-axis-chart-background-graph').data(function(d){return d.graphs;},function(d,i){
 				return d.label;
 			});
 		$$.selection.types.background.type.graph.enter()
 			.append('g')
-				.attr('class', 'ad-axis-chart-background-graph');
+				.attr('class', 'd3b-axis-chart-background-graph');
 
 		//save the background in data for use with the legend events
 		$$.selection.types.background.type.graph
@@ -264,7 +264,7 @@ AD.CHARTS.axisChart = function(){
 		//store the foreground graphs within the data
 		$$.selection.types.foreground.type.each(function(d){
 			var type = d3.select(this);
-			var graphs = type.selectAll('.ad-axis-chart-foreground-graph');
+			var graphs = type.selectAll('.d3b-axis-chart-foreground-graph');
 			d.foregroundGraphs = graphs.filter(function(graph){return !$$.hiddenGraphs[graph.type+'-'+graph.label]});
 		});
 
@@ -345,7 +345,7 @@ AD.CHARTS.axisChart = function(){
 
 		$$.selection.types.background.type.each(function(d){
 			var type = d3.select(this);
-			var graphs = type.selectAll('.ad-axis-chart-background-graph');
+			var graphs = type.selectAll('.d3b-axis-chart-background-graph');
 			d.backgroundGraphs = graphs.filter(function(graph){return !$$.hiddenGraphs[graph.type+'-'+graph.label]});
 
 			this.adType
@@ -433,7 +433,7 @@ AD.CHARTS.axisChart = function(){
 			var length = this.getComputedTextLength();
 			maxTickLength = Math.max(maxTickLength, length);
 		})
-			.on('click.ad-element-click', function(d,i){
+			.on('click.d3b-element-click', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -442,7 +442,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseover.ad-element-mouseover', function(d,i){
+			.on('mouseover.d3b-element-mouseover', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -451,7 +451,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseout.ad-element-mouseout', function(d,i){
+			.on('mouseout.d3b-element-mouseout', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.y.tickData[d]){
 					obj[key] = $$.y.tickData[d][key];
@@ -462,7 +462,7 @@ AD.CHARTS.axisChart = function(){
 			});
 
 		$$.selection.axes.x.text = $$.selection.axes.x.selectAll('text')
-			.on('click.ad-element-click', function(d,i){
+			.on('click.d3b-element-click', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -471,7 +471,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseover.ad-element-mouseover', function(d,i){
+			.on('mouseover.d3b-element-mouseover', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -480,7 +480,7 @@ AD.CHARTS.axisChart = function(){
 					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
 				}
 			})
-			.on('mouseout.ad-element-mouseout', function(d,i){
+			.on('mouseout.d3b-element-mouseout', function(d,i){
 				var obj = {label:d}
 				for(var key in $$.x.tickData[d]){
 					obj[key] = $$.x.tickData[d][key];
@@ -633,19 +633,19 @@ AD.CHARTS.axisChart = function(){
 	var chart = {};
 
 	//chart setters
-	chart.select = 							AD.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
-	chart.selection = 					AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
-	chart.width = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.animationDuration = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+	chart.select = 							d3b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
 	});
-	chart.legendOrientation = 	AD.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.x.axis.tickFormat($$.xFormat);});
-	chart.yFormat = 						AD.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.y.axis.tickFormat($$.yFormat);});
-	chart.controls = 						AD.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									AD.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.legendOrientation = 	d3b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.x.axis.tickFormat($$.xFormat);});
+	chart.yFormat = 						d3b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.y.axis.tickFormat($$.yFormat);});
+	chart.controls = 						d3b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d3b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
 	//rotate the chart, set x,y scales accordingly
 	chart.rotate = function(value){
@@ -663,7 +663,7 @@ AD.CHARTS.axisChart = function(){
 	};
 
 	//x/y setters
-	chart.x = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
+	chart.x = d3b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
 		if(value.orientation)
 			$$.xAlias.orientation = value.orientation;
 
@@ -676,7 +676,7 @@ AD.CHARTS.axisChart = function(){
 		}
 
 	});
-	chart.y = AD.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
+	chart.y = d3b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
 		if(value.orientation)
 			$$.yAlias.orientation = value.orientation;
 
@@ -714,7 +714,7 @@ AD.CHARTS.axisChart = function(){
 		$$.generateRequired = false;
 
 		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
-		AD.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+		d3b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		//init legend properties
 		$$.legend
@@ -724,7 +724,7 @@ AD.CHARTS.axisChart = function(){
 		//init control properties
 		$$.controls
 				.selection($$.selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					$$.controlsData[d.key].enabled = d.state;
 					// $$.updateScaleDomains();
 					chart.update();
@@ -733,54 +733,54 @@ AD.CHARTS.axisChart = function(){
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','ad-axis-chart');
+				.attr('class','d3b-axis-chart');
 
 		$$.selection.axes = $$.selection.main
 			.append('g')
-				.attr('class','ad-axes');
+				.attr('class','d3b-axes');
 
 		$$.selection.axes.x = $$.selection.axes
 			.append('g')
-				.attr('class','ad-axis ad-x');
+				.attr('class','d3b-axis d3b-x');
 
 		$$.selection.axes.x.label = $$.selection.axes.x
 			.append('g')
-				.attr('class','ad-label');
+				.attr('class','d3b-label');
 		$$.selection.axes.x.label.text = $$.selection.axes.x.label
 			.append('text');
 
 		$$.selection.axes.y = $$.selection.axes
 			.append('g')
-				.attr('class','ad-axis ad-y');
+				.attr('class','d3b-axis d3b-y');
 
 		$$.selection.axes.y.label = $$.selection.axes.y
 			.append('g')
-				.attr('class','ad-label');
+				.attr('class','d3b-label');
 		$$.selection.axes.y.label.text = $$.selection.axes.y.label
 			.append('text')
 		    .attr('transform', 'rotate(-90)');
 
 		$$.selection.grid = $$.selection.main
 			.append('g')
-				.attr('class','ad-grid');
+				.attr('class','d3b-grid');
 
 		$$.selection.grid.x = $$.selection.grid
 			.append('g')
-				.attr('class','ad-grid ad-x');
+				.attr('class','d3b-grid d3b-x');
 
 		$$.selection.grid.y = $$.selection.grid
 			.append('g')
-				.attr('class','ad-grid ad-y');
+				.attr('class','d3b-grid d3b-y');
 
 		$$.selection.types = $$.selection.main
 			.append('g')
-				.attr('class','ad-axis-types');
+				.attr('class','d3b-axis-types');
 		$$.selection.types.background = $$.selection.types
 			.append('g')
-				.attr('class','ad-axis-types-background');
+				.attr('class','d3b-axis-types-background');
 		$$.selection.types.foreground = $$.selection.types
 			.append('g')
-				.attr('class','ad-axis-types-foreground');
+				.attr('class','d3b-axis-types-foreground');
 
 		$$.legend.on('elementMouseover',function(d){
 			//bring the type and the graph to the front for the foreground and background
@@ -790,30 +790,30 @@ AD.CHARTS.axisChart = function(){
 			d.foreground.node().parentNode.appendChild(d.foreground.node());
 
 			//dim all but the corresponding graph
-			d3.selectAll('g.ad-axis-chart-background-graph').classed('ad-axis-chart-dim', true);
-			d3.selectAll('g.ad-axis-chart-foreground-graph').classed('ad-axis-chart-dim', true);
-			d.background.classed('ad-axis-chart-dim', false);
-			d.foreground.classed('ad-axis-chart-dim', false);
+			d3.selectAll('g.d3b-axis-chart-background-graph').classed('d3b-axis-chart-dim', true);
+			d3.selectAll('g.d3b-axis-chart-foreground-graph').classed('d3b-axis-chart-dim', true);
+			d.background.classed('d3b-axis-chart-dim', false);
+			d.foreground.classed('d3b-axis-chart-dim', false);
 		})
 		.on('elementMouseout',function(d){
 			//reset dimming
-			d3.selectAll('g.ad-axis-chart-background-graph').classed('ad-axis-chart-dim', false);
-			d3.selectAll('g.ad-axis-chart-foreground-graph').classed('ad-axis-chart-dim', false);
+			d3.selectAll('g.d3b-axis-chart-background-graph').classed('d3b-axis-chart-dim', false);
+			d3.selectAll('g.d3b-axis-chart-foreground-graph').classed('d3b-axis-chart-dim', false);
 		})
 		.on('elementClick', function(d){
 			this.hide = !this.hide;
 			$$.hiddenGraphs[d.type+'-'+d.label] = this.hide;
 			var element = d3.select(this).select('circle');
 			if(this.hide){
-				d.background.classed('ad-axis-chart-hide', true);
-				d.foreground.classed('ad-axis-chart-hide', true);
+				d.background.classed('d3b-axis-chart-hide', true);
+				d.foreground.classed('d3b-axis-chart-hide', true);
 				element
 					.style('stroke', element.style('fill'))
 					.style('fill-opacity',0)
 					.style('stroke-width','2px');
 			}else{
-				d.background.classed('ad-axis-chart-hide', false);
-				d.foreground.classed('ad-axis-chart-hide', false);
+				d.background.classed('d3b-axis-chart-hide', false);
+				d.foreground.classed('d3b-axis-chart-hide', false);
 				element
 					.style('stroke-width','0px')
 					.style('fill-opacity','');
@@ -840,7 +840,7 @@ AD.CHARTS.axisChart = function(){
 		}
 
 		//init forcedMargin
-		$$.forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -850,10 +850,10 @@ AD.CHARTS.axisChart = function(){
 				.attr('height',$$.height);
 
 		//update dimensions to the conform to the padded SVG:G
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		//update controls viz
-		AD.UTILS.CHARTS.HELPERS.updateControls($$);
+		d3b.UTILS.CHARTS.HELPERS.updateControls($$);
 
 		//save the type of each graph
 		$$.currentChartData.types.forEach(function(type){
@@ -874,7 +874,7 @@ AD.CHARTS.axisChart = function(){
 				)
 			);
 		}
-		AD.UTILS.CHARTS.HELPERS.updateLegend($$);
+		d3b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
 			// || ($$.legend.computedWidth() && ($$.legendOrientation == 'top'||$$.legendOrientation == 'bottom'))){
@@ -886,7 +886,7 @@ AD.CHARTS.axisChart = function(){
 				.duration($$.animationDuration)
 				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
 
-		AD.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		d3b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		$$.initGraphs();
 

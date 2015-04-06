@@ -1,21 +1,37 @@
-.ad-pointer-element{
+.d3b-pointer-element{
 	cursor:pointer;
 }
-.ad-chart-layout{
+.d3b-chart-layout{
 	color:$dark_main;
 	font-size:11pt;
-	.ad-chart-layout-title div{
+	.d3b-chart-layout-header{
 		background:$dark_main;
 		color:$lightest;
-		font-family:$alt1;
-		font-weight:thin;
-		padding:5px;
-		font-size:15pt;
-		text-align:center;
+		// font-family:$alt1;
+		// font-weight:thin;
+		padding:10px;
+		// font-size:15pt;
+		// text-align:left;
 		position:relative;
 		z-index:10;
+
+		.d3b-chart-layout-title{
+			font-size:15pt;
+			display:inline-block;
+			margin-right:10px;
+		}
+		.d3b-chart-layout-title-alt{
+			color:$light;
+			font-size:12pt;
+			display:inline-block;
+		}
+		.d3b-chart-layout-info{
+			font-size:15pt;
+			float:right;
+		}
+
 	}
-	.ad-chart-layout-right-notes,.ad-chart-layout-left-notes,.ad-chart-layout-footnote{
+	.d3b-chart-layout-right-notes,.d3b-chart-layout-left-notes,.d3b-chart-layout-footnote{
 		position:absolute;
 		font-size:11pt;
 		pointer-events:none;
@@ -23,40 +39,40 @@
 		// overflow:scroll;
 		color:$note;
 	}
-	.ad-chart-layout-right-notes,.ad-chart-layout-left-notes{
+	.d3b-chart-layout-right-notes,.d3b-chart-layout-left-notes{
 		font-size:10pt;
 	}
-	.ad-chart-layout-footnote{
+	.d3b-chart-layout-footnote{
 		width:100%;
 		margin-top:-10px;
 		font-style:italic;
 		text-align:center;
 		font-size:8pt;
 	}
-	.ad-chart-layout-footnote div{
+	.d3b-chart-layout-footnote div{
 		padding:5px;
 	}
-	.ad-chart-layout-right-notes ul, .ad-chart-layout-left-notes ul{
+	.d3b-chart-layout-right-notes ul, .d3b-chart-layout-left-notes ul{
 		padding:5px;
 	}
-	.ad-chart-layout-right-notes li, .ad-chart-layout-left-notes li{
+	.d3b-chart-layout-right-notes li, .d3b-chart-layout-left-notes li{
 		border-bottom:1px solid #ddd;
 		padding-bottom:5px;
 	}
 
-	.ad-chart-layout-chart{
+	.d3b-chart-layout-chart{
 		position:absolute;
 	}
 
 }
 
-.ad-breadcrumb{
+.d3b-breadcrumb{
 	path{
 		fill:$lightest;
 	}
 }
 
-.ad-general-tooltip{
+.d3b-general-tooltip{
 	z-index:10000;
 	font-family:$main;
 	font-size:10pt;
@@ -73,7 +89,41 @@
 	// opacity:0.1;
 	-webkit-box-shadow: 0 0 5px #555;
 	        box-shadow: 0 0 5px #555;
-//  -webkit-box-shadow: 0 2px 3px #777;
-//  -moz-box-shadow:    0 2px 3px #777;
-//  box-shadow:         0 2px 3px #777;
+}
+
+.d3b-checkbox-container{
+	cursor:pointer;
+	text{
+		fill:$dark_main;
+	}
+	rect, path{
+		stroke:$dark_main;
+		fill-opacity:0;
+	}
+	path,rect{
+		stroke-linejoin: miter;
+	}
+}
+
+.d3b-selector-selected{
+	.d3b-selector-border{
+		fill-opacity:0;
+		stroke:$dark_main;
+	}
+}
+
+.d3b-radio-button-container{
+	cursor:pointer;
+	text{
+		fill:$dark_main;
+	}
+	circle.d3b-radio-button-inner{
+		stroke:none;
+		stroke-width:0px;
+		fill:$dark_main;
+	}
+	circle.d3b-radio-button-outer{
+		stroke:$dark_main;
+		fill-opacity:0;
+	}
 }

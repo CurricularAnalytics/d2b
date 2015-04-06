@@ -1,0 +1,107 @@
+.d3b-dashboard-category{
+  position:relative;
+  height:80px;
+  .d3b-category{
+    width:100%;
+    position:absolute;
+    margin-left:5px;
+    margin-top:5px;
+    z-index:1;
+    .d3b-category-label{
+      margin-top:5px;
+      font-family:"Oswald";
+      margin-left:5px;
+      div{
+        white-space:nowrap;
+        text-transform: capitalize;
+      }
+      .d3b-category-label-section{
+        display:inline-block;
+        // display:block;
+        font-size:22pt;
+        color:$dark_main;
+        margin-bottom:2px;
+      }
+      .d3b-category-label-category:before{
+        content:' - ';
+      }
+      .d3b-category-label-category{
+        // text-align:center;
+        margin-left:8px;
+        display:inline-block;
+        font-size:16pt;
+        font-size:22pt;
+        font-weight:300;
+        color:$hover_dark;
+      }
+      .d3b-category-label-pages{
+        // text-align:center;
+        font-family:"Droid Sans";
+        position:relative;
+        color:$lightest;
+        white-space:normal;
+        font-size:11pt;
+        border-radius:5px;
+        .d3b-page-tab{
+          margin-top:5px;
+          margin-bottom:5px;
+          cursor:pointer;
+          padding:8px 10px;
+          background:$palette_main;
+          border-bottom:4px solid $palette_main_darker;
+          // border-right:1px solid $lightest;
+          display:inline-block;
+          &:last-child{
+            border-radius:0px 1px 1px 0px;
+          }
+          &:first-child{
+            border-radius:1px 0px 0px 1px;
+          }
+          &:hover{
+            background:$palette_main_darker;
+          }
+          &.d3b-tab-selected{
+            background:$palette_main_darker;
+          }
+        }
+
+        // &:hover{
+        //   -moz-box-shadow:    $dashboard_shadow_inset;
+        //   -webkit-box-shadow: $dashboard_shadow_inset;
+        //   box-shadow:         $dashboard_shadow_inset;
+        // }
+        //
+        // select{
+        //   cursor:pointer;
+        //   font-family:$main;
+        //   font-size:15pt;
+        //   padding: 0px 5px;
+        //   padding-right:25px;
+        //   border:0px;
+        //   color:$hover_dark;
+        //   appearance: none;
+        //   -webkit-appearance: none;
+        //   -moz-appearance:none;
+        //   background-image: none;
+        //   -webkit-background-image: none;
+        //   -moz-background-image: none;
+        //   background:transparent;
+        // }
+        //
+        // &:after {
+        //   pointer-events:none;
+        //   content: "";
+        //   position: absolute;
+        //   right: 8px;
+        //   top: 50%;
+        //   margin-top:-3px;
+        //   width: 0;
+        //   height: 0;
+        //   border-left: 6px solid transparent;
+        //   border-right: 6px solid transparent;
+        //   border-top: 6px solid $hover_dark;
+        // }
+      }
+    }
+  }
+}

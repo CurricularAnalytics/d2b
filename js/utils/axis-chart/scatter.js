@@ -1,3 +1,3 @@
-AD.UTILS.AXISCHART.scatter = function(){
+d2b.UTILS.AXISCHART.scatter = function(){
   
 };

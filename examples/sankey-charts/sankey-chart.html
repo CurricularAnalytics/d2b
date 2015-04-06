@@ -2,12 +2,12 @@
 <html>
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/ad.js"></script>
+<script src="../../build/js/d3b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/ad.css" />
 <script>
 	$(document).ready(function(){
 
-		var sankeyChart = AD.CHARTS.sankeyChart();
+		var sankeyChart = d3b.CHARTS.sankeyChart();
 
 		sankeyChart
 			.select('.sankey-chart')
@@ -73,7 +73,7 @@
 		.update();
 // console.log(sankeyChart.on('elementClick'))
 
-		var sankeyChart2 = AD.CHARTS.sankeyChart();
+		var sankeyChart2 = d3b.CHARTS.sankeyChart();
 
 		sankeyChart2
 			.select('.sankey-chart2')

@@ -8,7 +8,7 @@ module.exports = function(grunt){
 	      //   style: 'expanded'
 	      // },
 	      files: {                         // Dictionary of files
-	        'build/css/ad.css': 'build/css/ad.scss',       // 'destination': 'source'
+	        'build/css/d2b.css': 'build/css/d2b.scss',       // 'destination': 'source'
 	      }
 	    }
 	  },
@@ -20,7 +20,7 @@ module.exports = function(grunt){
 		      mangle: true
 		    },
 	      files: {
-	        'build/js/ad.min.js': ['build/js/ad.js']
+	        'build/js/d2b.min.js': ['build/js/d2b.js']
 	      }
 	    }
 	  },
@@ -34,6 +34,8 @@ module.exports = function(grunt){
 							'js/constants.js',
 							'js/utils/chart-adapters.js',
 							'js/utils/chart-page.js',
+							'js/utils/chart-layout.js',
+							'js/utils/dashboard-category.js',
 							'js/utils/controls.js',
 							'js/utils/general.js',
 							'js/utils/legends.js',
@@ -55,10 +57,11 @@ module.exports = function(grunt){
 							'js/utils/axis-chart/line.js',
 							'js/utils/axis-chart/area.js',
 							'js/utils/axis-chart/histogram.js',
+							'js/utils/axis-chart/bubble-pack.js',
 							'js/dashboards/dashboard.js',
 							'js/d3_extensions/sankey.js',
 							'js/d3_extensions/colorbrewer.js'],
-	      dest: 'build/js/ad.js',
+	      dest: 'build/js/d2b.js',
 	    },
 	    css: {
 	      src: ['css/init.scss','css/utils.scss',
@@ -72,8 +75,10 @@ module.exports = function(grunt){
 							'css/charts/sunburst-chart.scss',
 							'css/charts/bubble-chart.scss',
 							'css/charts/general.scss',
-							'css/dashboards/dashboard.scss'],
-	      dest: 'build/css/ad.scss',
+							'css/dashboards/dashboard.scss',
+							'css/utils/dashboard-category.scss',
+							'css/utils/chart-page.scss'],
+	      dest: 'build/css/d2b.scss',
 	    },
 	  },
 		watch: {

@@ -1,9 +1,9 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*AD constants*/
-AD.createNameSpace("AD.CONSTANTS");
+/*d3b constants*/
+d3b.createNameSpace("d3b.CONSTANTS");
 
-AD.CONSTANTS = {
+d3b.CONSTANTS = {
   DEFAULTPALETTE: {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"},
   DEFAULTWIDTH: function(){ return 960; },
   DEFAULTHEIGHT: function(){ return 540; },
@@ -16,5 +16,5 @@ AD.CONSTANTS = {
                             		elementClick:function(){}
                             	};
                 },
-  ANIMATIONLENGTHS: function(){ return {normal:500,short:100,long:1000}; }
+  ANIMATIONLENGTHS: function(){ return {normal:500,short:200,long:1000}; }
 }

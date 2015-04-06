@@ -1,6 +1,7 @@
 require 'csv'
 require 'json'
 
+@charts = {};
 
 def make_college_school_section_group(section)
   if !section[:sectionGroups]
@@ -15,6 +16,7 @@ end
 def college_school_sections
   colleges = [];
   @colleges.each{|ck, cv|
+    puts @charts[ck + '_college_grad_rate_chart']
     # puts cv[:majors].keys.length
     colleges.push({
         "key":"college_school_"+ck,
@@ -28,7 +30,42 @@ def college_school_sections
                 "x":0,
                 "y":0,
                 "width":1,
-                "height":350 + 50 * cv[:majors].keys.length
+                "height":[350 + 60 * cv[:majors].keys.length, 1800].min
+              }
+            ],
+            "controls":[
+
+            ],
+            "pages":[
+              {
+                "name":"Enrollment",
+                "controls":[
+
+                ],
+                "charts":[
+                    {
+                      "reference":ck + '_college_grad_rate_chart',
+                      "x":0,
+                      "y":0,
+                      "width":1,
+                      "height":[350 + 60 * cv[:majors].keys.length, 1800].min
+                    }
+                ]
+              },
+              {
+                "name":"Reporting Metrics",
+                "controls":[
+
+                ],
+                "charts":[
+                    {
+                      "reference":ck + '_college_grad_rate_chart',
+                      "x":0,
+                      "y":0,
+                      "width":1,
+                      "height":[350 + 60 * cv[:majors].keys.length, 1800].min
+                    }
+                ]
               }
             ]
           },
@@ -122,27 +159,32 @@ end
 def collegeGradRatesCharts(college)
   labels = ['2011-12','2012-13','2013-14']
   charts = [];
+
   @columnInfo.each_with_index{|ci, index|
-    charts.push({
+    @charts[labels[index]] = {
       label:labels[index],
       key:labels[index],
-      type:"interactiveBarChart",
+      type:"axisChart",
       properties:{
         controls:{
-          horizontal:{
-            visible:false,
+          lockYAxis:{
             enabled:true
           },
-          yAxisLock:{
-            enabled:true,
-            maxStacked:150,
-            maxNonStacked:100
+          lockXAxis:{
+            enabled:true
           }
         },
-        xScale:{
+        rotate: true,
+        x:{
           type:"ordinal",
+          orientation:'left',
           domain:college[:majors].keys
         },
+        y:{
+          orientation:'top',
+          domain:[0,100]
+        },
+        legendOrientation:'right',
         yFormat:{
           units:{
             after:"%"
@@ -155,7 +197,60 @@ def collegeGradRatesCharts(college)
             x:"Major",
             y:"Percentage"
           },
-          columns:collegeGradRatesColumns(ci, college)
+          types:[
+            {
+              type:'bar',
+              graphs:collegeGradRatesColumns(ci, college)
+            }
+          ]
+          # columns:collegeGradRatesColumns(ci, college)
+        }
+      }
+    }
+
+    charts.push({
+      label:labels[index],
+      key:labels[index],
+      type:"axisChart",
+      properties:{
+        controls:{
+          lockYAxis:{
+            enabled:true
+          },
+          lockXAxis:{
+            enabled:true
+          }
+        },
+        rotate: true,
+        x:{
+          type:"ordinal",
+          orientation:'left',
+          domain:college[:majors].keys
+        },
+        y:{
+          orientation:'top',
+          domain:[0,100]
+        },
+        legendOrientation:'right',
+        yFormat:{
+          units:{
+            after:"%"
+          }
+        }
+      },
+      data:{
+        data:{
+          labels:{
+            x:"Major",
+            y:"Percentage"
+          },
+          types:[
+            {
+              type:'bar',
+              graphs:collegeGradRatesColumns(ci, college)
+            }
+          ]
+          # columns:collegeGradRatesColumns(ci, college)
         }
       }
     })
@@ -228,23 +323,27 @@ def allGradRatesCharts
     charts.push({
       label:labels[index],
       key:labels[index],
-      type:"interactiveBarChart",
+      type:"axisChart",
       properties:{
         controls:{
-          horizontal:{
-            visible:false,
+          lockYAxis:{
             enabled:true
           },
-          yAxisLock:{
-            enabled:true,
-            maxStacked:150,
-            maxNonStacked:100
+          lockXAxis:{
+            enabled:true
           }
         },
-        xScale:{
+        rotate: true,
+        x:{
           type:"ordinal",
+          orientation:'left',
           domain:@colleges_list
         },
+        y:{
+          orientation:'bottom',
+          domain:[0,100]
+        },
+        legendOrientation:'top',
         yFormat:{
           units:{
             after:"%"
@@ -257,9 +356,15 @@ def allGradRatesCharts
             x:"College",
             y:"Percentage"
           },
-          columns:allGradRatesColumns(ci)
+          types:[
+            {
+              type:'bar',
+              graphs:allGradRatesColumns(ci)
+            }
+          ]
         }
       }
+
     })
   }
   return charts;
@@ -400,21 +505,27 @@ dashboard = {
       "Template": {
         "type":"axisChart",
         "properties":{
+          "x":{type:'ordinal'},
+          "controls":{"hideLegend":{enabled:true}},
           "data":{
             "data":{
               "labels":{
                 "x":"Template x label",
                 "y":"Template y label"
               },
-              "columns":[
+              "types":[
                 {
-                  "label":"data 1",
                   "type":"bar",
-                  "values":[
-                    {"x":1,"y":67},
-                    {"x":2,"y":211},
-                    {"x":3,"y":346},
-                    {"x":4,"y":113}
+                  "graphs":[
+                    {
+                      "label":"data 1",
+                      "values":[
+                        {"x":1,"y":67},
+                        {"x":2,"y":211},
+                        {"x":3,"y":346},
+                        {"x":4,"y":113}
+                      ]
+                    }
                   ]
                 }
               ]
@@ -444,7 +555,7 @@ dashboard = {
               "x":0,
               "y":0,
               "width":1,
-              "height":1000
+              "height":1100
             }
           ]
         },

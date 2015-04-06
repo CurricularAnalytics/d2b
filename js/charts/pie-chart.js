@@ -1,11 +1,11 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*template chart*/
-AD.CHARTS.pieChart = function(){
+d3b.CHARTS.pieChart = function(){
 
 	//define axisChart variables
-	var width = AD.CONSTANTS.DEFAULTWIDTH(),
-			height = AD.CONSTANTS.DEFAULTHEIGHT();
+	var width = d3b.CONSTANTS.DEFAULTWIDTH(),
+			height = d3b.CONSTANTS.DEFAULTHEIGHT();
 
 	var innerHeight = height, innerWidth = width;
 
@@ -14,14 +14,14 @@ AD.CHARTS.pieChart = function(){
 
 	var selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = AD.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+	var animationDuration = d3b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	var forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new AD.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new AD.UTILS.CONTROLS.horizontalControls(),
+	var legend = new d3b.UTILS.LEGENDS.legend(),
+	  	horizontalControls = new d3b.UTILS.CONTROLS.controls(),
 			legendOrientation = 'bottom';
 
-	var color = AD.CONSTANTS.DEFAULTCOLOR();
+	var color = d3b.CONSTANTS.DEFAULTCOLOR();
 
 	var currentChartData = {};
 
@@ -31,7 +31,7 @@ AD.CHARTS.pieChart = function(){
 			};
 
 	//init event object
-	var on = AD.CONSTANTS.DEFAULTEVENTS();
+	var on = d3b.CONSTANTS.DEFAULTEVENTS();
 
 	var donutRatio = 0;
 
@@ -93,7 +93,7 @@ AD.CHARTS.pieChart = function(){
 
 	chart.xFormat = function(value){
 		if(!arguments.length) return xFormat;
-		xFormat = AD.UTILS.numberFormat(value);
+		xFormat = d3b.UTILS.numberFormat(value);
 		return chart;
 	};
 
@@ -151,28 +151,28 @@ AD.CHARTS.pieChart = function(){
 		//create svg
 		selection.svg = selection
 			.append('svg')
-				.attr('class','ad-pie-chart ad-svg ad-container');
+				.attr('class','d3b-pie-chart d3b-svg d3b-container');
 
 		//create group container
 		selection.group = selection.svg.append('g');
 
 		selection.group.pie = selection.group
 			.append('g')
-				.attr('class','ad-pie');
+				.attr('class','d3b-pie');
 		// //create legend container
 		selection.legend = selection.group
 			.append('g')
-				.attr('class','ad-legend');
+				.attr('class','d3b-legend');
 
 		//create controls container
 		selection.controls = selection.group
 			.append('g')
-				.attr('class','ad-controls');
+				.attr('class','d3b-controls');
 
 
 		horizontalControls
 				.selection(selection.controls)
-				.on('elementChange',function(d,i){
+				.on('change',function(d,i){
 					controls[d.key].enabled = d.state;
 					chart.update();
 				});
@@ -181,18 +181,18 @@ AD.CHARTS.pieChart = function(){
 		legend
 				.color(color)
 				.selection(selection.legend)
-				// .on('elementMouseover.ad-mouseover',function(d){
+				// .on('elementMouseover.d3b-mouseover',function(d){
 				// 	console.log(d.path)
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1.01)')
 				// 	// 			.style('fill-opacity',0.9);
 				// })
-				// .on('elementMouseout.ad-mouseout',function(d){
+				// .on('elementMouseout.d3b-mouseout',function(d){
 				// 	// d.path
 				// 	// 		.transition()
-				// 	// 			.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+				// 	// 			.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 				// 	// 			.attr('transform','scale(1)')
 				// 	// 			.style('fill-opacity','');
 				// });
@@ -215,11 +215,11 @@ AD.CHARTS.pieChart = function(){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = AD.CONSTANTS.DEFAULTFORCEDMARGIN();
+		forcedMargin = d3b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
 		innerWidth = width - forcedMargin.right - forcedMargin.left;
 
-		var controlsData = AD.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d3b.UTILS.getValues(controls).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
@@ -258,7 +258,7 @@ AD.CHARTS.pieChart = function(){
 		// currentChartData.values = pie(currentChartData.values);
 		var arcGroup = selection.group.pie
 					.datum(currentChartData.values)
-				.selectAll("g.ad-arc")
+				.selectAll("g.d3b-arc")
 					.data(pie,function(d,i){
 						if(d.data.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000);
@@ -270,7 +270,7 @@ AD.CHARTS.pieChart = function(){
 
 		var newArcGroup = arcGroup.enter()
 			.append('g')
-				.attr('class','ad-arc')
+				.attr('class','d3b-arc')
 				.style('opacity',0);
 
 		arcGroup
@@ -298,7 +298,7 @@ AD.CHARTS.pieChart = function(){
 				// .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; });
 
 		// newArcGroup.append('g')
-		// 		.attr('class','ad-pie-label')
+		// 		.attr('class','d3b-pie-label')
 		// 		.attr("transform", function(d) {
 		// 		    var c = arc.centroid(d),
 		// 		        x = c[0],
@@ -323,8 +323,8 @@ AD.CHARTS.pieChart = function(){
 						return color(d.data.label);
 					}
 				})
-				.on('mouseover.ad-mouseover',null)
-				.on('mouseout.ad-mouseout',null);
+				.on('mouseover.d3b-mouseover',null)
+				.on('mouseout.d3b-mouseout',null);
 		var arcPathTransition = arcPath
 			.transition()
 				.duration(animationDuration)
@@ -341,30 +341,30 @@ AD.CHARTS.pieChart = function(){
 		arcPathTransition.each("end",function(d){
 			var elem = d3.select(this);
 			elem
-					.on('mouseover.ad-mouseover',function(d,i){
+					.on('mouseover.d3b-mouseover',function(d,i){
 						elem
 							.transition()
-								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1.01)')
 								.style('fill-opacity',0.9);
 
-						AD.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
+						d3b.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
 						for(key in on.elementMouseover){
 							on.elementMouseover[key].call(this,d,i,'arc');
 						}
 					})
-					.on('mouseout.ad-mouseout',function(d,i){
+					.on('mouseout.d3b-mouseout',function(d,i){
 						elem
 							.transition()
-								.duration(AD.CONSTANTS.ANIMATIONLENGTHS().short)
+								.duration(d3b.CONSTANTS.ANIMATIONLENGTHS().short)
 								.attr('transform','scale(1)')
 								.style('fill-opacity','')
-						AD.UTILS.removeTooltip();
+						d3b.UTILS.removeTooltip();
 						for(key in on.elementMouseout){
 							on.elementMouseout[key].call(this,d,i,'arc');
 						}
 					})
-					.on('click.ad-click',function(d,i){
+					.on('click.d3b-click',function(d,i){
 						for(key in on.elementClick){
 							on.elementClick[key].call(this,d,i,'arc');
 						}
