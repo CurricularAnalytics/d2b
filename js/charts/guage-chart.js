@@ -32,7 +32,6 @@ d2b.CHARTS.guageChart = function(){
 	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	$$.percentFormat = d2b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
-
 	$$.arc = d3.svg.arc()
 		.innerRadius(0)
 		.outerRadius(0)
@@ -48,7 +47,7 @@ d2b.CHARTS.guageChart = function(){
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
-	chart.color = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 

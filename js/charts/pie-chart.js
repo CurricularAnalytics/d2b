@@ -1,204 +1,180 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*template chart*/
+/*pie chart*/
 d2b.CHARTS.pieChart = function(){
 
-	//define axisChart variables
-	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
-			height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	//private store
+	var $$ = {};
 
-	var innerHeight = height, innerWidth = width;
-
-	var generateRequired = true; //using some methods may require the chart to be redrawn
-	var newData = true;
-
-	var selection = d3.select('body'); //default selection of the HTML body
-
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-
-	var legend = new d2b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
-			legendOrientation = 'bottom';
-
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
-
-	var currentChartData = {};
-
-	var xFormat = function(value){return value};
-
-	var controls = {
+	//user set width
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	//legend OBJ
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
+	//legend orientation 'top', 'bottom', 'left', or 'right'
+	$$.legendOrientation = 'bottom';
+	//legend data
+	$$.legendData = {data:{items:[]}};
+	//controls OBJ
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
+	//controls data
+	$$.controlsData = {
+				hideLegend: {
+					label: "Hide Legend",
+					type: "checkbox",
+					visible: false,
+					enabled: false
+				}
 			};
 
-	//init event object
-	var on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.donutRatio = 0;
 
-	var donutRatio = 0;
+	//initialize the d3 arc shape
+	$$.arc = d3.svg.arc()
+			    .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, d.start)); })
+			    .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, d.end)); })
+			    .outerRadius(function(d) { return Math.max(0, d.outer); })
+			    .innerRadius(function(d) { return Math.max(0, d.inner); });
 
-	var r = Math.min(innerHeight,innerWidth)/2;
-	var arc = d3.svg.arc()
-			.outerRadius(r)
-			.innerRadius(r*donutRatio);
-	var pie = d3.layout.pie()
-			.value(function(d){return d.value;})
+	$$.arcText = d3.svg.arc();
+
+	$$.pie = d3.layout.pie()
+			.value(function(d){
+				var value = ($$.persistentData.hiddenArcs[d.key])? 0 : d.value;
+				$$.pieTotal += value;
+				return value;
+			})
 			.sort(null);
+	$$.pieTotal = 1;
 
-	var pieTotal = 1;
-	var legendData = [];
-
-	var arcTween = function(transition, arc) {
-		transition.attrTween("d",function(d){
-			_self = this;
-		  var i = d3.interpolate(_self._current, d);
-		  return function(t) {
-			  _self._current = i(t);
-		    return arc(i(t));
-		  };
-		})
+	$$.persistentData = {
+		focusedArc:null,
+		hiddenArcs:{}
 	};
 
-	/*DEFINE CHART OBJECT AND MEMBERS*/
+	$$.arcFocused = false;
+
+	$$.arcKey = function(d,i){
+		if(d.key == 'unique')
+			return Math.floor((1 + Math.random()) * 0x10000);
+		else if(d.key && d.key != 'auto')
+			return d.key;
+		else
+			return d.label;
+	};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+		$$.legend.animationDuration($$.animationDuration);
+		$$.controls.animationDuration($$.animationDuration);
+	});
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		legend.animationDuration(animationDuration);
-		return chart;
-	};
-
-	chart.xFormat = function(value){
-		if(!arguments.length) return xFormat;
-		xFormat = d2b.UTILS.numberFormat(value);
-		return chart;
-	};
-
-	chart.controls = function(value){
-		if(!arguments.length) return controls;
-		return chart;
-	};
-
-	chart.donutRatio = function(value){
-		if(!arguments.length) return donutRatio;
-		donutRatio = value;
-		return chart;
-	};
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	chart.donutRatio = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'donutRatio');
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {};
-			generateRequired = true;
+			$$.currentChartData = {};
 		}
 
-		currentChartData.values = chartData.data.values;
+		$$.currentChartData = chartData.data;
 
-		pieTotal = d3.sum(currentChartData.values.map(function(d){return d.value;}));
-		newData = true;
+		$$.currentChartData.values.forEach(function(d){
+			d.key = $$.arcKey(d);
+		});
 
 		return chart;
 	};
 
-	//generate chart
+	//chart generate
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
-		//clean container
-		selection.selectAll('*').remove();
+		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
+		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
-		//create svg
-		selection.svg = selection
-			.append('svg')
-				.attr('class','d2b-pie-chart d2b-svg d2b-container');
+		//init legend properties
+		$$.legend
+				.color($$.color)
+				.selection($$.selection.legend)
+				.on('elementMouseover.d2b-mouseover',function(d){
+					$$.persistentData.focusedArc = d.key;
+					chart.update();
+				})
+				.on('elementMouseout.d2b-mouseover',function(d){
+					$$.persistentData.focusedArc = null;
+					chart.update();
+				})
+				.on('elementClick',function(d){
+					$$.persistentData.hiddenArcs[d.key] = !$$.persistentData.hiddenArcs[d.key];
 
-		//create group container
-		selection.group = selection.svg.append('g');
+					var allHidden = true;
 
-		selection.group.pie = selection.group
-			.append('g')
-				.attr('class','d2b-pie');
-		// //create legend container
-		selection.legend = selection.group
-			.append('g')
-				.attr('class','d2b-legend');
-
-		//create controls container
-		selection.controls = selection.group
-			.append('g')
-				.attr('class','d2b-controls');
+					$$.currentChartData.values.forEach(function(d){
+						if(allHidden == true && !$$.persistentData.hiddenArcs[d.key])
+							allHidden = false;
+					});
+					//if all types/graphs are hidden, show them all
+					if(allHidden){
+						for(var key in $$.persistentData.hiddenArcs)
+							$$.persistentData.hiddenArcs[key] = false;
+					}
 
 
-		horizontalControls
-				.selection(selection.controls)
-				.on('change',function(d,i){
-					controls[d.key].enabled = d.state;
+					chart.update();
+				})
+				.on('elementDblClick',function(d){
+					for(var key in $$.persistentData.hiddenArcs)
+						$$.persistentData.hiddenArcs[key] = false;
 					chart.update();
 				});
 
-		// //intialize new legend
-		legend
-				.color(color)
-				.selection(selection.legend)
-				// .on('elementMouseover.d2b-mouseover',function(d){
-				// 	console.log(d.path)
-				// 	// d.path
-				// 	// 		.transition()
-				// 	// 			.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-				// 	// 			.attr('transform','scale(1.01)')
-				// 	// 			.style('fill-opacity',0.9);
-				// })
-				// .on('elementMouseout.d2b-mouseout',function(d){
-				// 	// d.path
-				// 	// 		.transition()
-				// 	// 			.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-				// 	// 			.attr('transform','scale(1)')
-				// 	// 			.style('fill-opacity','');
-				// });
+		//init control properties
+		$$.controls
+				.selection($$.selection.controls)
+				.on('change',function(d,i){
+					$$.controlsData[d.key].enabled = d.state;
+					chart.update();
+				});
+
+		$$.selection.pie = $$.selection.group
+			.append('g')
+				.attr('class','d2b-pie-chart');
 
 		//auto update chart
-		var temp = animationDuration;
+		var temp = $$.animationDuration;
 		chart
 				.animationDuration(0)
 				.update(callback)
@@ -207,188 +183,156 @@ d2b.CHARTS.pieChart = function(){
 		return chart;
 	};
 
-	//update chart
+	//chart update
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		//init forcedMargin
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
 
-		innerWidth = width - forcedMargin.right - forcedMargin.left;
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
 
-		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
-		controlsData.map(function(d){
-			d.data = {state:d.enabled, label:d.label, key:d.key};
-		});
-		horizontalControls.data(controlsData).width(innerWidth).update();
+		//update dimensions to the conform to the padded SVG:G
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		//reposition the controls
-		selection.controls
+		//update controls viz
+		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
+		//set legend data and update legend viz
+		if($$.controlsData.hideLegend.enabled){
+			$$.legendData = {data:{items:[]}};
+		}else{
+			$$.legendData = {
+				data:{
+					items:	$$.currentChartData.values.map(function(d){
+						d.open = $$.persistentData.hiddenArcs[d.key];
+						return d;
+					})
+				}
+			};
+		}
+		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
+
+		$$.selection.pie
 			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+(innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight())+')');
+				.duration($$.animationDuration)
+				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth/2)+','+($$.forcedMargin.top + $$.innerHeight/2)+')');
 
-		forcedMargin.top += horizontalControls.computedHeight();
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		// legendData = {
-		// 	data:{
-		// 		items:	currentChartData.values
-		// 	}
-		// };
+//set radius
+		$$.r = 0.93*(Math.min($$.outerWidth,$$.outerHeight)/2);
 
-		// legend.width(innerWidth).data(legendData).update();
-		forcedMargin.bottom += legend.computedHeight();
+		$$.pieTotal = 0;
 
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
+		$$.selection.pie.datum($$.currentChartData.values)
+		$$.selection.pie.arc = $$.selection.pie.selectAll('g').data($$.pie, function(d){return d.data.key});
 
-
-		r = Math.min(innerHeight,innerWidth)/2;
-		arc
-				.outerRadius(r)
-				.innerRadius(r*donutRatio);
-
-		selection.group.pie
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+innerWidth/2+','+innerHeight/2+')');
-		// currentChartData.values = pie(currentChartData.values);
-		var arcGroup = selection.group.pie
-					.datum(currentChartData.values)
-				.selectAll("g.d2b-arc")
-					.data(pie,function(d,i){
-						if(d.data.key == 'unique')
-							return Math.floor((1 + Math.random()) * 0x10000);
-						else if(d.data.key && d.data.key != 'auto')
-							return d.data.key;
-						else
-							return d.data.label;
-					});
-
-		var newArcGroup = arcGroup.enter()
+//arc enter
+		var newArc = $$.selection.pie.arc.enter()
 			.append('g')
 				.attr('class','d2b-arc')
-				.style('opacity',0);
+				.style('opacity',0)
+				.call(d2b.UTILS.bindElementEvents, $$, 'arc')
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.data.label+'</b>';},function(d){return $$.xFormat(d.data.value);});
 
-		arcGroup
+		$$.selection.pie.arc
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration/1.5)
 				.style('opacity',1);
 
+//handle arc path
+		newArc.append('path')
+			.each(function(d){
+				//init old Arc
+				this.oldArc = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+			});
 
-		newArcGroup.append('path')
+		$$.selection.pie.arc.path = $$.selection.pie.arc.select('path')
 				.each(function(d){
-					this._current = {};
-					this._current.startAngle = 0;
-					this._current.endAngle = 0;
-					d.path = d3.select(this);
-				});
-		newArcGroup.append('text');
-		arcGroup.select('text')
-			.transition()
-				.duration(animationDuration)
-				.text(function(d){return d3.format("%")(d.data.value/pieTotal);})
-				.attr("transform", function(d) {
-					    var c = arc.centroid(d);
-						  return "translate(" + c[0] +"," + c[1] + ")";
-				    })
-				// .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; });
-
-		// newArcGroup.append('g')
-		// 		.attr('class','d2b-pie-label')
-		// 		.attr("transform", function(d) {
-		// 		    var c = arc.centroid(d),
-		// 		        x = c[0],
-		// 		        y = c[1],
-		// 		        // pythagorean theorem for hypotenuse
-		// 		        h = Math.sqrt(x*x + y*y);
-		// 		    return "translate(" + (x/h * 500) +  ',' +
-		// 		       (y/h * 500) +  ")";
-		// 		})
-		// 	.append('text').text('hi')
-		// 		// .each(function(d){
-		// 		// 	this._
-		// 		// });
-
-		var arcPath = arcGroup.select('path');
-		arcPath
-				.each(function(d){d.test = 'test';})
+					//update newArc
+					this.newArc = {
+						start:d.startAngle,
+						end:d.endAngle,
+						inner:$$.r*$$.donutRatio,
+						outer:(d.data.key == $$.persistentData.focusedArc)? $$.r*1.04 : $$.r
+					};
+				})
 				.style('fill',function(d){
 					if(d.data.colorKey){
-						return color(d.data.colorKey);
+						return $$.color(d.data.colorKey);
 					}else{
-						return color(d.data.label);
+						return $$.color(d.data.label);
 					}
 				})
-				.on('mouseover.d2b-mouseover',null)
-				.on('mouseout.d2b-mouseout',null);
-		var arcPathTransition = arcPath
+				.on('mouseover.d2b-mouseover',function(d){
+					$$.persistentData.focusedArc = d.data.key;
+					chart.update();
+				})
+				.on('mouseout.d2b-mouseover',function(d){
+					$$.persistentData.focusedArc = null;
+					chart.update();
+				})
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration/1.5)
+				.style('opacity',1)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
 
-		if(newData){
-			newData = !newData;
-			arcPathTransition
-					.call(arcTween, arc);
-		}else{
-			arcPathTransition
-					.attr('d',arc);
-		}
+//handle arc text
+		newArc.append('text')
+			.each(function(d){
+				//init old position arc
+				this.oldPosition = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+			});
 
-		arcPathTransition.each("end",function(d){
-			var elem = d3.select(this);
-			elem
-					.on('mouseover.d2b-mouseover',function(d,i){
-						elem
-							.transition()
-								.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-								.attr('transform','scale(1.01)')
-								.style('fill-opacity',0.9);
-
-						d2b.UTILS.createGeneralTooltip(elem, "<b>"+d.data.label+"</b>", xFormat(d.data.value));
-						for(key in on.elementMouseover){
-							on.elementMouseover[key].call(this,d,i,'arc');
-						}
-					})
-					.on('mouseout.d2b-mouseout',function(d,i){
-						elem
-							.transition()
-								.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-								.attr('transform','scale(1)')
-								.style('fill-opacity','')
-						d2b.UTILS.removeTooltip();
-						for(key in on.elementMouseout){
-							on.elementMouseout[key].call(this,d,i,'arc');
-						}
-					})
-					.on('click.d2b-click',function(d,i){
-						for(key in on.elementClick){
-							on.elementClick[key].call(this,d,i,'arc');
-						}
-					});
-		});
-
-		arcGroup.exit()
+		$$.selection.pie.arc.text = $$.selection.pie.arc.select('text')
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration/1.5)
+				.tween("text", function(d) {
+					//tween percent value
+					var _self = this;
+					if(!_self._current)
+						_self._current = 0;
+	        var i = d3.interpolate(_self._current, d.data.value/$$.pieTotal);
+	        return function(t) {
+						_self._current = i(t);
+						_self.textContent = d3.format('%')(i(t));
+	        };
+		    })
+				.attr('opacity',function(d){
+					return ($$.persistentData.hiddenArcs[d.data.key])? 0 : 1;
+				})
+				.attrTween("transform", function(d) {
+					//tween centroid position
+					var _self = this;
+					//update new position arc
+					_self.newPosition = {start:d.startAngle, end:d.endAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+					var i = d3.interpolate(_self.oldPosition, _self.newPosition);
+					return function(t){
+						_self.oldPosition = i(t);
+						return "translate("+$$.arc.centroid(_self.oldPosition)+")";
+					};
+				});
+
+//arc exit
+		$$.selection.pie.arc.exit()
+				.each(function(d){
+					this.newArc = {start:d.endAngle, end: d.endAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+				})
+			.transition()
+				.duration($$.animationDuration)
 				.style('opacity',0)
-				.remove();
-
-		selection.legend
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+(innerWidth-legend.computedWidth())/2+','+innerHeight+')')
-
-		selection.svg
-				.attr('width',width)
-				.attr('height',height);
-
-		selection.group
-				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
-
+				.remove()
+			.select('path')
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
 
 		d3.timer.flush();
 

@@ -8,12 +8,12 @@
 	$(document).ready(function(){
 
 		var pieChart = new d2b.CHARTS.pieChart();
-		console.log(pieChart)
+
 		pieChart
 			.select('.pie-chart')
 			.width($(window).width())
 			.height($(window).height())
-			.donutRatio(0)
+			.donutRatio(0.5)
 			.xFormat({siPrefixed:false,separateThousands:true,units:{},precision:0});
 
 		pieChart

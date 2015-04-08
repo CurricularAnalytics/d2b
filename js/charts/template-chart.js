@@ -37,7 +37,7 @@ d2b.CHARTS.templateChart = function(){
 	//legend data
 	$$.legendData = {data:{items:[]}};
 	//controls OBJ
-	$$.controls = new d2b.UTILS.CONTROLS.horizontalControls();
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
 	//controls data
 	$$.controlsData = {
 				hideLegend: {
