@@ -40,6 +40,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
 	$$.updatePoints = function(graphData, graph, yType){
 
@@ -150,6 +151,11 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
+
+			graph.on('mouseover', function(){
+				console.log(d3.event)
+			});
+
 			$$.foreground.point = {};
 
 			$$.updatePoints(graphData, graph, 'y');

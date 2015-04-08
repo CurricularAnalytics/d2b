@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+		axisChart
+//no need to use select/width/height if imbeding chart into a chartLayout
+			// .select('.axis-chart')
+			// .width($(window).width())
+			// .height($(window).height())
+
+//value formatting
+			.xFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:1})
+			.yFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:0})
+
+//set the x scale properties
+			.x({
+				orientation:'bottom', 				//default 'bottom', can be set to right or left if rotated, bottom or top if not
+				invert:false, 								//default false
+				hide: false, 									//default false
+				// type:'ordinal', 						//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
+				domain:[-0.1, 1.1]						//!DOMAIN is only used if the lockXAxis control is enabled, default [0, 1], set the domain for the chosen scale type
+			})
+
+//set the y scale type to quantitative,linear (this is default) and the domain as [0,300]
+			.y({
+				orientation:'left', 					//default 'left', can be set to top or bottom if rotated, right or left if not
+				invert:false, 								//default false
+				hide: false, 									//default false
+				type:'quantitative,linear', 	//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
+				domain:[500, -200]						//!DOMAIN is only used if the lockXAxis control is enabled, default [0, 1], set the domain for the chosen scale type
+			})
+
+//set the controls for this chart, only hideLegend currenlty available for axis-charts
+			.controls({'hideLegend':{'enabled':false,'visible':true},'stackBars':{'visible':true, 'enabled':true}})
+			// default {
+			//   'hideLegend':{'enabled':false,'visible':false},
+			//   'stackBars':{'enabled':false,'visible':false},
+			//   'lockXAxis':{'enabled':false,'visible':false},
+			//   'lockYAxis':{'enabled':false,'visible':false}
+			// }
+
+//to rotate the chart
+			// .rotate(true)								//default false
+			// .x({orientation:'left'})
+			// .y({orientation:'bottom'})
+
+//to position the legend
+			.legendOrientation('top') 			//default 'bottom'
+
+//set the axis chart data
+			.data({data:{
+				labels:{
+					x:'Template x label',
+					y:'Template y label'
+				},
+				types:[
+					{
+						type:'histogram',
+						graphs:[
+							{
+								label: 'Histogram 1',
+								bins:[0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
+								values:d3.range(1000).map(d3.random.bates(10))
+							}
+						]
+					},
+					{
+						type:'area',
+						graphs:[
+							{
+								label: 'Area 1',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: -150, y0:50},
+									{x: 0.6, y: 200, y0:100},
+									{x: 0.8, y: 50, y0:0},
+								]
+							},
+							{
+								label: 'Area 2',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: 50, y0:0},
+									{x: 0.6, y: 100, y0:0},
+									{x: 0.8, y: 00, y0:0},
+								]
+							}
+						]
+					},
+					{
+						type:'bar',
+						graphs:[
+							{
+								label: 'Bar 1',
+								values:[
+									// {x:0.3, y:50},
+									{x:0.6, y:-200},
+									{x:0.8, y:30}
+								]
+							},
+							{
+								label: 'Bar 2',
+								values:[
+									{x:0.3, y:30},
+									{x:0.6, y:10},
+									{x:0.8, y:4}
+								]
+							},
+							{
+								label: 'Bar 3',
+								values:[
+									{x:0.3, y:10},
+									{x:0.6, y:25},
+									{x:0.8, y:35}
+								]
+							},
+							// {
+							// 	label: 'Bar 4',
+							// 	values:[
+							// 		{x:0.3, y:6},
+							// 		{x:0.6, y:100},
+							// 		{x:0.8, y:45}
+							// 	]
+							// }
+						]
+					},
+					{
+						type:'line',
+						graphs:[
+							{
+								label: 'Line 1',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: 200},
+									{x: 0.6, y: 250},
+									{x: 0.8, y: 100},
+								]
+							},
+							{
+								label: 'Line 2',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: 100},
+									{x: 0.6, y: 150},
+									{x: 0.8, y: 00},
+								]
+							}
+						]
+					}
+				]
+			}})
+//pre-defined events
+			// .on('elementClick', function(d,i,type){
+			// 	console.log(type);
+			// })
+			// .on('elementMouseover', function(d,i,type){
+			// 	console.log(type);
+			// })
+			// .on('elementMouseout', function(d,i,type){
+			// 	console.log(type);
+			// });
+
+
+//define chart layout
+			var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+//setup chart layout
+			chartLayout
+					.width($(window).width())			//set the chart width
+					.height($(window).height())		//set the chart height
+					.chart(axisChart)							//set the chart
+					.select('.axis-chart');				//set the container
+
+//set the chart layout data
+			var chartLayoutData = {
+				"data":
+				{
+					"chartLayout":{
+						"title":"Example Axis-Chart"
+					}
+				}
+			};
+			chartLayout
+				.data(chartLayoutData)
+
+//update the chart layout
+				.update();
+
+
+		setTimeout(function(){
+			axisChart.x({invert:true}).update();
+			// axisChart.x({orientation:'left'}).y({orientation:'top'}).rotate(true).legendOrientation('right').update();
+			axisChart.data({data:{
+				labels:{
+					x:'Template x label',
+					y:'Template y label'
+				},
+				types:[
+					{
+						type:'histogram',
+						graphs:[
+							{
+								label: 'Histogram 1',
+								bins:[0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
+								values:d3.range(1000).map(d3.random.bates(10))
+							}
+						]
+					},
+					{
+						type:'area',
+						graphs:[
+							{
+								label: 'Area 1',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: 150, y0:75},
+									{x: 0.6, y: 200, y0:125},
+									{x: 0.8, y: 50, y0:25},
+								]
+							},
+							{
+								label: 'Area 2',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: 50, y0:0},
+									{x: 0.6, y: 100, y0:0},
+									{x: 0.8, y: 00, y0:0},
+								]
+							}
+						]
+					},
+					{
+						type:'bar',
+						graphs:[
+							{
+								label: 'Bar 1',
+								values:[
+									{x:0.3, y:50},
+									{x:0.6, y:20},
+									// {x:0.8, y:30}
+								]
+							},
+							{
+								label: 'Bar 2',
+								values:[
+									{x:0.3, y:30},
+									{x:0.6, y:10},
+									{x:0.8, y:4}
+								]
+							},
+							{
+								label: 'Bar 3',
+								values:[
+									{x:0.3, y:10},
+									{x:0.6, y:25},
+									{x:0.8, y:35}
+								]
+							},
+							{
+								label: 'Bar 4',
+								values:[
+									{x:0.3, y:6},
+									{x:0.6, y:100},
+									{x:0.8, y:45}
+								]
+							}
+						]
+					},
+					{
+						type:'line',
+						graphs:[
+							{
+								label: 'Line 1',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: 200},
+									{x: 0.6, y: 250},
+									{x: 0.8, y: 100},
+								]
+							},
+							{
+								label: 'Line 2',
+								interpolate:'cardinal',
+								values:[
+									{x: 0.3, y: 100},
+									{x: 0.6, y: 150},
+									{x: 0.8, y: 00},
+								]
+							}
+						]
+					}
+				]
+			}}).update();
+
+		},2000);
+		setTimeout(function(){
+			// axisChart.x({orientation:'top'}).legendOrientation('top').update();
+			axisChart.x({orientation:'left'}).y({orientation:'bottom'}).rotate(true).legendOrientation('right').update();
+		},4000);
+
+		$(window).resize(function(){
+//on window resize, reset chart layout dimensions and update
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

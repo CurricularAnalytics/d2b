@@ -46,6 +46,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
   chart.xValues = function(){
     var values = [];

@@ -20,7 +20,8 @@ d2b.UTILS.LEGENDS.legend = function(){
 	var on = {
 		elementMouseover:function(){},
 		elementMouseout:function(){},
-		elementClick:function(){}
+		elementClick:function(){},
+		elementDblClick:function(){}
 	};
 
 	var legend = {};
@@ -140,6 +141,11 @@ d2b.UTILS.LEGENDS.legend = function(){
 				.on('click.d2b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i);
+					}
+				})
+				.on('dblclick.d2b-dblClick',function(d,i){
+					for(key in on.elementDblClick){
+						on.elementDblClick[key].call(this,d,i);
 					}
 				});
 

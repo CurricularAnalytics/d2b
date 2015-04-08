@@ -1,8 +1,16 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*shapes*/
-d2b.createNameSpace("d2b.UTILS.SHAPES");
-
+/*function cloner*/
+Function.prototype.clone = function(){
+	var that = this;
+	var temp = function temporary(){return that.apply(this,arguments);};
+	for(var key in this){
+		if(this.hasOwnProperty(key)){
+			temp[key]=this[key];
+		}
+	}
+	return temp;
+}
 
 /*tooltop utilities*/
 

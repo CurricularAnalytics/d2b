@@ -1680,9 +1680,17 @@ d2b.UTILS.CONTROLS.controls = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*shapes*/
-d2b.createNameSpace("d2b.UTILS.SHAPES");
-
+/*function cloner*/
+Function.prototype.clone = function(){
+	var that = this;
+	var temp = function temporary(){return that.apply(this,arguments);};
+	for(var key in this){
+		if(this.hasOwnProperty(key)){
+			temp[key]=this[key];
+		}
+	}
+	return temp;
+}
 
 /*tooltop utilities*/
 
@@ -1946,7 +1954,8 @@ d2b.UTILS.LEGENDS.legend = function(){
 	var on = {
 		elementMouseover:function(){},
 		elementMouseout:function(){},
-		elementClick:function(){}
+		elementClick:function(){},
+		elementDblClick:function(){}
 	};
 
 	var legend = {};
@@ -2066,6 +2075,11 @@ d2b.UTILS.LEGENDS.legend = function(){
 				.on('click.d2b-click',function(d,i){
 					for(key in on.elementClick){
 						on.elementClick[key].call(this,d,i);
+					}
+				})
+				.on('dblclick.d2b-dblClick',function(d,i){
+					for(key in on.elementDblClick){
+						on.elementDblClick[key].call(this,d,i);
 					}
 				});
 
@@ -4087,7 +4101,7 @@ d2b.CHARTS.bubbleChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*template chart*/
+/*axis chart*/
 d2b.CHARTS.axisChart = function(){
 
 	//private store
@@ -4203,6 +4217,15 @@ d2b.CHARTS.axisChart = function(){
 	//persistent chart data is used to save data properties that need to persist through a data update
 	$$.persistentChartData = {};
 
+	$$.padQuantitativeDomain = function(extent){
+		var range = extent[1] - extent[0];
+		var paddingCoefficient = 0.15;
+		return [
+							(extent[0] == 0)? 0 : extent[0]-range*paddingCoefficient,
+							extent[1]+range*paddingCoefficient
+						]
+	};
+
 	//update scale domains based on yValues/xValues 'getters' of each graph type
 	$$.updateDomains = function(){
 		var xType = $$.xAlias.type.split(',')[0];
@@ -4221,11 +4244,16 @@ d2b.CHARTS.axisChart = function(){
 
 		if(xValues.length == 0){
 			xValues = [0,1]
+		}else if(xValues.length == 1 && xType == 'quantitative'){
+			xValues = [xValues[0]/2, xValues[0]*1.5]
 		}
 		if(!$$.controlsData.lockXAxis.enabled){
 			switch(xType){
 				case 'ordinal':
 					$$.xAlias.scale.domain(d3.set(xValues).values());
+					break;
+				case 'quantitative':
+					$$.xAlias.scale.domain($$.padQuantitativeDomain(d3.extent(xValues)));
 					break;
 				default:
 					$$.xAlias.scale.domain(d3.extent(xValues));
@@ -4239,11 +4267,16 @@ d2b.CHARTS.axisChart = function(){
 
 		if(yValues.length == 0){
 			yValues = [0,1]
+		}else if(yValues.length == 1 && yType == 'quantitative'){
+			yValues = [yValues[0]/2, yValues[0]*1.5]
 		}
 		if(!$$.controlsData.lockYAxis.enabled){
 			switch(yType){
 				case 'ordinal':
 					$$.yAlias.scale.domain(d3.set(yValues).values());
+					break;
+				case 'quantitative':
+					$$.yAlias.scale.domain($$.padQuantitativeDomain(d3.extent(yValues)));
 					break;
 				default:
 					$$.yAlias.scale.domain(d3.extent(yValues));
@@ -4312,7 +4345,7 @@ d2b.CHARTS.axisChart = function(){
 				.attr('class', function(d){return 'd2b-axis-type-background d2b-'+d.type;})
 				.each(function(d){
 					var masterType = 'axis-chart-';
-					this.adType = new d2b.UTILS.AXISCHART.TYPES[d.type];
+					this.adType = new d2b.UTILS.AXISCHART.TYPES[d.type](d.type);
 					this.adType
 						.on('elementClick.d2b-click', function(d,i,type){
 								for(key in $$.on.elementClick){
@@ -4330,8 +4363,9 @@ d2b.CHARTS.axisChart = function(){
 								}
 						})
 						.x($$.xAlias)
-						.color($$.color)
 						.y($$.yAlias)
+						.color($$.color)
+						.axisChart(chart)
 						.xFormat($$.xFormat)
 						.yFormat($$.yFormat)
 						.controls($$.controlsData);
@@ -4719,7 +4753,6 @@ d2b.CHARTS.axisChart = function(){
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
 
-
 	};
 
 
@@ -4887,6 +4920,15 @@ d2b.CHARTS.axisChart = function(){
 			.append('g')
 				.attr('class','d2b-axis-types-foreground');
 
+		// reset hidden types/graphs
+		var resetHidden = function(){
+			$$.currentChartData.types.forEach(function(type){
+				type.graphs.forEach(function(graph){
+					$$.persistentChartData[graph.type][graph.label].hide = false;
+				});
+			});
+		};
+
 		$$.legend.on('elementMouseover',function(d){
 			var background = $$.persistentChartData[d.type][d.label].background;
 			var foreground = $$.persistentChartData[d.type][d.label].foreground;
@@ -4940,6 +4982,22 @@ d2b.CHARTS.axisChart = function(){
 		})
 		.on('elementClick', function(d){
 			$$.persistentChartData[d.type][d.label].hide = !$$.persistentChartData[d.type][d.label].hide;
+			var allHidden = true;
+
+			$$.currentChartData.types.forEach(function(type){
+				type.graphs.forEach(function(graph){
+					if(allHidden == true && !$$.persistentChartData[graph.type][graph.label].hide)
+						allHidden = false;
+				});
+			});
+			//if all types/graphs are hidden, show them all
+			if(allHidden)
+				resetHidden();
+
+			chart.update();
+		})
+		.on('elementDblClick', function(d){
+			resetHidden();
 			chart.update();
 		});
 
@@ -5023,7 +5081,6 @@ d2b.CHARTS.axisChart = function(){
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
-
 
 		if($$.rotate){
 			$$.selection.types.background
@@ -7761,6 +7818,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
   chart.xValues = function(){
     var values = [];
@@ -7951,6 +8009,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
 	chart.xValues = function(){
     var values = [];
@@ -8106,6 +8165,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
 	$$.updatePoints = function(graphData, graph, yType){
 
@@ -8216,6 +8276,11 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
+
+			graph.on('mouseover', function(){
+				console.log(d3.event)
+			});
+
 			$$.foreground.point = {};
 
 			$$.updatePoints(graphData, graph, 'y');
@@ -8272,6 +8337,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
 	chart.xValues = function(){
     var values = [];
@@ -8438,7 +8504,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
       children:$$.currentChartData.map(function(d){return d.pack;})
     };
     $$.pack(parentPack);
-    parentPack.children.forEach(function(d){d.parent = null;});
+		if(parentPack.children)
+	    parentPack.children.forEach(function(d){d.parent = null;});
   }
 
   $$.bubbleEnter = function(graph, graphData, bubble){
@@ -8473,7 +8540,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
       .filter(function(d){return (d.children)? true:false;})
       .on('click.d2b-click',function(d){
         $$.persistentData.expandedNodes[d.key] = true;
-        chart.update();
+        $$.axisChart.update();
       })
       .style('cursor','pointer')
       .on('mouseover.d2b-mouseover',function(d){
@@ -8504,18 +8571,10 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
       .style('stroke', d3.rgb($$.color(graphData.label)));
 
     //transition visible bubbles
-    var bubbleVisibleTransition = bubble.filter(function(d){
-          if(d.parent){
-            if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
-              return true;
-          }else if(!$$.persistentData.expandedNodes[d.key])
-            return true;
-
-          return false;
-        })
+    var bubbleVisibleTransition = bubble.filter($$.visible)
         .classed('d2b-hidden',false)
       .transition()
-        .duration($$.animationDuration*1.5)
+        .duration($$.animationDuration)
         .style('opacity',0.7)
         .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
     bubbleVisibleTransition
@@ -8537,7 +8596,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         })
         .classed('d2b-hidden',true)
       .transition()
-        .duration($$.animationDuration*1.5)
+        .duration($$.animationDuration)
         .style('opacity',0)
         .attr('transform', function(d){
           var translate = '';
@@ -8564,6 +8623,16 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         .remove();
   };
 
+	$$.visible = function(d){
+		if(d.parent){
+			if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
+				return true;
+		}else if(!$$.persistentData.expandedNodes[d.key])
+			return true;
+
+		return false;
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -8580,35 +8649,42 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
     var values = [];
+		// $$.currentChartData.forEach(function(graphData){
+		// 	values = values.concat(
+		// 		graphData.packed
+		// 			.filter($$.visible)
+		// 			.map(function(d){return d.x0;})
+		// 	);
+		// });
+		// return values;
     $$.currentChartData.forEach(function(graphData){
-      values = values.concat(graphData.packed.map(function(v){
-        var val = v.x0;
-        if(v.x0 > 0)
-          val += v.r;
-        else
-          val -= v.r
-        return val;
-      }));
+      values = values.concat(
+				graphData.packed
+					.filter($$.visible)
+					.map(function(d){return d.x0;})
+			);
     });
-    return values;
+		var merged = [];
+		merged = merged.concat.apply(merged, values)
+    return merged;
   };
 	chart.yValues = function(){
 		var values = [];
-    $$.currentChartData.forEach(function(graphData){
-      values = values.concat(graphData.packed.map(function(v){
-        var val = v.y0;
-        if(v.y0 > 0)
-          val += v.r;
-        else
-          val -= v.r
-        return val;
-      }));
+		$$.currentChartData.forEach(function(graphData){
+      values = values.concat(
+				graphData.packed
+					.filter($$.visible)
+					.map(function(d){return d.y0;})
+			);
     });
-		return values;
+		var merged = [];
+		merged = merged.concat.apply(merged, values)
+    return merged;
 	};
 
 	chart.data = function(chartData){
@@ -8655,7 +8731,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
           .on('click.d2b-click', function(d){
             $$.resetExpandedNodes(d);
             d2b.UTILS.removeTooltip();
-            chart.update();
+            $$.axisChart.update();
           })
           .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
 
@@ -8694,6 +8770,107 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
           .remove();
 
 
+		});
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*axis-chart-template*/
+d2b.UTILS.AXISCHART.TYPES.template = function(type){
+
+	//private store
+	var $$ = {};
+
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//formatting y values
+	$$.yFormat = function(value){return value};
+	//event object
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//properties that will be set by the axis-chart main code
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
+	chart.xValues = function(){
+		if(type){
+			if(d2b.UTILS.AXISCHART.TYPES[type].xValues){
+				return d2b.UTILS.AXISCHART.TYPES[type].xValues.call($$, chart);
+			}
+		}
+
+    var values = [];
+    return values;
+  };
+	chart.yValues = function(){
+		if(type){
+			if(d2b.UTILS.AXISCHART.TYPES[type].yValues){
+				return d2b.UTILS.AXISCHART.TYPES[type].yValues.call($$, chart);
+			}
+		}
+
+		var values = [];
+		return values;
+	};
+
+	chart.data = function(chartData){
+		if(!arguments.length) return $$.currentChartData;
+		$$.currentChartData = chartData;
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+		if(type){
+			if(d2b.UTILS.AXISCHART.TYPES[type].update){
+				d2b.UTILS.AXISCHART.TYPES[type].update.call($$, chart);
+				if(callback)
+					callback();
+				return chart;
+			}
+		}
+
+		$$.background.each(function(graphData){
+			var graph = d3.select(this);
+			//code for the background visualization goes here
+			//this will iterate through all of the background graph containers of this type
+		});
+
+		$$.foreground.each(function(graphData){
+			var graph = d3.select(this);
+			//code for the foreground visualization goes here
+			//this will iterate through all of the foreground graph containers of this type
 		});
 
 		d3.timer.flush();

@@ -1,6 +1,6 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*template chart*/
+/*axis chart*/
 d2b.CHARTS.axisChart = function(){
 
 	//private store
@@ -116,6 +116,15 @@ d2b.CHARTS.axisChart = function(){
 	//persistent chart data is used to save data properties that need to persist through a data update
 	$$.persistentChartData = {};
 
+	$$.padQuantitativeDomain = function(extent){
+		var range = extent[1] - extent[0];
+		var paddingCoefficient = 0.15;
+		return [
+							(extent[0] == 0)? 0 : extent[0]-range*paddingCoefficient,
+							extent[1]+range*paddingCoefficient
+						]
+	};
+
 	//update scale domains based on yValues/xValues 'getters' of each graph type
 	$$.updateDomains = function(){
 		var xType = $$.xAlias.type.split(',')[0];
@@ -134,11 +143,16 @@ d2b.CHARTS.axisChart = function(){
 
 		if(xValues.length == 0){
 			xValues = [0,1]
+		}else if(xValues.length == 1 && xType == 'quantitative'){
+			xValues = [xValues[0]/2, xValues[0]*1.5]
 		}
 		if(!$$.controlsData.lockXAxis.enabled){
 			switch(xType){
 				case 'ordinal':
 					$$.xAlias.scale.domain(d3.set(xValues).values());
+					break;
+				case 'quantitative':
+					$$.xAlias.scale.domain($$.padQuantitativeDomain(d3.extent(xValues)));
 					break;
 				default:
 					$$.xAlias.scale.domain(d3.extent(xValues));
@@ -152,11 +166,16 @@ d2b.CHARTS.axisChart = function(){
 
 		if(yValues.length == 0){
 			yValues = [0,1]
+		}else if(yValues.length == 1 && yType == 'quantitative'){
+			yValues = [yValues[0]/2, yValues[0]*1.5]
 		}
 		if(!$$.controlsData.lockYAxis.enabled){
 			switch(yType){
 				case 'ordinal':
 					$$.yAlias.scale.domain(d3.set(yValues).values());
+					break;
+				case 'quantitative':
+					$$.yAlias.scale.domain($$.padQuantitativeDomain(d3.extent(yValues)));
 					break;
 				default:
 					$$.yAlias.scale.domain(d3.extent(yValues));
@@ -225,7 +244,7 @@ d2b.CHARTS.axisChart = function(){
 				.attr('class', function(d){return 'd2b-axis-type-background d2b-'+d.type;})
 				.each(function(d){
 					var masterType = 'axis-chart-';
-					this.adType = new d2b.UTILS.AXISCHART.TYPES[d.type];
+					this.adType = new d2b.UTILS.AXISCHART.TYPES[d.type](d.type);
 					this.adType
 						.on('elementClick.d2b-click', function(d,i,type){
 								for(key in $$.on.elementClick){
@@ -243,8 +262,9 @@ d2b.CHARTS.axisChart = function(){
 								}
 						})
 						.x($$.xAlias)
-						.color($$.color)
 						.y($$.yAlias)
+						.color($$.color)
+						.axisChart(chart)
 						.xFormat($$.xFormat)
 						.yFormat($$.yFormat)
 						.controls($$.controlsData);
@@ -632,7 +652,6 @@ d2b.CHARTS.axisChart = function(){
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
 
-
 	};
 
 
@@ -800,6 +819,15 @@ d2b.CHARTS.axisChart = function(){
 			.append('g')
 				.attr('class','d2b-axis-types-foreground');
 
+		// reset hidden types/graphs
+		var resetHidden = function(){
+			$$.currentChartData.types.forEach(function(type){
+				type.graphs.forEach(function(graph){
+					$$.persistentChartData[graph.type][graph.label].hide = false;
+				});
+			});
+		};
+
 		$$.legend.on('elementMouseover',function(d){
 			var background = $$.persistentChartData[d.type][d.label].background;
 			var foreground = $$.persistentChartData[d.type][d.label].foreground;
@@ -853,6 +881,22 @@ d2b.CHARTS.axisChart = function(){
 		})
 		.on('elementClick', function(d){
 			$$.persistentChartData[d.type][d.label].hide = !$$.persistentChartData[d.type][d.label].hide;
+			var allHidden = true;
+
+			$$.currentChartData.types.forEach(function(type){
+				type.graphs.forEach(function(graph){
+					if(allHidden == true && !$$.persistentChartData[graph.type][graph.label].hide)
+						allHidden = false;
+				});
+			});
+			//if all types/graphs are hidden, show them all
+			if(allHidden)
+				resetHidden();
+
+			chart.update();
+		})
+		.on('elementDblClick', function(d){
+			resetHidden();
 			chart.update();
 		});
 
@@ -936,7 +980,6 @@ d2b.CHARTS.axisChart = function(){
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
-
 
 		if($$.rotate){
 			$$.selection.types.background

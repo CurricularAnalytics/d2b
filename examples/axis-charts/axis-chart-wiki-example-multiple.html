@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          // this is where the various types of axis-charts will be defined
+          // all of the chart types are optional and can be used in conjunction with one another
+          {
+            // bar-chart-type
+            type:'bar',
+            graphs:[
+              // this is where each of the bar graphs will be defined
+              {
+                //bar graphs contain a label and an array of x,y values
+                label:'Bar Graph 1',
+                values:[
+                  {x:0.5, y:100},
+                  {x:1, y:120},
+                  {x:1.5, y:80}
+                ]
+              },
+              {
+                label:'Bar Graph 2',
+                values:[
+                  {x:0.5, y:50},
+                  {x:1, y:70},
+                  {x:1.5, y:90}
+                ]
+              }//,{},{}..
+            ]
+          },
+          {
+            // area-chart-type
+            type:'area',
+            graphs:[
+              // this is where each of the area graphs will be defined
+              {
+                //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                label:'Area Graph 1',
+                interpolate:'basis', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                values:[
+                  {x:0, y:200, y0:0},
+                  {x:0.5, y:190, y0:0},
+                  {x:1, y:180, y0:0},
+                  {x:1.5, y:130, y0:0},
+                  {x:2, y:20, y0:0}
+                ]
+              }//,{},{}..
+            ]
+          },
+          {
+            // line-chart-type
+            type:'line',
+            graphs:[
+              // this is where each of the line graphs will be defined
+              {
+                //line graphs contain a label, interpolator-string, and an array of x,y values
+                label:'Line Graph 1',
+                interpolate:'basis', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                values:[
+                  {x:0, y:20},
+                  {x:0.5, y:19},
+                  {x:1, y:18},
+                  {x:1.5, y:30},
+                  {x:2, y:70}
+                ]
+              }//,{},{}..
+            ]
+          },
+          {
+            // bubble-pack-chart-type
+            type:'bubblePack',
+            graphs:[
+              // this is where each of the histograms will be defined
+              {
+                // bubble packs contain a label and pack object
+                // for guidelines on how to construct the pack, visit d3's pack layout wiki
+                // then add the x0 and y0 attributes to the pack leaves
+                label:'Bubble Pack 1',
+                pack:{
+                  name:'Parent',
+                  children:[
+                    {
+                      name:'Child 1',
+                      children:[
+                        {
+                          name:'Child 1-1',
+                          size:5,
+                          x0:0.3,
+                          y0:100
+                        },
+                        {
+                          name:'Child 1-2',
+                          size:15,
+                          x0:0.6,
+                          y0:50
+                        }
+                      ]
+                    },
+                    {
+                      name:'Child 2',
+                      size:30,
+                      x0:1.2,
+                      y0:160
+                    },
+                    {
+                      name:'Child 3',
+                      size:18,
+                      x0:1.8,
+                      y0:120
+                    }
+
+                  ]
+                }
+              }//,{},{}..
+            ]
+          },
+          {
+            // histogram-chart-type
+            type:'histogram',
+            graphs:[
+              // this is where each of the histograms will be defined
+              {
+                //histograms contain a label, an array of bins, and an array of values
+                label:'Histogram 1',
+                bins:[0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
+                values:d3.range(1000).map(d3.random.bates(10))
+              }//,{},{}..
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+      .width($(window).width())
+      .height($(window).height())
+      .update();
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

@@ -82,7 +82,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
       children:$$.currentChartData.map(function(d){return d.pack;})
     };
     $$.pack(parentPack);
-    parentPack.children.forEach(function(d){d.parent = null;});
+		if(parentPack.children)
+	    parentPack.children.forEach(function(d){d.parent = null;});
   }
 
   $$.bubbleEnter = function(graph, graphData, bubble){
@@ -117,7 +118,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
       .filter(function(d){return (d.children)? true:false;})
       .on('click.d2b-click',function(d){
         $$.persistentData.expandedNodes[d.key] = true;
-        chart.update();
+        $$.axisChart.update();
       })
       .style('cursor','pointer')
       .on('mouseover.d2b-mouseover',function(d){
@@ -148,18 +149,10 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
       .style('stroke', d3.rgb($$.color(graphData.label)));
 
     //transition visible bubbles
-    var bubbleVisibleTransition = bubble.filter(function(d){
-          if(d.parent){
-            if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
-              return true;
-          }else if(!$$.persistentData.expandedNodes[d.key])
-            return true;
-
-          return false;
-        })
+    var bubbleVisibleTransition = bubble.filter($$.visible)
         .classed('d2b-hidden',false)
       .transition()
-        .duration($$.animationDuration*1.5)
+        .duration($$.animationDuration)
         .style('opacity',0.7)
         .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
     bubbleVisibleTransition
@@ -181,7 +174,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         })
         .classed('d2b-hidden',true)
       .transition()
-        .duration($$.animationDuration*1.5)
+        .duration($$.animationDuration)
         .style('opacity',0)
         .attr('transform', function(d){
           var translate = '';
@@ -208,6 +201,16 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         .remove();
   };
 
+	$$.visible = function(d){
+		if(d.parent){
+			if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
+				return true;
+		}else if(!$$.persistentData.expandedNodes[d.key])
+			return true;
+
+		return false;
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -224,35 +227,42 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
     var values = [];
+		// $$.currentChartData.forEach(function(graphData){
+		// 	values = values.concat(
+		// 		graphData.packed
+		// 			.filter($$.visible)
+		// 			.map(function(d){return d.x0;})
+		// 	);
+		// });
+		// return values;
     $$.currentChartData.forEach(function(graphData){
-      values = values.concat(graphData.packed.map(function(v){
-        var val = v.x0;
-        if(v.x0 > 0)
-          val += v.r;
-        else
-          val -= v.r
-        return val;
-      }));
+      values = values.concat(
+				graphData.packed
+					.filter($$.visible)
+					.map(function(d){return d.x0;})
+			);
     });
-    return values;
+		var merged = [];
+		merged = merged.concat.apply(merged, values)
+    return merged;
   };
 	chart.yValues = function(){
 		var values = [];
-    $$.currentChartData.forEach(function(graphData){
-      values = values.concat(graphData.packed.map(function(v){
-        var val = v.y0;
-        if(v.y0 > 0)
-          val += v.r;
-        else
-          val -= v.r
-        return val;
-      }));
+		$$.currentChartData.forEach(function(graphData){
+      values = values.concat(
+				graphData.packed
+					.filter($$.visible)
+					.map(function(d){return d.y0;})
+			);
     });
-		return values;
+		var merged = [];
+		merged = merged.concat.apply(merged, values)
+    return merged;
 	};
 
 	chart.data = function(chartData){
@@ -299,7 +309,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
           .on('click.d2b-click', function(d){
             $$.resetExpandedNodes(d);
             d2b.UTILS.removeTooltip();
-            chart.update();
+            $$.axisChart.update();
           })
           .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
 
