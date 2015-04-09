@@ -658,4 +658,9 @@ html, body, .d2b-container {
           box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
           background: white; }
 
+g.d2b-legend-item .d2b-legend-circle-background {
+  fill-opacity: 0; }
+g.d2b-legend-item.d2b-active {
+  cursor: pointer; }
+
 /*# sourceMappingURL=d2b.css.map */

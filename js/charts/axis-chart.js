@@ -37,6 +37,7 @@ d2b.CHARTS.axisChart = function(){
 	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
+	$$.legend.active(true);
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data

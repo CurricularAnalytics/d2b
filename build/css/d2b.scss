@@ -1141,3 +1141,12 @@ html, body, .d2b-container {
     }
   }
 }
+
+g.d2b-legend-item{
+  .d2b-legend-circle-background{
+    fill-opacity:0;
+  }
+  &.d2b-active{
+    cursor:pointer;
+  }
+}
