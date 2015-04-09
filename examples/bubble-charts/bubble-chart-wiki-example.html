@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+
+	function rand(){
+		return Math.round(Math.random()*100+25);
+	};
+
+	function randP(){
+		return (Math.random()-0.5)*0.6;
+	};
+
+	$(document).ready(function(){
+
+		var data  = {
+			data:{
+				"groupings":[{"label":"All Majors", "description":""},{"label":"College", "description":"", "default_color_grouping":true},{"label":"Department", "description":"", "hideLegend":true},{"label":"STEM", "description":""}],
+				"nodes":[
+					{"label":"Electrical Engineering", "key":"Electrical Engineering", "value": rand(), "change": randP(),"enrollments":["UNM", "Engineering", "Electrical and Computer Engineering", "STEM"]},
+					{"label":"Computer Engineering", "key":"Computer Engineering", "value": rand(), "change": randP(),"enrollments":["UNM", "Engineering", "Electrical and Computer Engineering", "STEM"]},
+					{"label":"Mechanical Engineering", "key":"Mechanical Engineering", "value": rand(), "change": randP(),"enrollments":["UNM", "Engineering", "Mechanical Engineering", "STEM"]},
+					{"label":"Computer Science", "key":"Computer Science", "value": rand(), "change": randP(),"enrollments":["UNM", "Engineering", "Computer Science", "STEM"]},
+					{"label":"Nuclear Engineering", "key":"Nuclear Engineering", "value": rand(), "change": randP(),"enrollments":["UNM", "Engineering", "Nuclear Engineering", "STEM"]},
+					{"label":"Chemical Engineering", "key":"Chemical Engineering", "value": rand(), "change": randP(),"enrollments":["UNM", "Engineering", "Chemical & Biological Engineering", "STEM"]},
+					{"label":"Civil Engineering", "key":"Civil Engineering", "value": rand(), "change": randP(),"enrollments":["UNM", "Engineering", "Civil Engineering", "STEM"]},
+					{"label":"Architecture", "key":"Architecture", "value": rand(), "change": randP(),"enrollments":["UNM", "Architecture & Planning", "Architecture", null]},
+					{"label":"Environmental Design", "key":"Environmental Design", "value": rand(), "change": randP(),"enrollments":["UNM", "Architecture & Planning", "Environmental Design", null]},
+					{"label":"American Studies", "key":"American Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "American Studies", null]},
+					{"label":"English", "key":"English", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "English", null]},
+					{"label":"English-Philosophy", "key":"English-Philosophy", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "English", null]},
+					{"label":"African American Studies", "key":"African American Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"African Studies", "key":"African Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"French", "key":"French", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"German", "key":"German", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"Portuguese", "key":"Portuguese", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"Russian", "key":"Russian", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"Russian Studies", "key":"Russian Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"Spanish", "key":"Spanish", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Foregin Languages & Literature", null]},
+					{"label":"History", "key":"History", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "History", null]},
+					{"label":"Women Studies", "key":"Women Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Humanities", "Women Studies", null]},
+					{"label":"Asrophysics", "key":"Asrophysics", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Physics & Astronomy", "STEM"]},
+					{"label":"Physics", "key":"Physics", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Physics & Astronomy", "STEM"]},
+					{"label":"Physics & Astrophysics", "key":"Physics & Astrophysics", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Physics & Astronomy", "STEM"]},
+					{"label":"Environmental Sciences", "key":"Environmental Sciences", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Environmental Sciences", "STEM"]},
+					{"label":"Geography", "key":"Geography", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Geography", "STEM"]},
+					{"label":"Statistics", "key":"Statistics", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Statistics", "STEM"]},
+					{"label":"Anthropology", "key":"Anthropology", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Anthropology", null]},
+					{"label":"Communications", "key":"Communications", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Communications", null]},
+					{"label":"Journalism & Mass Communications", "key":"Journalism & Mass Communications", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Communications", null]},
+					{"label":"Mass Communications", "key":"Mass Communications", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Communications", null]},
+					{"label":"Linguistics", "key":"Linguistics", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Linguistics", null]},
+					{"label":"Political Science", "key":"Political Science", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Political Science", null]},
+					{"label":"Psychology", "key":"Psychology", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Psychology", null]},
+					{"label":"Speech & Hearing Sciences", "key":"Speech & Hearing Sciences", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Speech & Hearing Sciences", null]},
+					{"label":"Signed Language Interpretating", "key":"Signed Language Interpretating", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Signed Language Interpretating", null]},
+					{"label":"Sociology", "key":"Sociology", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Sociology", null]},
+					{"label":"Art Education", "key":"Art Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Educational Specialties", null]},
+					{"label":"Special Education", "key":"Special Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Educational Specialties", null]},
+					{"label":"Athletic Training", "key":"Athletic Training", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+					{"label":"Exercise Science", "key":"Exercise Science", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+					{"label":"Health Education", "key":"Health Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+					{"label":"Physical Education Teacher Education", "key":"Physical Education Teacher Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+					{"label":"Sport Administration", "key":"Sport Administration", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Health, Exercise, and Sports Sciences", null]},
+					{"label":"Counselor Education", "key":"Counselor Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+					{"label":"Early Childhood Multicultural Education", "key":"Early Childhood Multicultural Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+					{"label":"Educational Psychology", "key":"Educational Psychology", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+					{"label":"Family Studies", "key":"Family Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+					{"label":"Nutrition", "key":"Nutrition", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Individual, Family, and Community Education", null]},
+					{"label":"Language, Literacy, and Sociocultural Studies", "key":"Language, Literacy, and Sociocultural Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Language, Literacy, and Sociocultural Studies", null]},
+					{"label":"Educational Linguistics", "key":"Educational Linguistics", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Language, Literacy, and Sociocultural Studies", null]},
+					{"label":"Elementary Education", "key":"Elementary Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+					{"label":"Secondary Education", "key":"Secondary Education", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+					{"label":"Educational Leadership", "key":"Educational Leadership", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+					{"label":"Teacher Education Graduate Degrees and Post Master's Certificates", "key":"Teacher Education Graduate Degrees and Post Master's Certificates", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+					{"label":"Online MA in Education Program", "key":"Online MA in Education Program", "value": rand(), "change": randP(),"enrollments":["UNM", "Education", "Department of Teacher Education, Educational Leadership & Policy", null]},
+					{"label":"Medical Laboratory Sciences", "key":"Medical Laboratory Sciences", "value": rand(), "change": randP(),"enrollments":["UNM", "Medicine", "Medical Laboratory Sciences", "STEM"]},
+					{"label":"Nuclear Medical Imaging", "key":"Nuclear Medical Imaging", "value": rand(), "change": randP(),"enrollments":["UNM", "Medicine", "Nuclear Medical Imaging", "STEM"]},
+					{"label":"Physician Assistant Studies", "key":"Physician Assistant Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "Medicine", "Physician Assistant Studies", "STEM"]},
+					{"label":"Radiography", "key":"Radiography", "value": rand(), "change": randP(),"enrollments":["UNM", "Medicine", "Radiography", "STEM"]},
+					{"label":"University Studies", "key":"University Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "University College", "University Studies", null]},
+					{"label":"Native American Studies", "key":"Native American Studies", "value": rand(), "change": randP(),"enrollments":["UNM", "University College", "Native American Studies", null]},
+					{"label":"Biology", "key":"Biology", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Biology", "STEM"]},
+					{"label":"Chemistry", "key":"Chemistry", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Chemistry", "STEM"]},
+					{"label":"Math", "key":"Math", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Natural Sciences", "Mathematics", "STEM"]},
+					{"label":"Criminology", "key":"Criminology", "value": rand(), "change": randP(),"enrollments":["UNM", "Arts and Sciences Social Sciences", "Criminology", null]},
+					{"label":"Art", "key":"Art", "value": rand(), "change": randP(),"enrollments":["UNM", "Fine Arts", "Art & Art History", null]},
+					{"label":"Art History", "key":"Art History", "value": rand(), "change": randP(),"enrollments":["UNM", "Fine Arts", "Art & Art History", null]},
+					{"label":"Dance", "key":"Dance", "value": rand(), "change": randP(),"enrollments":["UNM", "Fine Arts", "Theatre & Dance", null]},
+					{"label":"Theatre", "key":"Theatre", "value": rand(), "change": randP(),"enrollments":["UNM", "Fine Arts", "Theatre & Dance", null]},
+					{"label":"Music", "key":"Music", "value": rand(), "change": randP(),"enrollments":["UNM", "Fine Arts", "Music", null]},
+					{"label":"Media Arts", "key":"Media Arts", "value": rand(), "change": randP(),"enrollments":["UNM", "Fine Arts", "Cinematic Arts", null]},
+					{"label":"Emergency Medical Services", "key":"Emergency Medical Services", "value": rand(), "change": randP(),"enrollments":["UNM", "Medicine", "Emergency Medicine", null]},
+					{"label":"Dental Hygiene", "key":"Dental Hygiene", "value": rand(), "change": randP(),"enrollments":["UNM", "Medicine", "Dental", null]},
+					{"label":"Nursing", "key":"Nursing", "value": rand(), "change": randP(),"enrollments":["UNM", "Nursing", "Nursing", null]},
+					{"label":"Doctor of Pharmacy", "key":"Doctor of Pharmacy", "value": rand(), "change": randP(),"enrollments":["UNM", "Pharmacy", "Doctor of Pharmacy", null]}
+				]
+			}
+		};
+
+		var chart = new d2b.CHARTS.bubbleChart();
+
+		chart
+			.select('.bubble-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.xFormat({nice:true,siPrefixed:false,units:{after:' students'}, separateThousands:false,precision:0})
+			.controls({sortByChange:{visible:true, enabled:true},hideLegend:{visible:true},colorByChange:{visible:true}})
+			.data(data)
+			.update();
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'bubble-chart'></div>
+</body>
+</html>

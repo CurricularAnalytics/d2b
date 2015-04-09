@@ -607,7 +607,13 @@ html, body, .d2b-container {
 .d2b-bubble-chart-buttons-wrapper{
   height:55px;
   text-align:center;
+  font-family:$main;
   padding-top:10px;
+  ul{
+    list-style-type: none;
+    margin-left:0px;
+    padding:0px;
+  }
   ul.d2b-buttons{
     margin-left:5px;
     margin-right:5px;

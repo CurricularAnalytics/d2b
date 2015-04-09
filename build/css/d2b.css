@@ -344,7 +344,12 @@ html, body, .d2b-container {
 .d2b-bubble-chart-buttons-wrapper {
   height: 55px;
   text-align: center;
+  font-family: "Droid Sans", Arial;
   padding-top: 10px; }
+  .d2b-bubble-chart-buttons-wrapper ul {
+    list-style-type: none;
+    margin-left: 0px;
+    padding: 0px; }
   .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons {
     margin-left: 5px;
     margin-right: 5px;
