@@ -4,7 +4,7 @@ A D3-based reusable chart and dashboard library. For use with the Academic Dashb
 ## Installing
 
 Download the latest here:
-* (https://github.com/AcademicDashboards/d2b)
+* https://github.com/AcademicDashboards/d2b
 
 Or, to link directly to the latest release, copy this snippet:
 ```html

@@ -48,12 +48,12 @@ d2b.UTILS.LEGENDS.legend = function(){
 								if(d.open){
 									elem.select('circle.d2b-legend-circle-foreground')
 										.transition()
-											.duration(animationDuration/2)
-											.style('fill-opacity', 0.8);
+											.duration(animationDuration/3)
+											.style('fill-opacity', 0.4);
 								}else{
 									elem.select('circle.d2b-legend-circle-background')
 										.transition()
-											.duration(animationDuration/2)
+											.duration(animationDuration/3)
 											.attr('r',scale*1.5);
 								}
 							}
@@ -68,7 +68,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 							elem.select('circle.d2b-legend-circle-foreground')
 								.transition()
-									.duration(animationDuration/2)
+									.duration(animationDuration/3)
 									.style('fill-opacity', function(d){
 										if(d.open)
 											return 0;
@@ -77,7 +77,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 									});
 							elem.select('circle.d2b-legend-circle-background')
 								.transition()
-									.duration(animationDuration/2)
+									.duration(animationDuration/3)
 									.attr('r',scale);
 
 							for(key in on.elementMouseout){
@@ -114,7 +114,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 				circleBackground
 					.transition()
-						.duration(animationDuration/2)
+						.duration(animationDuration/3)
 						.style('stroke-width', scale/4)
 						.attr('y',scale/2)
 						.attr('r',function(d){
@@ -128,12 +128,12 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 				circleForeground
 					.transition()
-						.duration(animationDuration/2)
+						.duration(animationDuration/3)
 						.attr('r',scale)
 						.attr('y',scale/2)
 						.style('fill-opacity', function(d){
 							if(d.open)
-								return (d.hovered)?0.6:0;
+								return (d.hovered)?0.4:0;
 							else
 								return 0.8;
 						})
