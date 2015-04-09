@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		data = {
+			data: {
+				partition: {
+					"name": "University of New Mexico",
+					"top": true,
+					"children": [
+						{
+							"name": "Architecture and Planning",
+							"top": true,
+							"children": [
+								{
+									"name": "Architecture and Planning",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 291,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 184,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "School of Law",
+							"top": true,
+							"children": [
+								{
+									"name": "Law Administration",
+									"children": [
+										{
+												"name": "Graduate",
+												"size": 349,
+												"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Management",
+							"top": true,
+							"children": [
+								{
+									"name": "Management",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 2517,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 568,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Non-Degree",
+							"top": true,
+							"children": [
+								{
+									"name": "Graduate",
+									"size": 1617,
+									"color_style": "Custom",
+									"color": "#DAEDF1"
+								}
+							]
+						},
+						{
+							"name": "Nursing",
+							"top": true,
+							"children": [
+								{
+									"name": "Nursing",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 1090,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 148,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Pharmacy",
+							"top": true,
+							"children": [
+								{
+									"name": "Pharmacy",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 209,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 14,
+											"top": true
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			}
+		}
+
+		var chart = new d2b.CHARTS.sunburstChart();
+
+		chart
+			.select('.sunburst-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.xFormat({siPrefixed:false,units:{}, separateThousands:true,precision:0})
+			.legendOrientation('left')
+			.controls({sort:{visible:true},invert:{visible:true},hideLegend:{visible:true}})
+			.data(data)
+			.update();
+
+	});
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'sunburst-chart'></div>
+</body>
+</html>

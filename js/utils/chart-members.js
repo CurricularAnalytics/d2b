@@ -1,20 +1,20 @@
 d2b.createNameSpace("d2b.UTILS.CHARTS.MEMBERS");
 
-d2b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
   return function(key, value){
 		key = key.split('.');
-		if(!arguments.length) return _chart.on;
+		if(!arguments.length) return $$.on;
 		else if(arguments.length == 1){
 			if(key[1])
-				return _chart.on[key[0]][key[1]];
+				return $$.on[key[0]][key[1]];
 			else
-				return _chart.on[key[0]]['default'];
+				return $$.on[key[0]]['default'];
 		};
 
 		if(key[1])
-      _chart.on[key[0]][key[1]] = value;
+      $$.on[key[0]][key[1]] = value;
 		else
-      _chart.on[key[0]]['default'] = value;
+      $$.on[key[0]]['default'] = value;
 
     if(callback)
       callback(value);
@@ -23,48 +23,81 @@ d2b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
 	};
 };
 
-d2b.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.events = function(chart, $$, callback){
+  return function(key, listener){
+    // key = key.split('-');
+    // if(!arguments.length) return $$.on;
+    //
+    // var registry = $$.on;
+    // var i;
+    // for(i = 0; i < key.length-1; i++)
+    //   registry = registry[key[i]];
+    //
+    // registry[key[key.length-1]] = listener;
+
+	// 	key = key.split('.');
+	// 	if(!arguments.length) return $$.on;
+	// 	else if(arguments.length == 1){
+	// 		if(key[1])
+	// 			return $$.on[key[0]][key[1]];
+	// 		else
+	// 			return $$.on[key[0]]['default'];
+	// 	};
+  //
+	// 	if(key[1])
+  //     $$.on[key[0]][key[1]] = value;
+	// 	else
+  //     $$.on[key[0]]['default'] = value;
+  //
+  //   if(callback)
+  //     callback(value);
+  //
+		return chart;
+	};
+};
+
+d2b.UTILS.CHARTS.MEMBERS.select = function(chart, $$, callback){
   return function(value){
 
-    _chart.selection = d3.select(value);
+    $$.selection = d3.select(value);
     if(callback)
       callback(value);
 		return chart;
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.prop = function(chart, $$, property, callback){
   return function(value){
-    if(!arguments.length) return _chart[property];
-    _chart[property] = value;
+    if(!arguments.length) return $$[property];
+    $$[property] = value;
     if(callback)
       callback(value);
     return chart;
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, $$, property, callback){
   return function(value){
-    if(!arguments.length) return _chart[property];
+    if(!arguments.length) return $$[property];
     if(value.type){
-      _chart[property].type = value.type;
-      var type = _chart[property].type.split(',');
+      $$[property].type = value.type;
+      var type = $$[property].type.split(',');
       if(type[0] == 'quantitative')
-        _chart[property].scale = d3.scale[type[1]]();
+        $$[property].scale = d3.scale[type[1]]();
       else if(type[0] == 'time')
-        _chart[property].scale = d3[type[0]].scale();
+        $$[property].scale = d3[type[0]].scale();
       else
-        _chart[property].scale = d3.scale[type[0]]();
+        $$[property].scale = d3.scale[type[0]]();
     }
 
     if(value.domain){
-      _chart[property].domain = value.domain;
-      _chart[property].scale.domain(_chart[property].domain);
+      $$[property].domain = value.domain;
+      $$[property].scale.domain($$[property].domain);
     }
 
-    _chart[property].hide = value.hide;
+    $$[property].hide = value.hide;
 
-    _chart[property].invert = value.invert;
+    $$[property].invert = value.invert;
 
     if(callback)
       callback(value);
@@ -72,22 +105,22 @@ d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.format = function(chart, $$, property, callback){
   return function(value){
-    if(!arguments.length) return _chart[property];
-    _chart[property] = d2b.UTILS.numberFormat(value);
+    if(!arguments.length) return $$[property];
+    $$[property] = d2b.UTILS.numberFormat(value);
     if(callback)
       callback(value);
     return chart;
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, $$, callback){
   return function(value){
-    if(!arguments.length) return _chart.controlsData;
+    if(!arguments.length) return $$.controlsData;
     for(control in value){
       for(controlProp in value[control]){
-        _chart.controlsData[control][controlProp] = value[control][controlProp];
+        $$.controlsData[control][controlProp] = value[control][controlProp];
       }
     }
     if(callback)

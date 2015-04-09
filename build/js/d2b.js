@@ -2349,21 +2349,21 @@ d2b.UTILS.breadcrumbs = function(){
 
 d2b.createNameSpace("d2b.UTILS.CHARTS.MEMBERS");
 
-d2b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
   return function(key, value){
 		key = key.split('.');
-		if(!arguments.length) return _chart.on;
+		if(!arguments.length) return $$.on;
 		else if(arguments.length == 1){
 			if(key[1])
-				return _chart.on[key[0]][key[1]];
+				return $$.on[key[0]][key[1]];
 			else
-				return _chart.on[key[0]]['default'];
+				return $$.on[key[0]]['default'];
 		};
 
 		if(key[1])
-      _chart.on[key[0]][key[1]] = value;
+      $$.on[key[0]][key[1]] = value;
 		else
-      _chart.on[key[0]]['default'] = value;
+      $$.on[key[0]]['default'] = value;
 
     if(callback)
       callback(value);
@@ -2372,48 +2372,81 @@ d2b.UTILS.CHARTS.MEMBERS.on = function(chart, _chart, callback){
 	};
 };
 
-d2b.UTILS.CHARTS.MEMBERS.select = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.events = function(chart, $$, callback){
+  return function(key, listener){
+    // key = key.split('-');
+    // if(!arguments.length) return $$.on;
+    //
+    // var registry = $$.on;
+    // var i;
+    // for(i = 0; i < key.length-1; i++)
+    //   registry = registry[key[i]];
+    //
+    // registry[key[key.length-1]] = listener;
+
+	// 	key = key.split('.');
+	// 	if(!arguments.length) return $$.on;
+	// 	else if(arguments.length == 1){
+	// 		if(key[1])
+	// 			return $$.on[key[0]][key[1]];
+	// 		else
+	// 			return $$.on[key[0]]['default'];
+	// 	};
+  //
+	// 	if(key[1])
+  //     $$.on[key[0]][key[1]] = value;
+	// 	else
+  //     $$.on[key[0]]['default'] = value;
+  //
+  //   if(callback)
+  //     callback(value);
+  //
+		return chart;
+	};
+};
+
+d2b.UTILS.CHARTS.MEMBERS.select = function(chart, $$, callback){
   return function(value){
 
-    _chart.selection = d3.select(value);
+    $$.selection = d3.select(value);
     if(callback)
       callback(value);
 		return chart;
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.prop = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.prop = function(chart, $$, property, callback){
   return function(value){
-    if(!arguments.length) return _chart[property];
-    _chart[property] = value;
+    if(!arguments.length) return $$[property];
+    $$[property] = value;
     if(callback)
       callback(value);
     return chart;
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, $$, property, callback){
   return function(value){
-    if(!arguments.length) return _chart[property];
+    if(!arguments.length) return $$[property];
     if(value.type){
-      _chart[property].type = value.type;
-      var type = _chart[property].type.split(',');
+      $$[property].type = value.type;
+      var type = $$[property].type.split(',');
       if(type[0] == 'quantitative')
-        _chart[property].scale = d3.scale[type[1]]();
+        $$[property].scale = d3.scale[type[1]]();
       else if(type[0] == 'time')
-        _chart[property].scale = d3[type[0]].scale();
+        $$[property].scale = d3[type[0]].scale();
       else
-        _chart[property].scale = d3.scale[type[0]]();
+        $$[property].scale = d3.scale[type[0]]();
     }
 
     if(value.domain){
-      _chart[property].domain = value.domain;
-      _chart[property].scale.domain(_chart[property].domain);
+      $$[property].domain = value.domain;
+      $$[property].scale.domain($$[property].domain);
     }
 
-    _chart[property].hide = value.hide;
+    $$[property].hide = value.hide;
 
-    _chart[property].invert = value.invert;
+    $$[property].invert = value.invert;
 
     if(callback)
       callback(value);
@@ -2421,22 +2454,22 @@ d2b.UTILS.CHARTS.MEMBERS.scale = function(chart, _chart, property, callback){
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.format = function(chart, _chart, property, callback){
+d2b.UTILS.CHARTS.MEMBERS.format = function(chart, $$, property, callback){
   return function(value){
-    if(!arguments.length) return _chart[property];
-    _chart[property] = d2b.UTILS.numberFormat(value);
+    if(!arguments.length) return $$[property];
+    $$[property] = d2b.UTILS.numberFormat(value);
     if(callback)
       callback(value);
     return chart;
   }
 };
 
-d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, _chart, callback){
+d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, $$, callback){
   return function(value){
-    if(!arguments.length) return _chart.controlsData;
+    if(!arguments.length) return $$.controlsData;
     for(control in value){
       for(controlProp in value[control]){
-        _chart.controlsData[control][controlProp] = value[control][controlProp];
+        $$.controlsData[control][controlProp] = value[control][controlProp];
       }
     }
     if(callback)
@@ -5704,7 +5737,7 @@ d2b.CHARTS.pieChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.on = {element:{}};
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
@@ -5748,8 +5781,6 @@ d2b.CHARTS.pieChart = function(){
 		hiddenArcs:{}
 	};
 
-	$$.arcFocused = false;
-
 	$$.arcKey = function(d,i){
 		if(d.key == 'unique')
 			return Math.floor((1 + Math.random()) * 0x10000);
@@ -5757,6 +5788,122 @@ d2b.CHARTS.pieChart = function(){
 			return d.key;
 		else
 			return d.label;
+	};
+
+	$$.arcEnter = function(){
+		//set radius
+		$$.r = 0.93*(Math.min($$.outerWidth,$$.outerHeight)/2);
+
+		//init pie total
+		$$.pieTotal = 0;
+
+		$$.selection.pie.datum($$.currentChartData.values)
+		$$.selection.pie.arc = $$.selection.pie.selectAll('g').data($$.pie, function(d){return d.data.key});
+
+		//arc enter
+		var newArc = $$.selection.pie.arc.enter()
+			.append('g')
+				.attr('class','d2b-arc')
+				.style('opacity',0)
+				.call(d2b.UTILS.bindElementEvents, $$, 'arc')
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.data.label+'</b>';},function(d){return $$.xFormat(d.data.value);});
+
+		//create arc path
+		newArc.append('path')
+			.each(function(d){
+				//init old Arc
+				this.oldArc = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+			});
+
+		//create arc text
+		newArc.append('text')
+			.each(function(d){
+				//init old position arc
+				this.oldPosition = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+			});
+	};
+
+	$$.arcUpdate = function(){
+
+		//update arc container
+		$$.selection.pie.arc
+			.transition()
+				.duration($$.animationDuration/1.5)
+				.style('opacity',1);
+
+		//update arc path
+		$$.selection.pie.arc.path = $$.selection.pie.arc.select('path')
+				.each(function(d){
+					//update newArc object
+					this.newArc = {
+						start:d.startAngle,
+						end:d.endAngle,
+						inner:$$.r*$$.donutRatio,
+						outer:(d.data.key == $$.persistentData.focusedArc)? $$.r*1.04 : $$.r
+					};
+				})
+				.style('fill',function(d){
+					if(d.data.colorKey){
+						return $$.color(d.data.colorKey);
+					}else{
+						return $$.color(d.data.label);
+					}
+				})
+				.on('mouseover.d2b-mouseover',function(d){
+					$$.persistentData.focusedArc = d.data.key;
+					chart.update();
+				})
+				.on('mouseout.d2b-mouseover',function(d){
+					$$.persistentData.focusedArc = null;
+					chart.update();
+				})
+			.transition()
+				.duration($$.animationDuration/1.5)
+				.style('opacity',1)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
+
+		// arc text
+		$$.selection.pie.arc.text = $$.selection.pie.arc.select('text')
+			.transition()
+				.duration($$.animationDuration/1.5)
+				.tween("text", function(d) {
+					//tween percent value
+					var _self = this;
+					if(!_self._current)
+						_self._current = 0;
+	        var i = d3.interpolate(_self._current, d.data.value/$$.pieTotal);
+	        return function(t) {
+						_self._current = i(t);
+						_self.textContent = d3.format('%')(i(t));
+	        };
+		    })
+				.attr('opacity',function(d){
+					return ($$.persistentData.hiddenArcs[d.data.key])? 0 : 1;
+				})
+				.attrTween("transform", function(d) {
+					//tween centroid position
+					var _self = this;
+					//update new position arc object
+					_self.newPosition = {start:d.startAngle, end:d.endAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+					var i = d3.interpolate(_self.oldPosition, _self.newPosition);
+					return function(t){
+						_self.oldPosition = i(t);
+						return "translate("+$$.arc.centroid(_self.oldPosition)+")";
+					};
+				});
+	};
+
+	$$.arcExit = function(){
+		$$.selection.pie.arc.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove()
+			.select('path')
+				.each(function(d){
+					this.newArc = {start:d.endAngle, end: d.endAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
+				})
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
 	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
@@ -5774,7 +5921,7 @@ d2b.CHARTS.pieChart = function(){
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.donutRatio = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'donutRatio');
 
@@ -5903,111 +6050,9 @@ d2b.CHARTS.pieChart = function(){
 
 		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-//set radius
-		$$.r = 0.93*(Math.min($$.outerWidth,$$.outerHeight)/2);
-
-		$$.pieTotal = 0;
-
-		$$.selection.pie.datum($$.currentChartData.values)
-		$$.selection.pie.arc = $$.selection.pie.selectAll('g').data($$.pie, function(d){return d.data.key});
-
-//arc enter
-		var newArc = $$.selection.pie.arc.enter()
-			.append('g')
-				.attr('class','d2b-arc')
-				.style('opacity',0)
-				.call(d2b.UTILS.bindElementEvents, $$, 'arc')
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.data.label+'</b>';},function(d){return $$.xFormat(d.data.value);});
-
-		$$.selection.pie.arc
-			.transition()
-				.duration($$.animationDuration/1.5)
-				.style('opacity',1);
-
-//handle arc path
-		newArc.append('path')
-			.each(function(d){
-				//init old Arc
-				this.oldArc = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
-			});
-
-		$$.selection.pie.arc.path = $$.selection.pie.arc.select('path')
-				.each(function(d){
-					//update newArc
-					this.newArc = {
-						start:d.startAngle,
-						end:d.endAngle,
-						inner:$$.r*$$.donutRatio,
-						outer:(d.data.key == $$.persistentData.focusedArc)? $$.r*1.04 : $$.r
-					};
-				})
-				.style('fill',function(d){
-					if(d.data.colorKey){
-						return $$.color(d.data.colorKey);
-					}else{
-						return $$.color(d.data.label);
-					}
-				})
-				.on('mouseover.d2b-mouseover',function(d){
-					$$.persistentData.focusedArc = d.data.key;
-					chart.update();
-				})
-				.on('mouseout.d2b-mouseover',function(d){
-					$$.persistentData.focusedArc = null;
-					chart.update();
-				})
-			.transition()
-				.duration($$.animationDuration/1.5)
-				.style('opacity',1)
-				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
-
-//handle arc text
-		newArc.append('text')
-			.each(function(d){
-				//init old position arc
-				this.oldPosition = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
-			});
-
-		$$.selection.pie.arc.text = $$.selection.pie.arc.select('text')
-			.transition()
-				.duration($$.animationDuration/1.5)
-				.tween("text", function(d) {
-					//tween percent value
-					var _self = this;
-					if(!_self._current)
-						_self._current = 0;
-	        var i = d3.interpolate(_self._current, d.data.value/$$.pieTotal);
-	        return function(t) {
-						_self._current = i(t);
-						_self.textContent = d3.format('%')(i(t));
-	        };
-		    })
-				.attr('opacity',function(d){
-					return ($$.persistentData.hiddenArcs[d.data.key])? 0 : 1;
-				})
-				.attrTween("transform", function(d) {
-					//tween centroid position
-					var _self = this;
-					//update new position arc
-					_self.newPosition = {start:d.startAngle, end:d.endAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
-					var i = d3.interpolate(_self.oldPosition, _self.newPosition);
-					return function(t){
-						_self.oldPosition = i(t);
-						return "translate("+$$.arc.centroid(_self.oldPosition)+")";
-					};
-				});
-
-//arc exit
-		$$.selection.pie.arc.exit()
-				.each(function(d){
-					this.newArc = {start:d.endAngle, end: d.endAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
-				})
-			.transition()
-				.duration($$.animationDuration)
-				.style('opacity',0)
-				.remove()
-			.select('path')
-				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
+		$$.arcEnter();
+		$$.arcUpdate();
+		$$.arcExit();
 
 		d3.timer.flush();
 
