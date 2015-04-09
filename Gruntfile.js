@@ -24,6 +24,17 @@ module.exports = function(grunt){
 	      }
 	    }
 	  },
+		cssmin: {
+		  target: {
+		    files: [{
+		      expand: true,
+		      cwd: 'build/css',
+		      src: ['d2b.css'],
+		      dest: 'build/css',
+		      ext: '.min.css'
+		    }]
+		  }
+		},
 	  concat: {
 	    vendor: {
 	      src: ['bower_components/d3/d3.min.js'],
@@ -99,14 +110,14 @@ module.exports = function(grunt){
 		  },
 		  js: {
 		    files: ['js/**/*.js'],
-		    tasks: ['concat:css','sass','concat:js','uglify'],
+		    tasks: ['concat:css','sass','concat:js','uglify', 'cssmin'],
 		    options: {
 		      spawn: false,
 		    },
 		  },
 		  css: {
 		    files: ['css/**/*.scss'],
-		    tasks: ['concat:css','sass','concat:js','uglify'],
+		    tasks: ['concat:css','sass','concat:js','uglify', 'cssmin'],
 		    options: {
 		      spawn: false,
 		    },
@@ -127,9 +138,10 @@ module.exports = function(grunt){
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-sass');
 	grunt.loadNpmTasks('grunt-contrib-connect');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.registerTask('default',['concat','sass','uglify','connect','watch']);
+	grunt.registerTask('default',['concat','sass','uglify', 'cssmin','connect','watch']);
 };

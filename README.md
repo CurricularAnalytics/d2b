@@ -8,6 +8,6 @@ Download the latest here:
 
 Or, to link directly to the latest release, copy this snippet:
 ```html
-<link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.css" />
+<link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
 <script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script>
 ```
