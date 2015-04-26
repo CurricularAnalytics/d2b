@@ -8,11 +8,12 @@ d2b.UTILS.chartPage = function(){
 	$$.currentData = {};
 
 	$$.modifiedData = {};
-	$$.dataLoaded = false;
 
 	$$.computedHeight=0;
 	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
+
+  // $$.reloadCharts = true;
 
 	$$.on = {
 		update: function(){}
@@ -26,7 +27,7 @@ d2b.UTILS.chartPage = function(){
 			$$.selection.currentPage = $$.selection
 				.append('div')
 					.attr('class','d2b-chart-page')
-					.style('opacity',0)
+					// .style('opacity',0)
 					.style('left',position.left+'px')
 					.style('top',position.top+'px');
 		}
@@ -69,13 +70,13 @@ d2b.UTILS.chartPage = function(){
 		chartLayout.exit()
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',0)
+				// .style('opacity',0)
 				.remove();
 
 		$$.selection.currentPage
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',1)
+				// .style('opacity',1)
 				.style('left','0px')
 				.style('top','0px');
 
@@ -169,18 +170,22 @@ d2b.UTILS.chartPage = function(){
 
 		$$.computedHeight = 0;
 
-		if($$.currentData.charts.length < 1 && !$$.currentData.url){
+    if($$.currentData.charts.length < 1 && !$$.currentData.url){
 			console.warn('chart page was not provided any charts or url');
 		}else{
 			$$.modifiedData.charts = $$.currentData.charts;
 			$$.modifiedData.controls = $$.currentData.controls;
 
-			var postData = {};
+			var postData = {controls:{}};
 			$$.currentData.controls.forEach(function(d){
-				postData[d.key] = d;
+				postData.controls[d.key] = d;
 			});
 
-			if($$.currentData.url){
+      postData.sectionName = $$.currentData.sectionName;
+      postData.categoryName = $$.currentData.categoryName || $$.currentData.name;
+      postData.pageName = $$.currentData.name;
+
+      if($$.currentData.url){
 					var my_request = d3.xhr($$.currentData.url)
 					my_request.post(JSON.stringify(postData), function(error,received){
 						var data = JSON.parse(received.response);
@@ -188,12 +193,10 @@ d2b.UTILS.chartPage = function(){
 							$$.modifiedData.charts = data.charts.concat($$.modifiedData.charts);
 
 						$$.updateGrid($$.modifiedData.charts);
-						$$.dataLoaded = true;
 
 					});
 
 			}else{
-				$$.dataLoaded = true;
 				$$.updateGrid($$.modifiedData.charts);
 			}
 		}

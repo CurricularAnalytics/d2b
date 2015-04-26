@@ -70,9 +70,16 @@
 		.d2b-innactive{
 			color:$light;
 			cursor:auto !important;
-
+			// background:$hover_dark;
 			&:hover{
 				background:rgba(0,0,0,0) !important;
+			}
+		}
+
+		.d2b-category-tab.d2b-innactive{
+			background:$hover_dark;
+			&:hover{
+				background:$hover_dark !important;
 			}
 		}
 

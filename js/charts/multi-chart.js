@@ -75,6 +75,8 @@ d2b.CHARTS.multiChart = function(){
 	var setChartProperties = function(){
 		if(current.chart.properties){
 			for(key in current.chart.properties){
+				if(key == 'data')
+					continue;
 				if(current.chart.properties[key].args)
 					adChart[key].apply(this, current.chart.properties[key].args);
 				else
@@ -109,12 +111,12 @@ d2b.CHARTS.multiChart = function(){
 			// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
 			adChart = current.chart.chart;
 			adChart
-				.selection(selection.chartWrapper.chart)
-				.data(current.chart.data); //clone data for update
+				.data(current.chart.properties.data)
+				.selection(selection.chartWrapper.chart);
 		}else if(current.chart != previous.chart){
 			if(current.chart.type == previous.chart.type){
 				adChart
-					.data(current.chart.data); //clone data for update
+					.data(current.chart.properties.data);
 			}else{
 				selection.chartWrapper.chart
 					.transition()

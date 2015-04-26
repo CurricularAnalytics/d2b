@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		data1 = {
+			data: {
+				partition: {
+					"name": "University of New Mexico",
+					"top": true,
+					"children": [
+						{
+							"name": "Architecture and Planning",
+							"top": true,
+							"children": [
+								{
+									"name": "Architecture and Planning",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 291,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 184,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "School of Law",
+							"top": true,
+							"children": [
+								{
+									"name": "Law Administration",
+									"children": [
+										{
+												"name": "Graduate",
+												"size": 349,
+												"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Management",
+							"top": true,
+							"children": [
+								{
+									"name": "Management",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 2517,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 568,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Non-Degree",
+							"top": true,
+							"children": [
+								{
+									"name": "Graduate",
+									"size": 1617,
+									"color_style": "Custom",
+									"color": "#DAEDF1"
+								}
+							]
+						},
+						{
+							"name": "Nursing",
+							"top": true,
+							"children": [
+								{
+									"name": "Nursing",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 1090,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 148,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Pharmacy",
+							"top": true,
+							"children": [
+								{
+									"name": "Pharmacy",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 209,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 14,
+											"top": true
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			}
+		};
+
+		data2 = {
+			data: {
+				partition: {
+					"name": "University of New Mexico",
+					"top": true,
+					"children": [
+						{
+							"name": "Architecture and Planning",
+							"top": true,
+							"children": [
+								{
+									"name": "Architecture and Planning",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 191,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 384,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "School of Law",
+							"top": true,
+							"children": [
+								{
+									"name": "Law Administration",
+									"children": [
+										{
+												"name": "Graduate",
+												"size": 249,
+												"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Management",
+							"top": true,
+							"children": [
+								{
+									"name": "Management",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 517,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 1568,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Non-Degree",
+							"top": true,
+							"children": [
+								{
+									"name": "Graduate",
+									"size": 417,
+									"color_style": "Custom",
+									"color": "#DAEDF1"
+								}
+							]
+						},
+						{
+							"name": "Nursing",
+							"top": true,
+							"children": [
+								{
+									"name": "Nursing",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 890,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 248,
+											"top": true
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Pharmacy",
+							"top": true,
+							"children": [
+								{
+									"name": "Pharmacy",
+									"children": [
+										{
+											"name": "Undergraduate",
+											"size": 609,
+											"top": true
+										},
+										{
+											"name": "Graduate",
+											"size": 104,
+											"top": true
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			}
+		};
+
+		var multiChart = new d2b.CHARTS.multiChart();
+
+		multiChart
+			.select('.multi-chart');
+
+		multiChart
+			.data(
+				{
+					data:{
+						charts:[
+							{
+								label:"Sunburst 1",
+								key:"sunburst_1",
+								type:"sunburstChart",
+								properties:{
+									data:data1
+								}
+
+							},
+							{
+								label:"Sunburst 2",
+								key:"sunburst_2",
+								type:"sunburstChart",
+								properties:{
+									data:data2
+								}
+							}
+						]
+					}
+				}
+			)
+
+			var chartLayoutData = {
+				data:{
+					chartLayout:{
+						title:"Test Sunburst Multi Chart"
+					}
+				}
+			}
+
+			var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+			chartLayout
+				.select('.multi-chart')
+				.width($(window).width())
+				.height($(window).height())
+				.chart(multiChart);
+
+			chartLayout
+				.data(chartLayoutData).update();
+
+			$(window).resize(function(){
+				chartLayout.height($(window).height()).width($(window).width()).update();
+			});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'multi-chart'></div>
+
+</body>
+</html>

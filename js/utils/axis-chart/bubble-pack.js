@@ -87,7 +87,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
   }
 
   $$.bubbleEnter = function(graph, graphData, bubble){
-    newBubble = bubble.enter()
+    var newBubble = bubble.enter()
       .append('g')
         .attr('class', 'd2b-bubble')
         .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
@@ -274,7 +274,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     $$.currentChartData.forEach(function(graphData){
       $$.setParentPositions(graphData.pack);
       graphData.packed = $$.flatten(graphData.pack);
-      graphData.packed.forEach($$.addNodeKey);
+      graphData.packed.forEach(function(d){$$.addNodeKey(d);d.key += graphData.label;});
     });
 
 		return chart;
@@ -282,7 +282,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 	//chart update
 	chart.update = function(callback){
-    $$.pack.size([$$.width/2, $$.height/2]);
+    $$.pack.size([$$.width/3, $$.height/3]);
     $$.packJoin();
 
 		$$.background.each(function(graphData){

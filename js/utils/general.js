@@ -39,7 +39,7 @@ d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
 	var scroll = d2b.UTILS.scrollOffset();
 
 	var bodyWidth = body.node().getBoundingClientRect().width;
-	// console.log(bodyWidth)
+	
 	var pos = {left:0,top:0};
 
 	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
@@ -163,10 +163,21 @@ d2b.UTILS.niceFormat = function(value, precision){
 d2b.UTILS.numberFormat = function(preferences){
 	var formatString = "";
 	var format;
-	var units = {
-		before:(preferences.units.before)?preferences.units.before:"",
-		after:(preferences.units.after)?preferences.units.after:"",
+	var units;
+
+	if(preferences.units){
+		units = {
+			before:(preferences.units.before)?preferences.units.before:"",
+			after:(preferences.units.after)?preferences.units.after:"",
+		};
+	}else{
+		units = {
+			before:"",
+			after:"",
+		}
 	}
+
+
 	if(preferences.nice){
 		return function(value){return units.before + d2b.UTILS.niceFormat(value, preferences.precision) + units.after};
 	}else if(preferences.siPrefixed){
@@ -251,3 +262,12 @@ d2b.UTILS.bindElementEvents = function(element, _chart, type){
 				d2b.UTILS.bind('elementClick', element, _chart, d, i, type)
 			});
 }
+
+/*grid positioning*/
+d2b.UTILS.grid = function(width, height, count){
+	var ratio = width/ height;
+	var obj = {};
+	obj.columns = Math.min(count,Math.max(1, Math.round(Math.sqrt(count) * (ratio))));
+	obj.rows = Math.ceil(count/obj.columns);
+	return obj
+};

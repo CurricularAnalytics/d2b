@@ -110,6 +110,7 @@ d2b.CHARTS.pieChart = function(){
 
 		//create arc text
 		newArc.append('text')
+			.attr('y', 6)
 			.each(function(d){
 				//init old position arc
 				this.oldPosition = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
@@ -170,8 +171,8 @@ d2b.CHARTS.pieChart = function(){
 						_self.textContent = d3.format('%')(i(t));
 	        };
 		    })
-				.attr('opacity',function(d){
-					return ($$.persistentData.hiddenArcs[d.data.key])? 0 : 1;
+				.style('opacity',function(d){
+					return ((d.data.value/$$.pieTotal<0.03)||$$.persistentData.hiddenArcs[d.data.key])? 0 : 1;
 				})
 				.attrTween("transform", function(d) {
 					//tween centroid position

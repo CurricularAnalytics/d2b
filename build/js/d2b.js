@@ -100,11 +100,12 @@ d2b.UTILS.chartPage = function(){
 	$$.currentData = {};
 
 	$$.modifiedData = {};
-	$$.dataLoaded = false;
 
 	$$.computedHeight=0;
 	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
+
+  // $$.reloadCharts = true;
 
 	$$.on = {
 		update: function(){}
@@ -118,7 +119,7 @@ d2b.UTILS.chartPage = function(){
 			$$.selection.currentPage = $$.selection
 				.append('div')
 					.attr('class','d2b-chart-page')
-					.style('opacity',0)
+					// .style('opacity',0)
 					.style('left',position.left+'px')
 					.style('top',position.top+'px');
 		}
@@ -161,13 +162,13 @@ d2b.UTILS.chartPage = function(){
 		chartLayout.exit()
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',0)
+				// .style('opacity',0)
 				.remove();
 
 		$$.selection.currentPage
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',1)
+				// .style('opacity',1)
 				.style('left','0px')
 				.style('top','0px');
 
@@ -261,18 +262,22 @@ d2b.UTILS.chartPage = function(){
 
 		$$.computedHeight = 0;
 
-		if($$.currentData.charts.length < 1 && !$$.currentData.url){
+    if($$.currentData.charts.length < 1 && !$$.currentData.url){
 			console.warn('chart page was not provided any charts or url');
 		}else{
 			$$.modifiedData.charts = $$.currentData.charts;
 			$$.modifiedData.controls = $$.currentData.controls;
 
-			var postData = {};
+			var postData = {controls:{}};
 			$$.currentData.controls.forEach(function(d){
-				postData[d.key] = d;
+				postData.controls[d.key] = d;
 			});
 
-			if($$.currentData.url){
+      postData.sectionName = $$.currentData.sectionName;
+      postData.categoryName = $$.currentData.categoryName || $$.currentData.name;
+      postData.pageName = $$.currentData.name;
+
+      if($$.currentData.url){
 					var my_request = d3.xhr($$.currentData.url)
 					my_request.post(JSON.stringify(postData), function(error,received){
 						var data = JSON.parse(received.response);
@@ -280,12 +285,10 @@ d2b.UTILS.chartPage = function(){
 							$$.modifiedData.charts = data.charts.concat($$.modifiedData.charts);
 
 						$$.updateGrid($$.modifiedData.charts);
-						$$.dataLoaded = true;
 
 					});
 
 			}else{
-				$$.dataLoaded = true;
 				$$.updateGrid($$.modifiedData.charts);
 			}
 		}
@@ -654,7 +657,7 @@ d2b.UTILS.dashboardCategory = function(){
       $$.selection.currentCategory = $$.selection
         .append('div')
           .attr('class','d2b-category')
-          .style('opacity',0)
+          // .style('opacity',0)
           .style('left',position.left+'px')
           .style('top',position.top+'px');
 
@@ -1719,7 +1722,7 @@ d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
 	var scroll = d2b.UTILS.scrollOffset();
 
 	var bodyWidth = body.node().getBoundingClientRect().width;
-	// console.log(bodyWidth)
+	
 	var pos = {left:0,top:0};
 
 	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
@@ -1843,10 +1846,21 @@ d2b.UTILS.niceFormat = function(value, precision){
 d2b.UTILS.numberFormat = function(preferences){
 	var formatString = "";
 	var format;
-	var units = {
-		before:(preferences.units.before)?preferences.units.before:"",
-		after:(preferences.units.after)?preferences.units.after:"",
+	var units;
+
+	if(preferences.units){
+		units = {
+			before:(preferences.units.before)?preferences.units.before:"",
+			after:(preferences.units.after)?preferences.units.after:"",
+		};
+	}else{
+		units = {
+			before:"",
+			after:"",
+		}
 	}
+
+
 	if(preferences.nice){
 		return function(value){return units.before + d2b.UTILS.niceFormat(value, preferences.precision) + units.after};
 	}else if(preferences.siPrefixed){
@@ -1931,6 +1945,15 @@ d2b.UTILS.bindElementEvents = function(element, _chart, type){
 				d2b.UTILS.bind('elementClick', element, _chart, d, i, type)
 			});
 }
+
+/*grid positioning*/
+d2b.UTILS.grid = function(width, height, count){
+	var ratio = width/ height;
+	var obj = {};
+	obj.columns = Math.min(count,Math.max(1, Math.round(Math.sqrt(count) * (ratio))));
+	obj.rows = Math.ceil(count/obj.columns);
+	return obj
+};
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -5896,6 +5919,7 @@ d2b.CHARTS.pieChart = function(){
 
 		//create arc text
 		newArc.append('text')
+			.attr('y', 6)
 			.each(function(d){
 				//init old position arc
 				this.oldPosition = {start:d.startAngle, end: d.startAngle, inner:$$.r*$$.donutRatio, outer:$$.r};
@@ -5956,8 +5980,8 @@ d2b.CHARTS.pieChart = function(){
 						_self.textContent = d3.format('%')(i(t));
 	        };
 		    })
-				.attr('opacity',function(d){
-					return ($$.persistentData.hiddenArcs[d.data.key])? 0 : 1;
+				.style('opacity',function(d){
+					return ((d.data.value/$$.pieTotal<0.03)||$$.persistentData.hiddenArcs[d.data.key])? 0 : 1;
 				})
 				.attrTween("transform", function(d) {
 					//tween centroid position
@@ -6140,764 +6164,6 @@ d2b.CHARTS.pieChart = function(){
 
 		return chart;
 	};
-
-	return chart;
-};
-
-/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
-
-
-/*axis chart*/
-d2b.CHARTS.interactiveBarChart = function(){
-
-	//define axisChart variables
-	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
-			height = d2b.CONSTANTS.DEFAULTHEIGHT();
-
-	var innerHeight = height, innerWidth = width;
-	var dimensions = {horizontal:innerWidth, vertical:innerHeight};
-
-	var xScale = {type: 'linear', scale: d3.scale.linear(), domain:'auto'},
-			yScale = {type: 'linear', scale: d3.scale.linear(), domain:'auto'};
-
-	var scales = {
-		horizontal:xScale,
-		vertical:yScale
-	}
-
-	var xBand; //used for the bar width in barCharts
-
-	var generateRequired = true; //using some methods may require the chart to be redrawn
-
-	var selection = d3.select('body'); //default selection of the HTML body
-
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-
-	var legend = new d2b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
-			legendOrientation = 'bottom';
-
-	var xFormat = function(value){return value};
-	var yFormat = function(value){return value};
-
-	//init event object
-	var on = d2b.CONSTANTS.DEFAULTEVENTS();
-
-	var orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
-
-	var controls = {
-				yAxisLock: {
-					label: "Lock Y-Axis",
-					type: "checkbox",
-					visible: false,
-					enabled: false,
-					maxStacked:d2b.CONSTANTS.DEFAULTHEIGHT(),
-					maxNonStacked:d2b.CONSTANTS.DEFAULTHEIGHT()
-				},
-				stacking: {
-					label: "Stack Bars",
-					type: "checkbox",
-					visible: false,
-					enabled: false
-				},
-				horizontal: {
-					label: "Horizontal",
-					type: "checkbox",
-					visible: false,
-					enabled:false
-				},
-				hideLegend: {
-					label: "Hide Legend",
-					type: "checkbox",
-					visible: false,
-					enabled: false
-				}
-			};
-
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
-
-	var currentChartData = {
-				columns: {},
-				labels:{x:'',y:''}
-			};
-
-	/*COLUMN METHODS*/
-
-	// remove the column (fade out)
-	var removeColumn = function(column){
-		var columnToBeRemoved = column.svg;
-		columnToBeRemoved
-			.transition()
-				.duration(animationDuration)
-				.style('opacity',0)
-				.each('end',function(){
-					columnToBeRemoved.remove();
-				});
-
-		return;
-	}
-
-	var updateColumn = function(column){
-		var bar = column.svg.selectAll('rect').data(column.data.values, function(d){return d.x});
-		bar.enter().append('rect')
-				.attr('class','d2b-bar-rect')
-				.style('opacity',0)
-				.attr(orientation.height,0)
-				.attr(orientation.y,(controls.horizontal.enabled)? 0:dimensions.vertical)
-				.on('mouseover.d2b-mouseover',function(d,i){
-					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+column.key+' <i>('+xFormat(d.x)+')</i></b> ',yFormat(d.y))
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i,'bar');
-					}
-				})
-				.on('mouseout.d2b-mouseout',function(d,i){
-					d2b.UTILS.removeTooltip();
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i,'bar');
-					}
-				})
-				.on('click.d2b-click',function(d,i){
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,'bar');
-					}
-				});
-
-		bar
-				.style('fill', color(column.data.label))
-				// .style('stroke-width','0.6px')
-				.style('opacity',1);
-
-		bar.transition()
-				.duration(animationDuration)
-				.attr(orientation.x,function(d){return d.xPos;})
-				.attr(orientation.y,function(d){return d.yPos;})
-				.attr(orientation.width,function(d){return d[orientation.width];})
-				.attr(orientation.height,function(d){return d[orientation.height];})
-				// .style('stroke', color(column.data.label));
-
-		bar.exit()
-			.transition()
-				.duration(animationDuration)
-				.style('opacity',0)
-				.attr(orientation.height,0)
-				.attr(orientation.y,(controls.horizontal.enabled)? 0:dimensions.vertical)
-				.remove();
-	};
-
-	//offset correction for ordinal axis
-	var offsetPointX = function(){
-		if(xScale.type == 'ordinal')
-			return xScale.scale.rangeBand()/2;
-		else
-			return 0;
-	}
-
-	//compute bar positions for all bar columns (stacked vs grouped)
-	var computeBarPositions = function(columns){
-		var xBand;
-		var barWidth;
-		var xBandDefault = innerWidth/(columns.length * 2);
-
-		var yVals = {};
-
-		if(controls.stacking.enabled){
-			if(xScale.type == 'ordinal'){
-				xBand = scales[orientation.horizontal].scale.rangeBand();
-				barWidth = xBand * 0.6;
-			}else{
-				xBand = -xBandDefault*2.5;
-				barWidth = xBandDefault;
-			}
-			columns.forEach(function(column,i){
-				column.data.values.forEach(function(bar){
-
-					if(controls.horizontal.enabled){
-						bar[orientation.height] = scales[orientation.vertical].scale(bar.y);
-						yVals[bar.x] = yVals[bar.x] || 0;
-						bar.xPos = scales[orientation.horizontal].scale(bar.x) + xBand * 0.2;
-						bar.yPos = yVals[bar.x];
-						yVals[bar.x] += bar[orientation.height];
-						bar[orientation.width] = barWidth;
-					}else{
-						bar[orientation.height] = (dimensions[orientation.vertical] - scales[orientation.vertical].scale(bar.y));
-						yVals[bar.x] = yVals[bar.x] || dimensions[orientation.vertical];
-						yVals[bar.x] -= bar[orientation.height];
-						bar.xPos = scales[orientation.horizontal].scale(bar.x) + xBand * 0.2;
-						bar.yPos = yVals[bar.x];
-						bar[orientation.width] = barWidth;
-					}
-				});
-			});
-		}else{
-			if(xScale.type == 'ordinal'){
-				xBand = d3.scale.ordinal()
-						.domain(columns.map(function(c){return c.data.label}))
-						.rangeRoundBands([0, xScale.scale.rangeBand()], 0.05, 0);
-			}else{
-				xBand = d3.scale.ordinal()
-						.domain(columns.map(function(c){return c.data.label}))
-						.rangeRoundBands([-xBandDefault/2, xBandDefault/2], 0.05, 0.3);
-			}
-			barWidth = xBand.rangeBand();
-			columns.forEach(function(column,i){
-				column.data.values.forEach(function(bar){
-					if(controls.horizontal.enabled){
-						bar.xPos = scales[orientation.horizontal].scale(bar.x) + xBand(column.data.label);
-						bar[orientation.height] = yScale.scale(bar.y);
-						bar.yPos = 0;
-						bar[orientation.width] = barWidth;
-					}else{
-						bar.xPos = scales[orientation.horizontal].scale(bar.x) + xBand(column.data.label);
-						bar[orientation.height] = dimensions[orientation.vertical] - yScale.scale(bar.y);
-						bar.yPos = dimensions[orientation.vertical] - bar[orientation.height];
-						bar[orientation.width] = barWidth;
-					}
-				});
-			});
-		}
-	};
-
-	/*DEFINE CHART OBJECT AND MEMBERS*/
-	var chart = {};
-
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	chart.xScale = function(value){
-		if(!arguments.length) return xScale;
-		xScale.type = value.type;
-		xScale.domain = value.domain;
-		// generateRequired = true;
-
-		if(value.type == 'linear'){
-			xScale.scale = d3.scale.linear();
-		}else if(value.type == 'ordinal'){
-			xScale.scale = d3.scale.ordinal();
-		}
-
-		if(!value.domain)
-			xScale.domain = 'auto';
-
-		return chart;
-	};
-	chart.yScale = function(value){
-		if(!arguments.length) return yScale;
-		yScale.type = value.type;
-		yScale.domain = value.domain;
-		// generateRequired = true;
-
-		if(value.type == 'linear'){
-			yScale.scale = d3.scale.linear();
-		}else if(value.type == 'ordinal'){
-			yScale.scale = d3.scale.ordinal();
-		}
-
-		if(!value.domain)
-			yScale.domain = 'auto';
-
-		return chart;
-	};
-
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
-
-	// chart.horizontal = function(value){
-	// 	if(!arguments.length) return controls.horizontal.enabled;
-	// 	controls.horizontal.enabled = value;
-	// 	return chart;
-	// }
-
-	chart.controls = function(value){
-		if(!arguments.length) return controls;
-		if(value.yAxisLock){
-			controls.yAxisLock.visible = (value.yAxisLock.visible != null)? value.yAxisLock.visible:controls.yAxisLock.visible;
-			controls.yAxisLock.enabled = (value.yAxisLock.enabled != null)? value.yAxisLock.enabled:controls.yAxisLock.enabled;
-			controls.yAxisLock.maxStacked = (value.yAxisLock.maxStacked != null)? value.yAxisLock.maxStacked:controls.yAxisLock.maxStacked;
-			controls.yAxisLock.maxNonStacked = (value.yAxisLock.maxNonStacked != null)? value.yAxisLock.maxNonStacked:controls.yAxisLock.maxNonStacked;
-		}
-		if(value.stacking){
-			controls.stacking.visible = (value.stacking.visible != null)? value.stacking.visible:controls.stacking.visible;
-			controls.stacking.enabled = (value.stacking.enabled != null)? value.stacking.enabled:controls.stacking.enabled;
-		}
-		if(value.horizontal){
-			controls.horizontal.visible = (value.horizontal.visible != null)? value.horizontal.visible:controls.horizontal.visible;
-			controls.horizontal.enabled = (value.horizontal.enabled != null)? value.horizontal.enabled:controls.horizontal.enabled;
-		}
-		if(value.hideLegend){
-			controls.hideLegend.visible = (value.hideLegend.visible != null)? value.hideLegend.visible:controls.hideLegend.visible;
-			controls.hideLegend.enabled = (value.hideLegend.enabled != null)? value.hideLegend.enabled:controls.hideLegend.enabled;
-		}
-		return chart;
-	};
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		legend.animationDuration(animationDuration);
-		horizontalControls.animationDuration(animationDuration);
-		return chart;
-	};
-
-
-	chart.xFormat = function(value){
-		if(!arguments.length) return xFormat;
-		xFormat = d2b.UTILS.numberFormat(value);
-		return chart;
-	};
-	chart.yFormat = function(value){
-		if(!arguments.length) return yFormat;
-		yFormat = d2b.UTILS.numberFormat(value);
-		return chart;
-	};
-
-	chart.legendOrientation = function(value){
-		if(!arguments.length) return legendOrientation;
-		legendOrientation = value;
-		return chart;
-	};
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
-
-	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
-		if(reset){
-			currentChartData = {
-							columns: {},
-							labels:{x:'',y:''}
-						};
-			generateRequired = true;
-		}
-
-		chartData.data.columns.forEach(function(d,i){
-			var c;
-			if(currentChartData.columns[d.label]){
-				c = currentChartData.columns[d.label];
-				c.data.values = d.values || c.data.values;
-				c.type = d.type;
-			}else{
-				c = currentChartData.columns[d.label] = {data:d, type:d.type};
-				if(!generateRequired){
-					c.svg = selection.group.columns
-						.append('g');
-				}
-			}
-			if(c.type == 'none'){
-				removeColumn(c);
-				delete currentChartData.columns[d.label];
-			}
-		});
-		if(chartData.data.labels)
-			currentChartData.labels = chartData.data.labels;
-		return chart;
-	};
-
-	//generate chart
-	chart.generate = function(callback) {
-		generateRequired = false;
-
-		//clean container
-		selection.selectAll('*').remove();
-
-		//create svg
-		selection.svg = selection
-			.append('svg')
-				.attr('class','d2b-interactive-bar-chart d2b-svg d2b-container');
-
-		//create group container
-		selection.group = selection.svg.append('g');
-
-		//create axis containers
-		selection.group.axes = selection.group
-			.append('g')
-				.attr('class','d2b-axes');
-		selection.group.axes.x = selection.group.axes
-			.append('g')
-				.attr('class','d2b-x d2b-axis');
-		selection.group.axes.y = selection.group.axes
-			.append('g')
-				.attr('class','d2b-y d2b-axis');
-		selection.group.axes.xLabel = selection.group.axes
-			.append('g')
-				.attr('class','d2b-x-label')
-			.append('text');
-		selection.group.axes.yLabel = selection.group.axes
-			.append('g')
-				.attr('class','d2b-y-label')
-			.append('text');
-
-
-
-		//create column containers
-		selection.group.columns = selection.group
-			.append('g')
-				.attr('class','d2b-columns');
-
-		for(key in currentChartData.columns){
-			currentChartData.columns[key].svg = selection.group.columns
-				.append('g');
-		}
-
-		//create controls container
-		selection.controls = selection.group
-			.append('g')
-				.attr('class','d2b-controls');
-
-		//intialize new controls
-		horizontalControls
-				.selection(selection.controls)
-				.on('change',function(d,i){
-					controls[d.key].enabled = d.state;
-					chart.update();
-				});
-
-		//create legend container
-		selection.legend = selection.group
-			.append('g')
-				.attr('class','d2b-legend');
-
-		//intialize new legend
-		legend
-				.color(color)
-				.selection(selection.legend)
-				.on('elementMouseover.d2b-mouseover',function(d,i){
-					selection.group.columns.selectAll('rect')
-						.transition()
-							.duration(animationDuration/2)
-							.style('opacity',0.35);
-					d.data.svg.selectAll('rect')
-						.transition()
-							.duration(0)
-							.style('opacity',1);
-					// .classed('d2b-legend-mouseover',true);
-				})
-				.on('elementMouseout.d2b-mouseout',function(d,i){
-					selection.group.columns.selectAll('rect')
-						.transition()
-							.duration(animationDuration/4)
-							.style('opacity',1);
-					// d.data.svg.classed('d2b-legend-mouseover',false);
-				});
-
-
-		//auto update chart
-		var temp = animationDuration;
-		chart.animationDuration(0);
-		chart.update(callback);
-		chart.animationDuration(temp);
-
-		return chart;
-	};
-
-	//update chart
-	chart.update = function(callback){
-
-		//if generate required call the generate method
-		if(generateRequired){
-			return chart.generate(callback);
-		}
-
-		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-		forcedMargin.bottom += 20;
-		forcedMargin.left += 20;
-
-		if(controls.horizontal.enabled){
-			scales = {
-					horizontal:yScale,
-					vertical:xScale
-				}
-			orientation = {x:"y",y:"x",horizontal:"vertical",vertical:"horizontal",width:"height",height:"width",bottom:"left",left:"bottom"};
-		}else{
-			scales = {
-					horizontal:xScale,
-					vertical:yScale
-				}
-			orientation = {x:"x",y:"y",horizontal:"horizontal",vertical:"vertical",width:"width",height:"height",bottom:"bottom",left:"left"};
-		}
-
-		var columns = d2b.UTILS.getValues(currentChartData.columns);
-
-		innerWidth = width - forcedMargin.right - forcedMargin.left;
-
-		if(controls.hideLegend.enabled){
-			var legendData = {data:{items:[]}};
-		}else{
-			var legendData = {
-				data:{
-					items:columns
-									.filter(function(d){return d.newType != 'none';})
-									.map(function(d){return {label:d.data.label,type:d.newType,data:d};})
-									.sort(function(a,b){return a.label-b.label})
-				}
-			};
-		}
-		legend.width(innerWidth).data(legendData).update();
-
-		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
-		controlsData.map(function(d){
-			d.data = {state:d.enabled, label:d.label, key:d.key};
-		});
-		horizontalControls.width(innerWidth).data(controlsData).update();
-		forcedMargin.top += horizontalControls.computedHeight();
-
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
-
-		//reposition the controls
-		selection.controls
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+((forcedMargin.left) + innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10+(forcedMargin.top))+')');
-				// .attr('transform','translate('+(innerWidth - horizontalControls.computedWidth())+','+(-horizontalControls.computedHeight()-10)+')');
-
-
-		if(legendOrientation == 'right' || legendOrientation == 'left'){
-			legend.orientation('vertical').height(innerHeight).update();
-		}
-		else{
-			legend.orientation('horizontal').width(innerWidth).update();
-		}
-
-		var legendTranslation;
-		if(legendOrientation == 'right')
-			legendTranslation = 'translate('+(forcedMargin.left+innerWidth-legend.computedWidth())+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'left')
-			legendTranslation = 'translate('+(forcedMargin.left)+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'top')
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(forcedMargin.top-20)+')';
-		else
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(25+innerHeight+forcedMargin.top-legend.computedHeight())+')';
-
-		selection.legend
-			.transition()
-				.duration(animationDuration)
-				.attr('transform',legendTranslation);
-
-		if(legendOrientation == 'right' || legendOrientation == 'left')
-			forcedMargin[legendOrientation] += legend.computedWidth() + 30;
-		else
-			forcedMargin[legendOrientation] += legend.computedHeight() + 10;
-
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
-		innerWidth = width - forcedMargin.right - forcedMargin.left;
-
-		dimensions = {horizontal:innerWidth, vertical:innerHeight};
-
-		//gather x and y values to find domain
-		var xVals = [];
-		var yVals = [];
-
-	  var yValsStackedBars = {};
-		if(controls.stacking.enabled){
-			columns.forEach(function(column,i){
-				column.data.values.forEach(function(bar){
-					if(!yValsStackedBars[bar.x])
-						yValsStackedBars[bar.x] = 0;
-					yValsStackedBars[bar.x] += bar.y;
-					xVals.push(bar.x);
-					yVals.push(bar.y);
-				});
-			});
-			yVals = yVals.concat(d2b.UTILS.getValues(yValsStackedBars));
-		}else{
-			columns.forEach(function(column){
-				if(column.data.values){
-					column.data.values.forEach(function(bar){
-						xVals.push(bar.x);
-						yVals.push(bar.y);
-					});
-				}
-			});
-		}
-
-		var domains = {};
-
-		if(scales[orientation.horizontal].type == 'ordinal'){
-			scales[orientation.horizontal].scale.rangeRoundBands([0, dimensions[orientation.horizontal]], .1);
-			domains[orientation.horizontal] = d2b.UTILS.AXISCHARTS.getDomainOrdinal(xVals).sort();
-		}else{
-			scales[orientation.horizontal].scale.range([0, dimensions[orientation.horizontal]])
-			domains[orientation.horizontal] = d2b.UTILS.AXISCHARTS.getDomainLinear(xVals);
-		}
-		if(controls.yAxisLock.enabled){
-			if(controls.stacking.enabled){
-				domains[orientation.vertical] = [0,controls.yAxisLock.maxStacked];
-			}else{
-				domains[orientation.vertical] = [0,controls.yAxisLock.maxNonStacked];
-			}
-		}else{
-			domains[orientation.vertical] = d2b.UTILS.AXISCHARTS.getDomainLinear(yVals);
-		}
-		scales[orientation.vertical].scale.range([dimensions[orientation.vertical], 0]);
-
-
-		if(scales[orientation.horizontal].domain == 'auto')
-			scales[orientation.horizontal].scale.domain(domains[orientation.horizontal]);
-		else{
-			scales[orientation.horizontal].scale.domain(scales[orientation.horizontal].domain);
-		}
-
-		if(scales[orientation.vertical].domain == 'auto')
-			scales[orientation.vertical].scale.domain(domains[orientation.vertical]);
-		else
-			scales[orientation.vertical].scale.domain(scales[orientation.vertical].domain);
-
-		if(controls.horizontal.enabled){
-			// scales[orientation.horizontal].scale.domain(scales[orientation.horizontal].scale.domain().reverse());
-			scales[orientation.vertical].scale.domain(scales[orientation.vertical].scale.domain().reverse());
-		}
-
-
-		//resize svg
-		selection.svg
-				.attr('width',width)
-				.attr('height',height);
-
-		//create x and y axes
-		scales[orientation.vertical].scale.nice(5)
-		var axes = {
-			x:d3.svg.axis()
-				.scale(scales[orientation.horizontal].scale)
-				.orient(orientation.bottom)
-				.tickFormat(xFormat),
-			y:d3.svg.axis()
-				.scale(scales[orientation.vertical].scale)
-				.orient(orientation.left)
-				.tickFormat(yFormat)
-		};
-
-		//initialize y-axes transition
-		selection.group.axes[orientation.y]
-			.transition()
-				.duration(animationDuration)
-				.call(axes[orientation.y]);
-
-		//find the longest y-axis tick text
-		var longestTick = 0;
-		selection.group.axes[orientation.y].selectAll('.tick text').each(function(){
-			if(longestTick < this.getComputedTextLength())
-				longestTick = this.getComputedTextLength();
-		})
-
-		forcedMargin.left += longestTick;
-
-		//resize the width based on the longest tick text
-		innerWidth = width - forcedMargin.right - forcedMargin.left;
-
-		dimensions.horizontal = innerWidth;
-		// console.log(scales.horizontal.scale.domain())
-		//Re asign the x-axis range to account for width resize
-		if(controls.horizontal.enabled){
-			if(scales.horizontal.type == 'linear'){
-				scales.horizontal.scale.range([dimensions.horizontal, 0])
-			}else if(scales.horizontal.type == 'ordinal'){
-				scales.horizontal.scale.rangeRoundBands([dimensions.horizontal, 0], .1);
-			}
-		}else{
-			if(scales.horizontal.type == 'linear'){
-				scales.horizontal.scale.range([0, dimensions.horizontal])
-			}else if(scales.horizontal.type == 'ordinal'){
-				scales.horizontal.scale.rangeRoundBands([0, dimensions.horizontal], .1);
-			}
-		}
-
-
-	  //set tickSize for grid
-		axes.x.tickSize(-dimensions[orientation.vertical])
-		axes.y.tickSize(-dimensions[orientation.horizontal]);
-
-		//transition x-axis
-		selection.group.axes[orientation.x]
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+ (forcedMargin.left) +','+ (forcedMargin.top+innerHeight) +')')
-				.call(axes[orientation.x]);
-		//transition y-axis
-		selection.group.axes[orientation.y]
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+ (forcedMargin.left) +','+ (forcedMargin.top) +')')
-				.call(axes[orientation.y]);
-
-
-		//set the xBand, this is used for bar chart inconsistancies between different scale types.
-		if(scales[orientation.horizontal].type == 'ordinal'){
-			xBand = d3.scale.ordinal()
-					.domain(columns.map(function(c){return c.data.label}))
-					.rangeRoundBands([0, scales[orientation.horizontal].scale.rangeBand()]);
-		}else{
-			xBand = dimensions[orientation.horizontal]/(columns.length * 20)
-		}
-
-		//update axis labels
-		selection.group.axes[orientation.x+"Label"]
-			.transition()
-				.duration(animationDuration)
-				.text(currentChartData.labels[orientation.x])
-				.attr('transform', 'translate('+(forcedMargin.left + innerWidth/2)+','+(innerHeight + 30 + (forcedMargin.top))+')');
-				// .attr('transform', 'translate('+(innerWidth/2)+','+(innerHeight + 30)+')');
-
-		selection.group.axes[orientation.y+"Label"]
-			.transition()
-				.duration(animationDuration)
-	      .attr('transform', 'translate('+(forcedMargin.left-longestTick-10)+','+(innerHeight/2+(forcedMargin.top))+'),rotate(-90)')
-			      // .attr('transform', 'translate('+(-35)+','+(innerHeight/2)+'),rotate(-90)')
-				.text(currentChartData.labels[orientation.y]);
-
-		selection.group.columns
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+ (forcedMargin.left) +','+ (forcedMargin.top) +')');
-				// .attr('transform','translate('+ (0) +','+ (0) +')');
-
-
-		//calculate positions
-		computeBarPositions(columns);
-
-		columns.forEach(function(c,i){
-			updateColumn(c);
-		});
-
-
-		d3.timer.flush();
-
-		if(callback)
-			callback();
-
-		return chart;
-	}
 
 	return chart;
 };
@@ -7441,6 +6707,8 @@ d2b.CHARTS.multiChart = function(){
 	var setChartProperties = function(){
 		if(current.chart.properties){
 			for(key in current.chart.properties){
+				if(key == 'data')
+					continue;
 				if(current.chart.properties[key].args)
 					adChart[key].apply(this, current.chart.properties[key].args);
 				else
@@ -7475,12 +6743,12 @@ d2b.CHARTS.multiChart = function(){
 			// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
 			adChart = current.chart.chart;
 			adChart
-				.selection(selection.chartWrapper.chart)
-				.data(current.chart.data); //clone data for update
+				.data(current.chart.properties.data)
+				.selection(selection.chartWrapper.chart);
 		}else if(current.chart != previous.chart){
 			if(current.chart.type == previous.chart.type){
 				adChart
-					.data(current.chart.data); //clone data for update
+					.data(current.chart.properties.data);
 			}else{
 				selection.chartWrapper.chart
 					.transition()
@@ -7821,6 +7089,739 @@ d2b.CHARTS.templateChart = function(){
 
 		//----chart code goes here!
 		//----use innerHeight/innerWidth as the context dimensions and use forcedMargin.|left, right, top, or bottom| as the current positioning margin
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*fact chart*/
+d2b.CHARTS.factChart = function(){
+
+	//private store
+	var $$ = {};
+
+	//user set width
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+
+	$$.selectedFact = null;
+
+	//for fact positioning
+	$$.x = d3.scale.ordinal();
+	$$.y = d3.scale.ordinal();
+	$$.textScale = d3.scale.linear().range([15, 30]).domain([100, 1000]);
+	$$.textScale.custom = function(value){
+		var range = this.range();
+		var translation = this(value);
+		if(translation < range[0])
+			return range[0];
+		else if(translation > range[1])
+			return range[1];
+		return translation;
+	};
+
+	$$.updateFact = function(fact, textSize){
+		fact
+			.select('text.d2b-fact-label')
+				.style('font-size', textSize+'px')
+				.text(function(d){return d.label;})
+				.each(function(d){d.labelWidth = this.getComputedTextLength();})
+			.transition()
+				.duration($$.animationDuration)
+				.attr('y', -0.5*textSize);
+
+		var barHeight = 3;
+		fact
+			.select('rect')
+			.transition()
+				.duration($$.animationDuration)
+				.attr('width', function(d){return d.labelWidth;})
+				.attr('height', barHeight)
+				.attr('x', function(d){return -d.labelWidth/2;})
+				.attr('y', -barHeight/2)
+				.style('fill', '#ccc');
+
+		fact
+			.select('text.d2b-fact-value')
+				.style('font-size', 2*textSize+'px')
+				.text(function(d){return $$.xFormat(d.value);})
+			.transition()
+				.duration($$.animationDuration)
+				.attr('y', 2*textSize);
+	};
+
+	$$.showMainFacts = function(){
+
+		$$.selection.subFacts
+			.style('pointer-events','none')
+				.selectAll('*')
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+
+		var factCount = $$.currentChartData.facts.length;
+		var textSize = $$.textScale.custom(Math.min($$.innerWidth, $$.innerHeight)/factCount);
+		var grid = d2b.UTILS.grid($$.innerWidth, $$.innerHeight, factCount);
+
+		$$.x.domain(d3.range(0, grid.columns)).rangeBands([0,$$.innerWidth]);
+		$$.y.domain(d3.range(0, grid.rows)).rangeBands([0,$$.innerHeight]);
+
+		$$.selection.fact = $$.selection.main.selectAll('g.d2b-fact').data($$.currentChartData.facts);
+		var newFact = $$.selection.fact.enter()
+			.append('g')
+				.attr('class', 'd2b-fact');
+
+		newFact.append('text').attr('class','d2b-fact-label');
+		newFact.append('text').attr('class','d2b-fact-value');
+		newFact.append('rect').attr('class','d2b-fact-bar');
+
+		var factTransition = $$.selection.fact
+				.style('pointer-events','all')
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',1)
+				.attr('transform', function(d,i){
+					return 'translate('+($$.x(i%grid.columns) + $$.x.rangeBand()/2)+','+($$.y(Math.floor(i/grid.columns)) + $$.y.rangeBand()/2)+')';
+				});
+
+		$$.updateFact($$.selection.fact, textSize);
+
+		$$.selection.fact.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity', 0)
+				.remove();
+
+		//setup sub-fact events if available
+		$$.selection.fact.each(function(d){
+			var elem = d3.select(this);
+			if(!d.subFacts || d.subFacts.length < 1){
+				elem
+					.style('cursor', 'auto')
+					.on('mouseover.d2b-mouseover',null)
+					.on('mouseout.d2b-mouseout',null)
+					.on('click.d2b-click',null);
+				return;
+			}
+
+
+			elem
+				.style('cursor', 'pointer')
+				.on('mouseover.d2b-mouseover', function(){
+					elem.select('rect')
+						.transition()
+							.duration($$.animationDuration/2)
+							.style('fill', '#333');
+				})
+				.on('mouseout.d2b-mouseout', function(){
+					elem.select('rect')
+						.transition()
+							.duration($$.animationDuration/2)
+							.style('fill', '#ccc');
+				})
+				.on('click.d2b-click', function(){
+					var elem = d3.select(this);
+					if($$.selectedFact){
+						$$.selection.fact
+								.style('pointer-events','all')
+							.transition()
+								.duration($$.animationDuration)
+								.style('opacity',1);
+						$$.selectedFact = null;
+					}else{
+						$$.selection.fact
+								.style('pointer-events','none')
+							.transition()
+								.duration($$.animationDuration)
+								.style('opacity',0);
+						elem
+								.style('pointer-events','all')
+							.transition()
+								.duration($$.animationDuration)
+								.style('opacity',1);
+						$$.selectedFact = elem;
+						$$.selectedFact.data = d;
+					}
+					chart.update();
+				});
+
+		});
+
+	};
+
+	$$.showSubFacts = function(){
+		var factCount = $$.currentChartData.facts.length;
+		var textSize = $$.textScale.custom(Math.min($$.innerWidth, $$.innerHeight)/factCount);
+
+		$$.selectedFact
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', 'translate('+$$.innerWidth/2+','+textSize+')');
+
+		$$.updateFact($$.selectedFact, textSize);
+
+		var topOffset = textSize * 3;
+		$$.forcedMargin.top += topOffset;
+		$$.innerHeight -= $$.forcedMargin.top;
+
+		$$.selection.subFacts
+				.style('pointer-events','all')
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',1)
+				.attr('transform','translate(0,'+topOffset+')')
+
+		var subFactCount = $$.selectedFact.data.subFacts.length;
+		var grid = d2b.UTILS.grid($$.innerWidth, $$.innerHeight, subFactCount);
+		$$.x.domain(d3.range(0, grid.columns)).rangeBands([0,$$.innerWidth]);
+		$$.y.domain(d3.range(0, grid.rows)).rangeBands([0,$$.innerHeight]);
+
+		$$.selection.subFact = $$.selection.subFacts.selectAll('g.d2b-sub-fact').data($$.selectedFact.data.subFacts);
+
+		var newSubFact = $$.selection.subFact.enter()
+			.append('g')
+				.attr('class', 'd2b-sub-fact')
+				.style('opacity',0)
+				.attr('transform', function(d,i){
+					return 'translate('+$$.x(i%grid.columns)+','+$$.y(Math.floor(i/grid.columns))+')';
+				});
+
+		newSubFact
+			.append('g')
+				.attr('class', 'd2b-sub-fact-chart')
+				.each(function(d){
+					this.pieChart = new d2b.CHARTS.pieChart();
+					this.pieChart
+						.select(this)
+						.donutRatio(0.6)
+						.controls({hideLegend:{enabled:true}});
+				});
+
+		newSubFact.append('text').attr('class', 'd2b-sub-fact-label');
+
+		$$.selection.subFact
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', function(d,i){
+					return 'translate('+$$.x(i%grid.columns)+','+$$.y(Math.floor(i/grid.columns))+')';
+				})
+			.delay($$.animationDuration/1.5)
+				.style('opacity',0.9);
+
+		$$.selection.subFact
+			.select('g.d2b-sub-fact-chart')
+				.each(function(d){
+					this.pieChart
+						.animationDuration($$.animationDuration)
+						.width($$.x.rangeBand())
+						.height($$.y.rangeBand())
+						.data({data:{values:d.values}})
+						.update();
+				})
+
+		$$.selection.subFact.select('text.d2b-sub-fact-label')
+				.text(function(d){return d.label;})
+			.transition()
+				.duration($$.animationDuration)
+				.attr('x', $$.x.rangeBand()/2)
+				.attr('y', $$.y.rangeBand()/2);
+
+	};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return $$.currentChartData;
+		if(reset){
+			$$.currentChartData = {};
+		}
+
+		$$.currentChartData = chartData.data;
+
+		return chart;
+	};
+
+	//chart generate
+	chart.generate = function(callback) {
+		$$.generateRequired = false;
+
+		//clean container
+	  $$.selection.selectAll('*').remove();
+
+	  //create svg
+	  $$.selection.svg = $$.selection
+	    .append('svg')
+	      .attr('class','d2b-svg d2b-container')
+				// .on('click.d2b-click',function(){
+				// 	if($$.selectedFact)
+				// 		$$.selectedFact = null;
+				// 	chart.update();
+				// });
+
+	  //create group container
+	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	  $$.selection.group = $$.selection.svg.append('g')
+	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+
+		//init main chart container
+		$$.selection.main = $$.selection.group
+			.append('g')
+				.attr('class','d2b-fact-chart');
+
+		$$.selection.subFacts = $$.selection.main
+			.append('g')
+				.attr('class','d2b-sub-facts');
+
+		//auto update chart
+		var temp = $$.animationDuration;
+		chart
+				.animationDuration(0)
+				.update(callback)
+				.animationDuration(temp);
+
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+
+		//if generate required call the generate method
+		if($$.generateRequired){
+			return chart.generate(callback);
+		}
+
+		//init forcedMargin
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
+
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
+
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		if($$.selectedFact){
+			$$.showSubFacts();
+		}else{
+			$$.showMainFacts();
+		}
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*table chart*/
+d2b.CHARTS.tableChart = function(){
+
+	//private store
+	var $$ = {};
+
+	//user set width
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+
+	$$.selectedRow = null;
+
+	$$.updateSubFacts = function(row, subFacts, subFactsData, x, padding, height, showValueLabels){
+		var subFact = subFacts.selectAll('g.d2b-table-subFact').data(subFactsData);
+
+		var newSubFact = subFact.enter()
+			.append('g')
+				.attr('class','d2b-table-subFact');
+
+		newSubFact.append('g').attr('class','d2b-table-subFact-chart');
+		newSubFact.append('text').attr('class','d2b-table-subFact-label');
+
+		$$.updateSubFact(subFact, x, padding, height, showValueLabels);
+
+		subFact.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+
+		return subFact;
+	};
+
+	$$.updateSubFact = function(subFact, x, padding, height, showValueLabels){
+		subFact.select('text.d2b-table-subFact-label')
+				.text(function(d){return d.label})
+			.transition()
+				.duration($$.animationDuration)
+				.attr('y', -4)
+				.attr('x',(x.rangeBand()-padding)/2)
+
+
+		subFact.each(function(d){
+
+					d.x = d3.scale.linear();
+
+					d.x
+						.domain([0, d3.sum(d.values, function(d){return d.value;})])
+						.range([0, x.rangeBand()-padding]);
+
+					var currentX = 0;
+					d.values.forEach(function(value){
+						value.xPos = currentX;
+						value.width = d.x(value.value);
+						currentX += value.width;
+					});
+
+				})
+
+		var subFactValue = subFact.select('g').selectAll('g').data(function(d){return d.values;});
+
+		var newSubFactValue = subFactValue.enter()
+			.append('g');
+
+		newSubFactValue.append('rect');
+		newSubFactValue.append('text').attr('class','d2b-subFact-value-label');
+
+		var subFactValueTransition = subFactValue
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return $$.xFormat(d.value);})
+			.transition()
+				.duration($$.animationDuration);
+
+		subFactValueTransition
+			.select('rect')
+				.attr('x', function(d){return d.xPos;})
+				.attr('width', function(d){return d.width;})
+				.attr('height', height)
+				.style('fill', function(d){return $$.color(d.label);});
+
+		subFactValueTransition
+			.select('text.d2b-subFact-value-label')
+				.style('opacity',+showValueLabels)
+				.attr('y', height/2 + 4)
+				.attr('x', function(d){return d.xPos + d.width/2;})
+				.text(function(d) { return d.label.substring(0, d.width / 10); });
+
+
+		subFactValue.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+	};
+
+	$$.showRow = function(){
+
+		$$.selection.table.row = $$.selection.table.selectAll('g.d2b-table-row').data($$.currentChartData.rows);
+
+		$$.selection.table.row.select('tspan.d2b-label').text(function(d){return d.label+' ';});
+		$$.selection.table.row.select('tspan.d2b-value').text(function(d){return $$.xFormat(d.value);});
+
+		$$.selectedRow.data = $$.selectedRow[0][0].__data__
+
+		$$.forcedMargin.top += 20;
+		$$.innerHeight = $$.outerHeight - $$.forcedMargin.top;
+		var rowTransition = $$.selectedRow
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',1)
+				.attr('transform', function(d,i){
+					return 'translate(0,'+$$.forcedMargin.top+')'
+				});
+		rowTransition.select('rect.d2b-row-background')
+			.attr('height',$$.innerHeight);
+
+		var subFacts = $$.selectedRow.select('.d2b-table-subFacts');
+
+		var x = d3.scale.ordinal();
+
+		x
+			.domain([0])
+			.rangeBands([0, $$.innerWidth]);
+
+		var y = d3.scale.ordinal();
+
+		y
+			.domain(d3.range(0, $$.selectedRow.data.subFacts.length))
+			.rangeBands([5, $$.innerHeight]);
+		$$.updateSubFacts($$.selectedRow, subFacts, $$.selectedRow.data.subFacts, x, 0, y.rangeBand()/2, true)
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', function(d,i){return 'translate(0,'+(y(i) + y.rangeBand()/2)+')';});
+	};
+
+	$$.showTable = function(){
+
+		var padding = $$.innerWidth * 0.03;
+
+		var rowHeight = $$.innerHeight / $$.currentChartData.rows.length;
+
+		$$.selection.table.row = $$.selection.table.selectAll('g.d2b-table-row').data($$.currentChartData.rows);
+		var newTableRow = $$.selection.table.row.enter()
+			.append('g')
+				.attr('class','d2b-table-row');
+
+		newTableRow.append('rect')
+			.attr('class', 'd2b-row-background');
+
+		newTableRow.append('rect')
+			.attr('class', 'd2b-row-border');
+
+		var newTableRowText = newTableRow.append('text')
+			.attr('class','d2b-table-row-label');
+
+		newTableRowText.append('tspan').attr('class','d2b-label');
+		newTableRowText.append('tspan').attr('class','d2b-value');
+
+		newTableRow.append('g').attr('class', 'd2b-table-subFacts')
+
+		var rowTransition = $$.selection.table.row
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',1)
+				.attr('transform', function(d,i){
+					return 'translate(0,'+(i*rowHeight + rowHeight/2)+')'
+				});
+
+		rowTransition.select('rect.d2b-row-border')
+			.attr('width',$$.innerWidth)
+			.attr('height',1.5)
+			.attr('y',5);
+
+		rowTransition.select('rect.d2b-row-background')
+			.attr('width',$$.innerWidth)
+			.attr('height',30)
+			.attr('y',-22);
+
+		var longestText = 0;
+
+		$$.selection.table.row.select('tspan.d2b-label').text(function(d){return d.label+' ';});
+		$$.selection.table.row.select('tspan.d2b-value').text(function(d){return $$.xFormat(d.value);});
+
+		$$.selection.table.row.select('text.d2b-table-row-label')
+			.each(function(){longestText = Math.max(this.getComputedTextLength(), longestText);});
+
+		$$.selection.table.row
+			.style('pointer-events','all')
+			.each(function(d){
+				var row = d3.select(this);
+				var x = d3.scale.ordinal();
+				var text = row.select('text.d2b-table-row-label');
+				var subFacts = row.select('g.d2b-table-subFacts');
+
+				if(d.subFacts.length > 0){
+					text
+						.transition()
+							.duration($$.animationDuration)
+							.style('text-anchor','start')
+							.attr('x',0);
+					row.style('cursor','pointer');
+				}else{
+					text
+						.transition()
+							.duration($$.animationDuration)
+							.style('text-anchor','middle')
+							.attr('x',$$.innerWidth/2);
+					row.style('cursor','auto');
+				}
+
+
+				x
+					.domain(d3.range(0, d.subFacts.length))
+					.rangeBands([longestText + padding, $$.innerWidth + padding]);
+
+				$$.updateSubFacts(row, subFacts, d.subFacts, x, padding, 5, false)
+					.transition()
+						.duration($$.animationDuration)
+						.attr('transform', function(d,i){return 'translate('+x(i)+',-2)';})
+			})
+			.on('click.d2b-click', function(d,i){
+				var elem = d3.select(this);
+				if($$.selectedRow){
+					$$.selectedRow = null;
+				}else{
+
+					if(d.subFacts.length > 0){
+						$$.selection.table.row
+								.style('pointer-events','none')
+							.transition()
+								.duration($$.animationDuration)
+								.style('opacity',0);
+						elem
+								.style('pointer-events','all');
+						$$.selectedRow = elem;
+						// $$.selectedRow.data = d;
+					}
+				}
+				chart.update();
+
+			});
+
+	};
+
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return $$.currentChartData;
+		if(reset){
+			$$.currentChartData = {};
+		}
+
+		$$.currentChartData = chartData.data;
+
+		$$.currentChartData.rows.forEach(function(d){
+			d.subFacts = d.subFacts || [];
+		});
+
+		return chart;
+	};
+
+	//chart generate
+	chart.generate = function(callback) {
+		$$.generateRequired = false;
+
+		//clean container
+	  $$.selection.selectAll('*').remove();
+
+	  //create svg
+	  $$.selection.svg = $$.selection
+	    .append('svg')
+	      .attr('class','d2b-svg d2b-container')
+				// .on('click.d2b-click',function(){
+				// 	if($$.selectedFact)
+				// 		$$.selectedFact = null;
+				// 	chart.update();
+				// });
+
+	  //create group container
+	  // $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = {top:10,left:20, right:20,bottom:10};
+	  $$.selection.group = $$.selection.svg.append('g')
+	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+
+		//init main chart container
+		$$.selection.main = $$.selection.group
+			.append('g')
+				.attr('class','d2b-table-chart');
+
+		$$.selection.table = $$.selection.main
+			.append('g')
+				.attr('class','d2b-table')
+
+		//auto update chart
+		var temp = $$.animationDuration;
+		chart
+				.animationDuration(0)
+				.update(callback)
+				.animationDuration(temp);
+
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+
+		//if generate required call the generate method
+		if($$.generateRequired){
+			return chart.generate(callback);
+		}
+
+		//init forcedMargin
+		// $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = {top:10,left:20, right:20,bottom:10};
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
+
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
+
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		if($$.selectedRow){
+			$$.showRow();
+		}else{
+			$$.showTable();
+		}
 
 		d3.timer.flush();
 
@@ -8344,9 +8345,9 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
 
-			graph.on('mouseover', function(){
-				console.log(d3.event)
-			});
+			// graph.on('mouseover', function(){
+			// 	console.log(d3.event)
+			// });
 
 			$$.foreground.point = {};
 
@@ -8576,7 +8577,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
   }
 
   $$.bubbleEnter = function(graph, graphData, bubble){
-    newBubble = bubble.enter()
+    var newBubble = bubble.enter()
       .append('g')
         .attr('class', 'd2b-bubble')
         .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
@@ -8763,7 +8764,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     $$.currentChartData.forEach(function(graphData){
       $$.setParentPositions(graphData.pack);
       graphData.packed = $$.flatten(graphData.pack);
-      graphData.packed.forEach($$.addNodeKey);
+      graphData.packed.forEach(function(d){$$.addNodeKey(d);d.key += graphData.label;});
     });
 
 		return chart;
@@ -8771,7 +8772,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 	//chart update
 	chart.update = function(callback){
-    $$.pack.size([$$.width/2, $$.height/2]);
+    $$.pack.size([$$.width/3, $$.height/3]);
     $$.packJoin();
 
 		$$.background.each(function(graphData){

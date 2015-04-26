@@ -13,7 +13,7 @@ end
 
 post '/' do
 
-  filters = JSON.parse(request.body.read)
+  postData = JSON.parse(request.body.read)
 
   content_type :json
 
@@ -217,10 +217,15 @@ post '/' do
   }.to_json
 
 
+  filters = postData["controls"]
 
-  if(filters["testCheckbox"])
-    if(filters["testCheckbox"]["state"])
-      data1
+  if(filters)
+    if(filters["testCheckbox"])
+      if(filters["testCheckbox"]["state"])
+        data1
+      else
+        data2
+      end
     else
       data2
     end

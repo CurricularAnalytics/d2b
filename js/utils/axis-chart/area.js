@@ -152,9 +152,9 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
 
-			graph.on('mouseover', function(){
-				console.log(d3.event)
-			});
+			// graph.on('mouseover', function(){
+			// 	console.log(d3.event)
+			// });
 
 			$$.foreground.point = {};
 

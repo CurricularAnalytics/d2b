@@ -273,15 +273,6 @@ html, body, .d2b-container {
   pointer-events: none;
   text-anchor: middle; }
 
-/*axisChart column specific styles*/
-.d2b-interactive-bar-chart .d2b-columns rect {
-  shape-rendering: crispEdges;
-  fill-opacity: 0.8;
-  -webkit-transition: fill-opacity 0.25s;
-  transition: fill-opacity 0.25s; }
-.d2b-interactive-bar-chart .d2b-columns rect:hover {
-  fill-opacity: 1; }
-
 .d2b-guage-chart path {
   fill-opacity: 0.8; }
 .d2b-guage-chart text {
@@ -418,6 +409,42 @@ html, body, .d2b-container {
     font-weight: bold;
     text-anchor: middle; }
 
+.d2b-fact-chart .d2b-fact text {
+  fill: #333;
+  text-anchor: middle; }
+.d2b-fact-chart .d2b-sub-fact-label {
+  fill: #333;
+  text-anchor: middle; }
+
+.d2b-table-chart .d2b-table-row text {
+  font-size: 16px;
+  fill: #333; }
+  .d2b-table-chart .d2b-table-row text .d2b-value {
+    font-weight: bold; }
+.d2b-table-chart .d2b-table-row .d2b-row-border {
+  fill: #bbb; }
+.d2b-table-chart .d2b-table-row .d2b-table-subFact-chart {
+  -webkit-transition: opacity 0.25s, -webkit-transform 2s;
+  transition: opacity 0.25s, transform 2s;
+  opacity: 0.5; }
+.d2b-table-chart .d2b-table-row:hover .d2b-table-subFact-chart {
+  opacity: 1; }
+.d2b-table-chart .d2b-table-row g.d2b-table-subFacts rect {
+  -webkit-transition: opacity 0.25s, -webkit-transform 2s;
+  transition: opacity 0.25s, transform 2s;
+  opacity: 0.8; }
+.d2b-table-chart .d2b-table-row g.d2b-table-subFacts rect:hover {
+  opacity: 1; }
+.d2b-table-chart .d2b-table-row g.d2b-table-subFacts text.d2b-table-subFact-label {
+  text-anchor: middle;
+  font-size: 13px; }
+.d2b-table-chart .d2b-table-row rect.d2b-row-background {
+  opacity: 0; }
+.d2b-table-chart .d2b-table-row .d2b-subFact-value-label {
+  fill: white;
+  font-size: 11px;
+  text-anchor: middle; }
+
 .d2b-dashboard .d2b-header {
   border-bottom: 2px solid #555;
   color: #eee;
@@ -467,6 +494,10 @@ html, body, .d2b-container {
     cursor: auto !important; }
     .d2b-dashboard .d2b-header .d2b-innactive:hover {
       background: transparent !important; }
+  .d2b-dashboard .d2b-header .d2b-category-tab.d2b-innactive {
+    background: #555; }
+    .d2b-dashboard .d2b-header .d2b-category-tab.d2b-innactive:hover {
+      background: #555 !important; }
   .d2b-dashboard .d2b-header .d2b-dashboard-breadcrumbs {
     -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
     -moz-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);

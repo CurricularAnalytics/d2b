@@ -1,0 +1,54 @@
+.d2b-table-chart{
+
+  .d2b-table-row{
+
+    text{
+      font-size:16px;
+      fill:$dark_main;
+      .d2b-value{
+        font-weight:bold;
+      }
+    }
+    .d2b-row-border{
+      fill:$light;
+    }
+
+    .d2b-table-subFact-chart{
+      -webkit-transition:opacity 0.25s, -webkit-transform 2s;
+      transition:opacity 0.25s, transform 2s;
+      opacity:0.5;
+    }
+
+    &:hover{
+      .d2b-table-subFact-chart{
+        opacity:1;
+      }
+    }
+
+    g.d2b-table-subFacts{
+      rect{
+        -webkit-transition:opacity 0.25s, -webkit-transform 2s;
+        transition:opacity 0.25s, transform 2s;
+        opacity:0.8;
+      }
+      rect:hover{
+        opacity:1;
+      }
+      text.d2b-table-subFact-label{
+        text-anchor:middle;
+        font-size:13px;
+      }
+    }
+
+    rect.d2b-row-background{
+      opacity:0;
+    }
+
+    .d2b-subFact-value-label{
+      fill:white;
+      font-size:11px;
+      text-anchor:middle;
+    }
+
+  }
+}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
+<script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script>
+
+<script>
+	$(document).ready(function(){
+
+		var parse = d3.time.format("%Y").parse;
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'Academic Year',
+          y:'Number of Students'
+        },
+        types:[
+          {
+            // area-chart-type
+            type:'area',
+            graphs:[
+              // this is where each of the area graphs will be defined
+              {
+                //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                label:'Applicants',
+                interpolate:'cardinal', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                values:[
+                  {x:'2001-02', y:5678, y0:0},
+                  {x:'2002-03', y:6232, y0:0},
+                  {x:'2003-04', y:6752, y0:0},
+                  {x:'2004-05', y:6837, y0:0},
+                  {x:'2005-06', y:7134, y0:0},
+                  {x:'2006-07', y:6981, y0:0},
+                  {x:'2007-08', y:7404, y0:0},
+                  {x:'2008-09', y:8788, y0:0},
+                  {x:'2009-10', y:10743, y0:0},
+                  {x:'2010-11', y:11220, y0:0},
+                  {x:'2011-12', y:11410, y0:0},
+                  {x:'2012-13', y:11475, y0:0},
+                  {x:'2013-14', y:11602, y0:0}
+                ]
+              },
+							{
+                //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                label:'Admits',
+                interpolate:'cardinal', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                values:[
+                  {x:'2001-02', y:4306, y0:0},
+                  {x:'2002-03', y:4777, y0:0},
+                  {x:'2003-04', y:5095, y0:0},
+                  {x:'2004-05', y:5170, y0:0},
+                  {x:'2005-06', y:5252, y0:0},
+                  {x:'2006-07', y:5123, y0:0},
+                  {x:'2007-08', y:5252, y0:0},
+                  {x:'2008-09', y:5964, y0:0},
+                  {x:'2009-10', y:6614, y0:0},
+                  {x:'2010-11', y:7459, y0:0},
+                  {x:'2011-12', y:7288, y0:0},
+                  {x:'2012-13', y:7406, y0:0},
+                  {x:'2013-14', y:7359, y0:0}
+                ]
+              },
+							{
+                //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                label:'Enrollees',
+                interpolate:'cardinal', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                values:[
+                  {x:'2001-02', y:2406, y0:0},
+                  {x:'2002-03', y:2821, y0:0},
+                  {x:'2003-04', y:3004, y0:0},
+                  {x:'2004-05', y:3086, y0:0},
+                  {x:'2005-06', y:3095, y0:0},
+                  {x:'2006-07', y:3026, y0:0},
+                  {x:'2007-08', y:2910, y0:0},
+                  {x:'2008-09', y:3225, y0:0},
+                  {x:'2009-10', y:3409, y0:0},
+                  {x:'2010-11', y:3604, y0:0},
+                  {x:'2011-12', y:3341, y0:0},
+                  {x:'2012-13', y:3424, y0:0},
+                  {x:'2013-14', y:3518, y0:0}
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+			.yFormat({separateThousands:true})
+			.x({type:'ordinal',orientation:'top'})
+			.legendOrientation('right')
+			// .y({domain:[2000, 12000]})
+			// .controls({lockYAxis:{enabled:true}})
+      // .select('.axis-chart')
+      .data(data)
+      // .width($(window).width())
+      // .height($(window).height())
+      // .update();
+
+
+
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+		chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.chart(axisChart)
+				.select('.axis-chart');
+
+		var chartLayoutData = {
+			"data":
+			{
+				"chartLayout":{
+					"title":"Beginning Freshman Applicants, Admits, and Enrollees",
+					"titleAlt":"The Babbitt Influence"
+				}
+			}
+		};
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

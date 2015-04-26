@@ -37,7 +37,7 @@ d2b.UTILS.dashboardCategory = function(){
       $$.selection.currentCategory = $$.selection
         .append('div')
           .attr('class','d2b-category')
-          .style('opacity',0)
+          // .style('opacity',0)
           .style('left',position.left+'px')
           .style('top',position.top+'px');
 

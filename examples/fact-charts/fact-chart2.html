@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		var data = {
+			data:{
+				facts:[
+					{
+						label:"Bachelors",
+						value:3736,
+					},
+					{
+						label:"Masters",
+						value:1308
+					},
+					{
+						label:"Doctorate",
+						value:231
+					},
+					{
+						label:"Professional",
+						value:289
+					},
+					{
+						label:"Graduate Certificates",
+						value:29
+					},
+					{
+						label:"Post Masters Certs. or Ed. Specialist Degrees",
+						value:27
+					}
+				]
+			}
+		}
+
+		var factChart = new d2b.CHARTS.factChart();
+
+		factChart
+			.select('.fact-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.data(data)
+			.xFormat({separateThousands:true})
+			.update();
+
+		$(window).resize(function(){
+			factChart.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'fact-chart'></div>
+</body>
+</html>
