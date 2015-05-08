@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<!-- <link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
+<script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script> -->
+
+
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<link href='http://fonts.googleapis.com/css?family=Palanquin:100,200,300,400' rel='stylesheet' type='text/css'>
+
+<script>
+  var p = 20;
+  var height = 700;
+  var buttonsFixed = false;
+  var funnelPieChart, funnelChart, areaChart, sankeyChart;
+
+  var yearData = [
+    {"year":"2001-02", "applicants":5678, "admits": 4306, "enrollees":2406},
+    {"year":"2002-03", "applicants":6232, "admits": 4777, "enrollees":2821},
+    {"year":"2003-04", "applicants":6752, "admits": 5095, "enrollees":3004},
+    {"year":"2004-05", "applicants":6837, "admits": 5170, "enrollees":3086},
+    {"year":"2005-06", "applicants":7134, "admits": 5252, "enrollees":3095},
+    {"year":"2006-07", "applicants":6981, "admits": 5123, "enrollees":3026},
+    {"year":"2007-08", "applicants":7404, "admits": 5252, "enrollees":2910},
+    {"year":"2008-09", "applicants":8788, "admits": 5964, "enrollees":3225},
+    {"year":"2009-10", "applicants":10743, "admits": 6614, "enrollees":3409},
+    {"year":"2010-11", "applicants":11220, "admits": 7459, "enrollees":3604},
+    {"year":"2011-12", "applicants":11410, "admits": 7288, "enrollees":3341},
+    {"year":"2012-13", "applicants":11475, "admits": 7406, "enrollees":3424},
+    {"year":"2013-14", "applicants":11602, "admits": 7359, "enrollees":3518}
+  ]
+
+  var yearDataHash = {};
+
+  yearData.forEach(function(year,i){
+    year.index = i;
+    yearDataHash[year.year] = year;
+  });
+
+  d3.selection.prototype.last = function() {
+    var last = this.size() - 1;
+    return d3.select(this[0][last]);
+  };
+
+  var makeSankeyChart = function(){
+
+		var data = {
+			data:{
+				labels:{source:"Source",destination:"Expenditures"},
+				columnHeaders:['header 1', 'header 2', 'header 3', 'header 4'],
+				links:[
+					{source:0, target:6, value:19595476, colorBy:'source'},
+					{source:0, target:7, value:4074464, colorBy:'source'},
+					{source:0, target:8, value:164936060, colorBy:'source'},
+					{source:1, target:8, value:134007480, colorBy:'source'},
+					{source:1, target:9, value:3464088, colorBy:'source'},
+					{source:2, target:10, value:21000000, colorBy:'source'},
+					{source:3, target:8, value:126006, colorBy:'source'},
+					{source:3, target:11, value:8102863, colorBy:'source'},
+					{source:4, target:8, value:2310071, colorBy:'source'},
+					{source:5, target:8, value:254624, colorBy:'source'},
+					{source:5, target:12, value:850000, colorBy:'source'},
+					{source:8, target:13, value:170411956, colorBy:'target'},
+					{source:8, target:14, value:37093519, colorBy:'target'},
+					{source:8, target:15, value:33221061, colorBy:'target'},
+					{source:8, target:16, value:35735864, colorBy:'target'},
+					{source:8, target:17, value:17281907, colorBy:'target'},
+					{source:8, target:18, value:1809376, colorBy:'target'},
+					{source:8, target:19, value:6080558, colorBy:'target'}
+				],
+				nodes:[
+					{id:0,name:"State Appropriation",shortName:"State Appropriation",colorKey:"State Appropriation"},
+					{id:1,name:"Tuition",shortName:"Tuition",colorKey:"Tuition"},
+					{id:2,name:"Indirect Costs",shortName:"Indirect Costs",colorKey:"Indirect Costs"},
+					{id:3,name:"State Land & Permanent Fund",shortName:"State Land & Permanent Fund",colorKey:"State Land & Permanent Fund"},
+					{id:4,name:"Interest, Reserves & Misc. Fees",shortName:"Interest, Reserves & Misc. Fees",colorKey:"Interest, Reserves & Misc. Fees"},
+					{id:5,name:"Winrock Endowment",shortName:"Winrock Endowment",colorKey:"Winrock Endowment"},
+					{id:20,name:"Transfer to HSC Instructional Programs",shortName:"Transfer to HSC Instructional Programs",colorKey:"State Appropriation"},
+					{id:21,name:"Scholarship Transfer",shortName:"Scholarship Transfer",colorKey:"State Appropriation"},
+					{id:8,name:"I&G Pooled Revenue",shortName:"I&G Pooled Revenue"},
+					{id:9,name:"Bad Dept Allowance & Credit Card Fees",shortName:"Bad Dept Allowance & Credit Card Fees",colorKey:"Tuition"},
+					{id:10,name:"Transfer to Research",shortName:"Transfer to Research",colorKey:"Indirect Costs"},
+					{id:11,name:"Transfer to BR&R",shortName:"Transfer to BR&R",colorKey:"State Land & Permanent Fund"},
+					{id:12,name:"Transfer to Student Aid",shortName:"Transfer to Student Aid",colorKey:"Winrock Endowment"},
+					{id:13,name:"Instruction",shortName:"Instruction",colorKey:"Education and Related Expenses"},
+					{id:14,name:"Operations and Maint.",shortName:"Operations and Maint.",colorKey:"Non Educational"},
+					{id:15,name:"Academic Support",shortName:"Academic Support",colorKey:"Education and Related Expenses"},
+					{id:16,name:"Institutional Support",shortName:"Institutional Support",colorKey:"Non Educational"},
+					{id:17,name:"Student Services",shortName:"Student Services",colorKey:"Education and Related Expenses"},
+					{id:18,name:"Plant-Capital",shortName:"Plant-Capital",colorKey:"Non Educational"},
+					{id:19,name:"Student Aid",shortName:"Student Aid",colorKey:"Education and Related Expenses"}
+				]
+			}
+		}
+
+		sankeyChart
+			.legendOrientation('left')
+			.controls({hideLegend:{enabled:true}})
+			.xFormat({siPrefixed:true,separateThousands:false,units:{before:"$"},precision:4})
+			.data(data);
+
+    var chartLayoutData = {
+      "data":
+      {
+        "chartLayout":{
+          "title":"Applicants Funnel",
+          "titleAlt":"Academic Year 2013-14"
+        }
+      }
+    };
+
+    sankeyChart.layout
+        .width(1000)
+        .height(height)
+        .data(chartLayoutData)
+        .update();
+
+  };
+
+  var makeFunnelPieChart = function(){
+    var data = {
+      data:{
+        values:[
+          {key:'Gender', label:'Applicants',value:11410, pinched:true, note:'This class comprises 1.1% more applicants than the previous academic year.'},
+          {key:'Sophomores', label:'Admits',value:7288, pinched:true, note:'This class has an admission rate of 63.4%.'},
+          {key:'Juniors', label:'Enrollees',value:3341, pinched:false, note:'This class has a yield rate of 30.3%.'}
+        ]
+      }
+    }
+
+    var genderData = {
+      data:{
+        values:[
+          {key:'Male', label:'Male',value:Math.random() * 1000},
+          {key:'Female', label:'Female',value:Math.random() * 1000}
+        ]
+      }
+    };
+
+    var ethnicityData = {
+      data:{
+        values:[
+          {key:'Eth 1', label:'Eth 1',value:Math.random() * 1000},
+          {key:'Eth 2', label:'Eth 2',value:Math.random() * 1000},
+          {key:'Eth 3', label:'Eth 3',value:Math.random() * 1000},
+          {key:'Eth 4', label:'Eth 4',value:Math.random() * 1000},
+          {key:'Eth 5', label:'Eth 5',value:Math.random() * 1000}
+        ]
+      }
+    };
+
+    funnelPieChart
+      .data(
+        {
+          data:{
+            charts:[
+              {
+                label:"Gender",
+                key:"gender",
+                type:"pieChart",
+                properties:{
+                  data:genderData
+                }
+
+              },
+              {
+                label:"Ethnicity",
+                key:"ethnicity",
+                type:"pieChart",
+                properties:{
+                  data:ethnicityData
+                }
+              }
+            ]
+          }
+        }
+      )
+
+
+    // funnelPieChart
+    //   .data(data)
+    //   .xFormat({separateThousands:true})
+
+    var chartLayoutData = {
+      "data":
+      {
+        "chartLayout":{
+          "title":"Demographics",
+          "titleAlt":"Academic Year 2013-14 Applicants"
+        }
+      }
+    };
+
+    funnelPieChart.layout
+        .width(495)
+        .height(height*0.7)
+        .data(chartLayoutData)
+        .update();
+
+  };
+
+  var makeFunnelChart = function(element){
+
+    var year = yearDataHash[element[0][0].__data__];
+
+    var admissionRate = Math.round(year.admits/year.applicants * 1000)/10;
+    var yieldRate = Math.round(year.enrollees/year.applicants * 1000)/10;
+    var applicantsNote = null;
+
+    if(year.index){
+      var applicantsChange = Math.round(((year.applicants-yearData[year.index-1].applicants)/yearData[year.index-1].applicants) * 1000)/10;
+      if(applicantsChange < 0){
+        applicantsNote = -1.0*applicantsChange+'% less applicants than the previous academic year'
+      }else{
+        applicantsNote = applicantsChange+'% more applicants than the previous academic year'
+      }
+    }
+
+    element.classed('selected',true);
+
+    var data = {
+      data:{
+        values:[
+          {key:'Freshmen', label:'Applicants',value:year.applicants, pinched:true, note:applicantsNote},
+          {key:'Sophomores', label:'Admits',value:year.admits, pinched:true, note:'Admission rate of '+admissionRate+'%'},
+          {key:'Juniors', label:'Enrollees',value:year.enrollees, pinched:false, note:'Yield rate of '+admissionRate+'%'}
+        ]
+      }
+    }
+
+    funnelChart
+      .coneCurve(15)
+      .data(data)
+      .xFormat({separateThousands:true})
+
+    var chartLayoutData = {
+      "data":
+      {
+        "chartLayout":{
+          "title":"Applicants Funnel",
+          "titleAlt":"Academic Year "+year.year
+        }
+      }
+    };
+
+    funnelChart.layout
+        .width(495)
+        .height(height*0.7)
+        .data(chartLayoutData)
+        .update();
+
+  };
+
+  var makeBeginningFreshmanAreaChart = function(){
+
+        var data =
+        {
+          data:{
+            labels:{
+              // define the optional x and y chart labels
+              x:'Academic Year',
+              y:'Number of Students'
+            },
+            types:[
+              {
+                // area-chart-type
+                type:'area',
+                graphs:[
+                  // this is where each of the area graphs will be defined
+                  {
+                    //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                    label:'Applicants',
+                    interpolate:'cardinal', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                    values:yearData.map(function(d){return {x:d.year, y:d.applicants, y0:0};})
+                  },
+    							{
+                    //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                    label:'Admits',
+                    interpolate:'cardinal', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                    values:yearData.map(function(d){return {x:d.year, y:d.admits, y0:0};})
+                  },
+    							{
+                    //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                    label:'Enrollees',
+                    interpolate:'cardinal', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                    values:yearData.map(function(d){return {x:d.year, y:d.enrollees, y0:0};})
+                  }
+                ]
+              }
+            ]
+          }
+        }
+
+    		areaChart
+    			.yFormat({separateThousands:true})
+    			.x({type:'ordinal',orientation:'bottom'})
+    			.legendOrientation('top')
+          .data(data)
+
+    		var chartLayoutData = {
+    			"data":
+    			{
+    				"chartLayout":{
+    					"title":"Beginning Freshman Applicants, Admits, and Enrollees",
+    					"titleAlt":"The Babbitt Influence"
+    				}
+    			}
+    		};
+
+        areaChart.layout
+    				.width(1000)
+    				.height(height)
+    			  .data(chartLayoutData)
+            .update();
+
+  };
+
+
+  var belowScrollThreshold = function(){
+    d3.select('#pc1').classed('fixed-axis',true).style('top',-height+'px');
+    areaChart.s.select('.beginning-freshman-area-chart svg')
+      .transition()
+        .duration(200)
+        .style('margin-left','-27px');
+    d3.select('#pc2').style('margin-top',(height+20)+'px');
+
+    buttonsFixed = true;
+  };
+  var aboveScrollThreshold = function(){
+    d3.select('#pc1').classed('fixed-axis',false).style('top','');
+
+    areaChart.s.select('.beginning-freshman-area-chart svg')
+    .transition()
+      .duration(200)
+      .style('margin-left','0px');
+
+    d3.select('#pc2').style('margin-top','');
+    buttonsFixed = false;
+  };
+
+
+	$(document).ready(function(){
+
+
+    funnelPieChart = new d2b.CHARTS.multiChart();
+    funnelPieChart.s = d3.select('.funnel-pie-chart');
+    funnelPieChart.layout = new d2b.UTILS.CHARTPAGE.chartLayout();
+    funnelPieChart.layout.selection(funnelPieChart.s).chart(funnelPieChart);
+
+    areaChart = new d2b.CHARTS.axisChart();
+    areaChart.s = d3.select('.beginning-freshman-area-chart');
+    areaChart.layout = new d2b.UTILS.CHARTPAGE.chartLayout();
+    areaChart.layout.selection(areaChart.s).chart(areaChart);
+
+    funnelChart = new d2b.CHARTS.funnelChart();
+    funnelChart.s = d3.select('.funnel-chart');
+    funnelChart.layout = new d2b.UTILS.CHARTPAGE.chartLayout();
+    funnelChart.layout.selection(funnelChart.s).chart(funnelChart);
+
+    sankeyChart = new d2b.CHARTS.sankeyChart();
+    sankeyChart.s = d3.select('.sankey-chart');
+    sankeyChart.layout = new d2b.UTILS.CHARTPAGE.chartLayout();
+    sankeyChart.layout.selection(sankeyChart.s).chart(sankeyChart);
+
+    makeBeginningFreshmanAreaChart();
+    // makeFunnelChart();
+    makeFunnelPieChart();
+    makeSankeyChart();
+
+    var scrollThreshold = height + 11;
+
+    $(document).scroll(function(){
+      if($(document).scrollTop() > scrollThreshold && !buttonsFixed){
+        belowScrollThreshold();
+      }else if($(document).scrollTop() <= scrollThreshold && buttonsFixed){
+        aboveScrollThreshold();
+      }
+    });
+
+    var academicYearButtons = d3.selectAll('.beginning-freshman-area-chart .d2b-axis.d2b-x .tick text')
+        .on('click',function(d){
+          academicYearButtons.classed('selected',false);
+
+          makeFunnelChart(d3.select(this));
+
+          if($(document).scrollTop() < scrollThreshold){
+            $('html,body').animate({
+              scrollTop: scrollThreshold+1
+            }, 400);
+          }
+
+          makeFunnelPieChart();
+
+        });
+
+    makeFunnelChart(academicYearButtons.last());
+    // console.log(academicYearButtons.last()[0][0].__data__)
+    // academicYearButtons.last().style('fill','#888');
+
+	});
+
+</script>
+
+<style>
+  body{
+  	background-image:url(./images/grey_wash_wall.png);
+    /*background:#888;*/
+    font-family:"Droid Sans";
+  }
+  .d2b-chart-layout-wrapper{
+    background:#222;
+    position:relative;
+  }
+  .d2b-chart-layout-wrapper text{
+    fill:#ddd;
+  }
+  .page-cell{
+    z-index:1;
+    position:relative;
+    margin:auto;
+    width:1000px;
+    margin-top:10px;
+    margin-bottom:10px;
+    /*padding:10px;*/
+  }
+  .header{
+    margin-bottom:10px;
+    font-size:20pt;
+    font-family:"Oswald";
+    text-align:center;
+    padding:10px;
+    background:#222;
+    color:#ddd;
+  }
+
+  .chart-note{
+    font-family:"Palanquin";
+    font-weight:200;
+    font-size:14pt;
+    position:absolute;
+    color:#ddd;
+    line-height:120%;
+  }
+  .tick line{
+    opacity:0.1;
+  }
+  #cn1{
+    top:130px;
+    left:150px;
+    width:400px;
+  }
+
+  .d2b-y-point circle, .d2b-y0-point circle{
+    fill:#222 !important;
+  }
+
+  .d2b-y0-point circle{
+    display:none;
+  }
+
+  .beginning-freshman-area-chart .d2b-axis.d2b-x .tick text{
+    font-weight:bold !important;
+    font-size:11pt;
+    cursor:pointer;
+    -webkit-transition: font-size 0.2s; /* Safari */
+    transition: font-size 0.2s;
+
+  }
+  .beginning-freshman-area-chart .d2b-axis.d2b-x .tick text:hover{
+    font-size:12pt;
+  }
+
+  .beginning-freshman-area-chart .d2b-label text{
+    font-weight:normal !important;
+  }
+
+  .fixed-axis{
+    z-index:2;
+    position:fixed;
+    margin-top:59px;
+
+    border-bottom:2px solid #ddd;
+
+    right:50%;
+    margin-right:-500px;
+    width:1000px;
+  }
+  .fixed-axis .d2b-axis.d2b-y .tick{
+    display:none;
+  }
+
+
+
+  .applicants-word{
+    font-weight:bold;
+    color:rgb(31, 119, 180);
+  }
+
+  .beginning-freshman-area-chart .d2b-axis.d2b-x .tick text.selected{
+    fill:#888;
+  }
+
+</style>
+
+<body style='margin:0px;'>
+  <div class = 'header'>UNM Enrollment Management Dashboard</div>
+  <div class = 'page-cell' id='pc1'>
+  	<div class = 'beginning-freshman-area-chart'></div>
+    <div class = 'chart-note' id='cn1'>This area chart illustrates the substantial increase in recruiting since the 2008-09 academic year. <br /><br /> UNM's <span class='applicants-word'>applicants</span> have doubled over the last decade. <br /><br /> Select a <u>year</u> from the x-axis to get more details.</div>
+  </div>
+
+
+  <div class = 'page-cell' id='pc2'>
+  	<!-- <div class = 'beginning-freshman-area-chart'></div> -->
+    <div style = 'display:table-cell;' class = 'funnel-chart'></div>
+    <div style = 'display:table-cell;padding-left:10px;' class = 'funnel-pie-chart'></div>
+    <!-- <div class = 'chart-note' id='cn1'>This area chart illustrates the substantial increase in recruiting since the 2008-09 academic year. <br /><br /> UNM <span class='applicants-word'>applicants</span> have doubled over the last decade. <br /><br /> Select a <u>year</u> from the x-axis to get more details.</div> -->
+  </div>
+
+  <div class = 'page-cell' id='pc3'>
+    <div style = 'margin-top:10px;margin-bottom:500px;' class = 'sankey-chart'></div>
+  </div>
+
+</body>
+</html>

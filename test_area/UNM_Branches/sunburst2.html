@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
+<script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script>
+
+<!-- <script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" /> -->
+
+<script>
+	var topMap = {
+		'gender':true,
+		'status':false,
+		'degree':false,
+		'category':true,
+		'division':true
+	};
+
+	var breakdownOptions = [
+		{label:'division', selected:true, visible:true},
+		{label:'category', selected:true},
+		{label:'degree', selected:true},
+		{label:'status', selected:true}
+	];
+	var breakdowns = {
+		'division': breakdownOptions[0],
+		'category': breakdownOptions[1],
+		'degree': breakdownOptions[2],
+		'status': breakdownOptions[3]
+	};
+
+	var data, originalData;
+	var chart = new d2b.CHARTS.sunburstChart();
+	var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+	chartLayout
+		.chart(chart)
+		.data({
+			"data":
+			{
+				"chartLayout":{
+					"title":"Los Alamos Student Enrollment",
+					"titleAlt":"Spring 2015"
+				}
+			}
+		});
+
+	Array.prototype.clone = function() {
+		return this.slice(0);
+	};
+
+	var group = function(d, attrs){
+		var hash = {};
+		var arr = [];
+		var attr = attrs.pop();
+
+		d.forEach(function(elem){
+			hash[elem[attr]] = hash[elem[attr]] || [];
+			hash[elem[attr]].push(elem);
+		});
+		for(key in hash){
+			arr.push({
+				attr: attr,
+				name: key,
+				allChildren: hash[key]
+			});
+			if(attrs.length > 0)
+				arr[arr.length-1].groupedChildren = group(arr[arr.length-1].allChildren, attrs.clone());
+			else
+				arr[arr.length-1].elem = arr[arr.length-1].allChildren[0]
+		}
+
+		return arr;
+	};
+
+	var map = function(d){
+		var arr = [];
+		var children = [];
+		if(d)
+		 	children = d.groupedChildren;
+		else
+			children = data;
+
+		children.forEach(function(child){
+
+			var temp = {};
+			if(child.name){
+				temp.name = child.name;
+				temp.top = topMap[child.attr];
+				if(child.groupedChildren)
+					temp.children = map(child);
+				else
+					temp.children = subMap(child);
+
+				arr.push(temp);
+
+			}else{
+				arr = arr.concat(map(child));
+			}
+		});
+		return arr;
+	};
+
+	var subMap = function(d){
+		return [
+			{
+				name:"Male",
+				top: topMap["gender"],
+				size:d.elem.male
+			},
+			{
+				name:"Female",
+				top: topMap["gender"],
+				size:d.elem.female
+			}
+		]
+	};
+
+	var updateSunburst = function(){
+
+		groups = breakdownOptions.filter(function(d){return d.selected;}).map(function(d){return d.label;}).reverse();
+		data = group(originalData, groups);
+
+		var sunburstData = {
+			data: {
+				partition: {
+					"name": "UNM Los Alamos",
+					"top": true,
+					"children": map()
+				}
+			}
+		};
+		chart
+			.xFormat({siPrefixed:false,units:{}, separateThousands:true,precision:0})
+			.legendOrientation('left')
+			// .controls({sort:{visible:true},invert:{visible:true},hideLegend:{visible:true}})
+			.data(sunburstData);
+
+		chartLayout
+			.width($(window).width())
+			.height($(window).height() - 60)
+			.update();
+	};
+
+	var updateBreakdownOptions = function(){
+		var container = d3.select('.options');
+		var option = container.selectAll('div').data(breakdownOptions.filter(function(d){return d.visible;}));
+		option.enter()
+			.append('div')
+				.classed('selected',function(d){return d.selected;})
+				.text(function(d){return d.label;})
+				.on('click',function(d){
+					d.selected = !d.selected;
+					d3.select(this).classed('selected', d.selected);
+					updateSunburst();
+				});
+	};
+
+	// var setupData = function(d){
+	// 	// console.log(d)
+	// 	d.forEach(function(row){
+	// 		// console.log(row)
+	// 		// row.divisionKey = row.division;
+	// 		// row.categoryKey = row.category;
+	// 	});
+	// 	return d;
+	// };
+
+	$(document).ready(function(){
+
+		chartLayout
+			.select('.sunburst-chart')
+
+		d3.csv("la_enrollment2.csv", function(d){
+			originalData = d;
+			updateSunburst();
+		});
+
+		updateBreakdownOptions();
+
+		$(window).resize(function(){
+			updateSunburst();
+		});
+
+	});
+</script>
+<style>
+	.breakdown-options{
+		font-family:"Droid Sans";
+		font-weight:bold;
+		padding:10px;
+	}
+	.breakdown-options div{
+		-webkit-transition:background 0.25s, color 0.25s;
+		transition:background 0.25s, color 0.25s;
+
+		cursor:pointer;
+		display:inline-block;
+		padding:5px;
+		margin-right:5px;
+		color:#ccc;
+		background:#333;
+		text-transform: capitalize;
+	}
+	.breakdown-options div:last-child{
+		margin-right:0px;
+	}
+	.breakdown-options div.selected{
+		background:#ccc;
+		color:#333;
+	}
+	.breakdown-options div:hover{
+		color:#888;
+	}
+
+</style>
+
+<body style='margin:0px;'>
+	<div class = 'sunburst-chart'></div>
+
+	<div class = 'breakdown-options'>Breakdown By : <div class = 'options'></div></div>
+</body>
+</html>

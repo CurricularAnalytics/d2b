@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<!-- <script src="//localhost:1337/liverelod2b.js"></script> -->
+<script>
+	function defineCustomCharts(){
+		d2b.CHARTS.customBar = function(){
+
+			//private store
+			var $$ = {};
+
+			//user set width
+			$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+			//user set height
+			$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+			//inner/outer height/width and margin are modified as sections of the chart are drawn
+			$$.innerHeight = $$.height;
+			$$.innerWidth = $$.width;
+			$$.outerHeight = $$.height;
+			$$.outerWidth = $$.width;
+			$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+			//force chart regeneration on next update()
+			$$.generateRequired = true;
+			//d3.selection for chart container
+			$$.selection = d3.select('body');
+			//default animation duration
+			$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+			//color hash to be used
+			$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+			//carries current data set
+			$$.currentChartData = {};
+			//event object
+			$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+
+			$$.guageScale = d3.scale.ordinal();
+
+			/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+			var chart = {};
+
+			//chart setters
+			chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+			chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+			chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+			chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+			chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){});
+
+			chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+			chart.data = function(chartData, reset){
+				if(!arguments.length) return $$.currentChartData;
+				if(reset){
+					$$.currentChartData = {};
+				}
+
+				$$.currentChartData = chartData.data;
+
+				return chart;
+			};
+
+			//chart generate
+			chart.generate = function(callback) {
+				$$.generateRequired = false;
+
+				//init main chart container
+				$$.selection.guages = $$.selection.append('div');
+
+				$$.selection.internalChart = $$.selection.append('div');
+
+				$$.internalChart = new d2b.CHARTS[$$.currentChartData.chart.type]();
+				$$.internalChart.selection($$.selection.internalChart).data($$.currentChartData.chart.data);
+				// if($$.currentChartData.chart.properties){
+				// 	for(key in $$.currentChartData.chart.properties){
+				// 		if($$.currentChartData.chart.properties[key].args)
+				// 			$$.internalChart[key].apply(this, $$.currentChartData.chart.properties[key].args);
+				// 		else
+				// 			$$.internalChart[key]($$.currentChartData.chart.properties[key]);
+				// 	}
+				// }
+
+				//auto update chart
+				var temp = $$.animationDuration;
+				chart
+						.animationDuration(0)
+						.update(callback)
+						.animationDuration(temp);
+
+				return chart;
+			};
+
+			//chart update
+			chart.update = function(callback){
+
+				//if generate required call the generate method
+				if($$.generateRequired){
+					return chart.generate(callback);
+				}
+
+				//init forcedMargin
+				$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+				$$.outerWidth = $$.width;
+				$$.outerHeight = $$.height;
+
+				var domain = [];
+				for(var i=0;i<$$.currentChartData.guages.length;i++){
+					domain.push(i);
+				}
+
+				$$.guageScale
+					.domain(domain)
+					.rangeBands([0, $$.outerWidth]);
+
+
+
+				if($$.outerHeight * 0.25 > $$.guageScale.rangeBand()/2)
+					var guageHeight = $$.guageScale.rangeBand()/2;
+				else
+					var guageHeight = $$.outerHeight * 0.25;
+
+				guageHeight = Math.max(130, guageHeight);
+
+				var internalChartHeight = $$.outerHeight - guageHeight;
+
+
+				//init svg dimensions
+				$$.selection.guages
+					.transition()
+						.duration($$.animationDuration)
+					// .style('background','red')
+						.style('width',$$.outerWidth+'px')
+						.style('height',guageHeight+'px');
+
+				$$.selection.guages.guage = $$.selection.guages.selectAll('div').data($$.currentChartData.guages);
+
+
+
+				$$.selection.guages.guage.enter()
+					.append('div')
+						.each(function(d){
+							this.chart = new d2b.CHARTS.guageChart();
+							this.chart
+									.color($$.color)
+									.select(this);
+						});
+
+				$$.selection.guages.guage
+					.style('position','absolute')
+						.style('left',function(d,i){return $$.guageScale(i) + 'px';})
+						.each(function(d){
+							this.chart
+									.width($$.guageScale.rangeBand())
+									.height(guageHeight)
+									.data({data:{label:d.label, percent:d.percents[0]}})
+									.update();
+						});
+
+
+
+				$$.selection.internalChart
+					.style('position','relative')
+					.transition()
+						.duration($$.animationDuration)
+						.style('width',$$.outerWidth+'px')
+						.style('height',internalChartHeight+'px');
+
+				$$.internalChart
+						.on('elementClick',function(d,i,t){
+							if(t == 'chart-button'){
+								$$.selection.guages.guage
+									.each(function(d){
+										this.chart
+												.width($$.guageScale.rangeBand())
+												.height(guageHeight)
+												.data({data:{label:d.label, percent:d.percents[i]}})
+												.update();
+									});
+							}
+						})
+						.width($$.width)
+						.height(internalChartHeight)
+						.update();
+
+				d3.timer.flush();
+
+				if(callback)
+					callback();
+
+				return chart;
+			};
+
+			return chart;
+		};
+
+	};
+
+	defineCustomCharts();
+
+
+	var data;
+
+	function makeDashboard(){
+
+		var bar = new d2b.CHARTS.customBar();
+
+		bar
+			.width($(window).width())
+			.height($(window).height())
+			.select('.dashboard')
+			.data(
+				data
+			)//.update();
+
+		var dashboard = new d2b.DASHBOARDS.dashboard();
+
+		dashboard
+				// .animationDuration(0)
+				.palette({primary:"rgb(193,0,55)",secondary:"rgb(94,93,96)"})
+				.width($(window).width())
+				.select('.dashboard');
+
+		d3.json('./simple-dashboard.json',function(data){
+			dashboard.data(data).update();
+		});
+
+		$(window).resize(function(){
+			dashboard
+				.width($(window).width())
+					.update();
+		});
+
+	}
+
+	$(document).ready(function(){
+
+		d3.json("simple-dashboard.json", function(error, json) {
+		  if (error) return console.warn(error);
+		  data = json;
+			makeDashboard();
+		});
+
+	})
+</script>
+<style>
+.dashboard{
+/*	padding:10px;*/
+	height:100%;
+}
+body{
+	margin:0px;
+	background-image:url(./images/noisy_grid.png);
+	/*background-image: radial-gradient(farthest-side ellipse at 10% 0, rgba(74,121,147,0.89),rgba(204,204,204,0.85) 80%,rgba(185,135,131,0.87) 120%);
+  background-image: -webkit-radial-gradient(10% 0, farthest-side ellipse, rgba(74,121,147,0.89), rgba(204,204,204,0.85) 80%, rgba(185,135,131,0.87) 120%);
+  background-image: -moz-radial-gradient(10% 0, farthest-side ellipse, rgba(74,121,147,0.89), rgba(204,204,204,0.85) 80%, rgba(185,135,131,0.87) 120%);*/
+}
+</style>
+<body>
+	<div class = 'dashboard'></div>
+</body>
+</html>

@@ -43,18 +43,20 @@ d2b.UTILS.chartPage = function(){
 					d2b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
 					this.chart = d.chart.chart;
 					this.chartLayout = d.chart.chartLayout;
+
 					this.chartLayout
 						.select(this)
 						.width($$.width*d.width)
 						.height(d.height)
-						.animationDuration(0)
-						.update(d.chart.chartLayoutData.chartCallback);
+						.animationDuration(0);
+						// .update(d.chart.chartLayoutData.chartCallback);
 				});
 
 		chartLayout
 				.each(function(d){
 					this.chart
 						.data(d.chart.properties.data);
+            // console.log(d.chart.type)
 					this.chartLayout
 						.animationDuration($$.animationDuration)
 						.width($$.width*d.width)
@@ -186,7 +188,8 @@ d2b.UTILS.chartPage = function(){
       postData.pageName = $$.currentData.name;
 
       if($$.currentData.url){
-					var my_request = d3.xhr($$.currentData.url)
+
+					var my_request = d3.xhr($$.currentData.url+".json")
 					my_request.post(JSON.stringify(postData), function(error,received){
 						var data = JSON.parse(received.response);
 						if(data.charts)

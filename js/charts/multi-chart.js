@@ -223,10 +223,11 @@ d2b.CHARTS.multiChart = function(){
 		if(useDefault)
 			current.chart = chartData.data.charts[0];
 
-		generateRequired = true;
+		// generateRequired = true;
 		currentChartData = chartData.data;
 
 		currentChartData.charts.forEach(function(d){
+			// if(d.)
 			d.chart = new d2b.CHARTS[d.type]();
 		});
 

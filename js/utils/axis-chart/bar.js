@@ -110,7 +110,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       var newBar = bar.enter()
         .append('rect')
         .style('fill', $$.color(graphData.label))
-        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);}, function(d){return d;})
 				.call(d2b.UTILS.bindElementEvents, $$, 'bar');
 
       if($$.controlsData.stackBars.enabled){
@@ -154,11 +154,22 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 				var spacing = Math.min(1,($$.groupScale.rangeBand()*0.1));
 
+				//position/size grouped bars if the center flag is asserted allow bar to span the whole rangeBand
         bar
           .transition()
             .duration($$.animationDuration)
-            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+spacing;})
-            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);})
+            .attr('x',function(d){
+							var x = $$.x.customScale(d.x) - $$.x.rangeBand/2;
+							if(!d.center)
+								x += $$.groupScale(graphData.label)+spacing;
+							return x;
+						})
+            .attr('width',function(d){
+							if(!d.center)
+								return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);
+							else
+								return $$.x.rangeBand;
+						})
             .attr('y', function(d){return $$.y.customBarScale(d.y).y;})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 

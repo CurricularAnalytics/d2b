@@ -135,18 +135,20 @@ d2b.UTILS.chartPage = function(){
 					d2b.UTILS.chartLayoutAdapter(d.chart.type, d.chart);
 					this.chart = d.chart.chart;
 					this.chartLayout = d.chart.chartLayout;
+
 					this.chartLayout
 						.select(this)
 						.width($$.width*d.width)
 						.height(d.height)
-						.animationDuration(0)
-						.update(d.chart.chartLayoutData.chartCallback);
+						.animationDuration(0);
+						// .update(d.chart.chartLayoutData.chartCallback);
 				});
 
 		chartLayout
 				.each(function(d){
 					this.chart
 						.data(d.chart.properties.data);
+            // console.log(d.chart.type)
 					this.chartLayout
 						.animationDuration($$.animationDuration)
 						.width($$.width*d.width)
@@ -278,7 +280,8 @@ d2b.UTILS.chartPage = function(){
       postData.pageName = $$.currentData.name;
 
       if($$.currentData.url){
-					var my_request = d3.xhr($$.currentData.url)
+
+					var my_request = d3.xhr($$.currentData.url+".json")
 					my_request.post(JSON.stringify(postData), function(error,received){
 						var data = JSON.parse(received.response);
 						if(data.charts)
@@ -362,6 +365,7 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 	chartLayout.animationDuration = function(value){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
+		chart.animationDuration(animationDuration);
 		return chartLayout;
 	};
 
@@ -474,8 +478,10 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 		if(!chart)
 			return console.warn('chartLayout was not given a chart');
 
-		if(generateRequired)
-			chartLayout.generate(callback);
+		if(generateRequired){
+			return chartLayout.generate(callback);
+		}
+
 		var chartMargin = {
 			top:10,bottom:0,left:0,right:0
 		};
@@ -1695,20 +1701,34 @@ Function.prototype.clone = function(){
 	return temp;
 }
 
+/*bring to front*/
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
+
+/*non destructive reverse*/
+Array.prototype._reverse = function(){
+	var tmp = [];
+	Array.prototype.push.apply(tmp, this)
+	return tmp.reverse();
+};
+
 /*tooltop utilities*/
 
 /*Bind Tooltip Events*/
-d2b.UTILS.tooltip = function(element, heading, content){
+d2b.UTILS.tooltip = function(element, heading, content, d){
 	element
 			.on('mouseover.d2b-mouseover-tooltip',function(d,i){
-				d2b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
+				d2b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i),d);
 			})
 			.on('mouseout.d2b-mouseout-tooltip',function(d,i){
 				d2b.UTILS.removeTooltip();
 			});
 };
 
-d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
+d2b.UTILS.createGeneralTooltip = function(elem, heading, content, d){
 	var body = d3.select('body');
 	var adGeneralTooltip = body.append('div')
 			.attr('class','d2b-general-tooltip')
@@ -1719,10 +1739,17 @@ d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
 		.transition()
 			.duration(50)
 			.style('opacity',1);
+
+	if(d && d.tooltipContent){
+		adGeneralTooltip.append('div')
+			.attr('class','d2b-general-tooltip-extras')
+			.html(d.tooltipContent);
+	}
+
 	var scroll = d2b.UTILS.scrollOffset();
 
 	var bodyWidth = body.node().getBoundingClientRect().width;
-	
+
 	var pos = {left:0,top:0};
 
 	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
@@ -1896,7 +1923,7 @@ d2b.UTILS.textWrap = function(text, width) {
         lineNumber = 0,
         lineHeight = 1.1, // ems
         y = text.attr("y"),
-        dy = parseFloat(text.attr("dy")),
+        dy = parseFloat(text.attr("dy")) || 0,
         tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
     while (word = words.pop()) {
       line.push(word);
@@ -2815,19 +2842,19 @@ d2b.CHARTS.sunburstChart = function(){
 	$$.arcMouseover = function(d) {
 
 		var sequence = $$.getAncestors(d);
-
+		//use a css class transition rather than javascript transition for performance benefit with large amounts of nodes
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) >= 0);
-	              })
-			.transition()
-				.duration($$.animationDuration/7)
-				.style('opacity',1)
+	              }).classed('d2b-transparent',false);
+		// 	.transition()
+		// 		.duration($$.animationDuration/7)
+		// 		.style('opacity',1)
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) < 0);
-	              })
-			.transition()
-				.duration($$.animationDuration/7)
-				.style('opacity',0.4)
+	              }).classed('d2b-transparent',true);
+			// .transition()
+			// 	.duration($$.animationDuration/7)
+			// 	.style('opacity',0.4)
 
 		$$.updateBreadcrumbs(sequence);
 
@@ -2846,10 +2873,10 @@ d2b.CHARTS.sunburstChart = function(){
 	//on sunburst mouseout reset breadcrumbs, tooltip, and arc highlighting
 	$$.sunburstMouseout = function(d) {
 		$$.resetBreadcrumbs();
-	  $$.selection.arcs.arc
-			.transition()
-				.duration($$.animationDuration/5)
-				.style('opacity',1);
+	  $$.selection.arcs.arc.classed('d2b-transparent',false)
+			// .transition()
+			// 	.duration($$.animationDuration/5)
+			// 	.style('opacity',1);
 
 		$$.resetSunburstTooltip();
 	};
@@ -3069,11 +3096,12 @@ d2b.CHARTS.sunburstChart = function(){
 
 	//save children indicies recursively for sorting/unsorting
 	$$.saveIndicies = function(node){
+		var i = 0;
 		if(node.children){
-			node.children.forEach(function(d,i){
-				d.index = i;
-				$$.saveIndicies(d);
-			});
+			for(i=0;i<node.children.length;i++){
+				node.children[i].index = i;
+				$$.saveIndicies(node.children[i]);
+			}
 		}
 	};
 
@@ -3208,17 +3236,17 @@ d2b.CHARTS.sunburstChart = function(){
 
 		//update controls viz
 		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
-
+		
 		$$.selection.breadcrumbs
 			.transition()
 				.duration($$.animationDuration)
-				.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+				.attr('transform','translate('+$$.forcedMargin.left+','+0+')');
 
 		//reposition the controls
 		$$.selection.controls
 			.transition()
 				.duration($$.animationDuration)
-				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+($$.forcedMargin.top)+')');
+				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+0+')');
 
 		$$.breadcrumbs.width($$.innerWidth).update();
 		// $$.forcedMargin.top += Math.max($$.breadcrumbs.computedHeight(), $$.controls.computedHeight());
@@ -3243,7 +3271,7 @@ d2b.CHARTS.sunburstChart = function(){
 			$$.y.parents.range([$$.radius.outer, $$.radius.outer - 0.13 * ($$.radius.outer - $$.radius.inner)]);
 		}
 
-		$$.selection.arcs.arc = $$.selection.arcs.selectAll("g.sunburst-arc")
+		$$.selection.arcs.arc = $$.selection.arcs.selectAll("g.d2b-sunburst-arc")
 		    .data($$.partitionData,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -3254,7 +3282,7 @@ d2b.CHARTS.sunburstChart = function(){
 					})
 		// sunburst_mouseout();
 		var newArcs =	$$.selection.arcs.arc.enter().append("g")
-			.attr('class','sunburst-arc')
+			.attr('class','d2b-sunburst-arc')
 			.style('opacity',0)
 			.call(d2b.UTILS.bindElementEvents, $$, 'arc');
 
@@ -3264,7 +3292,7 @@ d2b.CHARTS.sunburstChart = function(){
 		$$.selection.arcs.arc
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',1);
+				.style('opacity','');
 
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
@@ -3277,6 +3305,7 @@ d2b.CHARTS.sunburstChart = function(){
 		$$.updateArcs();
 
 		$$.resetSunburstTooltip();
+
 
 		d3.timer.flush();
 
@@ -4191,7 +4220,7 @@ d2b.CHARTS.bubbleChart = function(){
 		if(generateRequired){
 			return chart.generate(callback);
 		}
-
+		
 		selection.svg
 				.attr('width',width)
 				.attr('height',svgHeight);
@@ -4451,13 +4480,13 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.foreground.type.graph.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class', 'd2b-axis-chart-foreground-graph')
-				.each(function(graph){
-					$$.persistentChartData[graph.type][graph.label].foreground = d3.select(this);
-				});
+				.attr('class', 'd2b-axis-chart-foreground-graph');
 
 		//save the foreground in data for use with the legend events
 		$$.selection.types.foreground.type.graph
+				.each(function(graph){
+					$$.persistentChartData[graph.type][graph.label].foreground = d3.select(this);
+				})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);
@@ -4523,13 +4552,13 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.background.type.graph.enter()
 			.append('g')
 				.attr('class', 'd2b-axis-chart-background-graph')
-				.style('opacity',0)
-				.each(function(graph){
-					$$.persistentChartData[graph.type][graph.label].background = d3.select(this);
-				});
+				.style('opacity',0);
 
 		//save the background in data for use with the legend events
 		$$.selection.types.background.type.graph
+				.each(function(graph){
+					$$.persistentChartData[graph.type][graph.label].background = d3.select(this);
+				})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);
@@ -5064,6 +5093,7 @@ d2b.CHARTS.axisChart = function(){
 		};
 
 		$$.legend.on('elementMouseover',function(d){
+
 			var background = $$.persistentChartData[d.type][d.label].background;
 			var foreground = $$.persistentChartData[d.type][d.label].foreground;
 
@@ -5131,7 +5161,12 @@ d2b.CHARTS.axisChart = function(){
 			chart.update();
 		})
 		.on('elementDblClick', function(d){
-			resetHidden();
+			$$.currentChartData.types.forEach(function(type){
+				type.graphs.forEach(function(graph){
+					$$.persistentChartData[graph.type][graph.label].hide = graph.label != d.label;
+				});
+			});
+
 			chart.update();
 		});
 
@@ -5152,7 +5187,7 @@ d2b.CHARTS.axisChart = function(){
 		if($$.generateRequired){
 			return chart.generate(callback);
 		}
-
+		
 		//init forcedMargin
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
@@ -6081,8 +6116,10 @@ d2b.CHARTS.pieChart = function(){
 					chart.update();
 				})
 				.on('elementDblClick',function(d){
-					for(var key in $$.persistentData.hiddenArcs)
-						$$.persistentData.hiddenArcs[key] = false;
+					//on legend dbl click hide all but clicked arc
+					$$.currentChartData.values.forEach(function(d2){
+						$$.persistentData.hiddenArcs[d2.key] = d2.key != d.key;
+					})
 					chart.update();
 				});
 
@@ -6313,7 +6350,11 @@ d2b.CHARTS.guageChart = function(){
 
 
 		var radius = {
-					current:{outer:Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2},
+					current:{
+										outer:($$.currentChartData.label)?
+											Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2 :
+											Math.min($$.outerHeight * 2, $$.outerWidth)/2
+									},
 					previous:{inner:$$.arc.innerRadius(),outer:$$.arc.outerRadius()}
 				};
 		radius.current.inner = 0.8 * radius.current.outer;
@@ -6855,10 +6896,11 @@ d2b.CHARTS.multiChart = function(){
 		if(useDefault)
 			current.chart = chartData.data.charts[0];
 
-		generateRequired = true;
+		// generateRequired = true;
 		currentChartData = chartData.data;
 
 		currentChartData.charts.forEach(function(d){
+			// if(d.)
 			d.chart = new d2b.CHARTS[d.type]();
 		});
 
@@ -7181,7 +7223,6 @@ d2b.CHARTS.factChart = function(){
 	};
 
 	$$.showMainFacts = function(){
-
 		$$.selection.subFacts
 			.style('pointer-events','none')
 				.selectAll('*')
@@ -7425,12 +7466,11 @@ d2b.CHARTS.factChart = function(){
 
 	//chart update
 	chart.update = function(callback){
-
 		//if generate required call the generate method
 		if($$.generateRequired){
 			return chart.generate(callback);
 		}
-
+		// console.log('hi')
 		//init forcedMargin
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
@@ -7834,6 +7874,361 @@ d2b.CHARTS.tableChart = function(){
 	return chart;
 };
 
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*fact chart*/
+d2b.CHARTS.funnelChart = function(){
+
+	//private store
+	var $$ = {};
+
+	//user set width
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+
+	$$.coneHeight = d3.scale.linear();
+	$$.coneCurve = 15;
+	$$.heightCoeff = 0.9;
+
+	$$.funnel = function(){
+
+		$$.coneHeight
+			.range([0, $$.innerHeight*$$.heightCoeff])
+			.domain([0, d3.sum($$.currentChartData.values,function(d){return d.value;})]);
+		var coneTopMaxWidth = $$.innerWidth;
+		var coneBottomMinWidth = $$.innerWidth/4;
+		var pinchCoeff = (coneTopMaxWidth - coneBottomMinWidth)/($$.innerHeight*$$.heightCoeff);
+
+		var currentConeWidth = coneTopMaxWidth;
+		var currentY = 0;
+
+		$$.currentChartData.values.forEach(function(d){
+
+			var height = $$.coneHeight(d.value);
+			var topWidth = currentConeWidth;
+			if(d.pinched){
+				currentConeWidth -= height*pinchCoeff
+			}
+			var bottomWidth = currentConeWidth;
+
+			var x = {
+				start:$$.innerWidth/2-topWidth/2,
+				end:$$.innerWidth/2+topWidth/2,
+				mid:$$.innerWidth/2
+			};
+			d.top = "M"+x.start+",0 Q"+x.mid+","+$$.coneCurve+" "+x.end+",0 M"+x.end+",0 Q"+x.mid+","+-$$.coneCurve+" "+x.start+",0";
+
+			x = {
+				start:$$.innerWidth/2-bottomWidth/2,
+				end:$$.innerWidth/2+bottomWidth/2,
+				mid:$$.innerWidth/2
+			};
+			d.bottom = "M"+x.start+","+height+" Q"+x.mid+","+(height+$$.coneCurve)+" "+x.end+","+height+" M"+x.end+","+height+" Q"+x.mid+","+(height-$$.coneCurve)+" "+x.start+","+height;
+
+			d.center = ($$.innerWidth/2-topWidth/2)+","+0+" "+
+								 ($$.innerWidth/2-bottomWidth/2)+","+height+" "+
+								 ($$.innerWidth/2+bottomWidth/2)+","+height+" "+
+								 ($$.innerWidth/2+topWidth/2)+","+0+" ";
+
+			d.y = currentY;
+			d.height = height;
+			d.width = bottomWidth;
+			currentY += height;
+		});
+
+		return $$.currentChartData.values;
+	};
+
+	$$.showText = function(d){
+// console.log(this)
+		this.select('.d2b-cone-note-group')
+				.style('opacity',0)
+				.attr('transform',function(d){return 'translate('+$$.innerWidth/2+','+(d.height)+')';})
+		this.select('.d2b-cone-text-group')
+				.style('opacity',1)
+				.attr('transform',function(d){return 'translate('+$$.innerWidth/2+','+(d.height/2 + $$.coneCurve - 15)+')';})
+	};
+
+	$$.showNote = function(d){
+			this.select('.d2b-cone-note-group')
+					.style('opacity',1)
+					.attr('transform',function(d){return 'translate('+$$.innerWidth/2+','+($$.coneCurve*1.5 + (d.height-d.noteHeight)/2)+')';})
+			this.select('.d2b-cone-text-group')
+					.style('opacity',0)
+					.attr('transform',function(d){return 'translate('+$$.innerWidth/2+','+(0)+')';})
+	};
+
+	$$.coneMouseover = function(d){
+		var _self = this;
+		var coneFound = false;
+		var mouseoverPadding = 20;
+		$$.selection.funnel.cone.each(function(){
+			var transition = d3.select(this)
+					.transition()
+						.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short*2)
+			if(this == _self){
+				transition
+						.attr('transform',function(d){return 'translate(0,'+(d.y)+')';})
+						.call($$.showNote);
+				coneFound = true;
+			}else if(!coneFound){
+				transition
+						.attr('transform',function(d){return 'translate(0,'+(d.y+mouseoverPadding)+')';});
+			}else{
+				transition
+						.attr('transform',function(d){return 'translate(0,'+(d.y-mouseoverPadding)+')';});
+			}
+		})
+	};
+
+	$$.coneMouseout = function(d){
+		$$.selection.funnel.cone
+			.transition()
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short*2)
+				.call($$.showText)
+				.attr('transform',function(d){return 'translate(0,'+(d.y)+')';});
+	};
+
+	$$.enterCones = function(){
+		var newCone = $$.selection.funnel.cone.enter()
+			.append('g')
+				.attr('class','d2b-cone')
+				.style('opacity',0)
+				.on('mouseout.d2b-mouseout',$$.coneMouseout)
+				.on('mouseover.d2b-mouseover',$$.coneMouseover);
+
+		newCone
+			.append('path')
+				.attr('class','d2b-cone-bottom');
+		newCone
+			.append('polygon')
+				.attr('class','d2b-cone-center');
+		newCone
+			.append('path')
+				.attr('class','d2b-cone-top');
+
+		var newConeNoteGroup = newCone
+			.append('g')
+				.attr('class','d2b-cone-note-group');
+
+		var newConeNote = newConeNoteGroup
+			.append('text')
+				.attr('class','d2b-cone-note');
+
+		var newConeTextGroup = newCone
+			.append('g')
+				.attr('class','d2b-cone-text-group');
+
+		var newConeText = newConeTextGroup
+			.append('text')
+				.attr('class','d2b-cone-text');
+
+		newConeText
+			.append('tspan')
+				.attr('class','d2b-cone-label');
+
+		newConeText
+			.append('tspan')
+				.attr('class','d2b-cone-value')
+				.attr('x',0)
+				.attr('y',20);
+
+		$$.selection.funnel.cone.bottom = $$.selection.funnel.cone.select('.d2b-cone-bottom');
+		$$.selection.funnel.cone.top = $$.selection.funnel.cone.select('.d2b-cone-top');
+		$$.selection.funnel.cone.center = $$.selection.funnel.cone.select('.d2b-cone-center');
+		$$.selection.funnel.cone.textGroup = $$.selection.funnel.cone.select('.d2b-cone-text-group');
+		$$.selection.funnel.cone.text = $$.selection.funnel.cone.select('.d2b-cone-text');
+		$$.selection.funnel.cone.label = $$.selection.funnel.cone.select('.d2b-cone-label');
+		$$.selection.funnel.cone.value = $$.selection.funnel.cone.select('.d2b-cone-value');
+		$$.selection.funnel.cone.noteGroup = $$.selection.funnel.cone.select('.d2b-cone-note-group');
+		$$.selection.funnel.cone.note = $$.selection.funnel.cone.select('.d2b-cone-note');
+
+		if(newCone.size()){
+			$$.selection.funnel.cone.each(function(){
+				this.parentNode.appendChild(this);
+			});
+		}
+
+	};
+
+	$$.updateCones = function(){
+
+		$$.selection.funnel.transition()
+			.duration($$.animationDuration)
+				.attr('transform',function(){return 'translate(0,'+$$.innerHeight*(1-$$.heightCoeff)/2+')';});
+
+		var coneTransition = $$.selection.funnel.cone
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform',function(d){return 'translate(0,'+d.y+')';})
+				.style('opacity',1)
+				.call($$.showText);
+
+		// coneTransition.select('.d2b-cone-note-group')
+		// 		.attr('transform',function(d){return 'translate('+$$.innerWidth/2+','+($$.coneCurve*1.5)+')';})
+		$$.selection.funnel.cone.note
+				.attr('dy',0)
+				.attr('y',0)
+				.text(function(d){return d.note;})
+				.each(function(d){
+					d3.select(this)
+						.call(d2b.UTILS.textWrap, d.width-10);
+					d.noteHeight = this.getBBox().height;
+				})
+
+		// coneTransition.select('.d2b-cone-text-group')
+		// 		.attr('transform',function(d){return 'translate('+$$.innerWidth/2+','+(d.height/2 + $$.coneCurve - 15)+')';})
+		coneTransition.select('.d2b-cone-label')
+				.text(function(d){return d.label;});
+		coneTransition.select('.d2b-cone-value')
+				.text(function(d){return $$.xFormat(d.value);});
+
+		coneTransition.select('.d2b-cone-bottom')
+				.attr('d',function(d){return d.bottom;})
+				.style('fill',function(d){return $$.color(d.label);});
+
+		coneTransition.select('.d2b-cone-center')
+				.attr('points',function(d){return d.center;})
+				.style('fill',function(d){return $$.color(d.label);});
+
+		coneTransition.select('.d2b-cone-top')
+				.attr('d',function(d){return d.top;})
+				.style('fill',function(d){return d3.rgb($$.color(d.label)).darker(1.2);});
+	};
+
+	$$.exitCones = function(){
+		$$.selection.funnel.cone.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+	};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.coneCurve = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'coneCurve');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return $$.currentChartData;
+		if(reset){
+			$$.currentChartData = {};
+		}
+
+		$$.currentChartData = chartData.data;
+
+		return chart;
+	};
+
+	//chart generate
+	chart.generate = function(callback) {
+		$$.generateRequired = false;
+
+		//clean container
+	  $$.selection.selectAll('*').remove();
+
+	  //create svg
+	  $$.selection.svg = $$.selection
+	    .append('svg')
+	      .attr('class','d2b-svg d2b-container')
+
+	  //create group container
+	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	  $$.selection.group = $$.selection.svg.append('g')
+	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+
+		//init main chart container
+		$$.selection.main = $$.selection.group
+			.append('g')
+				.attr('class','d2b-funnel-chart');
+
+		$$.selection.funnel = $$.selection.main
+			.append('g')
+				.attr('class','d2b-funnel');
+
+		//auto update chart
+		var temp = $$.animationDuration;
+		chart
+				.animationDuration(0)
+				.update(callback)
+				.animationDuration(temp);
+
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+
+		//if generate required call the generate method
+		if($$.generateRequired){
+			return chart.generate(callback);
+		}
+
+		//init forcedMargin
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
+
+		//init svg dimensions
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
+
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+		$$.selection.funnel.cone = $$.selection.funnel.selectAll('g.d2b-cone').data($$.funnel($$.currentChartData.values)._reverse(),function(d,i){
+			if(d.key == 'unique')
+				return Math.floor((1 + Math.random()) * 0x10000);
+			else if(d.key && d.key != 'auto')
+				return d.key;
+			else
+				return d.label;
+		});
+
+		$$.enterCones();
+		$$.updateCones();
+		$$.exitCones();
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
 d2b.UTILS.AXISCHART.scatter = function(){
   
 };
@@ -7950,7 +8345,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       var newBar = bar.enter()
         .append('rect')
         .style('fill', $$.color(graphData.label))
-        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);}, function(d){return d;})
 				.call(d2b.UTILS.bindElementEvents, $$, 'bar');
 
       if($$.controlsData.stackBars.enabled){
@@ -7994,11 +8389,22 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 				var spacing = Math.min(1,($$.groupScale.rangeBand()*0.1));
 
+				//position/size grouped bars if the center flag is asserted allow bar to span the whole rangeBand
         bar
           .transition()
             .duration($$.animationDuration)
-            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2 + $$.groupScale(graphData.label)+spacing;})
-            .attr('width',function(d){return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);})
+            .attr('x',function(d){
+							var x = $$.x.customScale(d.x) - $$.x.rangeBand/2;
+							if(!d.center)
+								x += $$.groupScale(graphData.label)+spacing;
+							return x;
+						})
+            .attr('width',function(d){
+							if(!d.center)
+								return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);
+							else
+								return $$.x.rangeBand;
+						})
             .attr('y', function(d){return $$.y.customBarScale(d.y).y;})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
@@ -9365,6 +9771,7 @@ d2b.DASHBOARDS.dashboard = function(){
 		dashboardCategory
 				.animateFrom('right')
 				.data({data:current.category});
+		resized = true;
 		return dashboard.update();
 	};
 
@@ -9437,7 +9844,7 @@ d2b.DASHBOARDS.dashboard = function(){
 	//generate chart
 	dashboard.generate = function(callback) {
 		generateRequired = false;
-
+		// resized = false;
 		//clean container
 		selection.selectAll('*').remove();
 
@@ -9525,6 +9932,7 @@ d2b.DASHBOARDS.dashboard = function(){
 
 		controls.selection(selection.container.sidebar.filters)
 			.on('change',function(d){
+				resized = true;
 				dashboard.update();
 			});
 
@@ -9543,7 +9951,7 @@ d2b.DASHBOARDS.dashboard = function(){
 		dashboardCategory
 			.selection(selection.container.content.dashboardCategory)
 			.on('pageChange.d2b-page-change',function(pageData, iOld, iNew){
-
+// console.log('page change!')
 				var temp = controlsHidden;
 				if(!pageData.controls)
 					pageData.controls = [];
@@ -9564,6 +9972,7 @@ d2b.DASHBOARDS.dashboard = function(){
 					animateFrom = 'right';
 				else if(iNew < iOld)
 					animateFrom = 'left';
+				// console.log('hi')
 				chartPage
 					.selection(dashboardCategory.chartPageSelection())
 					.data(pageData)
@@ -9586,12 +9995,12 @@ d2b.DASHBOARDS.dashboard = function(){
 
 	//update chart
 	dashboard.update = function(callback){
-
 		//if generate required call the generate method
 		if(generateRequired){
 			return dashboard.generate(callback);
 		}
 
+		//if home, make home button innactive: else setup home button
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
 					.classed('d2b-innactive',true)
@@ -9604,6 +10013,7 @@ d2b.DASHBOARDS.dashboard = function(){
 					});
 		}
 
+		//if at the end of navigationHistory make right arrow innactive: else setup right arrow
 		if(navigationHistory.position+1 == navigationHistory.array.length){
 			selection.container.header.navigation.arrows.right
 					.classed('d2b-innactive',true)
@@ -9612,6 +10022,7 @@ d2b.DASHBOARDS.dashboard = function(){
 			selection.container.header.navigation.arrows.right
 					.classed('d2b-innactive',false)
 					.on('click.d2b-click',function(){
+						resized = true;
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
@@ -9622,6 +10033,7 @@ d2b.DASHBOARDS.dashboard = function(){
 					});
 		}
 
+		//if at the beginning of navigationHistory make left arrow innactive: else setup left arrow
 		if(navigationHistory.position == 0){
 			selection.container.header.navigation.arrows.left
 					.classed('d2b-innactive',true)
@@ -9630,6 +10042,7 @@ d2b.DASHBOARDS.dashboard = function(){
 			selection.container.header.navigation.arrows.left
 					.classed('d2b-innactive',false)
 					.on('click.d2b-click',function(){
+						resized = true;
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
@@ -9640,15 +10053,18 @@ d2b.DASHBOARDS.dashboard = function(){
 					});
 		}
 
+		//set container width
 		selection.container
 			.transition()
 				.delay(animationDuration)
 				.duration(animationDuration)
 				.style('width', width+'px');
 
+		//update tabs and breadcrumbs
 		updateCategoryTabs();
 		updateBreadcrumbs();
 
+		//if there are no section/sectionGroups hide navigation: else show it
 		if(current.section.sections.length == 0 && current.section.sectionGroups.length == 0){
 			navigationHidden = true;
 			selection.container.sidebar.sectionNav
@@ -9660,9 +10076,11 @@ d2b.DASHBOARDS.dashboard = function(){
 				.style('display','block');
 		}
 
+		//update subSections and subSectionGroups
 		updateSubSections();
 		updateSubSectionGroups();
 
+		//if no controls and navigation hidden, resize container content
 		if(controlsHidden && navigationHidden){
 			pageMargin = 10;
 		}else{
@@ -9679,14 +10097,18 @@ d2b.DASHBOARDS.dashboard = function(){
 				.duration(animationDuration)
 				.style('margin-left', pageMargin - 10 + 'px');
 
-		dashboardCategory
-			.width(pageWidth)
-			.update()
-			.animateFrom(null);
-
-		chartPage
-			.width(pageWidth)
-			.update();
+		//if the dashboard has been resized update the dashboardCategory and chartPage
+		if(resized){
+			// console.log('hi2')
+			resized = false;
+			dashboardCategory
+				.width(pageWidth)
+				.update()
+				.animateFrom(null);
+			chartPage
+				.width(pageWidth)
+				.update();
+		}
 
 		d3.timer.flush();
 

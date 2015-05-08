@@ -1,0 +1,43 @@
+division,category,degree,status,male,female
+,Associate of Applied Science,Accounting,Full-Time,3,1
+,Associate of Applied Science,Accounting,Part-Time,0,2
+,Associate of Applied Science,Applied Technologies,Full-Time,3,1
+,Associate of Applied Science,Applied Technologies,Part-Time,2,0
+,Associate of Applied Science,Business,Full-Time,4,4
+,Associate of Applied Science,Business,Part-Time,1,3
+,Associate of Applied Science,Computer Science,Full-Time,0,0
+,Associate of Applied Science,Computer Science,Part-Time,2,2
+,Associate of Applied Science,Fire Science,Full-Time,5,0
+,Associate of Applied Science,Fire Science,Part-Time,5,0
+,Associate of Applied Science,General Studies,Full-Time,8,5
+,Associate of Applied Science,General Studies,Part-Time,2,4
+,Associate of Applied Science,Info Tech with Cybersecurity,Full-Time,4,0
+,Associate of Applied Science,Info Tech with Cybersecurity,Part-Time,3,0
+,Associate of Applied Science,Robotics,Full-Time,4,0
+,Associate of Applied Science,Robotics,Part-Time,2,0
+,Associate of Applied Science,Web Technologies,Full-Time,0,0
+,Associate of Applied Science,Web Technologies,Part-Time,0,2
+,Associate of Arts,Art Studio,Full-Time,0,0
+,Associate of Arts,Art Studio,Part-Time,0,4
+,Associate of Arts,Liberal Art,Full-Time,13,17
+,Associate of Arts,Liberal Art,Part-Time,7,11
+,Associate of Arts,Pre-Business Administration,Full-Time,4,3
+,Associate of Arts,Pre-Business Administration,Part-Time,4,7
+,Associate of Science,Computer Science,Full-Time,6,0
+,Associate of Science,Computer Science,Part-Time,5,0
+,Associate of Science,Emergency Medical Services,Full-Time,2,1
+,Associate of Science,Emergency Medical Services,Part-Time,2,1
+,Associate of Science,Environmental Science,Full-Time,2,2
+,Associate of Science,Environmental Science,Part-Time,2,0
+,Associate of Science,Pre-Engineering,Full-Time,13,6
+,Associate of Science,Pre-Engineering,Part-Time,12,4
+,Associate of Science,Pre-Prof Health Sciences,Full-Time,6,15
+,Associate of Science,Pre-Prof Health Sciences,Part-Time,2,7
+,Associate of Science,Science,Full-Time,3,2
+,Associate of Science,Science,Part-Time,1,3
+,Certificate,Electro-Mechanical Technology,Full-Time,1,1
+,Certificate,Electro-Mechanical Technology,Part-Time,0,0
+,Certificate,Solar Technology,Full-Time,0,1
+,Certificate,Solar Technology,Part-Time,0,0
+Non-Degree and Other UNM Campuses,,,Full-Time,85,169
+Non-Degree and Other UNM Campuses,,,Part-Time,231,284

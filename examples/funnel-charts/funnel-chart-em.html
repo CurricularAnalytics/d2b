@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		var data = {
+			data:{
+				values:[
+					{key:'Freshmen', label:'Applicants',value:11410, pinched:true, note:'This class comprises 1.1% more applicants than the previous academic year.'},
+					{key:'Sophomores', label:'Admits',value:7288, pinched:true, note:'This class has an admission rate of 63.4%.'},
+					{key:'Juniors', label:'Enrollees',value:3341, pinched:false, note:'This class has a yield rate of 30.3%.'}
+				]
+			}
+		}
+
+		var funnelChart = new d2b.CHARTS.funnelChart();
+
+		funnelChart
+			.coneCurve(15)
+			.data(data)
+			.xFormat({separateThousands:true})
+
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+		chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.chart(funnelChart)
+				.select('.funnel-chart');
+
+		var chartLayoutData = {
+			"data":
+			{
+				"chartLayout":{
+					"title":"Beginning Freshman Applicants, Admits, and Enrollees",
+					"titleAlt":"Academic Year 2013-14"
+				}
+			}
+		};
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'funnel-chart'></div>
+</body>
+</html>

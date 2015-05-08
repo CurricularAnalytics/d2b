@@ -1,6 +1,11 @@
 .d2b-pointer-element{
 	cursor:pointer;
 }
+
+.d2b-chart-layout-wrapper{
+	position:relative;
+}
+
 .d2b-chart-layout{
 	color:$dark_main;
 	font-size:11pt;

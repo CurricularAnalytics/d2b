@@ -13,6 +13,27 @@
 			}
 		}
 
+		.d2b-sunburst-arc{
+		// 	path{
+		// 		fill-opacity:0.9;
+		// 		stroke:white;
+		// 		stroke-width:1;
+		// 		-webkit-transition: fill-opacity 0.25s;
+		// 			transition: fill-opacity 0.25s;
+		// 		&:hover{
+		// 			fill-opacity:1;
+		// 			stroke:white;
+		// 		}
+		// 	}
+
+			&.d2b-transparent path{
+				fill-opacity:0.4;
+				stroke:white;
+				stroke-width:1;
+				-webkit-transition: fill-opacity 0.25s;
+					transition: fill-opacity 0.25s;
+			}
+		}
 	}
 }
 .d2b-sunburst-tooltip{

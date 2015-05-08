@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
+<script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script>
+
+<!-- <script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" /> -->
+
+<script>
+
+	var breakdownOptions = [
+		{label:'Non/Other Division', column:'division', top:true, selected:true, visible:true},
+		{label:'Non/Other Category', column:'other_category', top:true, selected:true, visible:true},
+		{label:'Category', column:'category', top:true, selected:true, visible:true},
+		{label:'Degree', column:'degree', top:false, selected:true, visible:true},
+		{label:'Status', column:'status', top:false, selected:true, visible:true},
+		{label:'Gender', column:'gender', top:true, selected:true}
+	];
+
+	var showOptions = [
+		{label:'Non-Degree and Other UNM Campuses', selected:true, visible:true},
+		{label:'Los Alamos Main', selected:true, visible:true}
+	];
+
+	var data, originalData;
+	var chart = new d2b.CHARTS.sunburstChart();
+	var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+	var periods;
+	var currentPeriod;
+	var currentData;
+
+	chartLayout
+		.chart(chart)
+		.data({
+			"data":
+			{
+				"chartLayout":{
+					"title":"Los Alamos Student Enrollment",
+					"titleAlt":"Spring 2015"
+				}
+			}
+		});
+
+	var toggleYearNotice = function(){
+		d3.select('.year-notice').text(periods[currentPeriod])
+			.transition()
+				.duration(250)
+				.style('opacity',0.8)
+			.transition()
+				.delay(500)
+				.duration(500)
+				.style('opacity',0);
+	};
+
+	var setupPeriodToggle = function(){
+		d3.select('.toggle-period-left').on('click',function(){
+			if(currentPeriod > 0){
+				currentPeriod -= 1;
+				currentData = originalData
+					.filter(function(d){
+						return d.period == periods[currentPeriod];
+					});
+				toggleYearNotice();
+				updateSunburst();
+			}
+		});
+		d3.select('.toggle-period-right').on('click',function(){
+			if(currentPeriod < periods.length-1){
+				currentPeriod += 1;
+				currentData = originalData
+					.filter(function(d){
+						return d.period == periods[currentPeriod];
+					});
+				toggleYearNotice();
+				updateSunburst();
+			}
+		});
+	};
+
+	var updateSunburst = function(){
+
+		currentData
+			.forEach(function(d){
+				d.count = 0;
+				if(showOptions[0].selected){
+					if(d.division){
+						d.count = d.countSave;
+					}
+				}
+				if(showOptions[1].selected){
+					if(d.category){
+						d.count = d.countSave;
+					}
+				}
+			});
+
+		var sunburstData = {
+			data: {
+				partition: partition(currentData, breakdownOptions.filter(function(d){return d.selected;}), "UNM Los Alamos")
+			}
+		};
+
+		chart
+			.xFormat({siPrefixed:false,units:{}, separateThousands:true,precision:0})
+			.legendOrientation('left')
+			.controls({sort:{visible:true},invert:{visible:true},hideLegend:{visible:true}})
+			.data(sunburstData);
+
+		chartLayout
+			.width($(window).width())
+			.height($(window).height() - $('.all-options').height() -10)
+			.data({
+				"data":
+				{
+					"chartLayout":{
+						"titleAlt":periods[currentPeriod]
+					}
+				}
+			})
+			.update();
+	};
+
+	var updateBreakdownOptions = function(){
+		var container = d3.select('#breakdown-options .options');
+		var option = container.selectAll('div').data(breakdownOptions.filter(function(d){return d.visible;}));
+		option.enter()
+			.append('div')
+				.classed('selected',function(d){return d.selected;})
+				.text(function(d){return d.label;})
+				.on('click',function(d){
+					d.selected = !d.selected;
+					d3.select(this).classed('selected', d.selected);
+					updateSunburst();
+				});
+	};
+
+	var updateShowOptions = function(){
+		var container = d3.select('#show-options .options');
+		var option = container.selectAll('div').data(showOptions.filter(function(d){return d.visible;}));
+		option.enter()
+			.append('div')
+				.classed('selected',function(d){return d.selected;})
+				.text(function(d){return d.label;})
+				.on('click',function(d){
+					d.selected = !d.selected;
+					d3.select(this).classed('selected', d.selected);
+					updateSunburst();
+				});
+	};
+
+	var partition = d2b.UTILS.LAYOUTS.partition();
+
+	$(document).ready(function(){
+
+		chartLayout
+			.select('.sunburst-chart')
+
+		d3.csv("la_enrollment_dynamic_toggle_period.csv", function(d){
+			d.forEach(function(d){
+				d.countSave = d.count;
+			})
+			originalData = d;
+
+			periods = d3.set(originalData.map(function(d){return d.period})).values();
+			currentPeriod = periods.length-1;
+			currentData = originalData
+				.filter(function(d){
+					return d.period == periods[currentPeriod];
+				});
+
+			updateBreakdownOptions();
+			updateShowOptions();
+			
+			updateSunburst();
+
+			setupPeriodToggle();
+		});
+
+
+
+		$(window).resize(function(){
+			updateSunburst();
+		});
+
+	});
+
+</script>
+<style>
+	.all-options{
+		text-align:center;
+	}
+	.options-container{
+		font-family:"Droid Sans";
+		font-weight:bold;
+		padding:5px 10px;
+		display:inline-block;
+		font-size:10pt !important;
+		border-radius:1px;
+	}
+	.options-container div{
+		-webkit-transition:background 0.25s, color 0.25s;
+		transition:background 0.25s, color 0.25s;
+		border-radius:1px;
+		font-weight:normal;
+		cursor:pointer;
+		display:inline-block;
+		padding:3px;
+		margin-right:3px;
+		color:#ccc;
+		background:#333;
+		text-transform: capitalize;
+	}
+	.options-container div:last-child{
+		margin-right:0px;
+	}
+	.options-container div.selected{
+		background:#ddd;
+		color:#333;
+	}
+	.options-container div:hover{
+		color:#888;
+	}
+
+	.toggle-period-left, .toggle-period-right{
+		-webkit-transition:color 0.25s;
+		transition:color 0.25s;
+		cursor:pointer;
+		position:absolute;
+		z-index:5;
+		top:50%;
+		color:#888;
+	}
+	.toggle-period-left:hover, .toggle-period-right:hover{
+		color:#333;
+	}
+	.toggle-period-left{
+		left:8px;
+	}
+	.toggle-period-right{
+		left:100%;
+		margin-left:-25px;
+	}
+
+	.container{
+		z-index:3;
+		position:relative;
+	}
+
+	.year-notice{
+		opacity:0;
+		pointer-events:none;
+		z-index:4;
+		position:absolute;
+		width:100%;
+		top:43px;
+		text-align:center;
+		font-family:"Droid Sans";
+		font-size:70pt;
+		background:rgba(100,100,100,0.5);
+		padding:20px 0px;
+	}
+
+</style>
+
+<body style='margin:0px;'>
+	<div class = 'container'>
+		<div class='year-notice'>Spring 2014</div>
+		<div class='toggle-period-left'><i class='fa fa-caret-left fa-3x'></i></div>
+		<div class='toggle-period-right'><i class='fa fa-caret-right fa-3x'></i></div>
+		<div class= 'sunburst-chart'></div>
+		<div class='all-options'>
+			<div id = 'breakdown-options' class = 'options-container'>Breakdown By : <div class = 'options'></div></div>
+			<div id = 'show-options' class = 'options-container'>Show : <div class = 'options'></div></div>
+		</div>
+	</div>
+</body>
+</html>

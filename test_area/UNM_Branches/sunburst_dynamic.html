@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
+<script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script>
+
+<!-- <script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" /> -->
+
+<script>
+
+	var breakdownOptions = [
+		{label:'Non/Other Division', column:'division', top:true, selected:true, visible:true},
+		{label:'Non/Other Category', column:'other_category', top:true, selected:true, visible:true},
+		{label:'Category', column:'category', top:true, selected:true, visible:true},
+		{label:'Degree', column:'degree', top:false, selected:true, visible:true},
+		{label:'Status', column:'status', top:false, selected:true, visible:true},
+		{label:'Gender', column:'gender', top:true, selected:true}
+	];
+
+	var showOptions = [
+		{label:'Non-Degree and Other UNM Campuses', selected:true, visible:true},
+		{label:'Los Alamos Main', selected:true, visible:true}
+	];
+
+	var data, originalData;
+	var chart = new d2b.CHARTS.sunburstChart();
+	var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+	chartLayout
+		.chart(chart)
+		.data({
+			"data":
+			{
+				"chartLayout":{
+					"title":"Los Alamos Student Enrollment",
+					"titleAlt":"Spring 2015"
+				}
+			}
+		});
+
+	var updateSunburst = function(){
+		originalData.forEach(function(d){
+			d.count = 0;
+			if(showOptions[0].selected){
+				if(d.division){
+					d.count = d.countSave;
+				}
+			}
+			if(showOptions[1].selected){
+				if(d.category){
+					d.count = d.countSave;
+				}
+			}
+		});
+
+		var sunburstData = {
+			data: {
+				partition: partition(originalData, breakdownOptions.filter(function(d){return d.selected;}), "UNM Los Alamos")
+			}
+		};
+
+		chart
+			.xFormat({siPrefixed:false,units:{}, separateThousands:true,precision:0})
+			.legendOrientation('left')
+			.controls({sort:{visible:true},invert:{visible:true},hideLegend:{visible:true}})
+			.data(sunburstData);
+
+		chartLayout
+			.width($(window).width())
+			.height($(window).height() - 120)
+			.update();
+	};
+
+	var updateBreakdownOptions = function(){
+		var container = d3.select('#breakdown-options .options');
+		var option = container.selectAll('div').data(breakdownOptions.filter(function(d){return d.visible;}));
+		option.enter()
+			.append('div')
+				.classed('selected',function(d){return d.selected;})
+				.text(function(d){return d.label;})
+				.on('click',function(d){
+					d.selected = !d.selected;
+					d3.select(this).classed('selected', d.selected);
+					updateSunburst();
+				});
+	};
+
+	var updateShowOptions = function(){
+		var container = d3.select('#show-options .options');
+		var option = container.selectAll('div').data(showOptions.filter(function(d){return d.visible;}));
+		option.enter()
+			.append('div')
+				.classed('selected',function(d){return d.selected;})
+				.text(function(d){return d.label;})
+				.on('click',function(d){
+					d.selected = !d.selected;
+					d3.select(this).classed('selected', d.selected);
+					updateSunburst();
+				});
+	};
+
+	var partition = d2b.UTILS.LAYOUTS.partition();
+
+	$(document).ready(function(){
+
+		chartLayout
+			.select('.sunburst-chart')
+
+		d3.csv("la_enrollment_dynamic.csv", function(d){
+			d.forEach(function(d){
+				d.countSave = d.count;
+			})
+			originalData = d;
+			updateSunburst();
+		});
+
+		updateBreakdownOptions();
+		updateShowOptions();
+
+		$(window).resize(function(){
+			updateSunburst();
+		});
+
+	});
+</script>
+<style>
+	.options-container{
+		font-family:"Droid Sans";
+		font-weight:bold;
+		padding:10px;
+		display:inline-block;
+	}
+	.options-container div{
+		-webkit-transition:background 0.25s, color 0.25s;
+		transition:background 0.25s, color 0.25s;
+
+		cursor:pointer;
+		display:inline-block;
+		padding:5px;
+		margin-right:5px;
+		color:#ccc;
+		background:#333;
+		text-transform: capitalize;
+	}
+	.options-container div:last-child{
+		margin-right:0px;
+	}
+	.options-container div.selected{
+		background:#ccc;
+		color:#333;
+	}
+	.options-container div:hover{
+		color:#888;
+	}
+
+</style>
+
+<body style='margin:0px;'>
+	<div class = 'sunburst-chart'></div>
+
+	<div id = 'breakdown-options' class = 'options-container'>Breakdown By : <div class = 'options'></div></div>
+	<div id = 'show-options' class = 'options-container'>Show : <div class = 'options'></div></div>
+</body>
+</html>

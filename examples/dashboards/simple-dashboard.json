@@ -9,34 +9,63 @@
 					"charts":[
 						{
 							"chart":{
-								"type":"axisChart",
+								"type":"factChart",
 				        "properties":{
-				          "x":{"type":"ordinal"},
-				          "controls":{"hideLegend":{"enabled":true}},
-				          "data":{
-				            "data":{
-				              "labels":{
-				                "x":"Template x label",
-				                "y":"Template y label"
-				              },
-				              "types":[
-				                {
-				                  "type":"bar",
-				                  "graphs":[
-				                    {
-				                      "label":"data 1",
-				                      "values":[
-				                        {"x":1,"y":67},
-				                        {"x":2,"y":211},
-				                        {"x":3,"y":346},
-				                        {"x":4,"y":113}
-				                      ]
-				                    }
-				                  ]
-				                }
-				              ]
-				            }
-				          }
+									"data":{
+										"data":{
+											"facts":[
+												{
+													"label":"Main Campus",
+													"value":27889,
+													"subFacts":[
+														{
+															"label":"Designation",
+															"values":[
+																{"label":"Full Time","value":19861},
+																{"label":"Part Time","value":8028}
+															]
+														},
+														{
+															"label":"Areas/Levels",
+															"values":[
+																{"label":"Undergraduate","value":20251},
+																{"label":"Graduate Programs","value":4253},
+																{"label":"Anderson Grad.","value":567},
+																{"label":"Law","value":349},
+																{"label":"Medicine","value":438},
+																{"label":"PharmD","value":341},
+																{"label":"Doctor of Physical Therapy","value":89},
+																{"label":"Doctor of Nursing Practice","value":16},
+																{"label":"Non-Degree","value":1581}
+															]
+														}
+													]
+												},
+												{
+													"label":"Branch Campuses",
+													"value":7473,
+													"subFacts":[
+														{
+															"label":"Designation",
+															"values":[
+																{"label":"Full Time","value":2624},
+																{"label":"Part Time","value":4849}
+															]
+														},
+														{
+															"label":"Campus",
+															"values":[
+																{"label":"Gallup","value":2409},
+																{"label":"Los Alamos","value":865},
+																{"label":"Taos","value":1835},
+																{"label":"Valencia","value":2364}
+															]
+														}
+													]
+												}
+											]
+										}
+									}
 				        },
 				        "chartLayoutData":{
 				          "data":{

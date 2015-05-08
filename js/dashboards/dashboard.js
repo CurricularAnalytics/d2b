@@ -411,6 +411,7 @@ d2b.DASHBOARDS.dashboard = function(){
 		dashboardCategory
 				.animateFrom('right')
 				.data({data:current.category});
+		resized = true;
 		return dashboard.update();
 	};
 
@@ -483,7 +484,7 @@ d2b.DASHBOARDS.dashboard = function(){
 	//generate chart
 	dashboard.generate = function(callback) {
 		generateRequired = false;
-
+		// resized = false;
 		//clean container
 		selection.selectAll('*').remove();
 
@@ -571,6 +572,7 @@ d2b.DASHBOARDS.dashboard = function(){
 
 		controls.selection(selection.container.sidebar.filters)
 			.on('change',function(d){
+				resized = true;
 				dashboard.update();
 			});
 
@@ -589,7 +591,7 @@ d2b.DASHBOARDS.dashboard = function(){
 		dashboardCategory
 			.selection(selection.container.content.dashboardCategory)
 			.on('pageChange.d2b-page-change',function(pageData, iOld, iNew){
-
+// console.log('page change!')
 				var temp = controlsHidden;
 				if(!pageData.controls)
 					pageData.controls = [];
@@ -610,6 +612,7 @@ d2b.DASHBOARDS.dashboard = function(){
 					animateFrom = 'right';
 				else if(iNew < iOld)
 					animateFrom = 'left';
+				// console.log('hi')
 				chartPage
 					.selection(dashboardCategory.chartPageSelection())
 					.data(pageData)
@@ -632,12 +635,12 @@ d2b.DASHBOARDS.dashboard = function(){
 
 	//update chart
 	dashboard.update = function(callback){
-
 		//if generate required call the generate method
 		if(generateRequired){
 			return dashboard.generate(callback);
 		}
 
+		//if home, make home button innactive: else setup home button
 		if(current.section == currentDashboardData.dashboard.topSection){
 			selection.container.header.navigation.home
 					.classed('d2b-innactive',true)
@@ -650,6 +653,7 @@ d2b.DASHBOARDS.dashboard = function(){
 					});
 		}
 
+		//if at the end of navigationHistory make right arrow innactive: else setup right arrow
 		if(navigationHistory.position+1 == navigationHistory.array.length){
 			selection.container.header.navigation.arrows.right
 					.classed('d2b-innactive',true)
@@ -658,6 +662,7 @@ d2b.DASHBOARDS.dashboard = function(){
 			selection.container.header.navigation.arrows.right
 					.classed('d2b-innactive',false)
 					.on('click.d2b-click',function(){
+						resized = true;
 						navigationHistory.position++;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
@@ -668,6 +673,7 @@ d2b.DASHBOARDS.dashboard = function(){
 					});
 		}
 
+		//if at the beginning of navigationHistory make left arrow innactive: else setup left arrow
 		if(navigationHistory.position == 0){
 			selection.container.header.navigation.arrows.left
 					.classed('d2b-innactive',true)
@@ -676,6 +682,7 @@ d2b.DASHBOARDS.dashboard = function(){
 			selection.container.header.navigation.arrows.left
 					.classed('d2b-innactive',false)
 					.on('click.d2b-click',function(){
+						resized = true;
 						navigationHistory.position--;
 						current = {category:navigationHistory.array[navigationHistory.position].category, section:navigationHistory.array[navigationHistory.position].section};
 						resetSubSectionGroupBreadcrumbs();
@@ -686,15 +693,18 @@ d2b.DASHBOARDS.dashboard = function(){
 					});
 		}
 
+		//set container width
 		selection.container
 			.transition()
 				.delay(animationDuration)
 				.duration(animationDuration)
 				.style('width', width+'px');
 
+		//update tabs and breadcrumbs
 		updateCategoryTabs();
 		updateBreadcrumbs();
 
+		//if there are no section/sectionGroups hide navigation: else show it
 		if(current.section.sections.length == 0 && current.section.sectionGroups.length == 0){
 			navigationHidden = true;
 			selection.container.sidebar.sectionNav
@@ -706,9 +716,11 @@ d2b.DASHBOARDS.dashboard = function(){
 				.style('display','block');
 		}
 
+		//update subSections and subSectionGroups
 		updateSubSections();
 		updateSubSectionGroups();
 
+		//if no controls and navigation hidden, resize container content
 		if(controlsHidden && navigationHidden){
 			pageMargin = 10;
 		}else{
@@ -725,14 +737,18 @@ d2b.DASHBOARDS.dashboard = function(){
 				.duration(animationDuration)
 				.style('margin-left', pageMargin - 10 + 'px');
 
-		dashboardCategory
-			.width(pageWidth)
-			.update()
-			.animateFrom(null);
-
-		chartPage
-			.width(pageWidth)
-			.update();
+		//if the dashboard has been resized update the dashboardCategory and chartPage
+		if(resized){
+			// console.log('hi2')
+			resized = false;
+			dashboardCategory
+				.width(pageWidth)
+				.update()
+				.animateFrom(null);
+			chartPage
+				.width(pageWidth)
+				.update();
+		}
 
 		d3.timer.flush();
 

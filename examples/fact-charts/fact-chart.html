@@ -65,16 +65,28 @@
 
 		var factChart = new d2b.CHARTS.factChart();
 
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
 		factChart
+			// .select('.fact-chart')
+			// .width($(window).width())
+			// .height($(window).height())
+			.data(data)
+			.xFormat({separateThousands:true})
+			// .update();
+
+		chartLayout
 			.select('.fact-chart')
 			.width($(window).width())
 			.height($(window).height())
-			.data(data)
-			.xFormat({separateThousands:true})
-			.update();
+			.chart(factChart)
+			// .animationDuration(1000)
+			.data({data:{chartLayout:{title:"Fact Chart"}}})
+			.update()
+			// .update()
 
 		$(window).resize(function(){
-			factChart.height($(window).height()).width($(window).width()).update();
+			chartLayout.height($(window).height()).width($(window).width()).update();
 		});
 
 	})

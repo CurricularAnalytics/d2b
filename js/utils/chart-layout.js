@@ -43,6 +43,7 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 	chartLayout.animationDuration = function(value){
 		if(!arguments.length) return animationDuration;
 		animationDuration = value;
+		chart.animationDuration(animationDuration);
 		return chartLayout;
 	};
 
@@ -155,8 +156,10 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 		if(!chart)
 			return console.warn('chartLayout was not given a chart');
 
-		if(generateRequired)
-			chartLayout.generate(callback);
+		if(generateRequired){
+			return chartLayout.generate(callback);
+		}
+
 		var chartMargin = {
 			top:10,bottom:0,left:0,right:0
 		};

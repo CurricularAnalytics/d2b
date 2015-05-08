@@ -1,0 +1,15 @@
+.d2b-funnel-chart{
+  tspan{
+    pointer-events:none;
+    text-anchor:middle;
+    fill:white;
+  }
+  text{
+    pointer-events:none;
+  }
+  .d2b-cone-text{
+    .d2b-cone-value{
+      font-weight:bold;
+    }
+  }
+}

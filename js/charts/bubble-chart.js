@@ -900,7 +900,7 @@ d2b.CHARTS.bubbleChart = function(){
 		if(generateRequired){
 			return chart.generate(callback);
 		}
-
+		
 		selection.svg
 				.attr('width',width)
 				.attr('height',svgHeight);

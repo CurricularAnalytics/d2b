@@ -217,13 +217,13 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.foreground.type.graph.enter()
 			.append('g')
 				.style('opacity',0)
-				.attr('class', 'd2b-axis-chart-foreground-graph')
-				.each(function(graph){
-					$$.persistentChartData[graph.type][graph.label].foreground = d3.select(this);
-				});
+				.attr('class', 'd2b-axis-chart-foreground-graph');
 
 		//save the foreground in data for use with the legend events
 		$$.selection.types.foreground.type.graph
+				.each(function(graph){
+					$$.persistentChartData[graph.type][graph.label].foreground = d3.select(this);
+				})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);
@@ -289,13 +289,13 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.background.type.graph.enter()
 			.append('g')
 				.attr('class', 'd2b-axis-chart-background-graph')
-				.style('opacity',0)
-				.each(function(graph){
-					$$.persistentChartData[graph.type][graph.label].background = d3.select(this);
-				});
+				.style('opacity',0);
 
 		//save the background in data for use with the legend events
 		$$.selection.types.background.type.graph
+				.each(function(graph){
+					$$.persistentChartData[graph.type][graph.label].background = d3.select(this);
+				})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);
@@ -830,6 +830,7 @@ d2b.CHARTS.axisChart = function(){
 		};
 
 		$$.legend.on('elementMouseover',function(d){
+
 			var background = $$.persistentChartData[d.type][d.label].background;
 			var foreground = $$.persistentChartData[d.type][d.label].foreground;
 
@@ -897,7 +898,12 @@ d2b.CHARTS.axisChart = function(){
 			chart.update();
 		})
 		.on('elementDblClick', function(d){
-			resetHidden();
+			$$.currentChartData.types.forEach(function(type){
+				type.graphs.forEach(function(graph){
+					$$.persistentChartData[graph.type][graph.label].hide = graph.label != d.label;
+				});
+			});
+
 			chart.update();
 		});
 
@@ -918,7 +924,7 @@ d2b.CHARTS.axisChart = function(){
 		if($$.generateRequired){
 			return chart.generate(callback);
 		}
-
+		
 		//init forcedMargin
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;

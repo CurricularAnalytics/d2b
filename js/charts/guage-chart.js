@@ -143,7 +143,11 @@ d2b.CHARTS.guageChart = function(){
 
 
 		var radius = {
-					current:{outer:Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2},
+					current:{
+										outer:($$.currentChartData.label)?
+											Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2 :
+											Math.min($$.outerHeight * 2, $$.outerWidth)/2
+									},
 					previous:{inner:$$.arc.innerRadius(),outer:$$.arc.outerRadius()}
 				};
 		radius.current.inner = 0.8 * radius.current.outer;

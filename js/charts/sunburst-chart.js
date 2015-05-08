@@ -127,19 +127,19 @@ d2b.CHARTS.sunburstChart = function(){
 	$$.arcMouseover = function(d) {
 
 		var sequence = $$.getAncestors(d);
-
+		//use a css class transition rather than javascript transition for performance benefit with large amounts of nodes
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) >= 0);
-	              })
-			.transition()
-				.duration($$.animationDuration/7)
-				.style('opacity',1)
+	              }).classed('d2b-transparent',false);
+		// 	.transition()
+		// 		.duration($$.animationDuration/7)
+		// 		.style('opacity',1)
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) < 0);
-	              })
-			.transition()
-				.duration($$.animationDuration/7)
-				.style('opacity',0.4)
+	              }).classed('d2b-transparent',true);
+			// .transition()
+			// 	.duration($$.animationDuration/7)
+			// 	.style('opacity',0.4)
 
 		$$.updateBreadcrumbs(sequence);
 
@@ -158,10 +158,10 @@ d2b.CHARTS.sunburstChart = function(){
 	//on sunburst mouseout reset breadcrumbs, tooltip, and arc highlighting
 	$$.sunburstMouseout = function(d) {
 		$$.resetBreadcrumbs();
-	  $$.selection.arcs.arc
-			.transition()
-				.duration($$.animationDuration/5)
-				.style('opacity',1);
+	  $$.selection.arcs.arc.classed('d2b-transparent',false)
+			// .transition()
+			// 	.duration($$.animationDuration/5)
+			// 	.style('opacity',1);
 
 		$$.resetSunburstTooltip();
 	};
@@ -381,11 +381,12 @@ d2b.CHARTS.sunburstChart = function(){
 
 	//save children indicies recursively for sorting/unsorting
 	$$.saveIndicies = function(node){
+		var i = 0;
 		if(node.children){
-			node.children.forEach(function(d,i){
-				d.index = i;
-				$$.saveIndicies(d);
-			});
+			for(i=0;i<node.children.length;i++){
+				node.children[i].index = i;
+				$$.saveIndicies(node.children[i]);
+			}
 		}
 	};
 
@@ -520,17 +521,17 @@ d2b.CHARTS.sunburstChart = function(){
 
 		//update controls viz
 		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
-
+		
 		$$.selection.breadcrumbs
 			.transition()
 				.duration($$.animationDuration)
-				.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+				.attr('transform','translate('+$$.forcedMargin.left+','+0+')');
 
 		//reposition the controls
 		$$.selection.controls
 			.transition()
 				.duration($$.animationDuration)
-				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+($$.forcedMargin.top)+')');
+				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+0+')');
 
 		$$.breadcrumbs.width($$.innerWidth).update();
 		// $$.forcedMargin.top += Math.max($$.breadcrumbs.computedHeight(), $$.controls.computedHeight());
@@ -555,7 +556,7 @@ d2b.CHARTS.sunburstChart = function(){
 			$$.y.parents.range([$$.radius.outer, $$.radius.outer - 0.13 * ($$.radius.outer - $$.radius.inner)]);
 		}
 
-		$$.selection.arcs.arc = $$.selection.arcs.selectAll("g.sunburst-arc")
+		$$.selection.arcs.arc = $$.selection.arcs.selectAll("g.d2b-sunburst-arc")
 		    .data($$.partitionData,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
@@ -566,7 +567,7 @@ d2b.CHARTS.sunburstChart = function(){
 					})
 		// sunburst_mouseout();
 		var newArcs =	$$.selection.arcs.arc.enter().append("g")
-			.attr('class','sunburst-arc')
+			.attr('class','d2b-sunburst-arc')
 			.style('opacity',0)
 			.call(d2b.UTILS.bindElementEvents, $$, 'arc');
 
@@ -576,7 +577,7 @@ d2b.CHARTS.sunburstChart = function(){
 		$$.selection.arcs.arc
 			.transition()
 				.duration($$.animationDuration)
-				.style('opacity',1);
+				.style('opacity','');
 
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
@@ -589,6 +590,7 @@ d2b.CHARTS.sunburstChart = function(){
 		$$.updateArcs();
 
 		$$.resetSunburstTooltip();
+
 
 		d3.timer.flush();
 

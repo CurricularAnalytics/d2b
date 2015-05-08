@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		var data = {
+			data:{
+				values:[
+					{key:'Freshmen', label:'Freshmen',value:3110, pinched:true, note:'Here is a note about the UNM freshman. From the 2007-08 cohort.'},
+					{key:'Sophomores', label:'Sophomores',value:2300, pinched:true, note:'Here is a note about the UNM freshman. From the 2007-08 cohort.'},
+					{key:'Juniors', label:'Juniors',value:1950, pinched:true, note:'Here is a note about the UNM freshman. From the 2007-08 cohort.'},
+					{key:'Seniors', label:'Seniors',value:1760, pinched:true, note:'Here is a note about the UNM freshman. From the 2007-08 cohort.'},
+					{key:'Graduated', label:'Graduated',value:1550, pinched:false, note:'Here is a note about the UNM freshman. From the 2007-08 cohort.'}
+				]
+			}
+		}
+
+		var funnelChart = new d2b.CHARTS.funnelChart();
+
+		funnelChart
+			.coneCurve(15)
+			.data(data)
+			.xFormat({separateThousands:true})
+
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+		chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.chart(funnelChart)
+				.select('.funnel-chart');
+
+		var chartLayoutData = {
+			"data":
+			{
+				"chartLayout":{
+					"title":"2007-08 Cohort",
+					"titleAlt":"How the students funnel through UNM."
+				}
+			}
+		};
+
+		chartLayout
+			.data(chartLayoutData).update();
+
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'funnel-chart'></div>
+</body>
+</html>

@@ -272,8 +272,10 @@ d2b.CHARTS.pieChart = function(){
 					chart.update();
 				})
 				.on('elementDblClick',function(d){
-					for(var key in $$.persistentData.hiddenArcs)
-						$$.persistentData.hiddenArcs[key] = false;
+					//on legend dbl click hide all but clicked arc
+					$$.currentChartData.values.forEach(function(d2){
+						$$.persistentData.hiddenArcs[d2.key] = d2.key != d.key;
+					})
 					chart.update();
 				});
 

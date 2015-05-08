@@ -12,20 +12,34 @@ Function.prototype.clone = function(){
 	return temp;
 }
 
+/*bring to front*/
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
+
+/*non destructive reverse*/
+Array.prototype._reverse = function(){
+	var tmp = [];
+	Array.prototype.push.apply(tmp, this)
+	return tmp.reverse();
+};
+
 /*tooltop utilities*/
 
 /*Bind Tooltip Events*/
-d2b.UTILS.tooltip = function(element, heading, content){
+d2b.UTILS.tooltip = function(element, heading, content, d){
 	element
 			.on('mouseover.d2b-mouseover-tooltip',function(d,i){
-				d2b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i));
+				d2b.UTILS.createGeneralTooltip(d3.select(this),heading(d,i),content(d,i),d);
 			})
 			.on('mouseout.d2b-mouseout-tooltip',function(d,i){
 				d2b.UTILS.removeTooltip();
 			});
 };
 
-d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
+d2b.UTILS.createGeneralTooltip = function(elem, heading, content, d){
 	var body = d3.select('body');
 	var adGeneralTooltip = body.append('div')
 			.attr('class','d2b-general-tooltip')
@@ -36,10 +50,17 @@ d2b.UTILS.createGeneralTooltip = function(elem, heading, content){
 		.transition()
 			.duration(50)
 			.style('opacity',1);
+
+	if(d && d.tooltipContent){
+		adGeneralTooltip.append('div')
+			.attr('class','d2b-general-tooltip-extras')
+			.html(d.tooltipContent);
+	}
+
 	var scroll = d2b.UTILS.scrollOffset();
 
 	var bodyWidth = body.node().getBoundingClientRect().width;
-	
+
 	var pos = {left:0,top:0};
 
 	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
@@ -213,7 +234,7 @@ d2b.UTILS.textWrap = function(text, width) {
         lineNumber = 0,
         lineHeight = 1.1, // ems
         y = text.attr("y"),
-        dy = parseFloat(text.attr("dy")),
+        dy = parseFloat(text.attr("dy")) || 0,
         tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
     while (word = words.pop()) {
       line.push(word);

@@ -19,6 +19,9 @@ html, body, .d2b-container {
 .d2b-pointer-element {
   cursor: pointer; }
 
+.d2b-chart-layout-wrapper {
+  position: relative; }
+
 .d2b-chart-layout {
   color: #333;
   font-size: 11pt; }
@@ -322,6 +325,12 @@ html, body, .d2b-container {
   .d2b-sunburst .d2b-sunburst-arcs path:hover {
     fill-opacity: 1;
     stroke: white; }
+.d2b-sunburst .d2b-sunburst-arcs .d2b-sunburst-arc.d2b-transparent path {
+  fill-opacity: 0.4;
+  stroke: white;
+  stroke-width: 1;
+  -webkit-transition: fill-opacity 0.25s;
+  transition: fill-opacity 0.25s; }
 
 .d2b-sunburst-tooltip text {
   pointer-events: none;
@@ -444,6 +453,15 @@ html, body, .d2b-container {
   fill: white;
   font-size: 11px;
   text-anchor: middle; }
+
+.d2b-funnel-chart tspan {
+  pointer-events: none;
+  text-anchor: middle;
+  fill: white; }
+.d2b-funnel-chart text {
+  pointer-events: none; }
+.d2b-funnel-chart .d2b-cone-text .d2b-cone-value {
+  font-weight: bold; }
 
 .d2b-dashboard .d2b-header {
   border-bottom: 2px solid #555;

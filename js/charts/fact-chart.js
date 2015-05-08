@@ -78,7 +78,6 @@ d2b.CHARTS.factChart = function(){
 	};
 
 	$$.showMainFacts = function(){
-
 		$$.selection.subFacts
 			.style('pointer-events','none')
 				.selectAll('*')
@@ -322,12 +321,11 @@ d2b.CHARTS.factChart = function(){
 
 	//chart update
 	chart.update = function(callback){
-
 		//if generate required call the generate method
 		if($$.generateRequired){
 			return chart.generate(callback);
 		}
-
+		// console.log('hi')
 		//init forcedMargin
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
