@@ -10,7 +10,11 @@
 		var chart = new d2b.CHARTS.bubbleChart();
 
 		chart
-			// .legendOrientation('left')
+			// .color(
+			// 	d3.scale.ordinal()
+			// 	   .domain(["Academic Affairs","Administration","color-individual"])
+			// 	   .range(["rgb(193,0,55)", "rgb(0,0,200)" , "rgb(0,200,0)"])
+			// )
 			.xFormat({nice:true,siPrefixed:false,units:{before:'$'}, separateThousands:false,precision:1})
 			.controls({sortByChange:{visible:true},hideLegend:{visible:true},colorByChange:{visible:true}})
 

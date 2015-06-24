@@ -17,17 +17,33 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.line = d3.svg.line()
     .x(function(d) { return $$.x.customScale(d.x); })
     .y(function(d) { return $$.y.customScale(d.y); });
+
+	$$.pointMouseover = function(){
+		d3.select(this)
+				.select('.d2b-line-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',7);
+	};
+	$$.pointMouseout = function(){
+		d3.select(this)
+				.select('.d2b-line-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',3.5);
+	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -35,7 +51,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
@@ -69,7 +85,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(d2b.UTILS.bindElementEvents, $$, 'line');
+					.call($$.events.addElementDispatcher, 'main', 'd2b-line');
 			}
 
 			if(graphData.interpolate){
@@ -79,7 +95,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 			}
 
 			path
-					.style('stroke', function(d){return $$.color(graphData.label);})
+					.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 				.datum(function(d){return graphData.values;})
 				.transition()
 					.duration($$.animationDuration)
@@ -99,31 +115,21 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 
 			newPoint
 				.append('circle')
-					.attr('r', 3.5);
+					.attr('class', 'd2b-line-point-foreground')
+					.attr('r', 3.5)
 
 			newPoint
 				.append('circle')
+					.attr('class', 'd2b-line-point-background')
 					.attr('r', 3.5)
-					.on('mouseover.d2b-mouseover',function(){
-						d3.select(this)
-							.transition()
-								.duration($$.animationDuration/2)
-								.attr('r',7)
-					})
-					.on('mouseout.d2b-mouseover',function(){
-						d3.select(this)
-							.transition()
-								.duration($$.animationDuration/2)
-								.attr('r',3.5)
-					})
-					.style('fill-opacity',0)
-					.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-					.call(d2b.UTILS.bindElementEvents, $$, 'line-point');
-
+				.call($$.events.addElementDispatcher, 'main', 'd2b-line-point');
 
 			point
+				.on('mouseover', $$.pointMouseover)
+				.on('mouseout', $$.pointMouseout)
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
 				.selectAll('circle')
-					.style('stroke', $$.color(graphData.label))
+					.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 					.style('fill', 'white');
 
 			point

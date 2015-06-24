@@ -10,7 +10,7 @@
 		var data = {
 			data:{
 				labels:{source:"Source",destination:"Expenditures"},
-				columnHeaders:['header 1', 'header 2', 'header 3', 'header 4'],
+				columnHeaders:['Income', 'Pooling', 'Expenditures'],
 				links:[
 					{source:0, target:6, value:19595476, colorBy:'source'},
 					{source:0, target:7, value:4074464, colorBy:'source'},
@@ -62,8 +62,8 @@
 			.select('.sankey-chart')
 			.width($(window).width())
 			.height($(window).height())
-			.legendOrientation('left')
-			.controls({hideLegend:{visible:true}})
+			.legendOrientation('bottom')
+			// .controls({hideLegend:{visible:true}})
 			.xFormat({siPrefixed:true,separateThousands:false,units:{before:"$"},precision:4})
 			.data(data)
 			.update();

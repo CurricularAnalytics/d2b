@@ -21,6 +21,9 @@
           {
             // bubble-pack-chart-type
             type:'bubblePack',
+						properties:{
+							radiusScale: [2]
+						},
             graphs:[
               // this is where each of the histograms will be defined
               {
@@ -76,6 +79,7 @@
       .select('.axis-chart')
       .legendOrientation('top')
 			.data(data)
+			// .on('element-mouseover', function(type){console.log(this);console.log(type);})
       .width($(window).width())
       .height($(window).height())
       .update();

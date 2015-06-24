@@ -17,7 +17,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
   $$.groupScale = d3.scale.ordinal();
 
@@ -36,6 +36,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -43,7 +44,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
@@ -109,9 +110,9 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       });
       var newBar = bar.enter()
         .append('rect')
-        .style('fill', $$.color(graphData.label))
+				.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
         .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);}, function(d){return d;})
-				.call(d2b.UTILS.bindElementEvents, $$, 'bar');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-bar');
 
       if($$.controlsData.stackBars.enabled){
         newBar
@@ -121,6 +122,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
         bar
           .transition()
             .duration($$.animationDuration)
+						.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
             .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2})
             .attr('y', function(d){
               if(!stackedYVals[d.x]){

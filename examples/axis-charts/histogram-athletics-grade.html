@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          // this is where the various types of axis-charts will be defined
+          // all of the chart types are optional and can be used in conjunction with one another
+          {
+            // histogram-chart-type
+            type:'bar',
+            graphs:[
+              // this is where each of the histograms will be defined
+              {
+								label:'Students',
+								values:[
+									{x:"A+",y:Math.round(Math.random()*15) + 5},
+									{x:"A",y:Math.round(Math.random()*15) + 5},
+									{x:"A-",y:Math.round(Math.random()*15) + 5},
+									{x:"B+",y:Math.round(Math.random()*15) + 5},
+									{x:"B",y:Math.round(Math.random()*15) + 5},
+									{x:"B-",y:Math.round(Math.random()*15) + 5},
+									{x:"C+",y:Math.round(Math.random()*15) + 5},
+									{x:"C",y:Math.round(Math.random()*15) + 5},
+									{x:"C-",y:Math.round(Math.random()*15) + 5},
+									{x:"D+",y:Math.round(Math.random()*15) + 5},
+									{x:"D",y:Math.round(Math.random()*15) + 5},
+									{x:"D-",y:Math.round(Math.random()*15) + 5},
+									{x:"F",y:Math.round(Math.random()*15) + 5}
+								]
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+			.controls({hideLegend:{enabled:true}})
+      .select('.axis-chart')
+      .data(data)
+			.x({type:'ordinal'})
+      .width($(window).width())
+      .height($(window).height())
+      .update();
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

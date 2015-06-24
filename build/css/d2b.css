@@ -23,6 +23,7 @@ html, body, .d2b-container {
   position: relative; }
 
 .d2b-chart-layout {
+  position: relative;
   color: #333;
   font-size: 11pt; }
   .d2b-chart-layout .d2b-chart-layout-header {
@@ -39,9 +40,41 @@ html, body, .d2b-container {
       color: #bbb;
       font-size: 12pt;
       display: inline-block; }
-    .d2b-chart-layout .d2b-chart-layout-header .d2b-chart-layout-info {
+    .d2b-chart-layout .d2b-chart-layout-header .d2b-chart-layout-info-icon {
+      color: #eee;
       font-size: 15pt;
-      float: right; }
+      float: right;
+      cursor: pointer; }
+      .d2b-chart-layout .d2b-chart-layout-header .d2b-chart-layout-info-icon:hover {
+        color: #bbb; }
+  .d2b-chart-layout .d2b-chart-layout-info {
+    -webkit-transition: opacity 0.25s;
+    transition: opacity 0.25s;
+    z-index: 1;
+    position: absolute;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.87);
+    padding: 10px;
+    color: #eee;
+    font-size: 12pt;
+    opacity: 0;
+    overflow: scroll;
+    line-height: 140%;
+    pointer-events: none; }
+    .d2b-chart-layout .d2b-chart-layout-info ul {
+      list-style-type: disc;
+      margin-left: 20px; }
+    .d2b-chart-layout .d2b-chart-layout-info li {
+      margin-bottom: 5px;
+      margin-top: 5px; }
+    .d2b-chart-layout .d2b-chart-layout-info .d2b-line {
+      width: 100%;
+      height: 2px;
+      background: #bbb; }
+    .d2b-chart-layout .d2b-chart-layout-info.d2b-visible {
+      opacity: 1;
+      pointer-events: auto; }
   .d2b-chart-layout .d2b-chart-layout-right-notes, .d2b-chart-layout .d2b-chart-layout-left-notes, .d2b-chart-layout .d2b-chart-layout-footnote {
     position: absolute;
     font-size: 11pt;

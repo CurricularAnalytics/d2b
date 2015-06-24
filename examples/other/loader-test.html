@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+		var paths = [
+			{key:'counties',file:'counties.topo.json'},
+			{file:'countries.topo.json'},
+			// {key:'zip_codes',path:'http://gist.githubusercontent.com/mbostock/5180185/raw/73e0ac9f3a53f6beda33f32ab99c86c462b43bba/', file:'zipcodes.tsv', type:'tsv'},
+			{key:'zip_codes2',file:'zip_codes.csv',type:'csv'}
+		]
+		d2b.UTILS.load(paths, function(data){
+			console.log(data["countries.topo.json"])
+			console.log(data.counties);
+			// console.log(data.zip_codes);
+			console.log(data.zip_codes2);
+		});
+
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<!-- <div style='' class = 'chart-layout'></div> -->
+</body>
+</html>

@@ -31,6 +31,9 @@
         types: [
             {
                 type: 'bubblePack',
+								properties: {
+									radiusScale: [2]
+								},
                 graphs: [
                     {
                         label: 'Analytics',
@@ -38,6 +41,8 @@
                             "name": "analytics",
                             "children": [
                                 {
+																		"top":true,
+																		colorKey: 'Animate',
                                     "name": "cluster",
                                     "children": [
                                         {
@@ -59,6 +64,7 @@
                                     ]
                                 },
                                 {
+																		"top":true,
                                     "name": "graph",
                                     "children": [
                                         {
@@ -84,6 +90,7 @@
                                     ]
                                 },
                                 {
+																		"top":true,
                                     "name": "optimization",
                                     "children": [
                                         {
@@ -98,7 +105,7 @@
                     {
                         label: "Animate",
                         pack: {
-                            "name": "animate",
+                            "name": "analytics",
                             "children": [
                                 {
                                     "name": "Easing",
@@ -1112,7 +1119,7 @@
 
 		var axisChart = new d2b.CHARTS.axisChart();
 
-		axisChart.legendOrientation('top').data(data);
+		axisChart.legendOrientation('top').data(data).controls({bubbleSubFill:{enabled:true,visible:true}});
 
 //
 //
@@ -1198,6 +1205,7 @@
 				}
 			};
 			chartLayout
+				.animationDuration(1000)
 				.data(chartLayoutData)
 
 //update the chart layout
@@ -1207,6 +1215,13 @@
 //on window resize, reset chart layout dimensions and update
 			chartLayout.height($(window).height()).width($(window).width()).update();
 		});
+		setTimeout(function(){
+			data.data.types[0].graphs.forEach(function(graph){
+				randomizePositions(graph.pack);
+			});
+			axisChart.data(data).update();
+
+		},2000)
 
 	});
 </script>

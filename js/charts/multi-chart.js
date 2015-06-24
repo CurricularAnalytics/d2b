@@ -2,57 +2,48 @@
 
 /*multi chart*/
 d2b.CHARTS.multiChart = function(){
+
+	var $$ = {};
+
 	//define multiChart variables
-	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
-			height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH(),
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
-	var innerWidth, innerHeight;
+	$$.generateRequired = true; //using some methods may require the chart to be redrawn
 
-	var generateRequired = true; //using some methods may require the chart to be redrawn
+	$$.selection = d3.select('body'); //default selection of the HTML body
 
-	var selection = d3.select('body'); //default selection of the HTML body
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
-
-	var currentChartData = {
+	$$.currentChartData = {
 			};
 
-	var current = {chart:{}};
-	var previous = {chart:null};
+	$$.current = {chart:{}};
+	$$.previous = {chart:null};
 
-	var adChart;
+	$$.d2bChart;
+
+	$$.events = d2b.UTILS.chartEvents();
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	// var on = {
+	// 	elementMouseover:function(){},
+	// 	elementMouseout:function(){},
+	// 	elementClick:function(){}
+	// };
 
 	var buttonClick = function(d,i){
-		previous.chart = current.chart;
-		current.chart = d;
-		for(key in on.elementClick){
-			on.elementClick[key].call(this,d,i,'chart-button');
-		}
-		// console.log(current.chart)
+		$$.previous.chart = $$.current.chart;
+		$$.current.chart = d;
+		// for(key in on.elementClick){
+		// 	on.elementClick[key].call(this,d,i,'chart-button');
+		// }
+		// console.log($$.current.chart)
 		chart.update();
 	};
-	var buttonMouseover = function(d,i){
-		for(key in on.elementMouseover){
-			on.elementMouseover[key].call(this,d,i,'chart-button');
-		}
-	};
-	var buttonMouseout = function(d,i){
-		for(key in on.elementMouseout){
-			on.elementMouseout[key].call(this,d,i,'chart-button');
-		}
-	};
+
 	var updateButtons = function(){
-		selection.buttonsWrapper.buttons.button = selection.buttonsWrapper.buttons.selectAll('li').data(currentChartData.charts, function(d){
+		$$.selection.buttonsWrapper.buttons.button = $$.selection.buttonsWrapper.buttons.selectAll('li').data($$.currentChartData.charts, function(d){
 			if(d.key == 'unique')
 				return Math.floor((1 + Math.random()) * 0x10000)
 			else if(d.key && d.key != 'auto')
@@ -60,174 +51,127 @@ d2b.CHARTS.multiChart = function(){
 			else
 				return d.label;
 		});
-		selection.buttonsWrapper.buttons.button.enter()
+		$$.selection.buttonsWrapper.buttons.button.enter()
 			.append('li')
-			.on('click.d2b-click', buttonClick)
-			.on('mouseover.d2b-mouseover', buttonMouseover)
-			.on('mouseout.d2b-mouseout', buttonMouseout);
+			.on('click.d2b-click', buttonClick);
 
-		selection.buttonsWrapper.buttons.button
+		$$.selection.buttonsWrapper.buttons.button
 			.text(function(d){return d.label;})
-			.classed('d2b-selected',function(d){return d == current.chart;});
+			.classed('d2b-selected',function(d){return d == $$.current.chart;});
+
+		$$.selection.buttonsWrapper.buttons.button.exit().remove();
 
 	};
 
-	var setChartProperties = function(){
-		if(current.chart.properties){
-			for(key in current.chart.properties){
+	var setChartProperties = function(options){
+		if($$.current.chart.properties){
+			for(key in $$.current.chart.properties){
+				if(options && options.skip){
+					if(options.skip.indexOf(key) > -1)
+						continue;
+				}
 				if(key == 'data')
 					continue;
-				if(current.chart.properties[key].args)
-					adChart[key].apply(this, current.chart.properties[key].args);
+				if($$.current.chart.properties[key].args)
+					$$.d2bChart[key].apply(this, $$.current.chart.properties[key].args);
 				else
-					adChart[key](current.chart.properties[key]);
+					$$.d2bChart[key]($$.current.chart.properties[key]);
 			}
 		}
-		var masterType = 'multiChart-'+current.chart.type+'-';
-		adChart
-			.on('elementClick.d2b-click', function(d,i,type){
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,masterType+type);
-					}
-			})
-			.on('elementMouseover.d2b-mouseover', function(d,i,type){
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i,masterType+type);
-					}
-			})
-			.on('elementMouseout.d2b-mouseout', function(d,i,type){
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i,masterType+type);
-					}
-			})
+
+		// translate the events to the currently drawn chart
+		$$.events.translateEvents($$.d2bChart);
 	};
 
 	var updateChart = function(){
-		if(!selection.chartWrapper.chart){
-			selection.chartWrapper.chart = selection.chartWrapper
+		if(!$$.selection.chartWrapper.chart){
+			$$.selection.chartWrapper.chart = $$.selection.chartWrapper
 				.append('div')
 					.attr('class','d2b-multi-chart-chart')
 					.style('opacity',1);
-			// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
-			adChart = current.chart.chart;
-			adChart
-				.data(current.chart.properties.data)
-				.selection(selection.chartWrapper.chart);
-		}else if(current.chart != previous.chart){
-			if(current.chart.type == previous.chart.type){
-				adChart
-					.data(current.chart.properties.data);
+			// d2b.UTILS.chartAdapter($$.current.chart.type, $$.current.chart);
+			$$.d2bChart = $$.current.chart.chart;
+			$$.d2bChart
+				.data($$.current.chart.properties.data)
+				.selection($$.selection.chartWrapper.chart);
+
+			setChartProperties();
+		}else if($$.current.chart != $$.previous.chart){
+			if($$.current.chart.type == $$.previous.chart.type){
+				$$.d2bChart
+					.data($$.current.chart.properties.data);
+
+				setChartProperties({'skip': ['controls']});
 			}else{
-				selection.chartWrapper.chart
+				$$.selection.chartWrapper.chart
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',0)
 						.remove();
 
-				selection.chartWrapper.chart = selection.chartWrapper
+				$$.selection.chartWrapper.chart = $$.selection.chartWrapper
 					.append('div')
 						.attr('class','d2b-multi-chart-chart')
 						.style('opacity',0);
 
-				// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
-				adChart = current.chart.chart;
-				adChart
-					.selection(selection.chartWrapper.chart)
-					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
+				// d2b.UTILS.chartAdapter($$.current.chart.type, $$.current.chart);
+				$$.d2bChart = $$.current.chart.chart;
+				$$.d2bChart
+					.selection($$.selection.chartWrapper.chart)
+					.data((JSON.parse(JSON.stringify($$.current.chart.data)))); //clone data for update
 
-				selection.chartWrapper.chart
+				$$.selection.chartWrapper.chart
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1);
+
+				setChartProperties();
 			}
 		}
 
-		setChartProperties();
-		adChart
-			.width(innerWidth)
-			.height(innerHeight)
+		$$.d2bChart
+			// .events($$.events)
+			.width($$.innerWidth)
+			.height($$.innerHeight)
 			.update();
 
-		previous.chart = current.chart;
+		$$.previous.chart = $$.current.chart;
 	};
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
-
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		return chart;
-	};
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {};
+			$$.currentChartData = {};
 		}
 
 		var useDefault = true;
 
-		if(current.chart.key){
+		if($$.current.chart.key){
 			var matchingChart = chartData.data.charts.filter(function(d){
-					return current.chart.key == d.key;
+					return $$.current.chart.key == d.key;
 				})[0];
 			if(matchingChart){
 				useDefault = false;
-				current.chart = matchingChart;
+				$$.current.chart = matchingChart;
 			}
 		}
 
 		if(useDefault)
-			current.chart = chartData.data.charts[0];
+			$$.current.chart = chartData.data.charts[0];
 
-		// generateRequired = true;
-		currentChartData = chartData.data;
+		$$.currentChartData = chartData.data;
 
-		currentChartData.charts.forEach(function(d){
-			// if(d.)
+		$$.currentChartData.charts.forEach(function(d){
 			d.chart = new d2b.CHARTS[d.type]();
 		});
 
@@ -236,35 +180,35 @@ d2b.CHARTS.multiChart = function(){
 
 	//generate chart
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
 		//clean container
-		selection.selectAll('*').remove();
+		$$.selection.selectAll('*').remove();
 
-		// selection
+		// $$.selection
 		// 	.style('width',width + 'px')
 		// 	.style('height',height + 'px');
 
 		//create button container
-		selection.buttonsWrapper = selection
+		$$.selection.buttonsWrapper = $$.selection
 			.append('div')
 				.attr('class','d2b-multi-chart-buttons-wrapper');
 
-		selection.buttonsWrapper.buttons = selection.buttonsWrapper
+		$$.selection.buttonsWrapper.buttons = $$.selection.buttonsWrapper
 			.append('ul')
 				.attr('class','d2b-buttons');
 
-		// selection.style('position','relative');
-		selection.chartWrapper = selection
+		// $$.selection.style('position','relative');
+		$$.selection.chartWrapper = $$.selection
 			.append('div')
 				.attr('class','d2b-multi-chart d2b-container');
 
-		// currentChartData.charts.forEach(function(d){
-		// 	d.chart.selection(selection.chartWrapper);
+		// $$.currentChartData.charts.forEach(function(d){
+		// 	d.chart.selection($$.selection.chartWrapper);
 		// });
 
 		//auto update chart
-		var temp = animationDuration;
+		var temp = $$.animationDuration;
 		chart
 				.animationDuration(0)
 				.update(callback)
@@ -277,16 +221,16 @@ d2b.CHARTS.multiChart = function(){
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
 
-		innerWidth = width;
-		innerHeight = height - 50;
+		$$.innerWidth = $$.width;
+		$$.innerHeight = $$.height - 50;
 
-		selection.chartWrapper
-			.style('width',innerWidth + 'px')
-			.style('height',innerHeight + 'px');
+		$$.selection.chartWrapper
+			.style('width',$$.innerWidth + 'px')
+			.style('height',$$.innerHeight + 'px');
 
 		updateButtons();
 

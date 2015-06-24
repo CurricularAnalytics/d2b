@@ -22,6 +22,7 @@
 		var funnelChart = new d2b.CHARTS.funnelChart();
 
 		funnelChart
+			.on('element-click', function(type){console.log(type)})
 			.coneCurve(15)
 			.data(data)
 			.xFormat({separateThousands:true})

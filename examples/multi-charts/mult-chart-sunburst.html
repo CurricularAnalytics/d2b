@@ -308,6 +308,27 @@
 				chartLayout.height($(window).height()).width($(window).width()).update();
 			});
 
+			setTimeout(function(){
+				multiChart
+					.data(
+						{
+							data:{
+								charts:[
+									{
+										label:"Sunburst 1",
+										key:"sunburst_1",
+										type:"sunburstChart",
+										properties:{
+											data:data1
+										}
+
+									}
+								]
+							}
+						}
+					).update()
+			},1000)
+
 	})
 </script>
 

@@ -40,7 +40,7 @@ d2b.UTILS.LAYOUTS.partition = function(){
     return {
       "name": title,
       "top": true,
-      "children": $$.group(data, columns)
+      "children": $$.group(data, columns.slice(0))
     };
   };
 

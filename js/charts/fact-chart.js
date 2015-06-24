@@ -29,7 +29,7 @@ d2b.CHARTS.factChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.selectedFact = null;
 
@@ -96,7 +96,8 @@ d2b.CHARTS.factChart = function(){
 		$$.selection.fact = $$.selection.main.selectAll('g.d2b-fact').data($$.currentChartData.facts);
 		var newFact = $$.selection.fact.enter()
 			.append('g')
-				.attr('class', 'd2b-fact');
+				.attr('class', 'd2b-fact')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-fact');
 
 		newFact.append('text').attr('class','d2b-fact-label');
 		newFact.append('text').attr('class','d2b-fact-value');
@@ -122,6 +123,7 @@ d2b.CHARTS.factChart = function(){
 		//setup sub-fact events if available
 		$$.selection.fact.each(function(d){
 			var elem = d3.select(this);
+
 			if(!d.subFacts || d.subFacts.length < 1){
 				elem
 					.style('cursor', 'auto')
@@ -220,6 +222,7 @@ d2b.CHARTS.factChart = function(){
 					this.pieChart = new d2b.CHARTS.pieChart();
 					this.pieChart
 						.select(this)
+						.color($$.color)
 						.donutRatio(0.6)
 						.controls({hideLegend:{enabled:true}});
 				});
@@ -238,6 +241,7 @@ d2b.CHARTS.factChart = function(){
 		$$.selection.subFact
 			.select('g.d2b-sub-fact-chart')
 				.each(function(d){
+					$$.events.translateEvents(this.pieChart);
 					this.pieChart
 						.animationDuration($$.animationDuration)
 						.width($$.x.rangeBand())
@@ -265,7 +269,14 @@ d2b.CHARTS.factChart = function(){
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		if($$.selection.subFact){
+			$$.selection.subFact.each(function(d){
+				this.pieChart.color($$.color);
+			});
+		}
+	});
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -288,12 +299,7 @@ d2b.CHARTS.factChart = function(){
 	  //create svg
 	  $$.selection.svg = $$.selection
 	    .append('svg')
-	      .attr('class','d2b-svg d2b-container')
-				// .on('click.d2b-click',function(){
-				// 	if($$.selectedFact)
-				// 		$$.selectedFact = null;
-				// 	chart.update();
-				// });
+	      .attr('class','d2b-svg d2b-container');
 
 	  //create group container
 	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -345,6 +351,8 @@ d2b.CHARTS.factChart = function(){
 		}
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();

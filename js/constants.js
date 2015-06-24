@@ -18,3 +18,9 @@ d2b.CONSTANTS = {
                 },
   ANIMATIONLENGTHS: function(){ return {normal:500,short:200,long:1000}; }
 }
+
+d2b.chartEvents = function(){
+  return {
+    // update:function(){};
+  }
+};

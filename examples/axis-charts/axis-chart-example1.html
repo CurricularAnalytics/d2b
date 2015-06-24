@@ -10,6 +10,11 @@
 		var axisChart = new d2b.CHARTS.axisChart();
 
 		axisChart
+			// .color(
+				// d3.scale.ordinal()
+				//   .domain(["a","b","c"])
+				//   .range(["rgba(200,0,0,0.5)", "rgba(0,0,200,0.5)" , "rgba(0,200,0,0.5)"])
+			// )
 //no need to use select/width/height if imbeding chart into a chartLayout
 			// .select('.axis-chart')
 			// .width($(window).width())
@@ -107,6 +112,7 @@
 							},
 							{
 								label: 'Bar 2',
+								colorKey: 'Bar 1',
 								values:[
 									{x:0.3, y:30},
 									{x:0.6, y:10},
@@ -120,15 +126,7 @@
 									{x:0.6, y:25},
 									{x:0.8, y:35}
 								]
-							},
-							// {
-							// 	label: 'Bar 4',
-							// 	values:[
-							// 		{x:0.3, y:6},
-							// 		{x:0.6, y:100},
-							// 		{x:0.8, y:45}
-							// 	]
-							// }
+							}
 						]
 					},
 					{
@@ -193,117 +191,117 @@
 //update the chart layout
 				.update();
 
-
-		setTimeout(function(){
-			axisChart.x({invert:true}).update();
-			// axisChart.x({orientation:'left'}).y({orientation:'top'}).rotate(true).legendOrientation('right').update();
-			axisChart.data({data:{
-				labels:{
-					x:'Template x label',
-					y:'Template y label'
-				},
-				types:[
-					{
-						type:'histogram',
-						graphs:[
-							{
-								label: 'Histogram 1',
-								bins:[0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
-								values:d3.range(1000).map(d3.random.bates(10))
-							}
-						]
-					},
-					{
-						type:'area',
-						graphs:[
-							{
-								label: 'Area 1',
-								interpolate:'cardinal',
-								values:[
-									{x: 0.3, y: 150, y0:75},
-									{x: 0.6, y: 200, y0:125},
-									{x: 0.8, y: 50, y0:25},
-								]
-							},
-							{
-								label: 'Area 2',
-								interpolate:'cardinal',
-								values:[
-									{x: 0.3, y: 50, y0:0},
-									{x: 0.6, y: 100, y0:0},
-									{x: 0.8, y: 00, y0:0},
-								]
-							}
-						]
-					},
-					{
-						type:'bar',
-						graphs:[
-							{
-								label: 'Bar 1',
-								values:[
-									{x:0.3, y:50},
-									{x:0.6, y:20},
-									// {x:0.8, y:30}
-								]
-							},
-							{
-								label: 'Bar 2',
-								values:[
-									{x:0.3, y:30},
-									{x:0.6, y:10},
-									{x:0.8, y:4}
-								]
-							},
-							{
-								label: 'Bar 3',
-								values:[
-									{x:0.3, y:10},
-									{x:0.6, y:25},
-									{x:0.8, y:35}
-								]
-							},
-							{
-								label: 'Bar 4',
-								values:[
-									{x:0.3, y:6},
-									{x:0.6, y:100},
-									{x:0.8, y:45}
-								]
-							}
-						]
-					},
-					{
-						type:'line',
-						graphs:[
-							{
-								label: 'Line 1',
-								interpolate:'cardinal',
-								values:[
-									{x: 0.3, y: 200},
-									{x: 0.6, y: 250},
-									{x: 0.8, y: 100},
-								]
-							},
-							{
-								label: 'Line 2',
-								interpolate:'cardinal',
-								values:[
-									{x: 0.3, y: 100},
-									{x: 0.6, y: 150},
-									{x: 0.8, y: 00},
-								]
-							}
-						]
-					}
-				]
-			}}).update();
-
-		},2000);
-		setTimeout(function(){
-			// axisChart.x({orientation:'top'}).legendOrientation('top').update();
-			axisChart.x({orientation:'left'}).y({orientation:'bottom'}).rotate(true).legendOrientation('right').update();
-		},4000);
+		//
+		// setTimeout(function(){
+		// 	axisChart.x({invert:true}).update();
+		// 	// axisChart.x({orientation:'left'}).y({orientation:'top'}).rotate(true).legendOrientation('right').update();
+		// 	axisChart.data({data:{
+		// 		labels:{
+		// 			x:'Template x label',
+		// 			y:'Template y label'
+		// 		},
+		// 		types:[
+		// 			{
+		// 				type:'histogram',
+		// 				graphs:[
+		// 					{
+		// 						label: 'Histogram 1',
+		// 						bins:[0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1],
+		// 						values:d3.range(1000).map(d3.random.bates(10))
+		// 					}
+		// 				]
+		// 			},
+		// 			{
+		// 				type:'area',
+		// 				graphs:[
+		// 					{
+		// 						label: 'Area 1',
+		// 						interpolate:'cardinal',
+		// 						values:[
+		// 							{x: 0.3, y: 150, y0:75},
+		// 							{x: 0.6, y: 200, y0:125},
+		// 							{x: 0.8, y: 50, y0:25},
+		// 						]
+		// 					},
+		// 					{
+		// 						label: 'Area 2',
+		// 						interpolate:'cardinal',
+		// 						values:[
+		// 							{x: 0.3, y: 50, y0:0},
+		// 							{x: 0.6, y: 100, y0:0},
+		// 							{x: 0.8, y: 00, y0:0},
+		// 						]
+		// 					}
+		// 				]
+		// 			},
+		// 			{
+		// 				type:'bar',
+		// 				graphs:[
+		// 					{
+		// 						label: 'Bar 1',
+		// 						values:[
+		// 							{x:0.3, y:50},
+		// 							{x:0.6, y:20},
+		// 							// {x:0.8, y:30}
+		// 						]
+		// 					},
+		// 					{
+		// 						label: 'Bar 2',
+		// 						values:[
+		// 							{x:0.3, y:30},
+		// 							{x:0.6, y:10},
+		// 							{x:0.8, y:4}
+		// 						]
+		// 					},
+		// 					{
+		// 						label: 'Bar 3',
+		// 						values:[
+		// 							{x:0.3, y:10},
+		// 							{x:0.6, y:25},
+		// 							{x:0.8, y:35}
+		// 						]
+		// 					},
+		// 					{
+		// 						label: 'Bar 4',
+		// 						values:[
+		// 							{x:0.3, y:6},
+		// 							{x:0.6, y:100},
+		// 							{x:0.8, y:45}
+		// 						]
+		// 					}
+		// 				]
+		// 			},
+		// 			{
+		// 				type:'line',
+		// 				graphs:[
+		// 					{
+		// 						label: 'Line 1',
+		// 						interpolate:'cardinal',
+		// 						values:[
+		// 							{x: 0.3, y: 200},
+		// 							{x: 0.6, y: 250},
+		// 							{x: 0.8, y: 100},
+		// 						]
+		// 					},
+		// 					{
+		// 						label: 'Line 2',
+		// 						interpolate:'cardinal',
+		// 						values:[
+		// 							{x: 0.3, y: 100},
+		// 							{x: 0.6, y: 150},
+		// 							{x: 0.8, y: 00},
+		// 						]
+		// 					}
+		// 				]
+		// 			}
+		// 		]
+		// 	}}).update();
+		//
+		// },2000);
+		// setTimeout(function(){
+		// 	// axisChart.x({orientation:'top'}).legendOrientation('top').update();
+		// 	axisChart.x({orientation:'left'}).y({orientation:'bottom'}).rotate(true).legendOrientation('right').update();
+		// },4000);
 
 		$(window).resize(function(){
 //on window resize, reset chart layout dimensions and update

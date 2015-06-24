@@ -71,6 +71,13 @@
 			// .select('.fact-chart')
 			// .width($(window).width())
 			// .height($(window).height())
+			// .color(
+			// 	d3.scale.ordinal()
+			// 		.domain(["Low Alamos", "Gallup"])
+			// 		.range(["#090","#900"])
+			// )
+			.on('update', function(){console.log('updated!')})
+			// .on('element-mouseover', function(type){console.log(type)})
 			.data(data)
 			.xFormat({separateThousands:true})
 			// .update();

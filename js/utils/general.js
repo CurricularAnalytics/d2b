@@ -26,7 +26,49 @@ Array.prototype._reverse = function(){
 	return tmp.reverse();
 };
 
-/*tooltop utilities*/
+/** apply properties to d2b object
+	* use: d2b.UTILS.applyProperties.call(obj, properties);
+	*/
+d2b.UTILS.applyProperties = function(properties){
+	for(var key in properties)
+		this[key](properties[key]);
+};
+
+/** check for existance of a nested attribute
+	*/
+d2b.UTILS.checkNested = function(obj) {
+  var args = Array.prototype.slice.call(arguments, 1);
+
+  for (var i = 0; i < args.length; i++) {
+    if (!obj || !obj.hasOwnProperty(args[i])) {
+      return false;
+    }
+    obj = obj[args[i]];
+  }
+  return true;
+};
+
+/** get color for a d2b element
+	*/
+d2b.UTILS.getColor = function(color, defaultAttribute, data, reverse){
+	data = data || [];
+	return function(d){
+		var allData = data.slice(0);
+		allData.push(d);
+		if(!reverse)
+			allData = allData.reverse();
+
+		for(var i = 0;i < allData.length; i++){
+			if(allData[i].colorKey){
+				return color(allData[i].colorKey);}
+		}
+
+		return color(allData[allData.length-1][defaultAttribute]);
+	};
+};
+
+
+/*tooltip utilities*/
 
 /*Bind Tooltip Events*/
 d2b.UTILS.tooltip = function(element, heading, content, d){

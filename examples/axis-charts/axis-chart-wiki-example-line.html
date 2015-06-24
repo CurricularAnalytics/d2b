@@ -46,10 +46,44 @@
     axisChart
       .select('.axis-chart')
       .data(data)
+			.on('element-mouseover', function(type){console.log(this);console.log(type);})
       .width($(window).width())
       .height($(window).height())
       .update();
-
+		setTimeout(function(){
+			axisChart.data({
+				data:{
+					labels:{
+						// define the optional x and y chart labels
+						x:'X-Label',
+						y:'Y-Label'
+					},
+					types:[
+						// this is where the various types of axis-charts will be defined
+						// all of the chart types are optional and can be used in conjunction with one another
+						{
+							// line-chart-type
+							type:'line',
+							graphs:[
+								// this is where each of the line graphs will be defined
+								{
+									//line graphs contain a label, interpolator-string, and an array of x,y values
+									label:'Line Graph 1',
+									interpolate:'basis', //default 'linear', for the complete list of types visit d3's shapes wiki page
+									values:[
+										{x:0, y:200},
+										{x:0.5, y:19},
+										{x:1, y:18},
+										{x:1.5, y:30},
+										{x:2, y:70}
+									]
+								}//,{},{}..
+							]
+						}
+					]
+				}
+			}).update()
+		},1000)
 	});
 
 </script>

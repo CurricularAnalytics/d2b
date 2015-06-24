@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		var mapChart = new d2b.CHARTS.mapChart();
+
+		mapChart
+			.select('.map-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.legendOrientation('top')
+			// .projection("albersUsa")
+			.controls({'hideLegend':{'enabled':false,'visible':true}})
+			.filter({
+				// states:{
+				// 	gu_a3:'USA,JPN'
+				// },
+				// countries:{
+				// 	GU_A3:'USA'
+				// }
+			})
+			.update();
+
+		setTimeout(function(){
+			mapChart
+				.filter({countries:{GU_A3:'MEX'}})
+				.update();
+		},2000)
+
+		setTimeout(function(){
+			mapChart
+				.filter({countries:{GU_A3:'USA,CAN,MEX'}})
+				.update();
+		},4000)
+
+		setTimeout(function(){
+			mapChart
+				.filter({countries:{GU_A3:'USA,CAN,MEX,JPN'}})
+				.update();
+		},6000)
+
+		setTimeout(function(){
+			mapChart
+				.filter({countries:{GU_A3:'JPN'}})
+				.update();
+		},8000)
+
+		$(window).resize(function(){
+			mapChart
+				.height($(window).height())
+				.width($(window).width())
+				.update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'map-chart'></div>
+</body>
+</html>

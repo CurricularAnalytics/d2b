@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<!-- <script src="../../vendor/js/vendor.js"></script> -->
+<script src="../../bower_components/d3/d3.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          // this is where the various types of axis-charts will be defined
+          // all of the chart types are optional and can be used in conjunction with one another
+          {
+            // bar-chart-type
+            type:'bar',
+            graphs:[
+              // this is where each of the bar graphs will be defined
+              // {
+              //   //bar graphs contain a label and an array of x,y values
+              //   label:'Bar Graph 1',
+              //   values:[
+              //     {x:'x1', y:100},
+              //     {x:'x2', y:120},
+              //     {x:'x3', y:80}
+              //   ]
+              // },
+              {
+                label:'Bar Graph 2',
+                values:[
+                  {x:'4-Year Overall', y:50, center:true},
+                  {x:'5-Year Overall', y:70, center:true},
+                  {x:'6-Year Overall', y:9000000, center:true}
+                ]
+              }//,{},{}..
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+			.rotate(true)
+			.x({type:'ordinal', orientation:'left'})
+			.y({orientation:'bottom'})
+			.legendOrientation('top')
+      .width($(window).width())
+      .height($(window).height())
+      .update();
+
+		$(window).resize(function(){
+			axisChart
+	      .width($(window).width())
+	      .height($(window).height())
+	      .update();
+		})
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

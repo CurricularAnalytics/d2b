@@ -46,8 +46,9 @@
       .data(data)
       .width($(window).width())
       .height($(window).height())
+			.on('element-mouseover', function(type){console.log(type)})
+			// .on('update', function(){console.log(this)})
       .update();
-
 	});
 
 </script>

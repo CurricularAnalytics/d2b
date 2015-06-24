@@ -17,7 +17,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.area = d3.svg.area()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -30,6 +30,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
@@ -37,10 +38,25 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	$$.pointMouseover = function(){
+		d3.select(this)
+				.select('.d2b-area-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',7);
+	};
+	$$.pointMouseout = function(){
+		d3.select(this)
+				.select('.d2b-area-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',3.5);
+	};
 
 	$$.updatePoints = function(graphData, graph, yType){
 
@@ -55,33 +71,24 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 		newPoint
 			.append('circle')
+				.attr('class', 'd2b-area-point-foreground')
 				.attr('r', 3.5)
 
 		newPoint
 			.append('circle')
+				.attr('class', 'd2b-area-point-background')
 				.attr('r', 3.5)
-				.style('fill-opacity',0)
-				.on('mouseover.d2b-mouseover',function(){
-					d3.select(this)
-						.transition()
-							.duration($$.animationDuration/2)
-							.attr('r',7)
-				})
-				.on('mouseout.d2b-mouseover',function(){
-					d3.select(this)
-						.transition()
-							.duration($$.animationDuration/2)
-							.attr('r',3.5)
-				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'area-point-'+yType)
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);});
+				.call($$.events.addElementDispatcher, 'main', 'd2b-area-point-'+yType);
 
 		$$.foreground.point[yType]
 			.selectAll('circle')
-				.style('stroke', $$.color(graphData.label))
+				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 				.style('fill', 'white');
 
 		$$.foreground.point[yType]
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);})
+				.on('mouseover', $$.pointMouseover)
+				.on('mouseout', $$.pointMouseout)
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform',function(d){
@@ -124,13 +131,12 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 	//chart update
 	chart.update = function(callback){
-
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(d2b.UTILS.bindElementEvents, $$, 'area');
+					.call($$.events.addElementDispatcher, 'main', 'd2b-area');
 			}
 
 			if(graphData.interpolate){
@@ -140,9 +146,9 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 			}
 
 			path
-					.style('stroke', function(d){return $$.color(graphData.label);})
-					.style('fill', function(d){return $$.color(graphData.label);})
 				.datum(function(d){return graphData.values;})
+					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
+					.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 				.transition()
 					.duration($$.animationDuration)
 					.attr("d", $$.area);
@@ -151,10 +157,6 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
-
-			// graph.on('mouseover', function(){
-			// 	console.log(d3.event)
-			// });
 
 			$$.foreground.point = {};
 

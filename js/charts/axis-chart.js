@@ -34,10 +34,14 @@ d2b.CHARTS.axisChart = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	// $$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+
+	$$.events = d2b.UTILS.chartEvents();
+
 	//legend OBJ
-	$$.legend = new d2b.UTILS.LEGENDS.legend();
-	$$.legend.active(true);
+	$$.legend = new d2b.UTILS.LEGENDS.legend()
+		.active(true)
+		.color($$.color);
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
@@ -114,6 +118,8 @@ d2b.CHARTS.axisChart = function(){
 	$$.x = $$.xAlias;
 	$$.y = $$.yAlias;
 
+	$$.initAxes = true;
+
 	//persistent chart data is used to save data properties that need to persist through a data update
 	$$.persistentChartData = {};
 
@@ -134,12 +140,12 @@ d2b.CHARTS.axisChart = function(){
 		var yValues = [];
 
 		$$.selection.types.background.type.each(function(d){
-			this.adType
+			this.d2bType
 				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}));
-			if(this.adType.xValues)
-				xValues = xValues.concat(this.adType.xValues());
-			if(this.adType.yValues)
-				yValues = yValues.concat(this.adType.yValues());
+			if(this.d2bType.xValues)
+				xValues = xValues.concat(this.d2bType.xValues());
+			if(this.d2bType.yValues)
+				yValues = yValues.concat(this.d2bType.yValues());
 		});
 
 		if(xValues.length == 0){
@@ -189,6 +195,22 @@ d2b.CHARTS.axisChart = function(){
 
 	//initialize axis-chart-type containers and graph containers
 	$$.initGraphs = function(){
+
+		//enter update exit general svg:g element for each axis-chart-type
+		$$.selection.types.general.type = $$.selection.types.general
+			.selectAll('g.d2b-axis-type-general')
+				.data($$.currentChartData.types, function(d){return d.type;});
+		$$.selection.types.general.type.enter()
+			.append('g')
+				.attr('class', function(d){return 'd2b-axis-type-general d2b-'+d.type;});
+		$$.selection.types.general.type
+				.each(function(d){d.general = d3.select(this)});
+		$$.selection.types.general.type.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+
 		//enter update exit a foreground svg:g element for each axis-chart-type
 		$$.selection.types.foreground.type = $$.selection.types.foreground
 			.selectAll('g.d2b-axis-type-foreground')
@@ -245,30 +267,14 @@ d2b.CHARTS.axisChart = function(){
 				.attr('class', function(d){return 'd2b-axis-type-background d2b-'+d.type;})
 				.each(function(d){
 					var masterType = 'axis-chart-';
-					this.adType = new d2b.UTILS.AXISCHART.TYPES[d.type](d.type);
-					this.adType
-						.on('elementClick.d2b-click', function(d,i,type){
-								for(key in $$.on.elementClick){
-									$$.on.elementClick[key].call(this,d,i,masterType+type);
-								}
-						})
-						.on('elementMouseover.d2b-mouseover', function(d,i,type){
-								for(key in $$.on.elementMouseover){
-									$$.on.elementMouseover[key].call(this,d,i,masterType+type);
-								}
-						})
-						.on('elementMouseout.d2b-mouseout', function(d,i,type){
-								for(key in $$.on.elementMouseout){
-									$$.on.elementMouseout[key].call(this,d,i,masterType+type);
-								}
-						})
+					this.d2bType = new d2b.UTILS.AXISCHART.TYPES[d.type](d.type);
+					this.d2bType
 						.x($$.xAlias)
 						.y($$.yAlias)
-						.color($$.color)
 						.axisChart(chart)
-						.xFormat($$.xFormat)
-						.yFormat($$.yFormat)
 						.controls($$.controlsData);
+
+					$$.events.translateEvents(this.d2bType);
 				});
 		$$.selection.types.background.type.exit()
 			.transition()
@@ -342,14 +348,6 @@ d2b.CHARTS.axisChart = function(){
 			return position;
 		};
 
-		//custom bar scale that returns:
-		//bar{
-		//  y(y-axis positioning),
-		//  height(absolute height),
-		//  sHeight(signed height negative down, positive up)
-		//  origin(the x-axis position)
-		//  destination(bar-end position)
-		//}
 		$$.yAlias.customBarScale = function(value){
 			var bar = {y:0,height:0};
 
@@ -376,10 +374,16 @@ d2b.CHARTS.axisChart = function(){
 			var graphs = type.selectAll('.d2b-axis-chart-background-graph');
 			d.backgroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
 
-			this.adType
+			d2b.UTILS.applyProperties.call(this.d2bType, d.properties);
+
+			this.d2bType
 				.animationDuration($$.animationDuration)
 				.width($$.innerWidth)
 				.height($$.innerHeight)
+				.color($$.color)
+				.xFormat($$.xFormat)
+				.yFormat($$.yFormat)
+				.general(d.general)
 				.foreground(d.foregroundGraphs)
 				.background(d.backgroundGraphs)
 				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}))
@@ -417,7 +421,7 @@ d2b.CHARTS.axisChart = function(){
 				labelTransition[axis] = $$.selection.axes[axis].label
 					.transition()
 						.duration($$.animationDuration);
-				if($$.currentChartData.labels[axis] && !$$[axis].hide){
+				if($$[axis].label && !$$[axis].hide){
 					$$.forcedMargin[$$[axis].orientation] += labelOffset;
 					$$[params.dimension] -= labelOffset;
 					labelTransition[axis]
@@ -445,6 +449,20 @@ d2b.CHARTS.axisChart = function(){
 					.duration($$.animationDuration);
 		});
 
+		//init axes content, later it will be re-transitioned after the margin has been properly computed
+		if($$.initAxes){
+			$$.initAxes = false;
+
+			// simple init for ordinal range to fix transform NaN bug
+			if($$.y.type.split(',')[0] == 'ordinal'){
+				$$.y.scale.rangeBands([0,1]);
+			}
+
+			axisTransition.y
+				.call($$.y.axis)
+			axisTransition.x
+				.call($$.x.axis)
+		}
 
 		//create axis transitions;
 		var gridTransition = {};
@@ -454,69 +472,29 @@ d2b.CHARTS.axisChart = function(){
 					.duration($$.animationDuration);
 		});
 
-		//find max tick size on the vertical axis for proper spacing
-		//add tick events based on bound data
-		var maxTickLength = 0;
-		$$.selection.axes.y.text = $$.selection.axes.y.selectAll('.tick text').each(function(){
-			var length = this.getComputedTextLength();
-			maxTickLength = Math.max(maxTickLength, length);
-		})
-			.on('click.d2b-element-click', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.y.tickData[d]){
-					obj[key] = $$.y.tickData[d][key];
-				}
-				for(key in $$.on.elementClick){
-					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseover.d2b-element-mouseover', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.y.tickData[d]){
-					obj[key] = $$.y.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseover){
-					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseout.d2b-element-mouseout', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.y.tickData[d]){
-					obj[key] = $$.y.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseout){
-					$$.on.elementMouseout[key].call(this,obj,i,'axis-tick');
-				}
-			});
+		//find max tick size on the vertical axis for proper spacing and tick count
+		var maxTickLengthY = 0;
+		$$.selection.axes.y.text = $$.selection.axes.y
+			.selectAll('.tick text')
+				.each(function(d){
+					var length = this.getComputedTextLength();
+					maxTickLengthY = Math.max(maxTickLengthY, length);
+				})
 
-		$$.selection.axes.x.text = $$.selection.axes.x.selectAll('text')
-			.on('click.d2b-element-click', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.x.tickData[d]){
-					obj[key] = $$.x.tickData[d][key];
-				}
-				for(key in $$.on.elementClick){
-					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseover.d2b-element-mouseover', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.x.tickData[d]){
-					obj[key] = $$.x.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseover){
-					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseout.d2b-element-mouseout', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.x.tickData[d]){
-					obj[key] = $$.x.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseout){
-					$$.on.elementMouseout[key].call(this,obj,i,'axis-tick');
-				}
-			});
+		if($$.y.type != 'ordinal')
+			$$.y.axis.ticks($$.innerHeight/75);
+
+		//find max tick size on the horizontal axis for tick count
+		var maxTickLengthX = 0;
+		$$.selection.axes.x.text = $$.selection.axes.x
+			.selectAll('.tick text')
+				.each(function(d){
+					var length = this.getComputedTextLength();
+					maxTickLengthX = Math.max(maxTickLengthX, length);
+				});
+
+		if($$.x.type != 'ordinal')
+			$$.x.axis.ticks($$.innerWidth/maxTickLengthX/6);
 
 		var labelPadding = 10;
 
@@ -533,12 +511,12 @@ d2b.CHARTS.axisChart = function(){
 			},
 			{
 				x:{offset:10 + labelPadding, dimension:'innerHeight'},
-				y:{offset:maxTickLength + labelPadding, dimension:'innerWidth'}
+				y:{offset:maxTickLengthY + labelPadding, dimension:'innerWidth'}
 			}
 		);
 
 		//position x/y labels
-		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLength-labelOffset-labelPadding-5 : maxTickLength+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
+		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLengthY-labelOffset-labelPadding-5 : maxTickLengthY+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
 		labelTransition.y.attr('transform','translate('+ labelOffsetPosition +','+ $$.innerHeight/2 +')');
 
 		labelOffsetPosition = ($$.x.orientation == 'top')? -labelOffset*1.5-labelPadding:+labelOffset*1+labelPadding+labelTransition.x.node().getBBox().height;
@@ -606,14 +584,14 @@ d2b.CHARTS.axisChart = function(){
 		axisTransition.y
 			.call($$.y.axis)
 			.each('end',function(){
-				//when y transition finishes, wait 10ms and then verify that the horizontal margin is correctly aligned for the maxTickLength
+				//when y transition finishes, wait 10ms and then verify that the horizontal margin is correctly aligned for the maxTickLengthY
 				setTimeout(function(){
-					var verifyMaxTickLength = 0;
+					var verifyMaxTickLengthY = 0;
 					$$.selection.axes.y.selectAll('.tick text').each(function(){
 						var length = this.getComputedTextLength();
-						verifyMaxTickLength = Math.max(verifyMaxTickLength, length);
+						verifyMaxTickLengthY = Math.max(verifyMaxTickLengthY, length);
 					});
-					if(maxTickLength != verifyMaxTickLength)
+					if(maxTickLengthY != verifyMaxTickLengthY)
 						chart.update();
 				},10);
 
@@ -627,10 +605,26 @@ d2b.CHARTS.axisChart = function(){
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
 
-
 		//set x/y tick size for grid
 		$$.x.axis.tickSize(-$$.innerHeight);
 		$$.y.axis.tickSize(-$$.innerWidth);
+
+
+		//bind tick-data and tick-events
+		$$.axisModifier(
+			function(axis, params){
+				$$.selection.axes[axis].text = $$.selection.axes[axis].selectAll('text')
+					.each(function(d){
+						//set tick data if present
+						this._data = {label:d}
+						for(var key in $$[axis].tickData[d]){
+							this._data[key] = $$[axis].tickData[d][key];
+						}
+					})
+					.call($$.events.addElementDispatcher, 'main', 'd2b-axis-tick.y');
+			}
+		);
+
 
 		//transition and position x/y grid lines
 		gridTransition.x
@@ -667,12 +661,21 @@ d2b.CHARTS.axisChart = function(){
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
+		// if background d2b types have been created, update their animation duration as well
+		if(d2b.UTILS.checkNested($$, 'selection', 'types', 'background', 'type')){
+			$$.selection.types.background.type.each(function(d){
+				this.d2bType.animationDuration($$.animationDuration);
+			});
+		}
 	});
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.xAlias.axis.tickFormat($$.xFormat);});
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.yAlias.axis.tickFormat($$.yFormat);});
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color)
+	});
 
 	//rotate the chart, set x,y scales accordingly
 	chart.rotate = function(value){
@@ -751,13 +754,13 @@ d2b.CHARTS.axisChart = function(){
 	//chart generate
 	chart.generate = function(callback) {
 		$$.generateRequired = false;
+		$$.initAxes = true;
 
 		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
 		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		//init legend properties
 		$$.legend
-				.color($$.color)
 				.selection($$.selection.legend);
 
 		//init control properties
@@ -819,6 +822,9 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.foreground = $$.selection.types
 			.append('g')
 				.attr('class','d2b-axis-types-foreground');
+		$$.selection.types.general = $$.selection.types
+			.append('g')
+				.attr('class','d2b-axis-types-general')
 
 		// reset hidden types/graphs
 		var resetHidden = function(){
@@ -829,7 +835,7 @@ d2b.CHARTS.axisChart = function(){
 			});
 		};
 
-		$$.legend.on('elementMouseover',function(d){
+		$$.legend.on('element-mouseover',function(t,d){
 
 			var background = $$.persistentChartData[d.type][d.label].background;
 			var foreground = $$.persistentChartData[d.type][d.label].foreground;
@@ -870,7 +876,7 @@ d2b.CHARTS.axisChart = function(){
 
 
 		})
-		.on('elementMouseout',function(d){
+		.on('element-mouseout',function(t,d){
 			//reset dimming
 			$$.selection.types.foreground.type.graph
 				.transition()
@@ -881,7 +887,7 @@ d2b.CHARTS.axisChart = function(){
 					.duration($$.animationDuration/2)
 					.style('opacity', 1);
 		})
-		.on('elementClick', function(d){
+		.on('element-click', function(t,d){
 			$$.persistentChartData[d.type][d.label].hide = !$$.persistentChartData[d.type][d.label].hide;
 			var allHidden = true;
 
@@ -897,7 +903,7 @@ d2b.CHARTS.axisChart = function(){
 
 			chart.update();
 		})
-		.on('elementDblClick', function(d){
+		.on('element-dblclick', function(t,d){
 			$$.currentChartData.types.forEach(function(type){
 				type.graphs.forEach(function(graph){
 					$$.persistentChartData[graph.type][graph.label].hide = graph.label != d.label;
@@ -924,7 +930,7 @@ d2b.CHARTS.axisChart = function(){
 		if($$.generateRequired){
 			return chart.generate(callback);
 		}
-		
+
 		//init forcedMargin
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
@@ -953,16 +959,25 @@ d2b.CHARTS.axisChart = function(){
 			$$.legendData = {data:{items:[]}};
 		}else{
 			$$.legendData.data.items = [].concat.apply([],
-				$$.currentChartData.types.map(
-					function(type){
-						return type.graphs.map(function(graph,i){
-							graph.open = $$.persistentChartData[type.type][graph.label].hide;
-							return graph;
-						})
-					}
-				)
+				$$.currentChartData.types
+					.map(
+						function(type){
+							return type.graphs
+								.filter(
+									function(graph){
+										return !graph.notInLegend;
+
+									}
+								)
+								.map(function(graph,i){
+									graph.open = $$.persistentChartData[type.type][graph.label].hide;
+									return graph;
+								})
+						}
+					)
 			);
 		}
+
 		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
@@ -980,7 +995,6 @@ d2b.CHARTS.axisChart = function(){
 		$$.initGraphs();
 
 		$$.updateDomains();
-
 		$$.updateAxis();
 
 		$$.selection.types
@@ -1011,6 +1025,8 @@ d2b.CHARTS.axisChart = function(){
 		$$.updateGraphs();
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection)
 
 		if(callback)
 			callback();

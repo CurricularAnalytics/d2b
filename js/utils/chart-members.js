@@ -25,33 +25,16 @@ d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
 
 d2b.UTILS.CHARTS.MEMBERS.events = function(chart, $$, callback){
   return function(key, listener){
-    // key = key.split('-');
-    // if(!arguments.length) return $$.on;
-    //
-    // var registry = $$.on;
-    // var i;
-    // for(i = 0; i < key.length-1; i++)
-    //   registry = registry[key[i]];
-    //
-    // registry[key[key.length-1]] = listener;
+    var expKey = key.split('-');
+    if(expKey[0] == 'element'){
+      $$.events.addElementListener('main', key, listener);
+    }else{
+      $$.events.addListener(key, listener);
+    }
 
-	// 	key = key.split('.');
-	// 	if(!arguments.length) return $$.on;
-	// 	else if(arguments.length == 1){
-	// 		if(key[1])
-	// 			return $$.on[key[0]][key[1]];
-	// 		else
-	// 			return $$.on[key[0]]['default'];
-	// 	};
-  //
-	// 	if(key[1])
-  //     $$.on[key[0]][key[1]] = value;
-	// 	else
-  //     $$.on[key[0]]['default'] = value;
-  //
-  //   if(callback)
-  //     callback(value);
-  //
+    if(callback)
+      callback(key, listener);
+
 		return chart;
 	};
 };

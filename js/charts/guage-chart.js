@@ -29,7 +29,8 @@ d2b.CHARTS.guageChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
+
 	$$.percentFormat = d2b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
 	$$.arc = d3.svg.arc()
@@ -49,7 +50,7 @@ d2b.CHARTS.guageChart = function(){
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -122,7 +123,6 @@ d2b.CHARTS.guageChart = function(){
 
 	//chart update
 	chart.update = function(callback){
-
 		//if generate required call the generate method
 		if($$.generateRequired){
 			return chart.generate(callback);
@@ -139,8 +139,6 @@ d2b.CHARTS.guageChart = function(){
 				.attr('height',$$.height);
 
 		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
-
-
 
 		var radius = {
 					current:{
@@ -159,7 +157,7 @@ d2b.CHARTS.guageChart = function(){
 		//Set the data for the filled and empty arcs either by:
 		//	-using the user supplied percent
 		//	-calculating the percent with the value and total amounts
-		//	-defaulting the percen to 0
+		//	-defaulting the percent to 0
 		var data = [];
 		var percent = 0;
 		if($$.currentChartData.percent){
@@ -169,7 +167,7 @@ d2b.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.percent-Math.PI/2,
-					color: $$.color($$.currentChartData.label),
+					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
 					filled:true
 				},
 				{
@@ -187,7 +185,7 @@ d2b.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
-					color: $$.color($$.currentChartData.label),
+					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
 					filled:true
 				},
 				{
@@ -203,7 +201,7 @@ d2b.CHARTS.guageChart = function(){
 					percent: percent,
 					start:-Math.PI/2,
 					end:-Math.PI/2,
-					color: $$.color($$.currentChartData.label),
+					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
 					filled:true
 				},
 				{
@@ -245,7 +243,7 @@ d2b.CHARTS.guageChart = function(){
 							.attr('transform','scale(1)');
 					d2b.UTILS.removeTooltip();
 				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'arc');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-arc');
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
 			.transition()
@@ -316,6 +314,8 @@ d2b.CHARTS.guageChart = function(){
 
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection)
 
 		if(callback)
 			callback();

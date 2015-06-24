@@ -72,8 +72,8 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 		if(chartLayoutData.data.chartCallback)
 			currentChartLayoutData.chartCallback = chartLayoutData.data.chartCallback;
 
-		if(chartLayoutData.data.info)
-			currentChartLayoutData.chartLayout.info = chartLayoutData.data.info;
+		if(chartLayoutData.data.chartLayout.info)
+			currentChartLayoutData.chartLayout.info = chartLayoutData.data.chartLayout.info;
 
 		return chartLayout;
 	};
@@ -102,7 +102,11 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 			.append('div')
 				.attr('class','d2b-chart-layout-title-alt');
 
-		selection.container.header.info = selection.container.header
+		selection.container.header.infoIcon = selection.container.header
+			.append('div')
+				.attr('class','d2b-chart-layout-info-icon');
+
+		selection.container.info = selection.container
 			.append('div')
 				.attr('class','d2b-chart-layout-info');
 
@@ -172,17 +176,32 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 		selection.container.header.titleAlt
 				.text(currentChartLayoutData.chartLayout.titleAlt);
 
+		var headerHeight = selection.container.header.node().getBoundingClientRect().height
+
 		if(currentChartLayoutData.chartLayout.title){
 			selection.container.header.style('opacity',1);
-			chartMargin.top+=selection.container.header.node().getBoundingClientRect().height;
+			chartMargin.top+=headerHeight;
 		}else{
 			selection.container.header.style('opacity','0');
 		}
 
 		if(currentChartLayoutData.chartLayout.info){
-			selection.container.header.info.html('<i class="fa fa-info-circle"></i>');
+			selection.container.header.infoIcon
+					.html('<i class="fa fa-info-circle"></i>')
+					.on('click', function(){
+						selection.container.info.classed('d2b-visible', !selection.container.info.classed('d2b-visible'));
+						});
+			selection.container.info
+					.html(currentChartLayoutData.chartLayout.info)
+					.style('top', headerHeight+'px')
+					.style('height',height - headerHeight + 'px');
+
 		}else{
-			selection.container.header.info.selectAll('*').remove();
+			selection.container.header.infoIcon.selectAll('*')
+				.on('click.d2b-click',null)
+				.remove();
+			selection.container.info.selectAll('*')
+				.remove();
 		}
 
 		selection.container.footnote.div.text(currentChartLayoutData.chartLayout.footnote);

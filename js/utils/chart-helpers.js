@@ -1,12 +1,14 @@
 d2b.createNameSpace("d2b.UTILS.CHARTS.HELPERS");
 d2b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   var legendPadding = 10;
-  if(_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left'){
-    _chart.legend.orientation('vertical').data(_chart.legendData).height(_chart.innerHeight).update();
-  }
-  else{
-    _chart.legend.orientation('horizontal').data(_chart.legendData).width(_chart.innerWidth).update();
-  }
+  _chart.legend
+    .orientation(
+      (_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left')? "vertical" : "horizontal"
+    )
+    .data(_chart.legendData)
+    .height(_chart.innerHeight)
+    .width(_chart.innerWidth)
+    .update();
 
   var legendTranslation;
   if(_chart.legendOrientation == 'right')

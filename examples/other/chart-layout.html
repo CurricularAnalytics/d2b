@@ -3,7 +3,7 @@
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.min.js"></script>
-<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.min.css" />
 <script>
 	$(document).ready(function(){
 
@@ -98,7 +98,6 @@
 			}
 		);
 
-
 		var chartLayoutData = {
 			"data":
 			{
@@ -107,6 +106,40 @@
 					"titleAlt":"This is a cool chart",
 					"footnote":"* This is something important to note for the chart",
 					"source":["Office of Institutional Analytics", "Student Data Mart", "Fall 2013"],
+					"info":"\
+<b>X-Year Program-Admitted graduation rate</b> — the X-year graduation rate for those students accepted to \
+a specified major within X years of their initial enrollment at UNM. This rate, generally reported as \
+a percentage, is the quotient with divisor given by the total number of students admitted to a major \
+within X years, and dividend given by the number of these students who graduated with a bachelor’s \
+degree in that program within X years. \
+<br /><br />\
+<b>Notes:</b>\
+<ul>\
+<li>Students admitted to a program after the target year are not included in the rate computation. \
+E.g., a student admitted to a program during their fifth year would not be counted in the four-year \
+program-accepted graduation rate for that program.</li>\
+\
+<li>If a student is admitted to more than one program, e.g., as a result of changing majors, the \
+student will count as program-accepted in each of the programs to which he or she was admitted.</li> \
+\
+<li>If a student is admitted to the same program multiple times as a result of multiple major changes, \
+the student will count as being admitted to the program once—at the time of the earliest admittance.</li> \
+\
+<li>A college’s X-year program-accepted graduation rate is computing by considering all of the program \
+admittances that occurred in the college within X years  (the divisor), and then the number of these \
+admitted students who went on to graduate with a bachelor’s degree, from any program in the college, \
+within X years (the dividend).</li></ul>\
+<br /><div class='d2b-line'></div><br />\
+<b>X-Year Program-Intended graduation rate</b> — of those students who initially declared a major and \
+who graduated in X years from a given cohort, the percentage who did so in the initially intended major \
+they originally chose.\
+<br /><br />\
+<b>Notes:</b>\
+<ul>\
+<li>Students who were initially undecided, who stopped out, or who did not graduate within X years will not be included in this statistic.</li></ul>\
+<br /><div class='d2b-line'></div><br />\
+<i><b>Source</b> — Office of Institutional Analytics - Beginning Freshman Cohort Tracking File - Current as of Fall Census Data Snap</i>",
+
 					"leftNotes":["Here is a note on the left side of the chart", "And Another"],
 					"rightNotes":["Here is a note on the right side of the chart", "And Another"]
 				}
@@ -125,6 +158,6 @@
 </script>
 
 <body style='margin:0px;'>
-<div class = 'chart-layout'></div>
+<div style='' class = 'chart-layout'></div>
 </body>
 </html>

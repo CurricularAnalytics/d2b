@@ -57,6 +57,12 @@ d2b.CONSTANTS = {
   ANIMATIONLENGTHS: function(){ return {normal:500,short:200,long:1000}; }
 }
 
+d2b.chartEvents = function(){
+  return {
+    // update:function(){};
+  }
+};
+
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 d2b.UTILS.chartAdapter = function(type, chartData){
@@ -394,8 +400,8 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 		if(chartLayoutData.data.chartCallback)
 			currentChartLayoutData.chartCallback = chartLayoutData.data.chartCallback;
 
-		if(chartLayoutData.data.info)
-			currentChartLayoutData.chartLayout.info = chartLayoutData.data.info;
+		if(chartLayoutData.data.chartLayout.info)
+			currentChartLayoutData.chartLayout.info = chartLayoutData.data.chartLayout.info;
 
 		return chartLayout;
 	};
@@ -424,7 +430,11 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 			.append('div')
 				.attr('class','d2b-chart-layout-title-alt');
 
-		selection.container.header.info = selection.container.header
+		selection.container.header.infoIcon = selection.container.header
+			.append('div')
+				.attr('class','d2b-chart-layout-info-icon');
+
+		selection.container.info = selection.container
 			.append('div')
 				.attr('class','d2b-chart-layout-info');
 
@@ -494,17 +504,32 @@ d2b.UTILS.CHARTPAGE.chartLayout = function(){
 		selection.container.header.titleAlt
 				.text(currentChartLayoutData.chartLayout.titleAlt);
 
+		var headerHeight = selection.container.header.node().getBoundingClientRect().height
+
 		if(currentChartLayoutData.chartLayout.title){
 			selection.container.header.style('opacity',1);
-			chartMargin.top+=selection.container.header.node().getBoundingClientRect().height;
+			chartMargin.top+=headerHeight;
 		}else{
 			selection.container.header.style('opacity','0');
 		}
 
 		if(currentChartLayoutData.chartLayout.info){
-			selection.container.header.info.html('<i class="fa fa-info-circle"></i>');
+			selection.container.header.infoIcon
+					.html('<i class="fa fa-info-circle"></i>')
+					.on('click', function(){
+						selection.container.info.classed('d2b-visible', !selection.container.info.classed('d2b-visible'));
+						});
+			selection.container.info
+					.html(currentChartLayoutData.chartLayout.info)
+					.style('top', headerHeight+'px')
+					.style('height',height - headerHeight + 'px');
+
 		}else{
-			selection.container.header.info.selectAll('*').remove();
+			selection.container.header.infoIcon.selectAll('*')
+				.on('click.d2b-click',null)
+				.remove();
+			selection.container.info.selectAll('*')
+				.remove();
 		}
 
 		selection.container.footnote.div.text(currentChartLayoutData.chartLayout.footnote);
@@ -893,8 +918,7 @@ d2b.UTILS.CONTROLS.checkbox = function(){
 	$$.currentData = {label:'',state:false};
 
 	//init event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
-	$$.on.change = function(){};
+	$$.events = d2b.UTILS.chartEvents();
 
 	var control = {};
 
@@ -904,7 +928,7 @@ d2b.UTILS.CONTROLS.checkbox = function(){
 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
 	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.events(control, $$);
 
 	control.checked = function(value){
 		if(!arguments.length) return $$.currentData.state;
@@ -947,12 +971,10 @@ d2b.UTILS.CONTROLS.checkbox = function(){
 				.attr('class','d2b-checkbox-container')
 				.on('click.d2b-click',function(d,i){
 					$$.currentData.state = !$$.currentData.state;
-					for(key in $$.on.change){
-						$$.on.change[key].call(this,d,i,'checkbox');
-					}
+					$$.events.dispatch("change", this, [d,i]);
 					control.update();
 				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'checkbox');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-checkbox');
 
 		newCheckboxContainer
 			.append('rect')
@@ -1022,8 +1044,7 @@ d2b.UTILS.CONTROLS.radioButtons = function(){
 	$$.currentData = {label:'',values:[], selected:null};
 
 	//init event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
-	$$.on.change = function(){};
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.resetValues = function(){
 		$$.currentData.values.forEach(function(d){
@@ -1038,7 +1059,7 @@ d2b.UTILS.CONTROLS.radioButtons = function(){
 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
 	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.events(control, $$);
 
 	control.computedHeight = function(){
 		return $$.computedHeight;
@@ -1097,12 +1118,10 @@ d2b.UTILS.CONTROLS.radioButtons = function(){
 					$$.resetValues();
 					d.selected = true;
 					$$.currentData.selected = d;
-					for(key in $$.on.change){
-						$$.on.change[key].call($$.selection.node(),$$.currentData,i,'radio-buttons');
-					}
+					$$.events.dispatch("change", $$.selection.node(), [$$.currentData,i]);
 					control.update();
 				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'radio-button');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-radio-button');
 
 		radioButtonContainer
 			.attr('transform',function(d,i){
@@ -1534,6 +1553,8 @@ d2b.UTILS.CONTROLS.controls = function(){
 	$$.computedHeight=0;
 	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
+	$$.events = d2b.UTILS.chartEvents();
+
 	$$.selection;
 	$$.scale = 5;
 
@@ -1547,50 +1568,14 @@ d2b.UTILS.CONTROLS.controls = function(){
 
 	var controls = {};
 
-	controls.width = function(value){
-		if(!arguments.length) return $$.maxWidth;
-		$$.maxWidth = value;
-		return controls;
-	};
-	controls.computedHeight = function(){
-		return $$.computedHeight;
-	};
-	controls.computedWidth = function(){
-		return $$.computedWidth;
-	};
-	controls.selection = function(value){
-		if(!arguments.length) return $$.selection;
-		$$.selection = value;
-		return controls;
-	};
-	controls.scale = function(value){
-		if(!arguments.length) return $$.scale;
-		$$.scale = value;
-		return controls;
-	};
-	controls.animationDuration = function(value){
-		if(!arguments.length) return $$.animationDuration;
-		$$.animationDuration = value;
-		return controls;
-	};
-
-	controls.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return controls;
-	};
+	controls.scale = 							d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'scale');
+	controls.select = 						d2b.UTILS.CHARTS.MEMBERS.select(controls, $$);
+	controls.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'selection');
+	controls.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'width');
+	controls.computedHeight = 		d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'computedHeight');
+	controls.computedWidth =  		d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'computedWidth');
+	controls.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'animationDuration');
+	controls.on =									d2b.UTILS.CHARTS.MEMBERS.events(controls, $$);
 
 	controls.data = function(controlsData, reset){
 		if(!arguments.length) return $$.currentData;
@@ -1614,28 +1599,8 @@ d2b.UTILS.CONTROLS.controls = function(){
 				.append('g')
 					.attr('class','d2b-control')
 					.each(function(d){
-						d.control = new d2b.UTILS.CONTROLS[d.type]();
-						d.control.selection(d3.select(this))
-							.on('elementClick.d2b-click',function(d,i){
-								for(key in on.elementClick){
-									on.elementClick[key].call(this,d,i);
-								}
-							})
-							.on('change.d2b-change',function(d,i){
-								for(key in on.change){
-									on.change[key].call(this,d,i);
-								}
-							})
-							.on('elementMouseover.d2b-mouseover',function(d,i){
-								for(key in on.elementMouseover){
-									on.elementMouseover[key].call(this,d,i);
-								}
-							})
-							.on('elementMouseout.d2b-mouseout',function(d,i){
-								for(key in on.elementMouseout){
-									on.elementMouseout[key].call(this,d,i);
-								}
-							});
+						d.control = new d2b.UTILS.CONTROLS[d.type]().selection(d3.select(this));
+						$$.events.translateEvents(d.control);
 					});
 
 
@@ -1687,6 +1652,55 @@ d2b.UTILS.CONTROLS.controls = function(){
 	return controls;
 };
 
+d2b.createNameSpace("d2b.UTILS.LAYOUTS");
+
+d2b.UTILS.LAYOUTS.partition = function(){
+
+  var $$ = {};
+
+  $$.group = function(d, columns){
+    var column = columns.shift();
+
+    var childrenHash = {};
+    var children = [];
+    var child;
+
+    d.forEach(function(row){
+      child = childrenHash[row[column.column]] = childrenHash[row[column.column]] || {allChildren:[]};
+      child.allChildren.push(row);
+    });
+
+    for(key in childrenHash){
+      child = childrenHash[key];
+      child.name = key;
+      child.top = column.top;
+      if(columns.length > 0)
+        child.children = $$.group(child.allChildren, columns.slice(0));
+      if(columns.length == 0){
+        child.size = d3.sum(child.allChildren, function(d){return d.count;});
+      }
+
+      if(child.name)
+        children.push(child);
+      else{
+        children = children.concat(child.children);
+      }
+    };
+
+    return children;
+  };
+
+  var my = function(data, columns, title){
+    return {
+      "name": title,
+      "top": true,
+      "children": $$.group(data, columns.slice(0))
+    };
+  };
+
+  return my;
+};
+
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*function cloner*/
@@ -1715,7 +1729,49 @@ Array.prototype._reverse = function(){
 	return tmp.reverse();
 };
 
-/*tooltop utilities*/
+/** apply properties to d2b object
+	* use: d2b.UTILS.applyProperties.call(obj, properties);
+	*/
+d2b.UTILS.applyProperties = function(properties){
+	for(var key in properties)
+		this[key](properties[key]);
+};
+
+/** check for existance of a nested attribute
+	*/
+d2b.UTILS.checkNested = function(obj) {
+  var args = Array.prototype.slice.call(arguments, 1);
+
+  for (var i = 0; i < args.length; i++) {
+    if (!obj || !obj.hasOwnProperty(args[i])) {
+      return false;
+    }
+    obj = obj[args[i]];
+  }
+  return true;
+};
+
+/** get color for a d2b element
+	*/
+d2b.UTILS.getColor = function(color, defaultAttribute, data, reverse){
+	data = data || [];
+	return function(d){
+		var allData = data.slice(0);
+		allData.push(d);
+		if(!reverse)
+			allData = allData.reverse();
+
+		for(var i = 0;i < allData.length; i++){
+			if(allData[i].colorKey){
+				return color(allData[i].colorKey);}
+		}
+
+		return color(allData[allData.length-1][defaultAttribute]);
+	};
+};
+
+
+/*tooltip utilities*/
 
 /*Bind Tooltip Events*/
 d2b.UTILS.tooltip = function(element, heading, content, d){
@@ -1987,63 +2043,56 @@ d2b.UTILS.grid = function(width, height, count){
 /*LEGEND UTILITIES*/
 d2b.createNameSpace("d2b.UTILS.LEGENDS");
 d2b.UTILS.LEGENDS.legend = function(){
-	var maxWidth = d2b.CONSTANTS.DEFAULTWIDTH(), maxHeight = d2b.CONSTANTS.DEFAULTHEIGHT();
-	var innerMaxHeight, innerMaxWidth;
-	var items = [];
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
-	var selection;
-	var currentLegendData;
-	var computedWidth=0, computedHeight=0;
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var orientation = 'horizontal';
-	var padding = 5;
-	var active = false;
 
-	var scale = 5;
+	var $$ = {};
+
+	$$.maxWidth = d2b.CONSTANTS.DEFAULTWIDTH();
+	$$.maxHeight = d2b.CONSTANTS.DEFAULTHEIGHT();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	$$.currentLegendData;
+	$$.computedWidth=0;
+	$$.computedHeight=0;
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.orientation = 'horizontal';
+	$$.padding = 5;
+	$$.active = false;
+
+	$$.scale = 5;
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){},
-		elementDblClick:function(){}
-	};
+	$$.events = d2b.UTILS.chartEvents();
 
 	var itemEnter = function(){
 
-				computedHeight = 0;
-				computedWidth = 0;
+				$$.computedHeight = 0;
+				$$.computedWidth = 0;
 
-				innerMaxHeight = maxHeight - padding*2;
-				innerMaxWidth = maxWidth - padding*2;
+				$$.innerMaxHeight = $$.maxHeight - $$.padding*2;
+				$$.innerMaxWidth = $$.maxWidth - $$.padding*2;
 
 
-				selection.item = selection.selectAll('g.d2b-legend-item')
-						.data(currentLegendData.items, function(d){return d.label;});
+				$$.selection.item = $$.selection.selectAll('g.d2b-legend-item')
+						.data($$.currentLegendData.items, function(d){return d.label;});
 
-				var newItem = selection.item.enter()
+				var newItem = $$.selection.item.enter()
 					.append('g')
 						.attr('class','d2b-legend-item')
 						.style('opacity',0)
 						.on('mouseover.d2b-mouseover',function(d,i){
 							d.hovered = true;
 							var elem = d3.select(this);
-							if(active){
+							if($$.active){
 								if(d.open){
 									elem.select('circle.d2b-legend-circle-foreground')
 										.transition()
-											.duration(animationDuration/3)
+											.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 											.style('fill-opacity', 0.4);
 								}else{
 									elem.select('circle.d2b-legend-circle-background')
 										.transition()
-											.duration(animationDuration/3)
-											.attr('r',scale*1.5);
+											.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+											.attr('r',$$.scale*1.5);
 								}
-							}
-
-							for(key in on.elementMouseover){
-								on.elementMouseover[key].call(this,d,i);
 							}
 						})
 						.on('mouseout.d2b-mouseout',function(d,i){
@@ -2052,7 +2101,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 							elem.select('circle.d2b-legend-circle-foreground')
 								.transition()
-									.duration(animationDuration/3)
+									.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 									.style('fill-opacity', function(d){
 										if(d.open)
 											return 0;
@@ -2061,31 +2110,18 @@ d2b.UTILS.LEGENDS.legend = function(){
 									});
 							elem.select('circle.d2b-legend-circle-background')
 								.transition()
-									.duration(animationDuration/3)
-									.attr('r',scale);
-
-							for(key in on.elementMouseout){
-								on.elementMouseout[key].call(this,d,i);
-							}
+									.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+									.attr('r',$$.scale);
 						})
-						.on('click.d2b-click',function(d,i){
-							for(key in on.elementClick){
-								on.elementClick[key].call(this,d,i);
-							}
-						})
-						.on('dblclick.d2b-dblClick',function(d,i){
-							for(key in on.elementDblClick){
-								on.elementDblClick[key].call(this,d,i);
-							}
-						});
+						.call($$.events.addElementDispatcher, 'main', 'd2b-legend-item');
 
 				newItem.append('circle')
 					.attr('class', 'd2b-legend-circle-background')
-					.style('stroke',function(d){return d.color || ((d.colorKey)? color(d.colorKey) : color(d.label));});
+					.style('stroke', d2b.UTILS.getColor($$.color, 'label'));
 
 				newItem.append('circle')
 					.attr('class', 'd2b-legend-circle-foreground')
-					.style('fill',function(d){return d.color || ((d.colorKey)? color(d.colorKey) : color(d.label))});
+					.style('fill', d2b.UTILS.getColor($$.color, 'label'));
 
 				newItem.append('text')
 						.text(function(d){return d.label;});
@@ -2094,27 +2130,29 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 	var updateElements = function(){
 
-				var circleBackground = selection.item.select('circle.d2b-legend-circle-background');
+				var circleBackground = $$.selection.item.select('circle.d2b-legend-circle-background');
 
 				circleBackground
 					.transition()
-						.duration(animationDuration/3)
-						.style('stroke-width', scale/4)
-						.attr('y',scale/2)
+						.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+						.style('stroke', d2b.UTILS.getColor($$.color, 'label'))
+						.style('stroke-width', $$.scale/4)
+						.attr('y',$$.scale/2)
 						.attr('r',function(d){
 							if(d.open)
-								return scale;
+								return $$.scale;
 							else
-								return (d.hovered)?scale*1.5:scale;
+								return (d.hovered)?$$.scale*1.5:$$.scale;
 						});
 
-				var circleForeground = selection.item.select('circle.d2b-legend-circle-foreground');
+				var circleForeground = $$.selection.item.select('circle.d2b-legend-circle-foreground');
 
 				circleForeground
 					.transition()
-						.duration(animationDuration/3)
-						.attr('r',scale)
-						.attr('y',scale/2)
+						.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+						.attr('r',$$.scale)
+						.attr('y',$$.scale/2)
+						.style('fill', d2b.UTILS.getColor($$.color, 'label'))
 						.style('fill-opacity', function(d){
 							if(d.open)
 								return (d.hovered)?0.4:0;
@@ -2123,34 +2161,34 @@ d2b.UTILS.LEGENDS.legend = function(){
 						})
 						.attr('r',function(d){
 							if(d.open)
-								return scale * 0.5;
+								return $$.scale * 0.5;
 							else
-								return scale;
+								return $$.scale;
 						});
 
-				selection.item.classed('d2b-active', (active)? true:false)
+				$$.selection.item.classed('d2b-active', ($$.active)? true:false)
 
-				selection.item.text = selection.item.select('text')
-						.style('font-size',scale*2.5+'px')
-						.attr('x',scale*2)
-						.attr('y',scale);
+				$$.selection.item.text = $$.selection.item.select('text')
+						.style('font-size',$$.scale*2.5+'px')
+						.attr('x',$$.scale*2)
+						.attr('y',$$.scale);
 
 	};
 
 	var updatePositions = function(){
 
-		var xCurrent = scale + padding;
-		var yCurrent = scale + padding;
+		var xCurrent = $$.scale + $$.padding;
+		var yCurrent = $$.scale + $$.padding;
 		var maxItemLength = 0;
 		var maxY = 0;
 
-		if(currentLegendData.items.length > 0){
+		if($$.currentLegendData.items.length > 0){
 
-			if(orientation == 'vertical'){
+			if($$.orientation == 'vertical'){
 
-				selection.item
+				$$.selection.item
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1)
 						.attr('transform',function(d,i){
 							var position = 'translate('+xCurrent+','+yCurrent+')';
@@ -2158,49 +2196,49 @@ d2b.UTILS.LEGENDS.legend = function(){
 							if(yCurrent > maxY)
 								maxY = yCurrent
 
-							yCurrent += scale*4;
+							yCurrent += $$.scale*4;
 							maxItemLength = Math.max(maxItemLength,d3.select(this).select('text').node().getComputedTextLength());
-							if(yCurrent + scale > innerMaxHeight){
-								yCurrent = scale + padding;
-								xCurrent += maxItemLength + scale * 6;
+							if(yCurrent + $$.scale > $$.innerMaxHeight){
+								yCurrent = $$.scale + $$.padding;
+								xCurrent += maxItemLength + $$.scale * 6;
 								maxItemLength = 0;
 							}
 							return position;
 						});
 
-				computedWidth = xCurrent + maxItemLength + scale*2 + padding;
-				computedHeight = maxY + scale + padding;
+				$$.computedWidth = xCurrent + maxItemLength + $$.scale*2 + $$.padding;
+				$$.computedHeight = maxY + $$.scale + $$.padding;
 
 			}else{
 
 			  var maxItemLength = 0;
-				selection.item.text.each(function(d){
+				$$.selection.item.text.each(function(d){
 					var length = this.getComputedTextLength();
 					if(length > maxItemLength)
 						maxItemLength = length;
 				})
-				maxItemLength += scale*6;
-				var itemsPerRow = Math.floor((innerMaxWidth+3*scale)/maxItemLength);
+				maxItemLength += $$.scale*6;
+				var itemsPerRow = Math.floor(($$.innerMaxWidth+3*$$.scale)/maxItemLength);
 
-				selection.item
+				$$.selection.item
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1)
 						.attr('transform',function(d,i){
 							if(i%itemsPerRow == 0 && i > 0){
-								xCurrent = scale + padding;
-								yCurrent += scale*4
+								xCurrent = $$.scale + $$.padding;
+								yCurrent += $$.scale*4
 							}
 							var position = 'translate('+xCurrent+','+yCurrent+')';
 							xCurrent += maxItemLength;
 							return position;
 						});
 
-				computedHeight = yCurrent + scale + padding;
-				computedWidth = (selection.item.size() > itemsPerRow)?
-															maxItemLength * itemsPerRow - 3*scale + padding*2
+				$$.computedHeight = yCurrent + $$.scale + $$.padding;
+				$$.computedWidth = ($$.selection.item.size() > itemsPerRow)?
+															maxItemLength * itemsPerRow - 3*$$.scale + $$.padding*2
 															:
-															maxItemLength * selection.item.size() - 3*scale + padding*2;
+															maxItemLength * $$.selection.item.size() - 3*$$.scale + $$.padding*2;
 
 			}
 
@@ -2208,112 +2246,49 @@ d2b.UTILS.LEGENDS.legend = function(){
 	};
 
 	var itemExit = function(){
-		selection.item.exit()
+		$$.selection.item.exit()
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',0)
 				.remove();
 	};
 
 	var legend = {};
 
-	legend.items = function(value){
-		if(!arguments.length) return items;
-		items = value;
-		return legend;
-	};
-	legend.padding = function(value){
-		if(!arguments.length) return padding;
-		padding = value;
-		return legend;
-	};
-	legend.width = function(value){
-		if(!arguments.length) return maxWidth;
-		maxWidth = value;
-		return legend;
-	};
-	legend.height = function(value){
-		if(!arguments.length) return maxHeight;
-		maxHeight = value;
-		return legend;
-	};
+	legend.select = 							d2b.UTILS.CHARTS.MEMBERS.select(legend, $$, function(){ $$.generateRequired = true; });
+	legend.selection = 						d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'selection', function(){ $$.generateRequired = true; });
+	legend.width = 								d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'width');
+	legend.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'height');
+	legend.animationDuration = 		d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'animationDuration');
+	legend.legendOrientation = 		d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'legendOrientation');
+	legend.on = 									d2b.UTILS.CHARTS.MEMBERS.events(legend, $$);
+	legend.color = 								d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'color');
+	legend.padding = 							d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'padding');
+	legend.scale = 								d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'scale');
+	legend.orientation = 					d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'orientation');
+	legend.active = 							d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'active');
 	legend.computedHeight = function(){
-		return computedHeight;
+		return $$.computedHeight;
 	}
 	legend.computedWidth = function(){
-		return computedWidth;
+		return $$.computedWidth;
 	}
-	legend.color = function(value){
-		if(!arguments.length) return color;
-		color = value;
-		return legend;
-	};
-	legend.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		return legend;
-	};
-	legend.select = function(value){
-		if(!arguments.length) return selection;
-		selection = d3.select(value);
-		return legend;
-	};
-	legend.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		return legend;
-	};
-	legend.scale = function(value){
-		if(!arguments.length) return scale;
-		scale = value;
-		return legend;
-	};
-	legend.orientation = function(value){
-		if(!arguments.length) return orientation;
-		orientation = value;
-		return legend;
-	};
-	legend.active = function(value){
-		if(!arguments.length) return active;
-		active = value;
-		return legend;
-	};
-
-	legend.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return legend;
-	};
-
 	legend.data = function(legendData, reset){
-		if(!arguments.length) return currentLegendData;
-		currentLegendData = legendData.data;
-		// will tackle deal with sorting options later
-		// currentLegendData.items.sort(function(a,b){return d3.ascending(a.label,b.label)})
-
+		if(!arguments.length) return $$.currentLegendData;
+		$$.currentLegendData = legendData.data;
 		return legend;
 	}
 
 	legend.update = function(callback){
-		if(!selection)
+		if(!$$.selection)
 			return console.warn('legend was not given a selection');
 
 		itemEnter();
 		updateElements();
 		updatePositions();
 		itemExit();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();
@@ -2419,7 +2394,12 @@ d2b.UTILS.breadcrumbs = function(){
 		var breadcrumbHeight = scale * 4;
 		selection.breadcrumb.text = selection.breadcrumb.select('text')
 				.text(function(d){return d.label;})
-				.attr('x',padding+breadcrumbIndentSize)
+				.attr('x',function(d,i){
+					if(i == 0)
+						return padding+breadcrumbIndentSize/2;
+					else
+						return padding+breadcrumbIndentSize;
+				})
 				.attr('y',scale*2.9)
 				.style('font-size',scale*2.5+'px');
 		selection.breadcrumb.path = selection.breadcrumb.select('path');
@@ -2455,8 +2435,6 @@ d2b.UTILS.breadcrumbs = function(){
 					.attr('transform','translate('+(bcOffset)+',0)');
 
 			bcOffset+=breadcrumbIndentSize + pathWidth;
-
-
 
 		});
 
@@ -2501,33 +2479,16 @@ d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
 
 d2b.UTILS.CHARTS.MEMBERS.events = function(chart, $$, callback){
   return function(key, listener){
-    // key = key.split('-');
-    // if(!arguments.length) return $$.on;
-    //
-    // var registry = $$.on;
-    // var i;
-    // for(i = 0; i < key.length-1; i++)
-    //   registry = registry[key[i]];
-    //
-    // registry[key[key.length-1]] = listener;
+    var expKey = key.split('-');
+    if(expKey[0] == 'element'){
+      $$.events.addElementListener('main', key, listener);
+    }else{
+      $$.events.addListener(key, listener);
+    }
 
-	// 	key = key.split('.');
-	// 	if(!arguments.length) return $$.on;
-	// 	else if(arguments.length == 1){
-	// 		if(key[1])
-	// 			return $$.on[key[0]][key[1]];
-	// 		else
-	// 			return $$.on[key[0]]['default'];
-	// 	};
-  //
-	// 	if(key[1])
-  //     $$.on[key[0]][key[1]] = value;
-	// 	else
-  //     $$.on[key[0]]['default'] = value;
-  //
-  //   if(callback)
-  //     callback(value);
-  //
+    if(callback)
+      callback(key, listener);
+
 		return chart;
 	};
 };
@@ -2608,12 +2569,14 @@ d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, $$, callback){
 d2b.createNameSpace("d2b.UTILS.CHARTS.HELPERS");
 d2b.UTILS.CHARTS.HELPERS.updateLegend = function(_chart){
   var legendPadding = 10;
-  if(_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left'){
-    _chart.legend.orientation('vertical').data(_chart.legendData).height(_chart.innerHeight).update();
-  }
-  else{
-    _chart.legend.orientation('horizontal').data(_chart.legendData).width(_chart.innerWidth).update();
-  }
+  _chart.legend
+    .orientation(
+      (_chart.legendOrientation == 'right' || _chart.legendOrientation == 'left')? "vertical" : "horizontal"
+    )
+    .data(_chart.legendData)
+    .height(_chart.innerHeight)
+    .width(_chart.innerWidth)
+    .update();
 
   var legendTranslation;
   if(_chart.legendOrientation == 'right')
@@ -2713,6 +2676,213 @@ d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
       .attr('class','d2b-controls');
 };
 
+/**
+ *   This 'loader' will instantiate a multi-file loader. It is used to avoid
+ *   duplicate (redundant) file requests and process multiple file requests
+ *   asynchronously.
+*/
+d2b.UTILS.loader = function(){
+
+  var $$ = {};
+
+  // keep track of how many file loads are in progress
+  $$.inProgress = 0;
+
+  // all files that have been loaded for this loader, identified by their key
+  $$.files = {};
+
+  // callback stack
+  $$.stack = [];
+
+  /**
+   * Flush the callback stack.
+   */
+  $$.flushStack = function(){
+
+    if($$.stack.length == 0)
+      return;
+
+    var item = $$.stack.shift();
+
+    var my = {};
+    item.paths.forEach(function(path){
+      my[path.key] = $$.files[path.key];
+    });
+    if(item.callback)
+      item.callback(my);
+
+    $$.flushStack();
+  };
+
+  /**
+   * The main loader function that will resemble this instance of the multi-file
+   * loader.
+   * @param paths Array of paths for which to fetch data files.
+   *        [
+   *          {
+   *            key:  'file1',                 // defaults to the file name
+   *            file: 'file.csv',              // file name
+   *            path: 'http://filestore.com/', // default: 'http://d2b.academicdashboards.com/'
+   *            type: 'csv'                    // default: 'json'
+   *          }//,{},{}
+   *        ]
+   * @param callback function
+   *        function(files){
+   *          // do something with the files when they have loaded..
+   *        }
+   */
+  var loader = function(paths, callback){
+    $$.stack.push({callback:callback, paths:paths});
+
+    // loop through file paths
+    paths.forEach(function(path){
+
+      // set path config defaults
+      path.key = path.key || path.file;
+      // path.path = path.path || "http://d2b.academicdashboards.com/";
+      path.path = path.path || "http://d2b.s3-website-us-west-2.amazonaws.com/";
+      path.type = path.type || "json";
+
+      // check if file with key has already been loaded
+      if(!$$.files[path.key]){
+
+        // set this specific file to be in the process of being loaded
+        $$.files[path.key] = true;
+        // increment the amount of files in progress
+        $$.inProgress++;
+
+        // request file with path, file, and type
+        d3[path.type](path.path+path.file, function(data){
+
+          // once this file has been loaded decrement the file in progress counter
+          $$.inProgress--;
+          // save the loaded data
+          $$.files[path.key] = data;
+
+          //if no more files are in progress, flush the call stack
+          if(!$$.inProgress)
+            $$.flushStack();
+        });
+      }
+    });
+
+    //if no files were queued, flush the call stack
+    if(!$$.inProgress)
+      $$.flushStack();
+
+    return loader;
+  };
+
+  return loader;
+};
+
+// default loader instance
+d2b.UTILS.load = new d2b.UTILS.loader();
+
+d2b.UTILS.customEvents = function(){
+	var $$ = {};
+
+	$$.events = {};
+
+	// return object with a hash for the events, addListener method, and dispatch method
+	return {
+		addListener:function(key, listener){
+			// split key into event key and event class (namespace)
+			var key = key.split(".");
+			var eventKey = key[0];
+			var eventClass = key[1];
+
+			// if the event handle doesn't exist, initialize it
+			if(!$$.events[eventKey])
+				$$.events[eventKey] = {};
+
+			// save the listener
+			$$.events[eventKey][eventClass] = listener;
+		},
+		dispatch:function(key, my, args){
+			// dispatch all listeners with the event key
+			for(var listener in $$.events[key]){
+				if($$.events[key][listener])
+					$$.events[key][listener].apply(my, args);
+			}
+		},
+		events:function(){return $$.events;}
+	}
+};
+
+d2b.UTILS.chartEvents = function(){
+	var $$ = {};
+	$$.elementDispatchers = {};
+	$$.elementListeners = {};
+	$$.setElementEvents = function(selection, eventKey, listener, namespace, type){
+		var callback;
+		if(listener){
+			callback = function(){
+				var mainArguments = Array.prototype.slice.call(arguments);
+				mainArguments.unshift(type);
+				listener.apply(this, mainArguments);
+			}
+		}else{
+			callback = null;
+		}
+
+		selection.on(eventKey.split("-")[1]+"."+namespace+".d2b-element-event", callback);
+	};
+
+	// get custom events object
+	var handler = d2b.UTILS.customEvents();
+
+	/** Define Custom Element Dispatcher:
+		*	Element dispatcher is for adding an array of element selections and
+		* binding them all to their own built in events (e.g. 'click', 'mouseover'..).
+		* Use: var events = d2b.chartEvents()
+		*			 // these three selections will be added to the "main" dispatcher array
+		*			 d3.select("body").call(events.addElementDispatcher, "main", "body");
+		*			 d3.selectAll("div.foo").call(events.addElementDispatcher, "main", "foo");
+		*			 d3.selectAll("div.bar").call(events.addElementDispatcher, "main", "bar");
+		*			 // now to add a listener for the "main" elements above to dispatch
+		*			 events.addElementListener("main", "click.my_click", function(){ //uses optional namespace "my_click"
+		* 				// do something here..
+		*					// first argument is the type (body, foo, bar..)
+		*					// remaining arguments are default for the event (e.g. for d3 - data and index)
+		*			 })
+		*/
+	handler.addElementListener = function(dispatchKey, key, listener){
+		$$.elementListeners[key] = listener;
+		for(var selection in $$.elementDispatchers[dispatchKey]){
+			$$.setElementEvents($$.elementDispatchers[dispatchKey][selection].selection, key, listener, dispatchKey, $$.elementDispatchers[dispatchKey][selection].type);
+		}
+	};
+	handler.addElementDispatcher = function(selection, dispatchKey, elementKey){
+		$$.elementDispatchers[dispatchKey] = $$.elementDispatchers[dispatchKey] || {};
+		$$.elementDispatchers[dispatchKey][elementKey] = {selection:selection, type:elementKey.split('.')[0]};
+		for(var listener in $$.elementListeners){
+			$$.setElementEvents(selection, listener, $$.elementListeners[listener], dispatchKey, $$.elementDispatchers[dispatchKey][elementKey].type);
+		}
+	};
+
+	// returns all bound events with key/listener attributes
+	handler.allEvents = function(chart){
+		var events = [];
+		var handlerEvents = handler.events()
+		for(var key in handlerEvents){
+			for(var key2 in handlerEvents[key])
+				events.push({key:key+"."+key2,listener:handlerEvents[key][key2]});
+		}
+		for(var key in $$.elementListeners)
+			events.push({key:key,listener:$$.elementListeners[key]})
+		return events
+	};
+
+	// translate all bound events to a new chart
+	handler.translateEvents = function(chart){
+		handler.allEvents().forEach(function(event){
+			chart.on(event.key, event.listener);
+		});
+	};
+	return handler;
+};
+
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 /*sunburst chart*/
@@ -2745,9 +2915,9 @@ d2b.CHARTS.sunburstChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
-	$$.legend = new d2b.UTILS.LEGENDS.legend();
+	$$.legend = new d2b.UTILS.LEGENDS.legend().color($$.color);
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
@@ -2830,11 +3000,17 @@ d2b.CHARTS.sunburstChart = function(){
 	//set arc fill color to coordinate with the closest 'top' parent
 	$$.arcFill = function(d) {
 		var sequence = $$.getAncestors(d).reverse();
-		for(i=0;i<sequence.length;i++){
+
+		if(d.colorKey)
+			return $$.color(d.colorKey);
+
+		var colorSequence = [], limit = sequence.length;
+		for(i=0;i<limit;i++){
 			if(sequence[i].top){
-				return d3.rgb($$.color(sequence[i].name)).brighter(i*0.1);
+				return d3.rgb(d2b.UTILS.getColor($$.color, 'name')(sequence[i])).brighter(i*0.3);
 			}
 		}
+
 		return $$.color(d.name)
 	};
 
@@ -2846,15 +3022,10 @@ d2b.CHARTS.sunburstChart = function(){
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) >= 0);
 	              }).classed('d2b-transparent',false);
-		// 	.transition()
-		// 		.duration($$.animationDuration/7)
-		// 		.style('opacity',1)
+
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) < 0);
 	              }).classed('d2b-transparent',true);
-			// .transition()
-			// 	.duration($$.animationDuration/7)
-			// 	.style('opacity',0.4)
 
 		$$.updateBreadcrumbs(sequence);
 
@@ -2873,10 +3044,7 @@ d2b.CHARTS.sunburstChart = function(){
 	//on sunburst mouseout reset breadcrumbs, tooltip, and arc highlighting
 	$$.sunburstMouseout = function(d) {
 		$$.resetBreadcrumbs();
-	  $$.selection.arcs.arc.classed('d2b-transparent',false)
-			// .transition()
-			// 	.duration($$.animationDuration/5)
-			// 	.style('opacity',1);
+	  $$.selection.arcs.arc.classed('d2b-transparent',false);
 
 		$$.resetSunburstTooltip();
 	};
@@ -3025,8 +3193,7 @@ d2b.CHARTS.sunburstChart = function(){
 						outer: this.oldArc.outer
 					};
 				})
-				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
-				// .attrTween("d", $$.arcTween);
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
 
 		//tween paths to new positions
 		var pathTransition = $$.selection.arcs.arc.path
@@ -3072,17 +3239,6 @@ d2b.CHARTS.sunburstChart = function(){
 			};
 		}
 	};
-
-	// //arc tween from old arc to new arc
-	// $$.arcTween = function(d){
-	// 	var _self = this;
-	// 	var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
-	// 	function tween(t){
-	// 		_self.oldArc = interpolator(t);
-	// 		return $$.arc(_self.oldArc);
-	// 	}
-	// 	return tween;
-	// };
 
 	//reset the breadcrumbs
 	$$.resetBreadcrumbs = function(){
@@ -3136,7 +3292,10 @@ d2b.CHARTS.sunburstChart = function(){
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color);
+	});
 
 
 	chart.data = function(chartData, reset){
@@ -3192,10 +3351,8 @@ d2b.CHARTS.sunburstChart = function(){
 
 		//intialize new legend
 		$$.legend
-				.color($$.color)
-				.selection($$.selection.legend);
+			.selection($$.selection.legend);
 
-		//intialize new legend
 		$$.breadcrumbs
 				.selection($$.selection.breadcrumbs);
 
@@ -3236,21 +3393,13 @@ d2b.CHARTS.sunburstChart = function(){
 
 		//update controls viz
 		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
-		
+
 		$$.selection.breadcrumbs
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform','translate('+$$.forcedMargin.left+','+0+')');
 
-		//reposition the controls
-		$$.selection.controls
-			.transition()
-				.duration($$.animationDuration)
-				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+0+')');
-
 		$$.breadcrumbs.width($$.innerWidth).update();
-		// $$.forcedMargin.top += Math.max($$.breadcrumbs.computedHeight(), $$.controls.computedHeight());
-		$$.forcedMargin.top += $$.breadcrumbs.computedHeight();
 
 		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
@@ -3284,7 +3433,7 @@ d2b.CHARTS.sunburstChart = function(){
 		var newArcs =	$$.selection.arcs.arc.enter().append("g")
 			.attr('class','d2b-sunburst-arc')
 			.style('opacity',0)
-			.call(d2b.UTILS.bindElementEvents, $$, 'arc');
+			.call($$.events.addElementDispatcher, 'main', 'd2b-arc');
 
 		var newPaths = newArcs.append("path")
 				.on('mouseover.d2b-mouseover',$$.arcMouseover);
@@ -3306,8 +3455,9 @@ d2b.CHARTS.sunburstChart = function(){
 
 		$$.resetSunburstTooltip();
 
-
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();
@@ -3320,82 +3470,91 @@ d2b.CHARTS.sunburstChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-///////TODO - Change circle packing to custom algorithm that uses cluster packing rather than d3.force layout
+///////TODO - Change circle packing to custom algorithm that uses cluster packing rather than d3.force layout, force layout runs slowly for large number of nodes
 
 /*bubble chart*/
 d2b.CHARTS.bubbleChart = function(){
 
+	var $$ = {};
+
 	//define chart variables
-	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
-			height = d2b.CONSTANTS.DEFAULTHEIGHT(),
-			svgHeight = height-55;
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	$$.svgHeight = $$.height-55;
 
-	var innerHeight = height, innerWidth = width;
+	$$.innerHeight = $$.height
+	$$.innerWidth = $$.width;
 
-	var generateRequired = true; //using some methods may require the chart to be redrawn
+	$$.generateRequired = true; //using some methods may require the chart to be redrawn
 
-	var selection = d3.select('body'); //default selection of the HTML body
+	$$.selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d2b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
-			legendOrientation = 'right';
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
 
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
 
-	var currentChartData = {};
+	$$.legendOrientation = 'right';
 
-	var xFormat = function(value){return value};
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 
-	var current = {grouping:null,colorGrouping:null};
+	$$.currentChartData = {};
 
-	var changeLegendWidth = 250;
+	$$.xFormat = function(value){return value};
+
+	$$.current = {grouping:null,colorGrouping:null};
+
+	$$.changeLegendWidth = 250;
 
 	//scales for bubble radius, change color, change legend, change axis, change group axis
-	var r = d3.scale.linear(),
-			colorChange = d3.scale.threshold()
-				.domain([-0.25, -0.05, -0.001, 0.001, 0.05, 0.25])
-				.range(['#d84b2a', '#ee9586', '#e4b7b2', '#888', '#beccae', '#9caf84', '#7aa25c']),
-			changeScaleLegend = d3.scale.ordinal()
+	$$.bubbleRadius = d3.scale.linear();
+	$$.colorChange = d3.scale.threshold()
+		.domain([-0.25, -0.05, -0.001, 0.001, 0.05, 0.25])
+		.range(['#d84b2a', '#ee9586', '#e4b7b2', '#888', '#beccae', '#9caf84', '#7aa25c']);
+
+	$$.changeScaleLegend = d3.scale.ordinal()
 				.domain([-1, -0.25, -0.05, 0.0, 0.05, 0.25, 1])
-				.rangeBands([0,changeLegendWidth]),
-			changeScaleAxis = d3.scale.linear()
-				.domain([-0.25, 0.25]),
-			changeGroupsScale = d3.scale.ordinal();
+				.rangeBands([0,$$.changeLegendWidth]);
+
+	$$.changeScaleAxis = d3.scale.linear()
+				.domain([-0.25, 0.25]);
+
+	$$.changeGroupsScale = d3.scale.ordinal();
 
 	//define scales for bubble group placement and font-size
-	var groupsScales = {
+	$$.groupsScales = {
 		x:d3.scale.ordinal(),
 		y:d3.scale.ordinal(),
 		fontSize:d3.scale.linear().range([10, 30]).domain([0, 500])
 	};
 
 
-	var longestGroupsTick = 0;
+	$$.longestGroupsTick = 0;
 
-	var formatPercent = d3.format("%");
+	$$.formatPercent = d3.format("%");
 
 	//change axis init and tick formatting
-	var changeAxis = d3.svg.axis().orient("top")
-			.tickFormat(function(d){
-				if(d>0.25 || d<-0.25)
-					return '';
+	changeAxis = d3.svg.axis().orient("top")
+		.tickFormat(function(d){
+			if(d>0.25 || d<-0.25)
+				return '';
 
-				if(controls.sortByChange.enabled){
-					if(d==0.25)
-					  return formatPercent(d)+' or higher';
-					else if(d==-0.25)
-					  return formatPercent(d)+' or lower';
-				}
+			if($$.controlsData.sortByChange.enabled){
+				if(d==0.25)
+				  return $$.formatPercent(d)+' or higher';
+				else if(d==-0.25)
+				  return $$.formatPercent(d)+' or lower';
+			}
 
-				return formatPercent(d);
-			}),
-			groupsAxis = d3.svg.axis().scale(changeGroupsScale).orient("left");
+			return $$.formatPercent(d);
+		});
+
+	$$.groupsAxis = d3.svg.axis().scale($$.changeGroupsScale).orient("left");
 
 	//init controls to all invisible and disabled
-	var controls = {
+	$$.controlsData = {
 				hideLegend: {
 					label: "Hide Legend",
 					type: "checkbox",
@@ -3418,60 +3577,51 @@ d2b.CHARTS.bubbleChart = function(){
 
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	$$.events = d2b.UTILS.chartEvents();
 
 	//on force Tick, compute new node positions
-	var forceTick = function(e){
-		  var k = e.alpha * 0.095;
-			this.nodeElements.each(function(d, i) {
-				if(d.group){
-					d.y += (d.group.focus.y - d.y) * k;
-					d.x += (d.group.focus.x - d.x) * k;
-				}
-	    });
-			// this.nodeElements
-			// 	.transition()
-			// 		.duration(10)
-			// 		.ease('linear')
-			// 		.attr('transform',function(d){return 'translate('+d.x+','+d.y+')'});
-	}
+	$$.forceTick = function(e){
+	  var k = e.alpha * 0.095;
+		this.nodeElements.each(function(d, i) {
+			if(d.group){
+				d.y += (d.group.focus.y - d.y) * k;
+				d.x += (d.group.focus.x - d.x) * k;
+			}
+    });
+	};
 
 	// update the grouping for all nodes
-	var updateNodeGrouping = function(grouping, type){
+	$$.updateNodeGrouping = function(grouping, type){
 		if(!type)
 			type = "grouping";
-		currentChartData.nodes.forEach(function(d,i){
+		$$.currentChartData.nodes.forEach(function(d,i){
 			d[type] = grouping;
 		});
 	};
 
 	// update the visual group that each node resides in
-	var updateNodeGroup = function(grouping){
-		currentChartData.nodes.forEach(function(d,i){
-			d.group = current.grouping.groups[d.enrollments[d.grouping.index]];
+	$$.updateNodeGroup = function(grouping){
+		$$.currentChartData.nodes.forEach(function(d,i){
+			d.group = $$.current.grouping.groups[d.enrollments[d.grouping.index]];
 		});
 	}
 
 	// update the bubble radius based on total value of the grouping and the chart dimensions
-	var updateRadiusScale = function(grouping){
-		r
-			.range([0,Math.min(innerHeight,innerWidth)/4])
+	$$.updateRadiusScale = function(grouping){
+		$$.bubbleRadius
+			.range([0,Math.min($$.innerHeight,$$.innerWidth)/4])
 			.domain([0,Math.sqrt(grouping.total/Math.PI)]);
 	};
 
 	// special radius function to calculate the radius from the area-value input
-	var radius = function(value){
-		return Math.max(3,r(Math.sqrt(value/Math.PI)));
+	$$.radius = function(value){
+		return Math.max(3,$$.bubbleRadius(Math.sqrt(value/Math.PI)));
 	};
 
 	//update the top buttons
-	var updateGroupingButtons = function(){
+	$$.updateGroupingButtons = function(){
 		/*Make grouping buttons*/
-		selection.buttonsWrapper.buttons.button = selection.buttonsWrapper.buttons.selectAll('ul').data(currentChartData.groupings, function(d,i){
+		$$.selection.buttonsWrapper.buttons.button = $$.selection.buttonsWrapper.buttons.selectAll('ul').data($$.currentChartData.groupings, function(d,i){
 			if(d.key == 'unique')
 				return Math.floor((1 + Math.random()) * 0x10000)
 			else if(d.key && d.key != 'auto')
@@ -3479,106 +3629,82 @@ d2b.CHARTS.bubbleChart = function(){
 			else
 				return d.label;
 		});
-		var newButton = selection.buttonsWrapper.buttons.button.enter()
+		var newButton = $$.selection.buttonsWrapper.buttons.button.enter()
 			.append('ul');
 
 		newButton.append('li')
 			.attr('class','d2b-button')
 			.on('click.d2b-click',function(d,i){
-				current.grouping = d;
-				updateNodeGrouping(d);
-				updateNodeGroup();
+				$$.current.grouping = d;
+				$$.updateNodeGrouping(d);
+				$$.updateNodeGroup();
 				chart.update();
-				for(key in on.elementClick){
-					on.elementClick[key].call(this,d,i,'grouping-button');
-				}
 			})
-			.on('mouseover.d2b-mouseover', function(d,i){
-				for(key in on.elementMouseover){
-					on.elementMouseover[key].call(this,d,i,'grouping-button');
-				}
-			})
-			.on('mouseout.d2b-mouseout', function(d,i){
-				for(key in on.elementMouseout){
-					on.elementMouseout[key].call(this,d,i,'grouping-button');
-				}
-			});
+			.call($$.events.addElementDispatcher, 'main', 'd2b-bubble-grouping-button');
 		newButton.append('li')
 			.attr('class','d2b-color-button')
 			.on('click.d2b-click',function(d,i){
-				current.colorGrouping = d;
-				updateNodeGrouping(d, "colorGrouping");
+				$$.current.colorGrouping = d;
+				$$.updateNodeGrouping(d, "colorGrouping");
 				chart.update();
-				for(key in on.elementClick){
-					on.elementClick[key].call(this,d,i,'color-by-grouping-button');
-				}
 			})
-			.on('mouseover.d2b-mouseover', function(d,i){
-				for(key in on.elementMouseover){
-					on.elementMouseover[key].call(this,d,i,'color-by-grouping-button');
-				}
-			})
-			.on('mouseout.d2b-mouseout', function(d,i){
-				for(key in on.elementMouseout){
-					on.elementMouseout[key].call(this,d,i,'color-by-grouping-button');
-				}
-			});
+			.call($$.events.addElementDispatcher, 'main', 'd2b-color-by-grouping-button');
 
-		selection.buttonsWrapper.buttons.button.exit()
+		$$.selection.buttonsWrapper.buttons.button.exit()
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',0)
 				.remove();
 
-		selection.buttonsWrapper.buttons.button.grouping = selection.buttonsWrapper.buttons.button.select('li.d2b-button')
+		$$.selection.buttonsWrapper.buttons.button.grouping = $$.selection.buttonsWrapper.buttons.button.select('li.d2b-button')
 				.text(function(d){return d.label;})
-				.classed('d2b-selected',function(d,i){return d == current.grouping;});
+				.classed('d2b-selected',function(d,i){return d == $$.current.grouping;});
 
-		selection.buttonsWrapper.buttons.button.color = selection.buttonsWrapper.buttons.button.select('li.d2b-color-button')
+		$$.selection.buttonsWrapper.buttons.button.color = $$.selection.buttonsWrapper.buttons.button.select('li.d2b-color-button')
 				.html('<i class="fa fa-paint-brush"></i>')
-				.classed('d2b-selected',function(d,i){return d == current.colorGrouping;});
+				.classed('d2b-selected',function(d,i){return d == $$.current.colorGrouping;});
 	};
 
 
 	// update controls
-	var updateControls = function(){
+	$$.updateControls = function(){
 		//update controls
-		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
+		var controlsData = d2b.UTILS.getValues($$.controlsData).filter(function(d){return d.visible;});
 		controlsData.map(function(d){
 			d.data = {state:d.enabled, label:d.label, key:d.key};
 		});
-		horizontalControls.data(controlsData).width(innerWidth).update();
+		$$.controls.data(controlsData).width($$.innerWidth).update();
 
 		//reposition the controls
-		selection.controls
+		$$.selection.controls
 			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+(forcedMargin.left + innerWidth - horizontalControls.computedWidth())+','+(forcedMargin.top)+')');
+				.duration($$.animationDuration)
+				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+($$.forcedMargin.top)+')');
 	};
 
 	//update main legend
-	var updateLegend = function(){
+	$$.updateLegend = function(){
 		//main legend
 		var legendData;
-		if(controls.hideLegend.enabled){
+		if($$.controlsData.hideLegend.enabled){
 			legendData = {data:{items:[]}};
-		}else if(controls.colorByChange.enabled){
+		}else if($$.controlsData.colorByChange.enabled){
 			legendData = {
 				data:{
 					items:	[]
 				}
 			};
-		}else if(current.colorGrouping.hideLegend){
+		}else if($$.current.colorGrouping.hideLegend){
 			legendData = {data:{items:[]}};
 		}else{
 			legendData = {
 				data:{
 					items:	d3
-										.set(current.grouping.nodes.map(function(d){return d.enrollments[d.colorGrouping.index];}))
+										.set($$.current.grouping.nodes.map(function(d){return d.enrollments[d.colorGrouping.index];}))
 										.values()
 										.map(function(d){
 											if(d == 'null')
-												return {label:'Non-'+current.colorGrouping.label};
+												return {label:'Non-'+$$.current.colorGrouping.label};
 											else
 												return {label:d};
 											})
@@ -3586,174 +3712,156 @@ d2b.CHARTS.bubbleChart = function(){
 			};
 		}
 
-		innerHeight = svgHeight - forcedMargin.top - forcedMargin.bottom;
+		$$.innerHeight = $$.svgHeight - $$.forcedMargin.top - $$.forcedMargin.bottom;
 
-		if(legendOrientation == 'right' || legendOrientation == 'left'){
-			legend.orientation('vertical').data(legendData).height(innerHeight).update();
+		if($$.legendOrientation == 'right' || $$.legendOrientation == 'left'){
+			$$.legend.orientation('vertical').data(legendData).height($$.innerHeight).update();
 		}
 		else{
-			legend.orientation('horizontal').data(legendData).width(innerWidth).update();
+			$$.legend.orientation('horizontal').data(legendData).width($$.innerWidth).update();
 		}
 
 		var legendTranslation;
-		if(legendOrientation == 'right')
-			legendTranslation = 'translate('+(forcedMargin.left+innerWidth-legend.computedWidth())+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'left')
-			legendTranslation = 'translate('+(forcedMargin.left)+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'top')
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+forcedMargin.top+')';
+		if($$.legendOrientation == 'right')
+			legendTranslation = 'translate('+($$.forcedMargin.left+$$.innerWidth-$$.legend.computedWidth())+','+(($$.innerHeight-$$.legend.computedHeight())/2+$$.forcedMargin.top)+')';
+		else if($$.legendOrientation == 'left')
+			legendTranslation = 'translate('+($$.forcedMargin.left)+','+(($$.innerHeight-$$.legend.computedHeight())/2+$$.forcedMargin.top)+')';
+		else if($$.legendOrientation == 'top')
+			legendTranslation = 'translate('+($$.forcedMargin.left+($$.innerWidth-$$.legend.computedWidth())/2)+','+$$.forcedMargin.top+')';
 		else
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(innerHeight+forcedMargin.top-legend.computedHeight())+')';
+			legendTranslation = 'translate('+($$.forcedMargin.left+($$.innerWidth-$$.legend.computedWidth())/2)+','+($$.innerHeight+$$.forcedMargin.top-$$.legend.computedHeight())+')';
 
-		selection.legend
+		$$.selection.legend
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.attr('transform',legendTranslation);
 
 	};
 
 	//update views, sort by change / sort by grouping
-	var updateViews = function(){
+	$$.updateViews = function(){
 
-		if(controls.sortByChange.enabled || controls.colorByChange.enabled){
-				selection.changeAxis
+		if($$.controlsData.sortByChange.enabled || $$.controlsData.colorByChange.enabled){
+				$$.selection.changeAxis
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1);
 		}
 
-		if(controls.sortByChange.enabled || !controls.colorByChange.enabled){
-				selection.changeAxis.legend
+		if($$.controlsData.sortByChange.enabled || !$$.controlsData.colorByChange.enabled){
+				$$.selection.changeAxis.legend
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',0);
 		}
-		if(controls.sortByChange.enabled){
-			selection.group.groups
+		if($$.controlsData.sortByChange.enabled){
+			$$.selection.group.groups
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',0);
 		}else{
 				updateGroups();
-				selection.group.groups
+				$$.selection.group.groups
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1);
 		}
 
-		if(controls.colorByChange.enabled){
-			selection.buttonsWrapper.buttons.button.color.style('display','none');
+		if($$.controlsData.colorByChange.enabled){
+			$$.selection.buttonsWrapper.buttons.button.color.style('display','none');
 		}else{
-			selection.buttonsWrapper.buttons.button.color.style('display','block');
+			$$.selection.buttonsWrapper.buttons.button.color.style('display','block');
 		}
 
-		longestGroupsTick = 0;
-		if(controls.sortByChange.enabled){
-			changeGroupsScale.domain(Object.keys(current.grouping.groups)).rangeBands([0,innerHeight-60]);
+		$$.longestGroupsTick = 0;
+		if($$.controlsData.sortByChange.enabled){
+			$$.changeGroupsScale.domain(Object.keys($$.current.grouping.groups)).rangeBands([0,$$.innerHeight-60]);
 
-			selection.groupsAxis
-					.call(groupsAxis);
+			$$.selection.groupsAxis
+					.call($$.groupsAxis);
 
 
-			selection.groupsAxis.selectAll('.tick text').each(function(d){
-				if(longestGroupsTick < this.getComputedTextLength())
-					longestGroupsTick = this.getComputedTextLength();
+			$$.selection.groupsAxis.selectAll('.tick text').each(function(d){
+				if($$.longestGroupsTick < this.getComputedTextLength())
+					$$.longestGroupsTick = this.getComputedTextLength();
 			})
 
-			groupsAxis.tickSize(-innerWidth+forcedMargin.left + longestGroupsTick);
+			$$.groupsAxis.tickSize(-$$.innerWidth+$$.forcedMargin.left + $$.longestGroupsTick);
 
-			selection.groupsAxis
+			$$.selection.groupsAxis
 				.transition()
-					.duration(animationDuration)
-					.call(groupsAxis)
+					.duration($$.animationDuration)
+					.call($$.groupsAxis)
 					.style('opacity',1)
-					.attr('transform','translate('+(forcedMargin.left + longestGroupsTick -20)+','+(forcedMargin.top+60)+')');
+					.attr('transform','translate('+($$.forcedMargin.left + $$.longestGroupsTick -20)+','+($$.forcedMargin.top+60)+')');
 
 
-			changeScaleAxis
-				.range([0,innerWidth-80-longestGroupsTick]);
+			$$.changeScaleAxis
+				.range([0,$$.innerWidth-80-$$.longestGroupsTick]);
 			changeAxis
-					.tickSize(-innerHeight+30)
-					.scale(changeScaleAxis);
-			selection.changeAxis
+					.tickSize(-$$.innerHeight+30)
+					.scale($$.changeScaleAxis);
+			$$.selection.changeAxis
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',1)
-					.attr('transform','translate('+(forcedMargin.left+30+longestGroupsTick)+','+(20+forcedMargin.top + horizontalControls.computedHeight())+')')
-			selection.changeAxis.axis
+					.attr('transform','translate('+($$.forcedMargin.left+30+$$.longestGroupsTick)+','+(20+$$.forcedMargin.top + $$.controls.computedHeight())+')')
+			$$.selection.changeAxis.axis
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.call(changeAxis);
 
 
-		}else if(controls.colorByChange.enabled){
-			selection.groupsAxis
+		}else if($$.controlsData.colorByChange.enabled){
+			$$.selection.groupsAxis
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',0);
-			selection.changeAxis.legend
+			$$.selection.changeAxis.legend
 				.transition()
-					.delay(animationDuration/4)
-					.duration(animationDuration)
+					.delay($$.animationDuration/4)
+					.duration($$.animationDuration)
 					.style('opacity',1);
 			changeAxis
 					.tickSize(15)
-					.scale(changeScaleLegend);
+					.scale($$.changeScaleLegend);
 
-			selection.changeAxis
+			$$.selection.changeAxis
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',1)
-					.attr('transform','translate('+(width -changeLegendWidth- 20)+','+(20+forcedMargin.top + horizontalControls.computedHeight())+')')
+					.attr('transform','translate('+($$.width -$$.changeLegendWidth- 20)+','+(20+$$.forcedMargin.top + $$.controls.computedHeight())+')')
 
-			selection.changeAxis.axis
+			$$.selection.changeAxis.axis
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.call(changeAxis);
 		}else{
-			selection.changeAxis
+			$$.selection.changeAxis
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',0);
-			selection.groupsAxis
+			$$.selection.groupsAxis
 				.transition()
-					.duration(animationDuration)
+					.duration($$.animationDuration)
 					.style('opacity',0);
 		}
 	};
 
-	var bubbleMouseover = function(d, i){
+	$$.bubbleChange = function(d, i){
 		var changeHTML = '';
 
 		if(isNaN(d.change)){}
 		else if(d.change >= 0)
-			changeHTML = '(+'+formatPercent(d.change)+')';
+			changeHTML = '(+'+$$.formatPercent(d.change)+')';
 		else if(d.change < 0)
-			changeHTML = '('+formatPercent(d.change)+')';
+			changeHTML = '('+$$.formatPercent(d.change)+')';
 
-		d2b.UTILS.createGeneralTooltip(d3.select(this), "<b>"+d.label+"</b>", xFormat(d.value)+' '+changeHTML);
-
-		for(key in on.elementMouseover){
-			on.elementMouseover[key].call(this,d,i,'bubble');
-		}
-	};
-
-	var bubbleMouseout = function(d,i){
-		d2b.UTILS.removeTooltip();
-		for(key in on.elementMouseout){
-			on.elementMouseout[key].call(this,d,i,'bubble');
-		}
-	};
-
-	var bubbleClick = function(d,i){
-		d2b.UTILS.removeTooltip();
-		for(key in on.elementClick){
-			on.elementClick[key].call(this,d,i,'bubble');
-		}
+		return $$.xFormat(d.value)+' '+changeHTML;
 	};
 
 	//GP async loop
-	var asyncLoop = function(iterations, process, exit){
+	$$.asyncLoop = function(iterations, process, exit){
 	    var index = 0,
 	        done = false,
 	        shouldExit = false;
@@ -3785,10 +3893,10 @@ d2b.CHARTS.bubbleChart = function(){
 	}
 
 	//update bubble positioning
-	var updateBubbles = function(){
+	$$.updateBubbles = function(){
 
-		selection.group.bubbles.bubble = selection.group.bubbles.selectAll('g.d2b-bubble')
-				.data(current.grouping.nodes.sort(function(a,b){return d3.ascending(b.value, a.value);}),function(d,i){
+		$$.selection.group.bubbles.bubble = $$.selection.group.bubbles.selectAll('g.d2b-bubble')
+				.data($$.current.grouping.nodes.sort(function(a,b){return d3.ascending(b.value, a.value);}),function(d,i){
 					if(d.key == 'unique')
 						return Math.floor((1 + Math.random()) * 0x10000)
 					else if(d.key && d.key != 'auto')
@@ -3797,78 +3905,82 @@ d2b.CHARTS.bubbleChart = function(){
 						return d.label;
 				});
 
-		var newBubble = selection.group.bubbles.bubble.enter()
+		var newBubble = $$.selection.group.bubbles.bubble.enter()
 			.append('g')
 				.attr('class','d2b-bubble')
-				.on('mouseover.d2b-mouseover', bubbleMouseover)
-				.on('mouseout.d2b-mouseout', bubbleMouseout)
-				.on('click.d2b-click', bubbleClick);
-				// .style('opacity',0);
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},$$.bubbleChange)
+				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble');
 
 		newBubble.append('circle')
-				.style('fill',function(d){return color(d.enrollments[d.colorGrouping.index]);})
-				.style('stroke',function(d){return color(d.enrollments[d.colorGrouping.index]);})
+				.style('fill', function(d){return d2b.UTILS.getColor($$.color, 'label', [{label:d.enrollments[d.colorGrouping.index]}])(d)})
+				// .style('fill',function(d){return $$.color(d.enrollments[d.colorGrouping.index]);})
+				.style('stroke',function(d){return $$.color(d.enrollments[d.colorGrouping.index]);})
 				.attr('r',0);
 
-		selection.group.bubbles.bubble.circle = selection.group.bubbles.bubble.select('circle')
+		$$.selection.group.bubbles.bubble.circle = $$.selection.group.bubbles.bubble.select('circle')
 
-		var circleTransition = selection.group.bubbles.bubble.circle
+		var circleTransition = $$.selection.group.bubbles.bubble.circle
 			.transition()
-				.duration(animationDuration)
-				.attr('r',function(d){return radius(d.value);});
+				.duration($$.animationDuration)
+				.attr('r',function(d){return $$.radius(d.value);});
 
-		if(current.groups){
-			current.groups.forEach(function(d){
+		if($$.current.groups){
+			$$.current.groups.forEach(function(d){
 				// d.force.stop();
-				d.nodeElements = selection.group.bubbles.bubble.filter(function(b){
-					return b.group == d && b.enrollments[current.grouping.index];
+				d.nodeElements = $$.selection.group.bubbles.bubble.filter(function(b){
+					return b.group == d && b.enrollments[$$.current.grouping.index];
 				})
 			});
 		}
 
-		if(controls.colorByChange.enabled){
+		if($$.controlsData.colorByChange.enabled){
 			circleTransition
-				.style('fill',function(d){return colorChange(d.change);})
-				.style('stroke',function(d){return d3.rgb(colorChange(d.change)).darker(1);});
+				.style('fill',function(d){return $$.colorChange(d.change);})
+				.style('stroke',function(d){return d3.rgb($$.colorChange(d.change)).darker(1);});
 		}else{
 			circleTransition
 				.style('fill',function(d){
-						if(d.enrollments[d.colorGrouping.index])
-							return color(d.enrollments[d.colorGrouping.index]);
-						else
-							return color('Non-'+current.colorGrouping.label);
+						if(d.enrollments[d.colorGrouping.index]){
+							// console.log(d2b.UTILS.getColor($$.color, 'label', [d.enrollments[d.colorGrouping.index]])(d))
+							return d2b.UTILS.getColor($$.color, 'label', [{label:d.enrollments[d.colorGrouping.index]}])(d);
+							// return $$.color(d.enrollments[d.colorGrouping.index]);
+							}
+						else{
+							return d2b.UTILS.getColor($$.color, 'label', [{label:'Non-'+$$.current.colorGrouping.label}])(d);
+							// return $$.color('Non-'+$$.current.colorGrouping.label);
+							}
 					})
 				.style('stroke',function(d){
 						if(d.enrollments[d.colorGrouping.index])
-							return d3.rgb(color(d.enrollments[d.colorGrouping.index])).darker(1);
+							return d3.rgb($$.color(d.enrollments[d.colorGrouping.index])).darker(1);
 						else
-							return d3.rgb(color('Non-'+current.colorGrouping.label)).darker(1);
+							return d3.rgb($$.color('Non-'+$$.current.colorGrouping.label)).darker(1);
 					})
 		}
 
 		//place bubbles either in groups or on change axis
-		if(controls.sortByChange.enabled){
-			var changeRange = changeScaleAxis.range();
+		if($$.controlsData.sortByChange.enabled){
+			var changeRange = $$.changeScaleAxis.range();
 
-			selection.group.bubbles.bubble
+			$$.selection.group.bubbles.bubble
 				.transition()
-					.duration(animationDuration*1.5)
+					.duration($$.animationDuration*1.5)
 					.each(function(d){
-						d.x = (20+Math.min(changeRange[1],Math.max(changeRange[0], changeScaleAxis(d.change)))) + (longestGroupsTick + 10) + forcedMargin.left;
-						d.y = (changeGroupsScale(d.enrollments[d.grouping.index])+changeGroupsScale.rangeBand()/2+ 60 + forcedMargin.top);
+						d.x = (20+Math.min(changeRange[1],Math.max(changeRange[0], $$.changeScaleAxis(d.change)))) + ($$.longestGroupsTick + 10) + $$.forcedMargin.left;
+						d.y = ($$.changeGroupsScale(d.enrollments[d.grouping.index])+$$.changeGroupsScale.rangeBand()/2+ 60 + $$.forcedMargin.top);
 					})
 					.attr('transform',function(d,i){return 'translate('+d.x+','+d.y+')';});
 
 		}else{
 
 
-			current.groups.forEach(function(d){
+			$$.current.groups.forEach(function(d){
 				//set force parameters and start it
 				d.force
-						.size([innerWidth, innerHeight])
+						.size([$$.innerWidth, $$.innerHeight])
 						.start();
 				//auto-advance the force.tick until the alpha parameter is less than 0.025, then transition the bubbles
-				asyncLoop(300, function(loop){
+				$$.asyncLoop(300, function(loop){
 					if(d.force.alpha() < 0.025)
 						loop.break(true);
 	        var i = loop.iteration();
@@ -3878,7 +3990,7 @@ d2b.CHARTS.bubbleChart = function(){
 					d.force.stop();
 					d.nodeElements
 						.transition()
-							.duration(animationDuration*1.5)
+							.duration($$.animationDuration*1.5)
 							.attr('transform',function(d){return 'translate('+d.x+','+d.y+')'});
 				});
 			});
@@ -3886,15 +3998,15 @@ d2b.CHARTS.bubbleChart = function(){
 		}
 
 		//if new bubbles added to old bubbles, sort visual space largest to smallest
-		if(newBubble.size() && selection.group.bubbles.bubble.size() > newBubble.size()){
-			selection.group.bubbles.bubble.each(function(d){
-				selection.group.bubbles.node().appendChild(this);
+		if(newBubble.size() && $$.selection.group.bubbles.bubble.size() > newBubble.size()){
+			$$.selection.group.bubbles.bubble.each(function(d){
+				$$.selection.group.bubbles.node().appendChild(this);
 			});
 		}
 
-		selection.group.bubbles.bubble.exit()
+		$$.selection.group.bubbles.bubble.exit()
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',0)
 				.attr('transform',function(d){return 'translate(0,0)'})
 				.remove()
@@ -3904,30 +4016,30 @@ d2b.CHARTS.bubbleChart = function(){
 
 	// update bubble groups positioning
 	var updateGroups = function(){
-		current.groups = [];
-		for(key in current.grouping.groups)
-			current.groups.push(current.grouping.groups[key]);
+		$$.current.groups = [];
+		for(key in $$.current.grouping.groups)
+			$$.current.groups.push($$.current.grouping.groups[key]);
 
-		var ratio = innerWidth/innerHeight;
+		var ratio = $$.innerWidth/$$.innerHeight;
 
-		var groupsPerRow = Math.min(current.groups.length,Math.max(1, Math.round(Math.sqrt(current.groups.length) * (ratio))));
-		var groupsPerColumn = Math.ceil(current.groups.length/groupsPerRow);
+		var groupsPerRow = Math.min($$.current.groups.length,Math.max(1, Math.round(Math.sqrt($$.current.groups.length) * (ratio))));
+		var groupsPerColumn = Math.ceil($$.current.groups.length/groupsPerRow);
 
-		selection.group.groups.group = selection.group.groups.selectAll('g').data(current.groups);
+		$$.selection.group.groups.group = $$.selection.group.groups.selectAll('g').data($$.current.groups);
 
-		groupsScales.x.domain(d3.range(0, groupsPerRow)).rangeBands([0,innerWidth]);
-		groupsScales.y.domain(d3.range(0, groupsPerColumn)).rangeBands([0,innerHeight-100]);
+		$$.groupsScales.x.domain(d3.range(0, groupsPerRow)).rangeBands([0,$$.innerWidth]);
+		$$.groupsScales.y.domain(d3.range(0, groupsPerColumn)).rangeBands([0,$$.innerHeight-100]);
 
-		var newGroup = selection.group.groups.group.enter()
+		var newGroup = $$.selection.group.groups.group.enter()
 			.append('g')
 				.style('opacity',0);
 
 		newGroup.append('text').attr('class','d2b-group-title');
 		newGroup.append('text').attr('class','d2b-group-total');
-		selection.group.groups.group
+		$$.selection.group.groups.group
 			.each(function(d,i){
 				d.total = d3.sum(d.nodes.map(function(d){return d.value;}));
-				d.focus = {x:groupsScales.x(i%groupsPerRow)+groupsScales.x.rangeBand()/2, y:groupsScales.y(Math.floor(i/groupsPerRow))+100+groupsScales.y.rangeBand()/2};
+				d.focus = {x:$$.groupsScales.x(i%groupsPerRow)+$$.groupsScales.x.rangeBand()/2, y:$$.groupsScales.y(Math.floor(i/groupsPerRow))+100+$$.groupsScales.y.rangeBand()/2};
 
 				//if the d3 force layout has not been initialized for this bubble-group yet, initialize it
 				if(!d.force){
@@ -3935,46 +4047,40 @@ d2b.CHARTS.bubbleChart = function(){
 		          .links([])
 		          .gravity(0)
 							.friction(0.9)
-		          .charge(function(d){return -Math.pow( radius(d.value), 2.0) / 9;})
+		          .charge(function(d){return -Math.pow( $$.radius(d.value), 2.0) / 9;})
 		          .nodes(d.nodes)
-		          .on('tick', forceTick.bind(d));
+		          .on('tick', $$.forceTick.bind(d));
 				}
 				d.force.stop();
 
 			})
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.attr('transform',function(d,i){
-					return 'translate('+(groupsScales.x(i%groupsPerRow)+groupsScales.x.rangeBand()/2)+','+(groupsScales.y(Math.floor(i/groupsPerRow))+100)+')'
+					return 'translate('+($$.groupsScales.x(i%groupsPerRow)+$$.groupsScales.x.rangeBand()/2)+','+($$.groupsScales.y(Math.floor(i/groupsPerRow))+100)+')'
 				})
 				.style('opacity',1);
 
-		selection.group.groups.selectAll('.focus').remove();
+		$$.selection.group.groups.selectAll('.focus').remove();
 
-		var fontSize = Math.min(30,Math.max(8,groupsScales.fontSize((innerWidth + innerHeight)/(current.groups.length))))
+		var fontSize = Math.min(30,Math.max(8,$$.groupsScales.fontSize(($$.innerWidth + $$.innerHeight)/($$.current.groups.length))))
 
-		selection.group.groups.group.total = selection.group.groups.group.select('text.d2b-group-total')
-			// .attr('y', groupsScales.y.rangeBand()/2)
-			.text(function(d){return xFormat(d.total);})
+		$$.selection.group.groups.group.total = $$.selection.group.groups.group.select('text.d2b-group-total')
+			// .attr('y', $$.groupsScales.y.rangeBand()/2)
+			.text(function(d){return $$.xFormat(d.total);})
 			.style('font-size', fontSize+'px')
-		selection.group.groups.group.each(function(d){
-			// selection.group.groups.append('circle').attr('class','focus').attr('r',5).style('fill','red').attr('cx',d.focus.x).attr('cy',d.focus.y)
 
-				// selection.group.groups.group.append('text').attr('class','focus').text('$12.1M').style('text-anchor','middle').attr('x',d.focus.x).attr('y',d.focus.y)
-		});
-
-		// selection.group.groups.group
-		selection.group.groups.group.title = selection.group.groups.group.select('text.d2b-group-title')
+		$$.selection.group.groups.group.title = $$.selection.group.groups.group.select('text.d2b-group-title')
 				.text(function(d){return d.label;})
 				.attr('dy',0)
 				.attr('y',fontSize)
 				// .attr('y',0)
 				.style('font-size', fontSize+'px')
-				.call(d2b.UTILS.textWrap, groupsScales.x.rangeBand()-10);
+				.call(d2b.UTILS.textWrap, $$.groupsScales.x.rangeBand()-10);
 
-		selection.group.groups.group.exit()
+		$$.selection.group.groups.group.exit()
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',0)
 				.remove();
 
@@ -3983,102 +4089,39 @@ d2b.CHARTS.bubbleChart = function(){
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		svgHeight = height-55;
-		return chart;
-	};
-
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		legend.animationDuration(animationDuration);
-		return chart;
-	};
-
-	chart.xFormat = function(value){
-		if(!arguments.length) return xFormat;
-		xFormat = d2b.UTILS.numberFormat(value);
-		return chart;
-	};
-
-	chart.legendOrientation = function(value){
-		if(!arguments.length) return legendOrientation;
-		legendOrientation = value;
-		return chart;
-	};
-
-	chart.controls = function(value){
-		if(!arguments.length) return controls;
-		if(value.hideLegend){
-			controls.hideLegend.visible = (value.hideLegend.visible != null)? value.hideLegend.visible:controls.hideLegend.visible;
-			controls.hideLegend.enabled = (value.hideLegend.enabled != null)? value.hideLegend.enabled:controls.hideLegend.enabled;
-		}
-		if(value.sortByChange){
-			controls.sortByChange.visible = (value.sortByChange.visible != null)? value.sortByChange.visible:controls.sortByChange.visible;
-			controls.sortByChange.enabled = (value.sortByChange.enabled != null)? value.sortByChange.enabled:controls.sortByChange.enabled;
-		}
-		if(value.colorByChange){
-			controls.colorByChange.visible = (value.colorByChange.visible != null)? value.colorByChange.visible:controls.colorByChange.visible;
-			controls.colorByChange.enabled = (value.colorByChange.enabled != null)? value.colorByChange.enabled:controls.colorByChange.enabled;
-		}
-
-		return chart;
-	};
-
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height', function(){$$.svgHeight = $$.height - 55;});
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+		$$.legend.animationDuration($$.animationDuration);
+		$$.controls.animationDuration($$.animationDuration);
+	});
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color)
+	});
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {};
-			generateRequired = true;
+			$$.currentChartData = {};
+			$$.generateRequired = true;
 		}
 
-		currentChartData = chartData.data;
+		$$.currentChartData = chartData.data;
 
-		currentChartData.nodes = currentChartData.nodes.filter(function(d){return d.value > 0;})
+		$$.currentChartData.nodes = $$.currentChartData.nodes.filter(function(d){return d.value > 0;})
 
 		//link groupings by enrollments
-		currentChartData.groupings.forEach(function(d, i){
+		$$.currentChartData.groupings.forEach(function(d, i){
 			d.index = i;
-			d.nodes = currentChartData.nodes.filter(function(node){ return node.enrollments[i];	});
+			d.nodes = $$.currentChartData.nodes.filter(function(node){ return node.enrollments[i];	});
 			d.groups = {};
 			d.total = 0;
 			d.nodes.forEach(function(node){
@@ -4090,108 +4133,108 @@ d2b.CHARTS.bubbleChart = function(){
 		});
 
 		//update grouping
-		var tempGrouping = current.grouping;
-		current.grouping = currentChartData.groupings[0];
+		var tempGrouping = $$.current.grouping;
+		$$.current.grouping = $$.currentChartData.groupings[0];
 		if(tempGrouping){
-			currentChartData.groupings.forEach(function(d){
+			$$.currentChartData.groupings.forEach(function(d){
 				if(tempGrouping.label == d.label)
-					current.grouping = d;
+					$$.current.grouping = d;
 			});
 		}
-		updateNodeGrouping(current.grouping);
-		updateNodeGroup();
+		$$.updateNodeGrouping($$.current.grouping);
+		$$.updateNodeGroup();
 
 		//update color grouping
-		tempGrouping = current.colorGrouping;
-		current.colorGrouping = currentChartData.groupings.filter(function(d){return d.default_color_grouping;})[0];
+		tempGrouping = $$.current.colorGrouping;
+		$$.current.colorGrouping = $$.currentChartData.groupings.filter(function(d){return d.default_color_grouping;})[0];
 		if(tempGrouping){
-			currentChartData.groupings.forEach(function(d){
+			$$.currentChartData.groupings.forEach(function(d){
 				if(tempGrouping.label == d.label)
-					current.colorGrouping = d;
+					$$.current.colorGrouping = d;
 			});
-		}else if(!current.colorGrouping){
-			current.colorGrouping = currentChartData.groupings[0];
+		}else if(!$$.current.colorGrouping){
+			$$.current.colorGrouping = $$.currentChartData.groupings[0];
 		}
-		updateNodeGrouping(current.colorGrouping, "colorGrouping");
+		$$.updateNodeGrouping($$.current.colorGrouping, "colorGrouping");
 
 		return chart;
 	};
 
 	//generate chart
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
 		//clean container
-		selection.selectAll('*').remove();
+		$$.selection.selectAll('*').remove();
 
 		//create button container
-		selection.buttonsWrapper = selection
+		$$.selection.buttonsWrapper = $$.selection
 			.append('div')
 				.attr('class','d2b-bubble-chart-buttons-wrapper');
 
-		selection.buttonsWrapper.buttons = selection.buttonsWrapper
+		$$.selection.buttonsWrapper.buttons = $$.selection.buttonsWrapper
 			.append('ul')
 				.attr('class','d2b-buttons');
 
 		//create svg
-		selection.svg = selection
+		$$.selection.svg = $$.selection
 			.append('svg')
 				.attr('class','d2b-bubble-chart d2b-svg d2b-container');
 
 		//create group container
-		selection.group = selection.svg.append('g');
+		$$.selection.group = $$.selection.svg.append('g');
 
-		selection.group.bubbles = selection.group
+		$$.selection.group.bubbles = $$.selection.group
 			.append('g')
 				.attr('class','d2b-bubbles');
 
 		//create change axis/legend
-		selection.changeAxis = selection.group
+		$$.selection.changeAxis = $$.selection.group
 			.append('g')
 				.attr('class','d2b-change-axis-legend');
 
-		selection.changeAxis.legend = selection.changeAxis
+		$$.selection.changeAxis.legend = $$.selection.changeAxis
 			.append('g');
 
-		selection.changeAxis.axis = selection.changeAxis
+		$$.selection.changeAxis.axis = $$.selection.changeAxis
 			.append('g');
 
-		selection.group.groups = selection.group
+		$$.selection.group.groups = $$.selection.group
 			.append('g')
 				.attr('class','d2b-groups');
 
 		//create groups axis
-		selection.groupsAxis = selection.group
+		$$.selection.groupsAxis = $$.selection.group
 			.append('g')
 				.attr('class','d2b-groups-axis');
 
 		//init change legend rects
-		selection.changeAxis.legend.rect = selection.changeAxis.legend.selectAll('rect').data([-0.25, -0.05, 0.0, 0.05, 0.25, 1]);
-		selection.changeAxis.legend.rect.enter()
+		$$.selection.changeAxis.legend.rect = $$.selection.changeAxis.legend.selectAll('rect').data([-0.25, -0.05, 0.0, 0.05, 0.25, 1]);
+		$$.selection.changeAxis.legend.rect.enter()
 			.append('rect')
-			.style('fill', function(d){return colorChange(d-0.01);})
-			.attr('x',function(d){return changeScaleLegend(d)-changeScaleLegend.rangeBand()/2;})
-			.attr('width',changeScaleLegend.rangeBand())
+			.style('fill', function(d){return $$.colorChange(d-0.01);})
+			.attr('x',function(d){return $$.changeScaleLegend(d)-$$.changeScaleLegend.rangeBand()/2;})
+			.attr('width',$$.changeScaleLegend.rangeBand())
 			.attr('height',10)
 			.attr('y',-15);
 
 
 
 		//create legend container
-		selection.legend = selection.group
+		$$.selection.legend = $$.selection.group
 			.append('g')
 				.attr('class','d2b-legend');
 
 		//create controls container
-		selection.controls = selection.group
+		$$.selection.controls = $$.selection.group
 			.append('g')
 				.attr('class','d2b-controls');
 
 
-		horizontalControls
-				.selection(selection.controls)
+		$$.controls
+				.selection($$.selection.controls)
 				.on('change',function(d,i){
-					controls[d.key].enabled = d.state;
+					$$.controlsData[d.key].enabled = d.state;
 					if(d.key == 'sort' || d.key == 'hideLegend'){
 						newData = true;
 					}
@@ -4199,12 +4242,12 @@ d2b.CHARTS.bubbleChart = function(){
 				});
 
 		// //intialize new legend
-		legend
-				.color(color)
-				.selection(selection.legend);
+		$$.legend
+				.color($$.color)
+				.selection($$.selection.legend);
 
 		//auto update chart
-		var temp = animationDuration;
+		var temp = $$.animationDuration;
 		chart
 				.animationDuration(0)
 				.update(callback)
@@ -4217,40 +4260,42 @@ d2b.CHARTS.bubbleChart = function(){
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
-		
-		selection.svg
-				.attr('width',width)
-				.attr('height',svgHeight);
 
-		updateGroupingButtons();
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.svgHeight);
 
-		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.updateGroupingButtons();
 
-		innerWidth = width - forcedMargin.right - forcedMargin.left;
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-		updateControls();
+		$$.innerWidth = $$.width - $$.forcedMargin.right - $$.forcedMargin.left;
+
+		$$.updateControls();
 
 
-		forcedMargin.top += horizontalControls.computedHeight() + 10;
+		$$.forcedMargin.top += $$.controls.computedHeight() + 10;
 
-		updateLegend();
+		$$.updateLegend();
 
-		if(legendOrientation == 'right' || legendOrientation == 'left')
-			forcedMargin[legendOrientation] += legend.computedWidth();
+		if($$.legendOrientation == 'right' || $$.legendOrientation == 'left')
+			$$.forcedMargin[$$.legendOrientation] += $$.legend.computedWidth();
 		else
-			forcedMargin[legendOrientation] += legend.computedHeight();
+			$$.forcedMargin[$$.legendOrientation] += $$.legend.computedHeight();
 
-		innerHeight = svgHeight - forcedMargin.top - forcedMargin.bottom;
-		innerWidth = width - forcedMargin.left - forcedMargin.right;
+		$$.innerHeight = $$.svgHeight - $$.forcedMargin.top - $$.forcedMargin.bottom;
+		$$.innerWidth = $$.width - $$.forcedMargin.left - $$.forcedMargin.right;
 
-		updateViews();
-		updateRadiusScale(current.grouping);
-		updateBubbles();
+		$$.updateViews();
+		$$.updateRadiusScale($$.current.grouping);
+		$$.updateBubbles();
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection)
 
 		if(callback)
 			callback();
@@ -4297,10 +4342,14 @@ d2b.CHARTS.axisChart = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	// $$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+
+	$$.events = d2b.UTILS.chartEvents();
+
 	//legend OBJ
-	$$.legend = new d2b.UTILS.LEGENDS.legend();
-	$$.legend.active(true);
+	$$.legend = new d2b.UTILS.LEGENDS.legend()
+		.active(true)
+		.color($$.color);
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
@@ -4377,6 +4426,8 @@ d2b.CHARTS.axisChart = function(){
 	$$.x = $$.xAlias;
 	$$.y = $$.yAlias;
 
+	$$.initAxes = true;
+
 	//persistent chart data is used to save data properties that need to persist through a data update
 	$$.persistentChartData = {};
 
@@ -4397,12 +4448,12 @@ d2b.CHARTS.axisChart = function(){
 		var yValues = [];
 
 		$$.selection.types.background.type.each(function(d){
-			this.adType
+			this.d2bType
 				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}));
-			if(this.adType.xValues)
-				xValues = xValues.concat(this.adType.xValues());
-			if(this.adType.yValues)
-				yValues = yValues.concat(this.adType.yValues());
+			if(this.d2bType.xValues)
+				xValues = xValues.concat(this.d2bType.xValues());
+			if(this.d2bType.yValues)
+				yValues = yValues.concat(this.d2bType.yValues());
 		});
 
 		if(xValues.length == 0){
@@ -4452,6 +4503,22 @@ d2b.CHARTS.axisChart = function(){
 
 	//initialize axis-chart-type containers and graph containers
 	$$.initGraphs = function(){
+
+		//enter update exit general svg:g element for each axis-chart-type
+		$$.selection.types.general.type = $$.selection.types.general
+			.selectAll('g.d2b-axis-type-general')
+				.data($$.currentChartData.types, function(d){return d.type;});
+		$$.selection.types.general.type.enter()
+			.append('g')
+				.attr('class', function(d){return 'd2b-axis-type-general d2b-'+d.type;});
+		$$.selection.types.general.type
+				.each(function(d){d.general = d3.select(this)});
+		$$.selection.types.general.type.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style('opacity',0)
+				.remove();
+
 		//enter update exit a foreground svg:g element for each axis-chart-type
 		$$.selection.types.foreground.type = $$.selection.types.foreground
 			.selectAll('g.d2b-axis-type-foreground')
@@ -4508,30 +4575,14 @@ d2b.CHARTS.axisChart = function(){
 				.attr('class', function(d){return 'd2b-axis-type-background d2b-'+d.type;})
 				.each(function(d){
 					var masterType = 'axis-chart-';
-					this.adType = new d2b.UTILS.AXISCHART.TYPES[d.type](d.type);
-					this.adType
-						.on('elementClick.d2b-click', function(d,i,type){
-								for(key in $$.on.elementClick){
-									$$.on.elementClick[key].call(this,d,i,masterType+type);
-								}
-						})
-						.on('elementMouseover.d2b-mouseover', function(d,i,type){
-								for(key in $$.on.elementMouseover){
-									$$.on.elementMouseover[key].call(this,d,i,masterType+type);
-								}
-						})
-						.on('elementMouseout.d2b-mouseout', function(d,i,type){
-								for(key in $$.on.elementMouseout){
-									$$.on.elementMouseout[key].call(this,d,i,masterType+type);
-								}
-						})
+					this.d2bType = new d2b.UTILS.AXISCHART.TYPES[d.type](d.type);
+					this.d2bType
 						.x($$.xAlias)
 						.y($$.yAlias)
-						.color($$.color)
 						.axisChart(chart)
-						.xFormat($$.xFormat)
-						.yFormat($$.yFormat)
 						.controls($$.controlsData);
+
+					$$.events.translateEvents(this.d2bType);
 				});
 		$$.selection.types.background.type.exit()
 			.transition()
@@ -4605,14 +4656,6 @@ d2b.CHARTS.axisChart = function(){
 			return position;
 		};
 
-		//custom bar scale that returns:
-		//bar{
-		//  y(y-axis positioning),
-		//  height(absolute height),
-		//  sHeight(signed height negative down, positive up)
-		//  origin(the x-axis position)
-		//  destination(bar-end position)
-		//}
 		$$.yAlias.customBarScale = function(value){
 			var bar = {y:0,height:0};
 
@@ -4639,10 +4682,16 @@ d2b.CHARTS.axisChart = function(){
 			var graphs = type.selectAll('.d2b-axis-chart-background-graph');
 			d.backgroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
 
-			this.adType
+			d2b.UTILS.applyProperties.call(this.d2bType, d.properties);
+
+			this.d2bType
 				.animationDuration($$.animationDuration)
 				.width($$.innerWidth)
 				.height($$.innerHeight)
+				.color($$.color)
+				.xFormat($$.xFormat)
+				.yFormat($$.yFormat)
+				.general(d.general)
 				.foreground(d.foregroundGraphs)
 				.background(d.backgroundGraphs)
 				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}))
@@ -4680,7 +4729,7 @@ d2b.CHARTS.axisChart = function(){
 				labelTransition[axis] = $$.selection.axes[axis].label
 					.transition()
 						.duration($$.animationDuration);
-				if($$.currentChartData.labels[axis] && !$$[axis].hide){
+				if($$[axis].label && !$$[axis].hide){
 					$$.forcedMargin[$$[axis].orientation] += labelOffset;
 					$$[params.dimension] -= labelOffset;
 					labelTransition[axis]
@@ -4708,6 +4757,20 @@ d2b.CHARTS.axisChart = function(){
 					.duration($$.animationDuration);
 		});
 
+		//init axes content, later it will be re-transitioned after the margin has been properly computed
+		if($$.initAxes){
+			$$.initAxes = false;
+
+			// simple init for ordinal range to fix transform NaN bug
+			if($$.y.type.split(',')[0] == 'ordinal'){
+				$$.y.scale.rangeBands([0,1]);
+			}
+
+			axisTransition.y
+				.call($$.y.axis)
+			axisTransition.x
+				.call($$.x.axis)
+		}
 
 		//create axis transitions;
 		var gridTransition = {};
@@ -4717,69 +4780,29 @@ d2b.CHARTS.axisChart = function(){
 					.duration($$.animationDuration);
 		});
 
-		//find max tick size on the vertical axis for proper spacing
-		//add tick events based on bound data
-		var maxTickLength = 0;
-		$$.selection.axes.y.text = $$.selection.axes.y.selectAll('.tick text').each(function(){
-			var length = this.getComputedTextLength();
-			maxTickLength = Math.max(maxTickLength, length);
-		})
-			.on('click.d2b-element-click', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.y.tickData[d]){
-					obj[key] = $$.y.tickData[d][key];
-				}
-				for(key in $$.on.elementClick){
-					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseover.d2b-element-mouseover', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.y.tickData[d]){
-					obj[key] = $$.y.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseover){
-					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseout.d2b-element-mouseout', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.y.tickData[d]){
-					obj[key] = $$.y.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseout){
-					$$.on.elementMouseout[key].call(this,obj,i,'axis-tick');
-				}
-			});
+		//find max tick size on the vertical axis for proper spacing and tick count
+		var maxTickLengthY = 0;
+		$$.selection.axes.y.text = $$.selection.axes.y
+			.selectAll('.tick text')
+				.each(function(d){
+					var length = this.getComputedTextLength();
+					maxTickLengthY = Math.max(maxTickLengthY, length);
+				})
 
-		$$.selection.axes.x.text = $$.selection.axes.x.selectAll('text')
-			.on('click.d2b-element-click', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.x.tickData[d]){
-					obj[key] = $$.x.tickData[d][key];
-				}
-				for(key in $$.on.elementClick){
-					$$.on.elementClick[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseover.d2b-element-mouseover', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.x.tickData[d]){
-					obj[key] = $$.x.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseover){
-					$$.on.elementMouseover[key].call(this,obj,i,'axis-tick');
-				}
-			})
-			.on('mouseout.d2b-element-mouseout', function(d,i){
-				var obj = {label:d}
-				for(var key in $$.x.tickData[d]){
-					obj[key] = $$.x.tickData[d][key];
-				}
-				for(key in $$.on.elementMouseout){
-					$$.on.elementMouseout[key].call(this,obj,i,'axis-tick');
-				}
-			});
+		if($$.y.type != 'ordinal')
+			$$.y.axis.ticks($$.innerHeight/75);
+
+		//find max tick size on the horizontal axis for tick count
+		var maxTickLengthX = 0;
+		$$.selection.axes.x.text = $$.selection.axes.x
+			.selectAll('.tick text')
+				.each(function(d){
+					var length = this.getComputedTextLength();
+					maxTickLengthX = Math.max(maxTickLengthX, length);
+				});
+
+		if($$.x.type != 'ordinal')
+			$$.x.axis.ticks($$.innerWidth/maxTickLengthX/6);
 
 		var labelPadding = 10;
 
@@ -4796,12 +4819,12 @@ d2b.CHARTS.axisChart = function(){
 			},
 			{
 				x:{offset:10 + labelPadding, dimension:'innerHeight'},
-				y:{offset:maxTickLength + labelPadding, dimension:'innerWidth'}
+				y:{offset:maxTickLengthY + labelPadding, dimension:'innerWidth'}
 			}
 		);
 
 		//position x/y labels
-		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLength-labelOffset-labelPadding-5 : maxTickLength+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
+		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLengthY-labelOffset-labelPadding-5 : maxTickLengthY+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
 		labelTransition.y.attr('transform','translate('+ labelOffsetPosition +','+ $$.innerHeight/2 +')');
 
 		labelOffsetPosition = ($$.x.orientation == 'top')? -labelOffset*1.5-labelPadding:+labelOffset*1+labelPadding+labelTransition.x.node().getBBox().height;
@@ -4869,14 +4892,14 @@ d2b.CHARTS.axisChart = function(){
 		axisTransition.y
 			.call($$.y.axis)
 			.each('end',function(){
-				//when y transition finishes, wait 10ms and then verify that the horizontal margin is correctly aligned for the maxTickLength
+				//when y transition finishes, wait 10ms and then verify that the horizontal margin is correctly aligned for the maxTickLengthY
 				setTimeout(function(){
-					var verifyMaxTickLength = 0;
+					var verifyMaxTickLengthY = 0;
 					$$.selection.axes.y.selectAll('.tick text').each(function(){
 						var length = this.getComputedTextLength();
-						verifyMaxTickLength = Math.max(verifyMaxTickLength, length);
+						verifyMaxTickLengthY = Math.max(verifyMaxTickLengthY, length);
 					});
-					if(maxTickLength != verifyMaxTickLength)
+					if(maxTickLengthY != verifyMaxTickLengthY)
 						chart.update();
 				},10);
 
@@ -4890,10 +4913,26 @@ d2b.CHARTS.axisChart = function(){
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
 
-
 		//set x/y tick size for grid
 		$$.x.axis.tickSize(-$$.innerHeight);
 		$$.y.axis.tickSize(-$$.innerWidth);
+
+
+		//bind tick-data and tick-events
+		$$.axisModifier(
+			function(axis, params){
+				$$.selection.axes[axis].text = $$.selection.axes[axis].selectAll('text')
+					.each(function(d){
+						//set tick data if present
+						this._data = {label:d}
+						for(var key in $$[axis].tickData[d]){
+							this._data[key] = $$[axis].tickData[d][key];
+						}
+					})
+					.call($$.events.addElementDispatcher, 'main', 'd2b-axis-tick.y');
+			}
+		);
+
 
 		//transition and position x/y grid lines
 		gridTransition.x
@@ -4930,12 +4969,21 @@ d2b.CHARTS.axisChart = function(){
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
+		// if background d2b types have been created, update their animation duration as well
+		if(d2b.UTILS.checkNested($$, 'selection', 'types', 'background', 'type')){
+			$$.selection.types.background.type.each(function(d){
+				this.d2bType.animationDuration($$.animationDuration);
+			});
+		}
 	});
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.xAlias.axis.tickFormat($$.xFormat);});
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.yAlias.axis.tickFormat($$.yFormat);});
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color)
+	});
 
 	//rotate the chart, set x,y scales accordingly
 	chart.rotate = function(value){
@@ -5014,13 +5062,13 @@ d2b.CHARTS.axisChart = function(){
 	//chart generate
 	chart.generate = function(callback) {
 		$$.generateRequired = false;
+		$$.initAxes = true;
 
 		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
 		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
 		//init legend properties
 		$$.legend
-				.color($$.color)
 				.selection($$.selection.legend);
 
 		//init control properties
@@ -5082,6 +5130,9 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.foreground = $$.selection.types
 			.append('g')
 				.attr('class','d2b-axis-types-foreground');
+		$$.selection.types.general = $$.selection.types
+			.append('g')
+				.attr('class','d2b-axis-types-general')
 
 		// reset hidden types/graphs
 		var resetHidden = function(){
@@ -5092,7 +5143,7 @@ d2b.CHARTS.axisChart = function(){
 			});
 		};
 
-		$$.legend.on('elementMouseover',function(d){
+		$$.legend.on('element-mouseover',function(t,d){
 
 			var background = $$.persistentChartData[d.type][d.label].background;
 			var foreground = $$.persistentChartData[d.type][d.label].foreground;
@@ -5133,7 +5184,7 @@ d2b.CHARTS.axisChart = function(){
 
 
 		})
-		.on('elementMouseout',function(d){
+		.on('element-mouseout',function(t,d){
 			//reset dimming
 			$$.selection.types.foreground.type.graph
 				.transition()
@@ -5144,7 +5195,7 @@ d2b.CHARTS.axisChart = function(){
 					.duration($$.animationDuration/2)
 					.style('opacity', 1);
 		})
-		.on('elementClick', function(d){
+		.on('element-click', function(t,d){
 			$$.persistentChartData[d.type][d.label].hide = !$$.persistentChartData[d.type][d.label].hide;
 			var allHidden = true;
 
@@ -5160,7 +5211,7 @@ d2b.CHARTS.axisChart = function(){
 
 			chart.update();
 		})
-		.on('elementDblClick', function(d){
+		.on('element-dblclick', function(t,d){
 			$$.currentChartData.types.forEach(function(type){
 				type.graphs.forEach(function(graph){
 					$$.persistentChartData[graph.type][graph.label].hide = graph.label != d.label;
@@ -5187,7 +5238,7 @@ d2b.CHARTS.axisChart = function(){
 		if($$.generateRequired){
 			return chart.generate(callback);
 		}
-		
+
 		//init forcedMargin
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
@@ -5216,16 +5267,25 @@ d2b.CHARTS.axisChart = function(){
 			$$.legendData = {data:{items:[]}};
 		}else{
 			$$.legendData.data.items = [].concat.apply([],
-				$$.currentChartData.types.map(
-					function(type){
-						return type.graphs.map(function(graph,i){
-							graph.open = $$.persistentChartData[type.type][graph.label].hide;
-							return graph;
-						})
-					}
-				)
+				$$.currentChartData.types
+					.map(
+						function(type){
+							return type.graphs
+								.filter(
+									function(graph){
+										return !graph.notInLegend;
+
+									}
+								)
+								.map(function(graph,i){
+									graph.open = $$.persistentChartData[type.type][graph.label].hide;
+									return graph;
+								})
+						}
+					)
 			);
 		}
+
 		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
@@ -5243,7 +5303,6 @@ d2b.CHARTS.axisChart = function(){
 		$$.initGraphs();
 
 		$$.updateDomains();
-
 		$$.updateAxis();
 
 		$$.selection.types
@@ -5275,6 +5334,8 @@ d2b.CHARTS.axisChart = function(){
 
 		d3.timer.flush();
 
+		$$.events.dispatch("update", $$.selection)
+
 		if(callback)
 			callback();
 
@@ -5286,178 +5347,101 @@ d2b.CHARTS.axisChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-//TODO: d2bD CALLBACK TO 'ON' MEMBER THAT RESETS EVENTS ON ELEMENTS, AND CHANGE EVENT INITIALIZATION TO ACT ONLY ON ENTERED() ELEMENTS
-//TODO: ATTACH ALL PRIVATE VARIABLES/MEHTODS TO BE STORED ON THE PRIVATE STORE '_'
-
 /*sankey chart*/
 d2b.CHARTS.sankeyChart = function(){
 
 	//private
-	var _ = {};
-	_.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	var $$ = {};
 
 	//define axisChart variables
-	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
-			height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
-	var innerHeight = height, innerWidth = width;
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
 
-	var generateRequired = true; //using some methods may require the chart to be redrawn
+	$$.generateRequired = true; //using some methods may require the chart to be redrawn
 
-	var selection = d3.select('body'); //default selection of the HTML body
+	$$.selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-	var legend = new d2b.UTILS.LEGENDS.legend(),
-	  	horizontalControls = new d2b.UTILS.CONTROLS.controls(),
-			legendOrientation = 'bottom';
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
+	$$.legendOrientation = 'bottom';
 
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 
-	var currentChartData = {
-				nodes:[],
-				links:[]
-			};
+	$$.events = d2b.UTILS.chartEvents();
 
-	var sankey;
-	var nodePadding = 30;
-	var nodeWidth = 15;
-	var layout = 20;
+	$$.currentChartData = {
+			nodes:[],
+			links:[]
+		};
 
-	var minLinkWidth = 1;
+	$$.sankey = d3.sankey();
+	$$.nodePadding = 30;
+	$$.nodeWidth = 15;
+	$$.layout = 20;
 
-	var nodeXVals = [];
-	var nodeYVals = {};
+	$$.minLinkWidth = 1;
 
-	var controls = {
-				hideLegend: {
-					label: "Hide Legend",
-					type: "checkbox",
-					visible: false,
-					enabled: false
-				}
-			};
+	$$.controlsData = {
+		hideLegend: {
+			label: "Hide Legend",
+			type: "checkbox",
+			visible: false,
+			enabled: false
+		}
+	};
 
-	//init event object
-	// var on = d2b.CONSTANTS.DEFAULTEVENTS();
-
-	var xFormat = function(value){return value};
+	$$.xFormat = function(value){return value};
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+		$$.legend.animationDuration($$.animationDuration);
+		$$.controls.animationDuration($$.animationDuration);
+	});
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color);
+	});
 
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		legend.animationDuration(animationDuration);
-		return chart;
-	};
-
-	chart.xFormat = function(value){
-		if(!arguments.length) return xFormat;
-		xFormat = d2b.UTILS.numberFormat(value);
-		return chart;
-	};
-
-	chart.legendOrientation = function(value){
-		if(!arguments.length) return legendOrientation;
-		legendOrientation = value;
-		return chart;
-	};
-
-	chart.nodePadding = function(value){
-		if(!arguments.length) return nodePadding;
-		nodePadding = value;
-		return chart;
-	};
-
-	chart.layout = function(value){
-		if(!arguments.length) return layout;
-		layout = value;
-		return chart;
-	};
-
-	chart.controls = function(value){
-		if(!arguments.length) return controls;
-		if(value.hideLegend){
-			controls.hideLegend.visible = (value.hideLegend.visible != null)? value.hideLegend.visible:controls.hideLegend.visible;
-			controls.hideLegend.enabled = (value.hideLegend.enabled != null)? value.hideLegend.enabled:controls.hideLegend.enabled;
-		}
-		return chart;
-	};
-
-	chart.minLinkWidth = function(value){
-		if(!arguments.length) return minLinkWidth;
-		minLinkWidth = value;
-		return chart;
-	};
-
-	// chart.on = function(key, value){
-	// 	key = key.split('.');
-	// 	if(!arguments.length) return on;
-	// 	else if(arguments.length == 1){
-	// 		if(key[1])
-	// 			return on[key[0]][key[1]];
-	// 		else
-	// 			return on[key[0]]['default'];
-	// 	};
-	//
-	// 	if(key[1])
-	// 		on[key[0]][key[1]] = value;
-	// 	else
-	// 		on[key[0]]['default'] = value;
-	//
-	// 	return chart;
-	// };
-
-	chart.on = d2b.UTILS.CHARTS.MEMBERS.on(chart, _);
+	chart.nodePadding = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'nodePadding');
+	chart.layout = 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'layout');
+	chart.minLinkWidth = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'minLinkWidth');
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {
+			$$.currentChartData = {
 							nodes:[],
 							links:[]
 						};
-			generateRequired = true;
+			$$.generateRequired = true;
 		}
 
 		if(chartData.data.nodes){
-			currentChartData.nodes = chartData.data.nodes;
+			$$.currentChartData.nodes = chartData.data.nodes;
 		}
 		if(chartData.data.links){
-			currentChartData.links = chartData.data.links;
+			$$.currentChartData.links = chartData.data.links;
 		}
 		if(chartData.data.labels){
-			currentChartData.labels = chartData.data.labels;
+			$$.currentChartData.labels = chartData.data.labels;
 		}
 		if(chartData.data.columnHeaders){
-			currentChartData.columnHeaders = chartData.data.columnHeaders;
+			$$.currentChartData.columnHeaders = chartData.data.columnHeaders;
 		}
 
 		return chart;
@@ -5465,60 +5449,60 @@ d2b.CHARTS.sankeyChart = function(){
 
 	//generate chart
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
 		//clean container
-		selection.selectAll('*').remove();
+		$$.selection.selectAll('*').remove();
 
 		//create svg
-		selection.svg = selection
+		$$.selection.svg = $$.selection
 			.append('svg')
 				.attr('class','d2b-sankey-chart d2b-svg d2b-container');
 
 		//create group container
-		selection.group = selection.svg.append('g');
+		$$.selection.group = $$.selection.svg.append('g');
 
-		selection.group.sankey = selection.group
+		$$.selection.group.sankey = $$.selection.group
 			.append('g')
 				.attr('class','d2b-sankey');
-		selection.group.sankey.links = selection.group.sankey
+		$$.selection.group.sankey.links = $$.selection.group.sankey
 			.append('g')
 				.attr('class','d2b-sankey-links');
-		selection.group.sankey.nodes = selection.group.sankey
+		$$.selection.group.sankey.nodes = $$.selection.group.sankey
 			.append('g')
 				.attr('class','d2b-sankey-nodes');
 
-		selection.group.labels = selection.group
+		$$.selection.group.labels = $$.selection.group
 			.append('g')
 				.attr('class','d2b-sankey-labels');
 
-		selection.group.labels.source = selection.group.labels
+		$$.selection.group.labels.source = $$.selection.group.labels
 			.append('g')
 				.attr('class','d2b-sankey-label-source');
 
-		selection.group.labels.source.text = selection.group.labels.source.append('text').attr('y',23);
+		$$.selection.group.labels.source.text = $$.selection.group.labels.source.append('text').attr('y',23);
 
-		selection.group.labels.destination = selection.group.labels
+		$$.selection.group.labels.destination = $$.selection.group.labels
 			.append('g')
 				.attr('class','d2b-sankey-label-destination');
 
-		selection.group.labels.destination.text = selection.group.labels.destination.append('text').attr('y',23);
+		$$.selection.group.labels.destination.text = $$.selection.group.labels.destination.append('text').attr('y',23);
 
-		selection.group.columnHeaders = selection.group
+		$$.selection.group.columnHeaders = $$.selection.group
 			.append('g')
 				.attr('class','d2b-sankey-column-headers');
 
 
 		//create controls container
-		selection.controls = selection.group
+		$$.selection.controls = $$.selection.group
 			.append('g')
 				.attr('class','d2b-controls');
 
 
-		horizontalControls
-				.selection(selection.controls)
+		$$.controls
+				.selection($$.selection.controls)
 				.on('change',function(d,i){
-					controls[d.key].enabled = d.state;
+					$$.controlsData[d.key].enabled = d.state;
 					if(d.key == 'sort' || d.key == 'hideLegend'){
 						newData = true;
 					}
@@ -5527,16 +5511,16 @@ d2b.CHARTS.sankeyChart = function(){
 
 
 		// //create legend container
-		selection.legend = selection.group
+		$$.selection.legend = $$.selection.group
 			.append('g')
 				.attr('class','d2b-legend');
 
 		// //intialize new legend
-		legend
-				.color(color)
-				.selection(selection.legend);
+		$$.legend
+				.color($$.color)
+				.selection($$.selection.legend);
 		//auto update chart
-		var temp = animationDuration;
+		var temp = $$.animationDuration;
 		chart
 				.animationDuration(0)
 				.update(callback)
@@ -5549,37 +5533,28 @@ d2b.CHARTS.sankeyChart = function(){
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
 
-		forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 
-		innerWidth = width - forcedMargin.right - forcedMargin.left;
+		$$.innerWidth = $$.width - $$.forcedMargin.right - $$.forcedMargin.left;
 
-		var controlsData = d2b.UTILS.getValues(controls).filter(function(d){return d.visible;});
-		controlsData.map(function(d){
-			d.data = {state:d.enabled, label:d.label, key:d.key};
-		});
-		horizontalControls.data(controlsData).width(innerWidth).update();
+		//update controls viz
+		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
 
-		//reposition the controls
-		selection.controls
-			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+(forcedMargin.left + innerWidth - horizontalControls.computedWidth())+','+(forcedMargin.top)+')');
+		// $$.forcedMargin.top += $$.controls.computedHeight();
+		$$.innerHeight = $$.height - $$.forcedMargin.top - $$.forcedMargin.bottom;
 
-		forcedMargin.top += horizontalControls.computedHeight();
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
-
-		if(controls.hideLegend.enabled){
-			var legendData = {data:{items:[]}};
+		if($$.controlsData.hideLegend.enabled){
+			$$.legendData = {data:{items:[]}};
 		}else{
-			var legendData = {
+			$$.legendData = {
 				data:{
 					items:	d3
-										.set(currentChartData.nodes.map(function(d){
-												return (d.colorKey)?d.colorKey:d.name;
+										.set($$.currentChartData.nodes.map(function(d){
+												return d.colorKey || d.name;
 											}))
 										.values()
 										.map(function(d){return {label:d};})
@@ -5587,67 +5562,41 @@ d2b.CHARTS.sankeyChart = function(){
 			};
 		}
 
+		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
-		if(legendOrientation == 'right' || legendOrientation == 'left'){
-			legend.orientation('vertical').data(legendData).height(innerHeight).update();
-		}
-		else{
-			legend.orientation('horizontal').data(legendData).width(innerWidth).update();
-		}
-
-		var legendTranslation;
-		if(legendOrientation == 'right')
-			legendTranslation = 'translate('+(forcedMargin.left+innerWidth-legend.computedWidth())+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'left')
-			legendTranslation = 'translate('+(forcedMargin.left)+','+((innerHeight-legend.computedHeight())/2+forcedMargin.top)+')';
-		else if(legendOrientation == 'top')
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+forcedMargin.top+')';
-		else
-			legendTranslation = 'translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(innerHeight+forcedMargin.top-legend.computedHeight())+')';
-
-		selection.legend
-			.transition()
-				.duration(animationDuration)
-				.attr('transform',legendTranslation);
-
-		if(legendOrientation == 'right' || legendOrientation == 'left')
-			forcedMargin[legendOrientation] += legend.computedWidth() + 10;
-		else
-			forcedMargin[legendOrientation] += legend.computedHeight();
-
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
-		innerWidth = width - forcedMargin.left - forcedMargin.right;
+		$$.innerHeight = $$.height - $$.forcedMargin.top - $$.forcedMargin.bottom;
+		$$.innerWidth = $$.width - $$.forcedMargin.left - $$.forcedMargin.right;
 
 		var labelTransitions={
 			source:
-				selection.group.labels.source
+				$$.selection.group.labels.source
 					.transition()
-						.duration(animationDuration),
+						.duration($$.animationDuration),
 			destination:
-				selection.group.labels.destination
+				$$.selection.group.labels.destination
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 		}
 
 
 
-		if(currentChartData.labels){
-			selection.group.labels
+		if($$.currentChartData.labels){
+			$$.selection.group.labels
 				.transition()
-					.duration(animationDuration)
-					.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
-			if(currentChartData.labels.source){
+					.duration($$.animationDuration)
+					.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+			if($$.currentChartData.labels.source){
 				labelTransitions.source
 						.style('opacity',1);
-				selection.group.labels.source.text.text(currentChartData.labels.source);
+				$$.selection.group.labels.source.text.text($$.currentChartData.labels.source);
 			}else{
 				labelTransitions.source
 						.style('opacity',0);
 			}
-			if(currentChartData.labels.destination){
+			if($$.currentChartData.labels.destination){
 				labelTransitions.destination
 						.style('opacity',1);
-				selection.group.labels.destination.text.text(currentChartData.labels.destination);
+				$$.selection.group.labels.destination.text.text($$.currentChartData.labels.destination);
 			}else{
 				labelTransitions.destination
 						.style('opacity',0);
@@ -5656,9 +5605,9 @@ d2b.CHARTS.sankeyChart = function(){
 			labelTransitions.source
 					.attr('transform','translate('+0+','+0+')');
 			labelTransitions.destination
-					.attr('transform','translate('+innerWidth+','+0+')');
+					.attr('transform','translate('+$$.innerWidth+','+0+')');
 
-			forcedMargin.top += 35;
+			$$.forcedMargin.top += 35;
 
 		}else{
 			labelTransitions.source
@@ -5669,17 +5618,17 @@ d2b.CHARTS.sankeyChart = function(){
 
 		var columnHeader;
 		var columnHeaderScale;
-		if(currentChartData.columnHeaders && currentChartData.columnHeaders.length > 0){
+		if($$.currentChartData.columnHeaders && $$.currentChartData.columnHeaders.length > 0){
 			columnHeaderScale = d3.scale.linear()
-				.domain([0,currentChartData.columnHeaders.length-1])
-				.range([0,innerWidth-nodeWidth])
+				.domain([0,$$.currentChartData.columnHeaders.length-1])
+				.range([0,$$.innerWidth-$$.nodeWidth])
 
-			selection.group.columnHeaders
+			$$.selection.group.columnHeaders
 				.transition()
-					.duration(animationDuration)
-					.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
+					.duration($$.animationDuration)
+					.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
-			columnHeader = selection.group.columnHeaders.selectAll('g.d2b-sankey-column-header').data(currentChartData.columnHeaders);
+			columnHeader = $$.selection.group.columnHeaders.selectAll('g.d2b-sankey-column-header').data($$.currentChartData.columnHeaders);
 			columnHeader.enter()
 				.append('g')
 					.attr('class','d2b-sankey-column-header')
@@ -5687,40 +5636,33 @@ d2b.CHARTS.sankeyChart = function(){
 					.attr('y',16)
 					.attr('x',function(d,i){
 						if(i == 0)
-							return -nodeWidth/2;
-						else if(i == currentChartData.columnHeaders.length-1)
-							return nodeWidth/2;
+							return -$$.nodeWidth/2;
+						else if(i == $$.currentChartData.columnHeaders.length-1)
+							return $$.nodeWidth/2;
 					});
 
 			columnHeader.select('text').text(function(d){return d;});
 			columnHeader
 				.transition()
-					.duration(animationDuration)
-					.attr('transform',function(d,i){return 'translate('+(columnHeaderScale(i)+nodeWidth/2)+','+0+')'})
+					.duration($$.animationDuration)
+					.attr('transform',function(d,i){return 'translate('+(columnHeaderScale(i)+$$.nodeWidth/2)+','+0+')'})
 
-			forcedMargin.top += 25;
+			$$.forcedMargin.top += 25;
 		}
 
-		innerHeight = height - forcedMargin.top - forcedMargin.bottom;
+		$$.innerHeight = $$.height - $$.forcedMargin.top - $$.forcedMargin.bottom;
+
+		$$.sankey
+				.size([$$.innerWidth,$$.innerHeight])
+				.nodeWidth($$.nodeWidth)
+				.nodePadding($$.nodePadding)
+				.nodes($$.currentChartData.nodes)
+				.links($$.currentChartData.links)
+				.layout($$.layout);
 
 
-		//
-		// selection.legend
-		// 	.transition()
-		// 		.duration(animationDuration)
-		// 		.attr('transform','translate('+(forcedMargin.left+(innerWidth-legend.computedWidth())/2)+','+(innerHeight+forcedMargin.top)+')')
-
-		sankey = d3.sankey()
-				.size([innerWidth,innerHeight])
-				.nodeWidth(nodeWidth)
-				.nodePadding(nodePadding)
-				.nodes(currentChartData.nodes)
-				.links(currentChartData.links)
-				.layout(layout);
-
-
-		var node = selection.group.sankey.nodes.selectAll('g.d2b-sankey-node')
-				.data(currentChartData.nodes,function(d,i){
+		var node = $$.selection.group.sankey.nodes.selectAll('g.d2b-sankey-node')
+				.data($$.currentChartData.nodes,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
 						else if(d.key && d.key != 'auto')
@@ -5732,14 +5674,14 @@ d2b.CHARTS.sankeyChart = function(){
 			.append('g')
 				.attr('class','d2b-sankey-node')
 				.on('mouseover.d2b-mouseover',function(d,i){
-					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',xFormat(d.value));
+					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',$$.xFormat(d.value));
 				})
 				.on('mouseout.d2b-mouseout',function(d,i){
 					d2b.UTILS.removeTooltip();
 				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',0)
-				.call(d2b.UTILS.bindElementEvents, _, 'node');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-sankey-node');
 		newNode.append('rect');
 		newNode.append('text');
 
@@ -5748,25 +5690,25 @@ d2b.CHARTS.sankeyChart = function(){
 
 		node
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',1);
 
 		node
 			.select('rect')
 			.transition()
-				.duration(animationDuration)
-				.attr('width',sankey.nodeWidth())
+				.duration($$.animationDuration)
+				.attr('width',$$.sankey.nodeWidth())
 				.attr('height',function(d){return Math.max(0,d.dy);});
 		nodeText
 			.transition()
-				.duration(animationDuration)
-				.style('text-anchor',function(d){return (d.x < innerWidth/2)? 'start':'end';})
-				.attr('x',function(d){return (d.x < innerWidth/2)? sankey.nodeWidth()+5:-5;})
+				.duration($$.animationDuration)
+				.style('text-anchor',function(d){return (d.x < $$.innerWidth/2)? 'start':'end';})
+				.attr('x',function(d){return (d.x < $$.innerWidth/2)? $$.sankey.nodeWidth()+5:-5;})
 				.attr('y',function(d){return d.dy/2+5;})
 
-		var link = selection.group.sankey.links.selectAll('g.d2b-sankey-link')
-				.data(currentChartData.links,function(d,i){
+		var link = $$.selection.group.sankey.links.selectAll('g.d2b-sankey-link')
+				.data($$.currentChartData.links,function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
 						else if(d.key && d.key != 'auto')
@@ -5779,13 +5721,13 @@ d2b.CHARTS.sankeyChart = function(){
 			.append('g')
 				.attr('class','d2b-sankey-link')
 				.on('mouseover.d2b-mouseover',function(d,i){
-					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',xFormat(d.value));
+					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',$$.xFormat(d.value));
 				})
 				.on('mouseout.d2b-mouseout',function(d,i){
 					d2b.UTILS.removeTooltip();
 				})
 				.style('opacity',0)
-				.call(d2b.UTILS.bindElementEvents, _, 'link');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-sankey-node');
 
 		// console.log(newLink)
 		newLink.append('path');
@@ -5793,45 +5735,47 @@ d2b.CHARTS.sankeyChart = function(){
 
 		link.exit()
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',0)
 				.remove();
 		node.exit()
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',0)
 				.remove();
 
 
 		link
 			.transition()
-				.duration(animationDuration)
+				.duration($$.animationDuration)
 				.style('opacity',1);
 
 		link
 			.select('path')
 				.style('stroke',function(d){
 						return (d.colorBy)?
-										color((d[d.colorBy].colorKey)?
+										$$.color((d[d.colorBy].colorKey)?
 											d[d.colorBy].colorKey
 										:d[d.colorBy].name)
 									:'#777';
 								})
 			.transition()
-				.style('stroke-width',function(d){return Math.max(d.dy,minLinkWidth)})
-				.duration(animationDuration)
-				.attr('d',sankey.link());
+				.style('stroke-width',function(d){return Math.max(d.dy,$$.minLinkWidth)})
+				.duration($$.animationDuration)
+				.attr('d',$$.sankey.link());
 
-		selection.svg
-				.attr('width',width)
-				.attr('height',height);
+		$$.selection.svg
+				.attr('width',$$.width)
+				.attr('height',$$.height);
 
-		selection.group.sankey
+		$$.selection.group.sankey
 			.transition()
-				.duration(animationDuration)
-				.attr('transform','translate('+forcedMargin.left+','+forcedMargin.top+')');
+				.duration($$.animationDuration)
+				.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();
@@ -5873,7 +5817,7 @@ d2b.CHARTS.pieChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = {element:{}};
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	$$.legend.active(true);
@@ -5942,7 +5886,7 @@ d2b.CHARTS.pieChart = function(){
 			.append('g')
 				.attr('class','d2b-arc')
 				.style('opacity',0)
-				.call(d2b.UTILS.bindElementEvents, $$, 'arc')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-arc')
 				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.data.label+'</b>';},function(d){return $$.xFormat(d.data.value);});
 
 		//create arc path
@@ -5981,11 +5925,7 @@ d2b.CHARTS.pieChart = function(){
 					};
 				})
 				.style('fill',function(d){
-					if(d.data.colorKey){
-						return $$.color(d.data.colorKey);
-					}else{
-						return $$.color(d.data.label);
-					}
+					return d2b.UTILS.getColor($$.color, 'label')(d.data);
 				})
 				.on('mouseover.d2b-mouseover',function(d){
 					$$.persistentData.focusedArc = d.data.key;
@@ -6060,6 +6000,9 @@ d2b.CHARTS.pieChart = function(){
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color);
+	});
 
 	chart.donutRatio = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'donutRatio');
 
@@ -6089,15 +6032,15 @@ d2b.CHARTS.pieChart = function(){
 		$$.legend
 				.color($$.color)
 				.selection($$.selection.legend)
-				.on('elementMouseover.d2b-mouseover',function(d){
+				.on('element-mouseover.d2b-mouseover',function(t,d){
 					$$.persistentData.focusedArc = d.key;
 					chart.update();
 				})
-				.on('elementMouseout.d2b-mouseover',function(d){
+				.on('element-mouseout.d2b-mouseover',function(t,d){
 					$$.persistentData.focusedArc = null;
 					chart.update();
 				})
-				.on('elementClick',function(d){
+				.on('element-click',function(t,d){
 					$$.persistentData.hiddenArcs[d.key] = !$$.persistentData.hiddenArcs[d.key];
 
 					var allHidden = true;
@@ -6115,7 +6058,7 @@ d2b.CHARTS.pieChart = function(){
 
 					chart.update();
 				})
-				.on('elementDblClick',function(d){
+				.on('element-dblclick',function(t,d){
 					//on legend dbl click hide all but clicked arc
 					$$.currentChartData.values.forEach(function(d2){
 						$$.persistentData.hiddenArcs[d2.key] = d2.key != d.key;
@@ -6196,6 +6139,8 @@ d2b.CHARTS.pieChart = function(){
 
 		d3.timer.flush();
 
+		$$.events.dispatch("update", $$.selection);
+
 		if(callback)
 			callback();
 
@@ -6236,7 +6181,8 @@ d2b.CHARTS.guageChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
+
 	$$.percentFormat = d2b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
 
 	$$.arc = d3.svg.arc()
@@ -6256,7 +6202,7 @@ d2b.CHARTS.guageChart = function(){
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -6329,7 +6275,6 @@ d2b.CHARTS.guageChart = function(){
 
 	//chart update
 	chart.update = function(callback){
-
 		//if generate required call the generate method
 		if($$.generateRequired){
 			return chart.generate(callback);
@@ -6346,8 +6291,6 @@ d2b.CHARTS.guageChart = function(){
 				.attr('height',$$.height);
 
 		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
-
-
 
 		var radius = {
 					current:{
@@ -6366,7 +6309,7 @@ d2b.CHARTS.guageChart = function(){
 		//Set the data for the filled and empty arcs either by:
 		//	-using the user supplied percent
 		//	-calculating the percent with the value and total amounts
-		//	-defaulting the percen to 0
+		//	-defaulting the percent to 0
 		var data = [];
 		var percent = 0;
 		if($$.currentChartData.percent){
@@ -6376,7 +6319,7 @@ d2b.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.percent-Math.PI/2,
-					color: $$.color($$.currentChartData.label),
+					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
 					filled:true
 				},
 				{
@@ -6394,7 +6337,7 @@ d2b.CHARTS.guageChart = function(){
 					percent: percent,
 					start: -Math.PI/2,
 					end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
-					color: $$.color($$.currentChartData.label),
+					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
 					filled:true
 				},
 				{
@@ -6410,7 +6353,7 @@ d2b.CHARTS.guageChart = function(){
 					percent: percent,
 					start:-Math.PI/2,
 					end:-Math.PI/2,
-					color: $$.color($$.currentChartData.label),
+					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
 					filled:true
 				},
 				{
@@ -6452,7 +6395,7 @@ d2b.CHARTS.guageChart = function(){
 							.attr('transform','scale(1)');
 					d2b.UTILS.removeTooltip();
 				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'arc');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-arc');
 
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
 			.transition()
@@ -6524,6 +6467,8 @@ d2b.CHARTS.guageChart = function(){
 
 		d3.timer.flush();
 
+		$$.events.dispatch("update", $$.selection)
+
 		if(callback)
 			callback();
 
@@ -6538,106 +6483,68 @@ d2b.CHARTS.guageChart = function(){
 /*iframe chart*/
 d2b.CHARTS.iframeChart = function(){
 
+	var $$ = {};
+
 	//define iframeChart variables
-	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
-			height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
-	var generateRequired = true; //using some methods may require the chart to be redrawn
+	$$.generateRequired = true; //using some methods may require the chart to be redrawn
 
-	var selection = d3.select('body'); //default selection of the HTML body
+	$$.selection = d3.select('body'); //default selection of the HTML body
 
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
 
-	var currentChartData = {
+	$$.currentChartData = {
 			};
 
 	//init event object
-	var on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
-
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		return chart;
-	};
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {};
+			$$.currentChartData = {};
 		}
 
-		generateRequired = true;
-		currentChartData = chartData.data;
+		$$.generateRequired = true;
+		$$.currentChartData = chartData.data;
 
 		return chart;
 	};
 
 	//generate chart
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
 		//clean container
-		selection.selectAll('*').remove();
+		$$.selection.selectAll('*').remove();
 
-		selection.div = selection
+		$$.selection.div = $$.selection
 			.append('div')
 				.attr('class','d2b-iframe-chart d2b-container');
 
-		selection.div.iframe = selection.div
+		$$.selection.div.iframe = $$.selection.div
 			.append('iframe')
 				.attr('class','d2b-iframe')
-				.attr('src',currentChartData.url);
+				.attr('src',$$.currentChartData.url);
 
 		//auto update chart
-		var temp = animationDuration;
+		var temp = $$.animationDuration;
 		chart
 				.animationDuration(0)
 				.update(callback)
@@ -6650,17 +6557,19 @@ d2b.CHARTS.iframeChart = function(){
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
 
-		selection.div.iframe
+		$$.selection.div.iframe
 			.transition()
-				.duration(animationDuration)
-				.attr('width',width)
-				.attr('height',height);
+				.duration($$.animationDuration)
+				.attr('width',$$.width)
+				.attr('height',$$.height);
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection)
 
 		if(callback)
 			callback();
@@ -6675,57 +6584,48 @@ d2b.CHARTS.iframeChart = function(){
 
 /*multi chart*/
 d2b.CHARTS.multiChart = function(){
+
+	var $$ = {};
+
 	//define multiChart variables
-	var width = d2b.CONSTANTS.DEFAULTWIDTH(),
-			height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH(),
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
 
-	var innerWidth, innerHeight;
+	$$.generateRequired = true; //using some methods may require the chart to be redrawn
 
-	var generateRequired = true; //using some methods may require the chart to be redrawn
+	$$.selection = d3.select('body'); //default selection of the HTML body
 
-	var selection = d3.select('body'); //default selection of the HTML body
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
-	var animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
-	var forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-
-	var color = d2b.CONSTANTS.DEFAULTCOLOR();
-
-	var currentChartData = {
+	$$.currentChartData = {
 			};
 
-	var current = {chart:{}};
-	var previous = {chart:null};
+	$$.current = {chart:{}};
+	$$.previous = {chart:null};
 
-	var adChart;
+	$$.d2bChart;
+
+	$$.events = d2b.UTILS.chartEvents();
 
 	//init event object
-	var on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){}
-	};
+	// var on = {
+	// 	elementMouseover:function(){},
+	// 	elementMouseout:function(){},
+	// 	elementClick:function(){}
+	// };
 
 	var buttonClick = function(d,i){
-		previous.chart = current.chart;
-		current.chart = d;
-		for(key in on.elementClick){
-			on.elementClick[key].call(this,d,i,'chart-button');
-		}
-		// console.log(current.chart)
+		$$.previous.chart = $$.current.chart;
+		$$.current.chart = d;
+		// for(key in on.elementClick){
+		// 	on.elementClick[key].call(this,d,i,'chart-button');
+		// }
+		// console.log($$.current.chart)
 		chart.update();
 	};
-	var buttonMouseover = function(d,i){
-		for(key in on.elementMouseover){
-			on.elementMouseover[key].call(this,d,i,'chart-button');
-		}
-	};
-	var buttonMouseout = function(d,i){
-		for(key in on.elementMouseout){
-			on.elementMouseout[key].call(this,d,i,'chart-button');
-		}
-	};
+
 	var updateButtons = function(){
-		selection.buttonsWrapper.buttons.button = selection.buttonsWrapper.buttons.selectAll('li').data(currentChartData.charts, function(d){
+		$$.selection.buttonsWrapper.buttons.button = $$.selection.buttonsWrapper.buttons.selectAll('li').data($$.currentChartData.charts, function(d){
 			if(d.key == 'unique')
 				return Math.floor((1 + Math.random()) * 0x10000)
 			else if(d.key && d.key != 'auto')
@@ -6733,174 +6633,127 @@ d2b.CHARTS.multiChart = function(){
 			else
 				return d.label;
 		});
-		selection.buttonsWrapper.buttons.button.enter()
+		$$.selection.buttonsWrapper.buttons.button.enter()
 			.append('li')
-			.on('click.d2b-click', buttonClick)
-			.on('mouseover.d2b-mouseover', buttonMouseover)
-			.on('mouseout.d2b-mouseout', buttonMouseout);
+			.on('click.d2b-click', buttonClick);
 
-		selection.buttonsWrapper.buttons.button
+		$$.selection.buttonsWrapper.buttons.button
 			.text(function(d){return d.label;})
-			.classed('d2b-selected',function(d){return d == current.chart;});
+			.classed('d2b-selected',function(d){return d == $$.current.chart;});
+
+		$$.selection.buttonsWrapper.buttons.button.exit().remove();
 
 	};
 
-	var setChartProperties = function(){
-		if(current.chart.properties){
-			for(key in current.chart.properties){
+	var setChartProperties = function(options){
+		if($$.current.chart.properties){
+			for(key in $$.current.chart.properties){
+				if(options && options.skip){
+					if(options.skip.indexOf(key) > -1)
+						continue;
+				}
 				if(key == 'data')
 					continue;
-				if(current.chart.properties[key].args)
-					adChart[key].apply(this, current.chart.properties[key].args);
+				if($$.current.chart.properties[key].args)
+					$$.d2bChart[key].apply(this, $$.current.chart.properties[key].args);
 				else
-					adChart[key](current.chart.properties[key]);
+					$$.d2bChart[key]($$.current.chart.properties[key]);
 			}
 		}
-		var masterType = 'multiChart-'+current.chart.type+'-';
-		adChart
-			.on('elementClick.d2b-click', function(d,i,type){
-					for(key in on.elementClick){
-						on.elementClick[key].call(this,d,i,masterType+type);
-					}
-			})
-			.on('elementMouseover.d2b-mouseover', function(d,i,type){
-					for(key in on.elementMouseover){
-						on.elementMouseover[key].call(this,d,i,masterType+type);
-					}
-			})
-			.on('elementMouseout.d2b-mouseout', function(d,i,type){
-					for(key in on.elementMouseout){
-						on.elementMouseout[key].call(this,d,i,masterType+type);
-					}
-			})
+
+		// translate the events to the currently drawn chart
+		$$.events.translateEvents($$.d2bChart);
 	};
 
 	var updateChart = function(){
-		if(!selection.chartWrapper.chart){
-			selection.chartWrapper.chart = selection.chartWrapper
+		if(!$$.selection.chartWrapper.chart){
+			$$.selection.chartWrapper.chart = $$.selection.chartWrapper
 				.append('div')
 					.attr('class','d2b-multi-chart-chart')
 					.style('opacity',1);
-			// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
-			adChart = current.chart.chart;
-			adChart
-				.data(current.chart.properties.data)
-				.selection(selection.chartWrapper.chart);
-		}else if(current.chart != previous.chart){
-			if(current.chart.type == previous.chart.type){
-				adChart
-					.data(current.chart.properties.data);
+			// d2b.UTILS.chartAdapter($$.current.chart.type, $$.current.chart);
+			$$.d2bChart = $$.current.chart.chart;
+			$$.d2bChart
+				.data($$.current.chart.properties.data)
+				.selection($$.selection.chartWrapper.chart);
+
+			setChartProperties();
+		}else if($$.current.chart != $$.previous.chart){
+			if($$.current.chart.type == $$.previous.chart.type){
+				$$.d2bChart
+					.data($$.current.chart.properties.data);
+
+				setChartProperties({'skip': ['controls']});
 			}else{
-				selection.chartWrapper.chart
+				$$.selection.chartWrapper.chart
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',0)
 						.remove();
 
-				selection.chartWrapper.chart = selection.chartWrapper
+				$$.selection.chartWrapper.chart = $$.selection.chartWrapper
 					.append('div')
 						.attr('class','d2b-multi-chart-chart')
 						.style('opacity',0);
 
-				// d2b.UTILS.chartAdapter(current.chart.type, current.chart);
-				adChart = current.chart.chart;
-				adChart
-					.selection(selection.chartWrapper.chart)
-					.data((JSON.parse(JSON.stringify(current.chart.data)))); //clone data for update
+				// d2b.UTILS.chartAdapter($$.current.chart.type, $$.current.chart);
+				$$.d2bChart = $$.current.chart.chart;
+				$$.d2bChart
+					.selection($$.selection.chartWrapper.chart)
+					.data((JSON.parse(JSON.stringify($$.current.chart.data)))); //clone data for update
 
-				selection.chartWrapper.chart
+				$$.selection.chartWrapper.chart
 					.transition()
-						.duration(animationDuration)
+						.duration($$.animationDuration)
 						.style('opacity',1);
+
+				setChartProperties();
 			}
 		}
 
-		setChartProperties();
-		adChart
-			.width(innerWidth)
-			.height(innerHeight)
+		$$.d2bChart
+			// .events($$.events)
+			.width($$.innerWidth)
+			.height($$.innerHeight)
 			.update();
 
-		previous.chart = current.chart;
+		$$.previous.chart = $$.current.chart;
 	};
 
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 
-	//members that will set the regenerate flag
-	chart.select = function(value){
-		selection = d3.select(value);
-		generateRequired = true;
-		return chart;
-	};
-	chart.selection = function(value){
-		if(!arguments.length) return selection;
-		selection = value;
-		generateRequired = true;
-		return chart;
-	};
-	//methods that require update
-	chart.width = function(value){
-		if(!arguments.length) return width;
-		width = value;
-		return chart;
-	};
-	chart.height = function(value){
-		if(!arguments.length) return height;
-		height = value;
-		return chart;
-	};
-
-	chart.animationDuration = function(value){
-		if(!arguments.length) return animationDuration;
-		animationDuration = value;
-		return chart;
-	};
-
-	chart.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return chart;
-	};
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
-		if(!arguments.length) return currentChartData;
+		if(!arguments.length) return $$.currentChartData;
 		if(reset){
-			currentChartData = {};
+			$$.currentChartData = {};
 		}
 
 		var useDefault = true;
 
-		if(current.chart.key){
+		if($$.current.chart.key){
 			var matchingChart = chartData.data.charts.filter(function(d){
-					return current.chart.key == d.key;
+					return $$.current.chart.key == d.key;
 				})[0];
 			if(matchingChart){
 				useDefault = false;
-				current.chart = matchingChart;
+				$$.current.chart = matchingChart;
 			}
 		}
 
 		if(useDefault)
-			current.chart = chartData.data.charts[0];
+			$$.current.chart = chartData.data.charts[0];
 
-		// generateRequired = true;
-		currentChartData = chartData.data;
+		$$.currentChartData = chartData.data;
 
-		currentChartData.charts.forEach(function(d){
-			// if(d.)
+		$$.currentChartData.charts.forEach(function(d){
 			d.chart = new d2b.CHARTS[d.type]();
 		});
 
@@ -6909,35 +6762,35 @@ d2b.CHARTS.multiChart = function(){
 
 	//generate chart
 	chart.generate = function(callback) {
-		generateRequired = false;
+		$$.generateRequired = false;
 
 		//clean container
-		selection.selectAll('*').remove();
+		$$.selection.selectAll('*').remove();
 
-		// selection
+		// $$.selection
 		// 	.style('width',width + 'px')
 		// 	.style('height',height + 'px');
 
 		//create button container
-		selection.buttonsWrapper = selection
+		$$.selection.buttonsWrapper = $$.selection
 			.append('div')
 				.attr('class','d2b-multi-chart-buttons-wrapper');
 
-		selection.buttonsWrapper.buttons = selection.buttonsWrapper
+		$$.selection.buttonsWrapper.buttons = $$.selection.buttonsWrapper
 			.append('ul')
 				.attr('class','d2b-buttons');
 
-		// selection.style('position','relative');
-		selection.chartWrapper = selection
+		// $$.selection.style('position','relative');
+		$$.selection.chartWrapper = $$.selection
 			.append('div')
 				.attr('class','d2b-multi-chart d2b-container');
 
-		// currentChartData.charts.forEach(function(d){
-		// 	d.chart.selection(selection.chartWrapper);
+		// $$.currentChartData.charts.forEach(function(d){
+		// 	d.chart.selection($$.selection.chartWrapper);
 		// });
 
 		//auto update chart
-		var temp = animationDuration;
+		var temp = $$.animationDuration;
 		chart
 				.animationDuration(0)
 				.update(callback)
@@ -6950,16 +6803,16 @@ d2b.CHARTS.multiChart = function(){
 	chart.update = function(callback){
 
 		//if generate required call the generate method
-		if(generateRequired){
+		if($$.generateRequired){
 			return chart.generate(callback);
 		}
 
-		innerWidth = width;
-		innerHeight = height - 50;
+		$$.innerWidth = $$.width;
+		$$.innerHeight = $$.height - 50;
 
-		selection.chartWrapper
-			.style('width',innerWidth + 'px')
-			.style('height',innerHeight + 'px');
+		$$.selection.chartWrapper
+			.style('width',$$.innerWidth + 'px')
+			.style('height',$$.innerHeight + 'px');
 
 		updateButtons();
 
@@ -7007,7 +6860,7 @@ d2b.CHARTS.templateChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
@@ -7041,7 +6894,10 @@ d2b.CHARTS.templateChart = function(){
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color);
+	});
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -7134,6 +6990,9 @@ d2b.CHARTS.templateChart = function(){
 
 		d3.timer.flush();
 
+		//dispatch the on 'update' event, and pass it the selection object
+		$$.events.dispatch("update", $$.selection);
+
 		if(callback)
 			callback();
 
@@ -7174,7 +7033,7 @@ d2b.CHARTS.factChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.selectedFact = null;
 
@@ -7241,7 +7100,8 @@ d2b.CHARTS.factChart = function(){
 		$$.selection.fact = $$.selection.main.selectAll('g.d2b-fact').data($$.currentChartData.facts);
 		var newFact = $$.selection.fact.enter()
 			.append('g')
-				.attr('class', 'd2b-fact');
+				.attr('class', 'd2b-fact')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-fact');
 
 		newFact.append('text').attr('class','d2b-fact-label');
 		newFact.append('text').attr('class','d2b-fact-value');
@@ -7267,6 +7127,7 @@ d2b.CHARTS.factChart = function(){
 		//setup sub-fact events if available
 		$$.selection.fact.each(function(d){
 			var elem = d3.select(this);
+
 			if(!d.subFacts || d.subFacts.length < 1){
 				elem
 					.style('cursor', 'auto')
@@ -7365,6 +7226,7 @@ d2b.CHARTS.factChart = function(){
 					this.pieChart = new d2b.CHARTS.pieChart();
 					this.pieChart
 						.select(this)
+						.color($$.color)
 						.donutRatio(0.6)
 						.controls({hideLegend:{enabled:true}});
 				});
@@ -7383,6 +7245,7 @@ d2b.CHARTS.factChart = function(){
 		$$.selection.subFact
 			.select('g.d2b-sub-fact-chart')
 				.each(function(d){
+					$$.events.translateEvents(this.pieChart);
 					this.pieChart
 						.animationDuration($$.animationDuration)
 						.width($$.x.rangeBand())
@@ -7410,7 +7273,14 @@ d2b.CHARTS.factChart = function(){
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		if($$.selection.subFact){
+			$$.selection.subFact.each(function(d){
+				this.pieChart.color($$.color);
+			});
+		}
+	});
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -7433,12 +7303,7 @@ d2b.CHARTS.factChart = function(){
 	  //create svg
 	  $$.selection.svg = $$.selection
 	    .append('svg')
-	      .attr('class','d2b-svg d2b-container')
-				// .on('click.d2b-click',function(){
-				// 	if($$.selectedFact)
-				// 		$$.selectedFact = null;
-				// 	chart.update();
-				// });
+	      .attr('class','d2b-svg d2b-container');
 
 	  //create group container
 	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
@@ -7491,6 +7356,8 @@ d2b.CHARTS.factChart = function(){
 
 		d3.timer.flush();
 
+		$$.events.dispatch("update", $$.selection);
+
 		if(callback)
 			callback();
 
@@ -7531,7 +7398,7 @@ d2b.CHARTS.tableChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.selectedRow = null;
 
@@ -7585,7 +7452,8 @@ d2b.CHARTS.tableChart = function(){
 		var subFactValue = subFact.select('g').selectAll('g').data(function(d){return d.values;});
 
 		var newSubFactValue = subFactValue.enter()
-			.append('g');
+			.append('g')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-table-row-sub-fact');
 
 		newSubFactValue.append('rect');
 		newSubFactValue.append('text').attr('class','d2b-subFact-value-label');
@@ -7600,7 +7468,7 @@ d2b.CHARTS.tableChart = function(){
 				.attr('x', function(d){return d.xPos;})
 				.attr('width', function(d){return d.width;})
 				.attr('height', height)
-				.style('fill', function(d){return $$.color(d.label);});
+				.style('fill', d2b.UTILS.getColor($$.color, 'label'));
 
 		subFactValueTransition
 			.select('text.d2b-subFact-value-label')
@@ -7666,6 +7534,7 @@ d2b.CHARTS.tableChart = function(){
 		$$.selection.table.row = $$.selection.table.selectAll('g.d2b-table-row').data($$.currentChartData.rows);
 		var newTableRow = $$.selection.table.row.enter()
 			.append('g')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-table-row')
 				.attr('class','d2b-table-row');
 
 		newTableRow.append('rect')
@@ -7775,9 +7644,10 @@ d2b.CHARTS.tableChart = function(){
 	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -7865,6 +7735,8 @@ d2b.CHARTS.tableChart = function(){
 
 		d3.timer.flush();
 
+		$$.events.dispatch("update", $$.selection);
+
 		if(callback)
 			callback();
 
@@ -7905,7 +7777,7 @@ d2b.CHARTS.funnelChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.coneHeight = d3.scale.linear();
 	$$.coneCurve = 15;
@@ -8015,6 +7887,7 @@ d2b.CHARTS.funnelChart = function(){
 			.append('g')
 				.attr('class','d2b-cone')
 				.style('opacity',0)
+				.call($$.events.addElementDispatcher, 'main', 'd2b-cone')
 				.on('mouseout.d2b-mouseout',$$.coneMouseout)
 				.on('mouseover.d2b-mouseover',$$.coneMouseover);
 
@@ -8136,7 +8009,7 @@ d2b.CHARTS.funnelChart = function(){
 	chart.coneCurve = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'coneCurve');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -8220,6 +8093,326 @@ d2b.CHARTS.funnelChart = function(){
 
 		d3.timer.flush();
 
+		$$.events.dispatch("update", $$.selection)
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+/*map chart*/
+d2b.CHARTS.mapChart = function(){
+
+	//private store
+	var $$ = {};
+
+	//user set width
+	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	//user set height
+	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
+	$$.innerWidth = $$.width;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
+	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//event object
+	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	//legend OBJ
+	$$.legend = new d2b.UTILS.LEGENDS.legend();
+	//legend orientation 'top', 'bottom', 'left', or 'right'
+	$$.legendOrientation = 'bottom';
+	//legend data
+	$$.legendData = {data:{items:[]}};
+	//controls OBJ
+	$$.controls = new d2b.UTILS.CONTROLS.controls();
+	//controls data
+	$$.controlsData = {
+				hideLegend: {
+					label: "Hide Legend",
+					type: "checkbox",
+					visible: false,
+					enabled: false
+				}
+			};
+
+	$$.filterSet = {};
+
+	$$.topoPaths = [
+		{key:'countries',file:'countries.topo.json'},
+		{key:'states',file:'states.topo.json'}
+		// {key:'counties',file:'counties.topo.json'},
+		// {key:'zip_codes',file:'zip_codes.csv',type:'csv'}
+	];
+
+	$$.topoData = {};
+	$$.filteredTopoData = {};
+	$$.topoDataReady = false;
+	$$.projection = "equirectangular";
+
+	$$.drawCountries = function(path){
+
+		$$.selection.countries.country = $$.selection.countries.selectAll('g.d2b-country')
+			.data($$.filteredTopoData.countries.features, function(d){return d.properties.GU_A3;});
+
+		$$.selection.countries.country
+				.enter()
+			.append("g")
+				.attr('class','d2b-country')
+				.style("opacity",0)
+			.append("path");
+
+		$$.selection.countries.country.path = $$.selection.countries.country.select('path');
+
+		$$.selection.countries.country
+			.transition()
+				.duration($$.animationDuration)
+				.style("opacity",1)
+			.select('path')
+				.attr("d", path)
+				.style("fill", "black")
+
+		$$.selection.countries.country
+				.exit()
+			.transition()
+				.duration($$.animationDuration)
+				.style("opacity",0)
+				.remove();
+
+
+		console.log($$.selection.countries.node().getBBox());
+	};
+
+	$$.pathFit = function(feature){
+		var center = d3.geo.centroid(feature);
+		var scale  = 150;
+		var offset = [$$.innerWidth/2,$$.innerHeight/2];
+		var projection = d3.geo[$$.projection]()
+					.scale(scale)
+					.translate(offset);
+
+		if($$.projection != "albersUsa")
+			projection.center(center);
+
+		var path = d3.geo.path().projection(projection);
+
+		var bounds  = path.bounds(feature);
+		var hscale  = scale * $$.innerWidth / (bounds[1][0]-bounds[0][0]);
+		var vscale  = scale * $$.innerHeight / (bounds[1][1]-bounds[0][1]);
+		var scale   = (hscale < vscale) ? hscale : vscale;
+		var offset  = [$$.innerWidth - (bounds[0][0] + bounds[1][0])/2,
+										$$.innerHeight - (bounds[0][1] + bounds[1][1])/2];
+
+		projection
+			.scale(scale)
+			.translate(offset);
+
+		if($$.projection != "albersUsa")
+			projection.center(center);
+
+		path = path.projection(projection);
+
+		return path;
+	};
+
+	$$.setTopoData = function(callback){
+		//data is not ready
+		$$.topoDataReady = false;
+		//initiate file load
+		d2b.UTILS.load($$.topoPaths, function(data){
+			//save data feature sets
+			$$.topoData = data;
+
+			//clone the topo data
+			$$.filteredTopoData = JSON.parse(JSON.stringify($$.topoData));
+
+			//filter states and countries using the filter set
+			$$.filteredTopoData.states.objects.states_simplified.geometries
+			 	= $$.topoData.states.objects.states_simplified.geometries
+					.filter(function(geo){
+						return Object.keys($$.filterSet.states || {}).map(function(key){
+											return $$.filterSet.states[key].split(',').indexOf(geo.properties[key]) > -1;
+										})
+											.concat([true])
+											.every(function(test){return test == true;});
+					});
+			$$.filteredTopoData.states = topojson.feature($$.filteredTopoData.states, $$.filteredTopoData.states.objects.states_simplified)
+
+			$$.filteredTopoData.countries.objects.countries_simplified.geometries
+			 	= $$.topoData.countries.objects.countries_simplified.geometries
+					.filter(function(geo){
+						return Object.keys($$.filterSet.countries || {}).map(function(key){
+											return $$.filterSet.countries[key].split(',').indexOf(geo.properties[key]) > -1;
+										})
+											.concat([true])
+											.every(function(test){return test == true;});
+					});
+			$$.filteredTopoData.countries = topojson.feature($$.filteredTopoData.countries, $$.filteredTopoData.countries.objects.countries_simplified)
+
+			//data is now ready
+			$$.topoDataReady = true;
+
+			//if an update has been queued and is waiting on data, update the chart.
+			if($$.updateRequired){
+				chart.update();
+				$$.updateRequired = false;
+			}
+
+			//if callback present, invoke
+			if(callback)
+				callback();
+		});
+	};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.projection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'projection');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
+		$$.legend.animationDuration($$.animationDuration);
+		$$.controls.animationDuration($$.animationDuration);
+	});
+	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.filter = function(filters){
+		$$.filterSet = filters;
+		$$.setTopoData();
+		return chart;
+	};
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return $$.currentChartData;
+		if(reset){
+			$$.currentChartData = {};
+		}
+
+		$$.currentChartData = chartData.data;
+
+		return chart;
+	};
+
+	//chart generate
+	chart.generate = function(callback) {
+		$$.generateRequired = false;
+
+		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
+		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+
+		//init legend properties
+		$$.legend
+				.color($$.color)
+				.selection($$.selection.legend);
+
+		//init control properties
+		$$.controls
+				.selection($$.selection.controls)
+				.on('change',function(d,i){
+					$$.controlsData[d.key].enabled = d.state;
+					chart.update();
+				});
+
+		//init main chart container
+		$$.selection.main = $$.selection.group
+			.append('g')
+				.attr('class','d2b-main-chart');
+
+		$$.selection.countries = $$.selection.main
+			.append('g')
+				.attr('class','d2b-countries');
+
+		//fetch topo files for countries and states
+		$$.setTopoData(function(){
+			var temp = $$.animationDuration;
+			chart
+					.animationDuration(0)
+					.update(callback)
+					.animationDuration(temp);
+
+		});
+
+		return chart;
+	};
+
+
+
+	//chart update
+	chart.update = function(callback){
+		//if generate required call the generate method
+		if($$.generateRequired){
+			return chart.generate(callback);
+		}
+		// console.log('update')
+		if(!$$.topoDataReady){
+			$$.updateRequired = true;}
+		else{
+console.log($$.filteredTopoData.countries)
+			//init forcedMargin
+			$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+			$$.outerWidth = $$.width;
+			$$.outerHeight = $$.height;
+
+			//init svg dimensions
+			$$.selection.svg
+					.attr('width',$$.width)
+					.attr('height',$$.height);
+
+			//update dimensions to the conform to the padded SVG:G
+			d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+			//update controls viz
+			d2b.UTILS.CHARTS.HELPERS.updateControls($$);
+
+			//set legend data and update legend viz
+			if($$.controlsData.hideLegend.enabled){
+				$$.legendData = {data:{items:[]}};
+			}else{
+				//----replace array with a custom legend builder
+				$$.legendData.data.items = [{'label':'item 1'},{'label':'item 2'},{'label':'item 3'},{'label':'item 4'},{'label':'item 5'},{'label':'item 6'}]
+			}
+			d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
+
+console.log('draw')
+			var path = $$.pathFit($$.filteredTopoData.countries);
+
+			$$.selection.main
+				.transition()
+					.duration($$.animationDuration)
+					.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
+
+			d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+			$$.drawCountries(path);
+
+			d3.timer.flush();
+
+		}
+
 		if(callback)
 			callback();
 
@@ -8252,7 +8445,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
   $$.groupScale = d3.scale.ordinal();
 
@@ -8271,6 +8464,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -8278,7 +8472,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
@@ -8344,9 +8538,9 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       });
       var newBar = bar.enter()
         .append('rect')
-        .style('fill', $$.color(graphData.label))
+				.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
         .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);}, function(d){return d;})
-				.call(d2b.UTILS.bindElementEvents, $$, 'bar');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-bar');
 
       if($$.controlsData.stackBars.enabled){
         newBar
@@ -8356,6 +8550,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
         bar
           .transition()
             .duration($$.animationDuration)
+						.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
             .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2})
             .attr('y', function(d){
               if(!stackedYVals[d.x]){
@@ -8462,17 +8657,33 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.line = d3.svg.line()
     .x(function(d) { return $$.x.customScale(d.x); })
     .y(function(d) { return $$.y.customScale(d.y); });
+
+	$$.pointMouseover = function(){
+		d3.select(this)
+				.select('.d2b-line-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',7);
+	};
+	$$.pointMouseout = function(){
+		d3.select(this)
+				.select('.d2b-line-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',3.5);
+	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -8480,7 +8691,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
@@ -8514,7 +8725,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(d2b.UTILS.bindElementEvents, $$, 'line');
+					.call($$.events.addElementDispatcher, 'main', 'd2b-line');
 			}
 
 			if(graphData.interpolate){
@@ -8524,7 +8735,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 			}
 
 			path
-					.style('stroke', function(d){return $$.color(graphData.label);})
+					.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 				.datum(function(d){return graphData.values;})
 				.transition()
 					.duration($$.animationDuration)
@@ -8544,31 +8755,21 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 
 			newPoint
 				.append('circle')
-					.attr('r', 3.5);
+					.attr('class', 'd2b-line-point-foreground')
+					.attr('r', 3.5)
 
 			newPoint
 				.append('circle')
+					.attr('class', 'd2b-line-point-background')
 					.attr('r', 3.5)
-					.on('mouseover.d2b-mouseover',function(){
-						d3.select(this)
-							.transition()
-								.duration($$.animationDuration/2)
-								.attr('r',7)
-					})
-					.on('mouseout.d2b-mouseover',function(){
-						d3.select(this)
-							.transition()
-								.duration($$.animationDuration/2)
-								.attr('r',3.5)
-					})
-					.style('fill-opacity',0)
-					.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-					.call(d2b.UTILS.bindElementEvents, $$, 'line-point');
-
+				.call($$.events.addElementDispatcher, 'main', 'd2b-line-point');
 
 			point
+				.on('mouseover', $$.pointMouseover)
+				.on('mouseout', $$.pointMouseout)
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
 				.selectAll('circle')
-					.style('stroke', $$.color(graphData.label))
+					.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 					.style('fill', 'white');
 
 			point
@@ -8616,7 +8817,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.area = d3.svg.area()
     .x(function(d) { return $$.x.customScale(d.x); })
@@ -8629,6 +8830,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
@@ -8636,10 +8838,25 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	$$.pointMouseover = function(){
+		d3.select(this)
+				.select('.d2b-area-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',7);
+	};
+	$$.pointMouseout = function(){
+		d3.select(this)
+				.select('.d2b-area-point-foreground')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r',3.5);
+	};
 
 	$$.updatePoints = function(graphData, graph, yType){
 
@@ -8654,33 +8871,24 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 		newPoint
 			.append('circle')
+				.attr('class', 'd2b-area-point-foreground')
 				.attr('r', 3.5)
 
 		newPoint
 			.append('circle')
+				.attr('class', 'd2b-area-point-background')
 				.attr('r', 3.5)
-				.style('fill-opacity',0)
-				.on('mouseover.d2b-mouseover',function(){
-					d3.select(this)
-						.transition()
-							.duration($$.animationDuration/2)
-							.attr('r',7)
-				})
-				.on('mouseout.d2b-mouseover',function(){
-					d3.select(this)
-						.transition()
-							.duration($$.animationDuration/2)
-							.attr('r',3.5)
-				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'area-point-'+yType)
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);});
+				.call($$.events.addElementDispatcher, 'main', 'd2b-area-point-'+yType);
 
 		$$.foreground.point[yType]
 			.selectAll('circle')
-				.style('stroke', $$.color(graphData.label))
+				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 				.style('fill', 'white');
 
 		$$.foreground.point[yType]
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);})
+				.on('mouseover', $$.pointMouseover)
+				.on('mouseout', $$.pointMouseout)
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform',function(d){
@@ -8723,13 +8931,12 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 	//chart update
 	chart.update = function(callback){
-
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
 			var path = graph.select('path');
 			if(path.size() == 0){
 				path = graph.append('path')
-					.call(d2b.UTILS.bindElementEvents, $$, 'area');
+					.call($$.events.addElementDispatcher, 'main', 'd2b-area');
 			}
 
 			if(graphData.interpolate){
@@ -8739,9 +8946,9 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 			}
 
 			path
-					.style('stroke', function(d){return $$.color(graphData.label);})
-					.style('fill', function(d){return $$.color(graphData.label);})
 				.datum(function(d){return graphData.values;})
+					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
+					.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 				.transition()
 					.duration($$.animationDuration)
 					.attr("d", $$.area);
@@ -8750,10 +8957,6 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);
-
-			// graph.on('mouseover', function(){
-			// 	console.log(d3.event)
-			// });
 
 			$$.foreground.point = {};
 
@@ -8791,7 +8994,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.hist = d3.layout.histogram();
 
@@ -8801,6 +9004,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	//properties that will be set by the axis-chart main code
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -8808,7 +9012,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
@@ -8844,11 +9048,10 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
 
-			// console.log
 			var xVals = graphData.histData.map(function(d){return d.x;});
 			var xRange = [$$.x.customScale(d3.min(xVals)),
 										$$.x.customScale(d3.max(xVals))];
-			// console.log(histWidth)
+										
 			var barWidth = 1.03*Math.abs(xRange[0]-xRange[1])/graphData.histData.length;
 
 			// var barWidth = ($$.width / data.length)/2;
@@ -8861,16 +9064,17 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 			var newBar = bar.enter()
 				.append('rect')
-					.call(d2b.UTILS.bindElementEvents, $$, 'histogram-bar')
-					.style('fill', $$.color(graphData.label))
+					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 					.attr('y',$$.y.customScale(0))
 					.attr('height',0)
-					.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+					.call($$.events.addElementDispatcher, 'main', 'd2b-histogram-bar');
 
 			bar
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
 				.transition()
 					.duration($$.animationDuration)
-					.attr('x',function(d){return $$.x.customScale(d.x) - barWidth/2;})
+					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
+					.attr('x',function(d){return $$.x.customScale(d.x);})
 					.attr('width',function(d){return Math.max(0, barWidth);})
 					.attr('y', function(d){return $$.y.customBarScale(d.y).y;})
 					.attr('height', function(d){return $$.y.customBarScale(d.y).height;});
@@ -8916,7 +9120,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
   //pack layout
   $$.pack = d3.layout.pack()
@@ -8927,6 +9131,13 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     expandedNodes:{}
   };
 
+	$$.radiusScale = [1,1];
+	$$.radius = d3.scale.linear();
+
+	//breacrumbs OBJ
+	$$.breadcrumbs = new d2b.UTILS.breadcrumbs();
+	$$.breadcrumbs.scale(5.5)
+
   $$.resetExpandedNodes = function(node){
     $$.persistentData.expandedNodes[node.key] = false;
     if(node.children){
@@ -8935,6 +9146,48 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
       });
     }
   };
+
+
+  // BREADCRUMB METHODS
+	$$.resetBreadcrumbs = function(){
+		var breadcrumbsData = {
+			data:{
+				items: []
+			}
+		};
+		$$.breadcrumbs.data(breadcrumbsData).update();
+	};
+	$$.updateBreadcrumbs = function(sequence){
+		var breadcrumbsData = {
+			data:{
+				items: sequence.map(function(d,i){return {label:d.name, key:i+','+d.name, data:d};})
+			}
+		};
+		$$.breadcrumbs.data(breadcrumbsData).update();
+
+		var breadcrumbsSelection = $$.breadcrumbs.selection();
+		breadcrumbsSelection.breadcrumb.path
+			.attr('stroke-width',2)
+			.style('fill-opacity',0.5)
+			.style('fill', function(d){return $$.fill(d.data);})
+			.attr('stroke',function(d){return $$.fillDark(d.data);});
+
+	};
+	//find the ancesstors of a given node
+	$$.getAncestors = function(node) {
+		var path = [];
+		var current = node;
+
+		while (current.parent) {
+			path.unshift(current);
+			current = current.parent;
+		}
+		path.unshift(current);
+
+		return path;
+	};
+
+
 
   //This function will find the weighted position of all parent nodes based on child x/y/size
   $$.setParentPositions = function(node){
@@ -8949,66 +9202,110 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     }
   };
 
-  $$.flatten = function(root) {
-    var nodes = [], i = 0;
-
-    function recurse(node) {
-        if (node.children)
-            node.size = node.children.reduce(function(p, v) { return p + recurse(v); }, 0);
-        if (!node.id)
-            node.id = ++i;
-        nodes.push(node);
-        return node.size;
-    }
-
-    root.size = recurse(root);
-    return nodes;
-  }
-
-  $$.addNodeKey = function(d){
-    d.key = d.name;
+  $$.addNodeKey = function(d, graphIndex){
+    d.key = graphIndex + d.name;
     if(d.parent){
-      d.key += $$.addNodeKey(d.parent);
+      d.key += $$.addNodeKey(d.parent, graphIndex);
     }
     return d.key;
   };
 
-  $$.packJoin = function(){
-    var parentPack = {
-      children:$$.currentChartData.map(function(d){return d.pack;})
-    };
-    $$.pack(parentPack);
-		if(parentPack.children)
-	    parentPack.children.forEach(function(d){d.parent = null;});
-  }
+	$$.visible = function(d){
+		if(d.parent){
+			if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
+				return true;
+		}else if(!$$.persistentData.expandedNodes[d.key])
+			return true;
 
-  $$.bubbleEnter = function(graph, graphData, bubble){
-    var newBubble = bubble.enter()
-      .append('g')
-        .attr('class', 'd2b-bubble')
-        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
-        .call(d2b.UTILS.bindElementEvents, $$, 'bubble')
-        .attr('transform', function(d){
-          if(d.parent){
-            if(!$$.persistentData.expandedNodes[d.parent.key])
-              return 'translate('+$$.x.customScale(d.parent.x0)+','+$$.y.customScale(d.parent.y0)+')';
-          }
-          return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
-        })
-        .style('opacity',0);
+		return false;
+	};
 
-    newBubble
-      .append('circle')
-        .attr('class','d2b-bubble-background')
-        .style('stroke', $$.color(graphData.label));
+	$$.hidden = function(d){
+		if(d.parent){
+			if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
+				return false;
+		}else if(!$$.persistentData.expandedNodes[d.key])
+			return false;
 
-    newBubble
-      .append('circle')
-        .attr('class','d2b-bubble-foreground')
-        .style('fill', $$.color(graphData.label));
-  };
+		return true;
+	};
 
-  $$.bubbleUpdate = function(graph, graphData, bubble){
+	$$.getTop = function(d){
+		if(d.top)
+			return d.name
+		else if(d.parent)
+			return $$.getTop(d.parent)
+		else
+			return false;
+	};
+
+	$$.fill = function(d){
+		var key;
+		if(d.colorKey)
+			key = d.colorKey;
+		else if($$.controlsData.bubbleSubFill.enabled)
+			key = d.subFillColorKey;
+		else if(d.graphColorKey)
+			key = d.graphColorKey;
+		else
+			key = d.graphLabel;
+
+		return $$.color(key);
+	};
+
+	$$.fillDark = function(d){
+		return d3.rgb($$.fill(d)).darker(1);
+	};
+
+	//Define Bubble Object
+	$$.bubble = {};
+
+	$$.bubble.mouseover = function(node){
+		$$.updateBreadcrumbs($$.getAncestors(node));
+		d3.select(this)
+			.select('.d2b-bubble-background')
+			.transition()
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.attr('r', 3+$$.radius(node.value));
+	};
+	$$.bubble.mouseout = function(node){
+		$$.resetBreadcrumbs();
+		d3.select(this)
+			.select('.d2b-bubble-background')
+			.transition()
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.attr('r', $$.radius(node.value));
+	};
+	$$.bubble.enter = function(graph, graphData, bubble){
+		var newBubble = bubble.enter()
+			.append('g')
+				.attr('class', 'd2b-bubble')
+				.attr('transform', function(d){
+					if(d.parent){
+						if(!$$.persistentData.expandedNodes[d.parent.key])
+							return 'translate('+$$.x.customScale(d.parent.x0)+','+$$.y.customScale(d.parent.y0)+')';
+					}
+					return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
+				})
+				.style('opacity',0)
+	      .on('mouseover.d2b-mouseover',$$.bubble.mouseover)
+	      .on('mouseout.d2b-mouseout',$$.bubble.mouseout);
+
+		newBubble
+			.append('circle')
+				.attr('class','d2b-bubble-background');
+
+		newBubble
+			.append('circle')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble')
+				.attr('class','d2b-bubble-foreground')
+				.style('fill', $$.fill);
+	};
+  $$.bubble.update = function(graph, graphData, bubble){
+
+		bubble
+			.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+
     //customize bubbles that contain children
     var bubbleWithChildren = bubble
       .filter(function(d){return (d.children)? true:false;})
@@ -9016,33 +9313,19 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         $$.persistentData.expandedNodes[d.key] = true;
         $$.axisChart.update();
       })
-      .style('cursor','pointer')
-      .on('mouseover.d2b-mouseover',function(d){
-        d3.select(this)
-          .select('.d2b-bubble-background')
-          .transition()
-            .duration($$.animationDuration/2)
-            .attr('r', 3+Math.max(0.5,d.r));
-      })
-      .on('mouseout.d2b-mouseout',function(d){
-          d3.select(this)
-            .select('.d2b-bubble-background')
-            .transition()
-              .duration($$.animationDuration/2)
-              .attr('r', Math.max(0.5,d.r));
-      });
+      .style('cursor','pointer');
 
     //customize bubbles that do not contain children
     bubbleWithChildren
       .select('.d2b-bubble-background')
-      .style('stroke', d3.rgb($$.color(graphData.label)).darker(1));
+			.style('stroke', $$.fillDark);
 
     var bubbleWithoutChildren = bubble.filter(function(d){return (d.children)? false:true;})
       .style('cursor','auto');
 
     bubbleWithoutChildren
       .select('.d2b-bubble-background')
-      .style('stroke', d3.rgb($$.color(graphData.label)));
+			.style('stroke', $$.fill);
 
     //transition visible bubbles
     var bubbleVisibleTransition = bubble.filter($$.visible)
@@ -9053,21 +9336,14 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
     bubbleVisibleTransition
       .select('circle.d2b-bubble-background')
-        .attr('r', function(d){return Math.max(0.5,d.r);});
+        .attr('r', function(d){return $$.radius(d.value);});
     bubbleVisibleTransition
       .select('circle.d2b-bubble-foreground')
-        .attr('r', function(d){return Math.max(0.5,d.r);});
+				.style('fill', $$.fill)
+        .attr('r', function(d){return $$.radius(d.value);});
 
     //transition hidden bubbles
-    var bubbleHiddenTransition = bubble.filter(function(d){
-          if(d.parent){
-            if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
-              return false;
-          }else if(!$$.persistentData.expandedNodes[d.key])
-            return false;
-
-          return true;
-        })
+    var bubbleHiddenTransition = bubble.filter($$.hidden)
         .classed('d2b-hidden',true)
       .transition()
         .duration($$.animationDuration)
@@ -9082,14 +9358,13 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         });
     bubbleHiddenTransition
       .select('circle.d2b-bubble-background')
-        .attr('r', function(d){return Math.max(1,d.r);});
+        .attr('r', function(d){return $$.radius(d.value);});
     bubbleHiddenTransition
       .select('circle.d2b-bubble-foreground')
-        .attr('r', function(d){return Math.max(1,d.r);});
+        .attr('r', function(d){return $$.radius(d.value);});
 
   };
-
-  $$.bubbleExit = function(graph, graphData, bubble){
+  $$.bubble.exit = function(graph, graphData, bubble){
     bubble.exit()
       .transition()
         .duration($$.animationDuration)
@@ -9097,14 +9372,78 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         .remove();
   };
 
-	$$.visible = function(d){
-		if(d.parent){
-			if($$.persistentData.expandedNodes[d.parent.key] && !$$.persistentData.expandedNodes[d.key])
-				return true;
-		}else if(!$$.persistentData.expandedNodes[d.key])
-			return true;
 
-		return false;
+	// Define Expanded Bubble Indicator Object
+	$$.expandedBubbleIndicator = {};
+	$$.expandedBubbleIndicator.enter = function(graph, graphData, indicator){
+    var newIndicator = indicator.enter()
+      .append('g')
+        .attr('class', 'd2b-expanded-bubble-indicator')
+        .on('click.d2b-click', function(d){
+          $$.resetExpandedNodes(d);
+          d2b.UTILS.removeTooltip();
+          $$.axisChart.update();
+					$$.resetBreadcrumbs();
+        })
+				.on('mouseover.d2b-mouseover', function(node){
+					$$.updateBreadcrumbs($$.getAncestors(node));
+				})
+				.on('mouseout.d2b-mouseover', function(node){
+					$$.resetBreadcrumbs();
+				})
+				.call($$.events.addElementDispatcher, 'main', 'd2b-expanded-bubble-indicator');
+    newIndicator
+      .append('rect')
+				.style('fill', $$.fill)
+        .attr('width', 50)
+        .attr('height', 20);
+    newIndicator
+      .append('text')
+        .attr('x', 25)
+        .attr('y', 15)
+        .text(function(d){return d.name.substring(0,5);});
+
+	};
+	$$.expandedBubbleIndicator.update = function(graph, graphData, indicator, position){
+		indicator
+			.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', function(d){
+					position.x += 55;
+					if(position.x > $$.width-20){
+						position.y += 25;
+						position.x = 65;
+					}
+					return 'translate('+(position.x - 55)+','+position.y+')';
+				})
+			.select('rect')
+				.style('fill', $$.fill)
+				.style('stroke', $$.fillDark);
+
+		$$.breadcrumbsContainer
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', 'translate('+(10)+','+(position.y+30)+')');
+
+	};
+	$$.expandedBubbleIndicator.exit = function(graph, graphData, indicator){
+		indicator.exit()
+			.transition()
+				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+				.style('opacity',0)
+				.remove();
+	};
+
+	$$.cleanRadiusScale = function(scale){
+		if(scale){
+			if(scale.length == 1)
+				return [scale[0], scale[0]];
+			else
+				return scale;
+		}else if(scale === null){
+				return [1,1];
+		}
 	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
@@ -9113,6 +9452,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	//properties that will be set by the axis-chart main code
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -9120,22 +9460,19 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 						  d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
-	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
+	//type specific properties
+	chart.radiusScale =	 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'radiusScale', function(){
+		$$.radiusScale = $$.cleanRadiusScale($$.radiusScale);
+	});
+
+	//xValues and yValues are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
     var values = [];
-		// $$.currentChartData.forEach(function(graphData){
-		// 	values = values.concat(
-		// 		graphData.packed
-		// 			.filter($$.visible)
-		// 			.map(function(d){return d.x0;})
-		// 	);
-		// });
-		// return values;
     $$.currentChartData.forEach(function(graphData){
       values = values.concat(
 				graphData.packed
@@ -9161,89 +9498,65 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     return merged;
 	};
 
+	//data setter
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
 
-    $$.packJoin();
-
-    $$.currentChartData.forEach(function(graphData){
+		var max = 0;
+    $$.currentChartData.forEach(function(graphData, graphIndex){
+			graphData.packed = $$.pack(graphData.pack)
       $$.setParentPositions(graphData.pack);
-      graphData.packed = $$.flatten(graphData.pack);
-      graphData.packed.forEach(function(d){$$.addNodeKey(d);d.key += graphData.label;});
-    });
-
+      graphData.packed.forEach(function(d){
+				d.graphLabel = graphData.label;
+				d.graphColorKey = graphData.colorKey;
+				d.subFillColorKey = $$.getTop(d) || graphData.label;
+				$$.addNodeKey(d, graphIndex);
+				d.key += graphData.label;
+	    });
+			max = Math.max(max,graphData.packed[0].value);
+		});
+		$$.radius.domain([0, max]);
 		return chart;
 	};
 
 	//chart update
 	chart.update = function(callback){
-    $$.pack.size([$$.width/3, $$.height/3]);
-    $$.packJoin();
 
-		$$.background.each(function(graphData){
-			var graph = d3.select(this);
-		});
+		/** init breadcrumbs, rather than use a generate function, just append
+			*	breadcrumb container if it doesn't exist yet.
+			*/
+		$$.breadcrumbsContainer = $$.general.select('g.d2b-breadcrumbs');
+		if($$.breadcrumbsContainer.size() == 0){
+			$$.breadcrumbsContainer = $$.general.append('g')
+				.attr('class', 'd2b-breadcrumbs');
+			$$.breadcrumbs.selection($$.breadcrumbsContainer);
+		}
+		$$.breadcrumbs.width($$.width);
 
-    var indicatorPosition = {x:10, y:10};
+		//update radius scale range
+		$$.radius.range([$$.radiusScale[0] * 1, $$.radiusScale[1] * Math.min($$.width, $$.height)/10]);
 
+		//init indicator origin
+		var indicatorPosition = {x:10, y:10};
+
+		//draw foreground elements for each graph
 		$$.foreground.each(function(graphData){
+
 			var graph = d3.select(this);
 
       var bubble = graph.selectAll('g.d2b-bubble').data(graphData.packed, function(d){return d.key;});
 
-      $$.bubbleEnter(graph, graphData, bubble);
-      $$.bubbleUpdate(graph, graphData, bubble);
-      $$.bubbleExit(graph, graphData, bubble);
+      $$.bubble.enter(graph, graphData, bubble);
+      $$.bubble.update(graph, graphData, bubble);
+      $$.bubble.exit(graph, graphData, bubble);
 
-      var expandedBubbleIndicator = graph.selectAll('g.d2b-expanded-bubble-indicator')
-        .data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
+			var expandedBubbleIndicator = graph.selectAll('g.d2b-expanded-bubble-indicator')
+				.data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
 
-      var newIndicator = expandedBubbleIndicator.enter()
-        .append('g')
-          .attr('class', 'd2b-expanded-bubble-indicator')
-          .on('click.d2b-click', function(d){
-            $$.resetExpandedNodes(d);
-            d2b.UTILS.removeTooltip();
-            $$.axisChart.update();
-          })
-          .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;});
-
-      newIndicator
-        .append('rect')
-          .attr('width', 50)
-          .attr('height', 20)
-          .style('fill', $$.color(graphData.label))
-          .style('stroke', d3.rgb($$.color(graphData.label)).darker(1));
-
-      newIndicator
-        .append('text')
-          .attr('x', 25)
-          .attr('y', 15)
-          .text(function(d){return d.name.substring(0,5);});
-
-      var indicatorTransition = expandedBubbleIndicator
-        .transition()
-          .duration($$.animationDuration);
-
-      indicatorTransition
-        .attr('transform', function(d){
-          indicatorPosition.x += 55;
-          if(indicatorPosition.x > $$.width-20){
-            indicatorPosition.y += 25;
-            indicatorPosition.x = 65;
-          }
-
-          return 'translate('+(indicatorPosition.x - 55)+','+indicatorPosition.y+')';
-        });
-
-      expandedBubbleIndicator.exit()
-        // .transition()
-        //   .duration($$.animationDuration)
-          // .style('opacity',0)
-          .remove();
-
-
+			$$.expandedBubbleIndicator.enter(graph, graphData, expandedBubbleIndicator);
+			$$.expandedBubbleIndicator.update(graph, graphData, expandedBubbleIndicator, indicatorPosition);
+			$$.expandedBubbleIndicator.exit(graph, graphData, expandedBubbleIndicator);
 		});
 
 		d3.timer.flush();
@@ -9255,6 +9568,19 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	};
 
 	return chart;
+};
+
+d2b.UTILS.AXISCHART.TYPES.bubblePack.tools = function(){
+  return {
+    controlsData:{
+      bubbleSubFill: {
+        label: "Fill By Sub-Category",
+        type: "checkbox",
+        visible: false,
+        enabled: false
+      }
+    }
+  }
 };
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
@@ -9276,7 +9602,7 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -9284,6 +9610,7 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	//properties that will be set by the axis-chart main code
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -9291,10 +9618,12 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	//if you need additional chart-type properties, those can go here..
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){

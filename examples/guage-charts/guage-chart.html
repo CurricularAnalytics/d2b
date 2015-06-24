@@ -11,9 +11,14 @@
 
 		guageChart
 			.select('.guage-chart')
+			// .color(
+			// 	d3.scale.ordinal()
+			// 		.domain(['4-Year Accepted Major', 'test'])
+			// 		.range(['#900', '#090'])
+			// )
 			.width($(window).width())
 			.height($(window).height())
-			.data({data:{percent:0.4, label:'4-Year Accepted Major'}})
+			.data({data:{percent:0.4, colorKey: 'test', label:'4-Year Accepted Major'}})
 			.update();
 
 		setTimeout(function(){

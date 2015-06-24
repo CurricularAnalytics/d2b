@@ -29,7 +29,7 @@ d2b.CHARTS.pieChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = {element:{}};
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	$$.legend.active(true);
@@ -98,7 +98,7 @@ d2b.CHARTS.pieChart = function(){
 			.append('g')
 				.attr('class','d2b-arc')
 				.style('opacity',0)
-				.call(d2b.UTILS.bindElementEvents, $$, 'arc')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-arc')
 				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.data.label+'</b>';},function(d){return $$.xFormat(d.data.value);});
 
 		//create arc path
@@ -137,11 +137,7 @@ d2b.CHARTS.pieChart = function(){
 					};
 				})
 				.style('fill',function(d){
-					if(d.data.colorKey){
-						return $$.color(d.data.colorKey);
-					}else{
-						return $$.color(d.data.label);
-					}
+					return d2b.UTILS.getColor($$.color, 'label')(d.data);
 				})
 				.on('mouseover.d2b-mouseover',function(d){
 					$$.persistentData.focusedArc = d.data.key;
@@ -216,6 +212,9 @@ d2b.CHARTS.pieChart = function(){
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color);
+	});
 
 	chart.donutRatio = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'donutRatio');
 
@@ -245,15 +244,15 @@ d2b.CHARTS.pieChart = function(){
 		$$.legend
 				.color($$.color)
 				.selection($$.selection.legend)
-				.on('elementMouseover.d2b-mouseover',function(d){
+				.on('element-mouseover.d2b-mouseover',function(t,d){
 					$$.persistentData.focusedArc = d.key;
 					chart.update();
 				})
-				.on('elementMouseout.d2b-mouseover',function(d){
+				.on('element-mouseout.d2b-mouseover',function(t,d){
 					$$.persistentData.focusedArc = null;
 					chart.update();
 				})
-				.on('elementClick',function(d){
+				.on('element-click',function(t,d){
 					$$.persistentData.hiddenArcs[d.key] = !$$.persistentData.hiddenArcs[d.key];
 
 					var allHidden = true;
@@ -271,7 +270,7 @@ d2b.CHARTS.pieChart = function(){
 
 					chart.update();
 				})
-				.on('elementDblClick',function(d){
+				.on('element-dblclick',function(t,d){
 					//on legend dbl click hide all but clicked arc
 					$$.currentChartData.values.forEach(function(d2){
 						$$.persistentData.hiddenArcs[d2.key] = d2.key != d.key;
@@ -351,6 +350,8 @@ d2b.CHARTS.pieChart = function(){
 		$$.arcExit();
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();

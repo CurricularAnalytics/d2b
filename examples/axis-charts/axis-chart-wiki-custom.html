@@ -117,6 +117,12 @@
       .height($(window).height())
       .update();
 
+    $(window).resize(function(){
+      axisChart
+        .width($(window).width())
+        .height($(window).height())
+        .update();
+    });
 	});
 </script>
 

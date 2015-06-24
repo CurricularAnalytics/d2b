@@ -29,7 +29,7 @@ d2b.CHARTS.templateChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
@@ -63,7 +63,10 @@ d2b.CHARTS.templateChart = function(){
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color);
+	});
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -155,6 +158,9 @@ d2b.CHARTS.templateChart = function(){
 		//----use innerHeight/innerWidth as the context dimensions and use forcedMargin.|left, right, top, or bottom| as the current positioning margin
 
 		d3.timer.flush();
+
+		//dispatch the on 'update' event, and pass it the selection object
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();

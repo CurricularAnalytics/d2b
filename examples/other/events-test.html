@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+
+	// init events
+	var events = d2b.UTILS.chartEvents();
+
+	// add listener for update under the default namespace and the 'foo' namespace
+	events.addListener("update", function(d1){console.log(this)});
+	events.addListener("update.foo", function(d1,d2){console.log(d2)});
+
+	// dispatch update listeners with 'this' and args
+	events.dispatch("update", {test:'test'}, ['no', 'yes'])
+
+	$(document).ready(function(){
+
+		events.addElementListener('main', 'element-click.test', function(type, d){
+			console.log('--')
+			console.log(type);
+			console.log(d);
+		});
+
+		d3.select(".button")
+					// set data
+			.datum({test:'test'})
+					// add selection to the 'main' dispatcher with the type 'button' and the key 'one'
+			.call(events.addElementDispatcher, 'main', 'button.one');
+
+		d3.select(".button2")
+					// add selection to the 'main' dispatcher with the type 'button' and the key 'two'
+			.call(events.addElementDispatcher, 'main', 'button.two');
+
+		d3.select(".button")
+					// add selection to the 'alt' dispatcher with the type 'button' and the key 'one'
+			.call(events.addElementDispatcher, 'alt', 'button.one');
+
+			// add on 'click' listener with the 'test' namespace to all 'main' dispatchers
+			// e.g. this will listener will be dispatched when either of the element bound to the 'main' dispatcher are clicked
+
+		// events.addElementListener('main', 'click.test', null);
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class='button'>Test</div>
+	<div class='button2'>Test2</div>
+</body>
+</html>

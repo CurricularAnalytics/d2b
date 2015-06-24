@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<!-- <link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
+<script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script> -->
+
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script>
+
+	var collegeMap = {
+		AS: "Arts and Sciences",
+		AP: "Architecture and Planning",
+		US: "University Studies",
+		EN: "Engineering",
+		ED: "Education",
+		FA: "Fine Arts",
+		HC: "Honors",
+		ME: "Medicine",
+		NU: "Nursing",
+		MG: "Management",
+		LL: "Library"
+	};
+
+	var nestTotal = d3.nest()
+								.key(function(d){return d["UNM College Code"];})
+								.key(function(d){return d["RQ_CR_2015-16"];});
+	var nestChange = d3.nest()
+								.key(function(d){return d["UNM College Code"];})
+								.key(function(d){return d["change"];});
+
+	var nestBy = function(nest, data){
+		var colleges = nest.entries(data);
+		colleges.forEach(function(college){
+			college.label = college.key;
+			college.values.forEach(function(value){
+				value.x = parseInt(value.key);
+				value.y = value.values.length;
+			});
+		});
+		return colleges;
+	};
+
+	var colleges;
+
+	var cr_color_domain = ["#32B232", "#D61F1F"];
+	var cr_color = d3.scale.linear()
+		.domain([120,130])
+		.range(cr_color_domain);
+
+	var barClick = function(d){
+
+			var college = d.values[0]["UNM College Code"];
+			d3.select('.programs-header').text(college)
+
+			var tbody = d3.select(".programs-table tbody");
+			tbody.selectAll("*").remove();
+			var tr = tbody.selectAll("tr").data(d.values.sort(function(a,b){return d3.ascending(a["UNM Major Description"], b["UNM Major Description"])}));
+
+			var newRow = tr.enter()
+				.append("tr");
+
+			newRow
+				.append("td")
+					.text(function(d){return d["UNM Major Description"]});
+
+			newRow
+				.append("td")
+					.text("Credit Hours: ")
+				.append("span")
+					.text(function(d){return d["RQ_CR_2015-16"]})
+					.style('font-weight','bold')
+					.style('color', function(d){return cr_color(d["RQ_CR_2015-16"])});
+
+			var change = newRow
+				.append("td")
+					.text("Change: ")
+				.append("span")
+					.style('font-weight','bold')
+					.style('color', function(d){
+						if(d.change < 0)
+							return cr_color_domain[0];
+						else if(d.change > 0)
+							return cr_color_domain[1];
+						else
+							return "#eee";
+					});
+			change.each(function(d){
+				var elem = d3.select(this);
+				if(d.change < 0)
+					return elem.append('i').attr('class','fa fa-level-down');
+				else if(d.change > 0)
+					return elem.append('i').attr('class','fa fa-level-up');
+			});
+
+			change.append('span')
+				.text(function(d){return ' '+Math.abs(d.change)+' ';})
+
+			d3.select(".programs-overlay").classed("hidden", false);
+
+	};
+
+	var histogramUpdated = function(){
+		d3.selectAll(".d2b-axis-type-background.d2b-bar rect")
+			.on("click.show-individual-programs", barClick);
+	};
+
+	var getMaxRange = function(value){
+		var values = value.split("-");
+		if(values.length > 1)
+			return values[1];
+		else
+			return values[0];
+	};
+
+	$(document).ready(function(){
+
+		//init histogram multiChart
+		var histogram = new d2b.CHARTS.multiChart()
+			.on('update', histogramUpdated);
+
+		//init chart layout
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout()
+			.select('.histogram')
+			.chart(histogram)
+			.data({
+				"data":
+				{
+					"chartLayout":{
+						"title":"Program Credit Hours",
+						"titleAlt":"By College"
+					}
+				}
+			});
+
+
+		//load csv data
+		d3.csv("data.csv", function(d){
+
+			//filter only programs with numeric required credit hours
+			d = d.filter(function(row){
+				row["RQ_CR_2015-16"] = getMaxRange(row["RQ_CR_2015-16"]);
+				row["RQ_CR_2013-14"] = getMaxRange(row["RQ_CR_2013-14"]);
+				return !isNaN(row["RQ_CR_2015-16"]) && !isNaN(row["RQ_CR_2013-14"])
+			});
+
+			//init domain arrays
+			var changeDomain = [];
+			var totalDomain = [];
+
+			//set the total required credit hour change, and push the change and total values onto the domain arrays
+			d.forEach(function(row){
+				row["UNM College Code"] = collegeMap[row["UNM College Code"]] || row["UNM College Code"];
+				row.change = parseInt(row["RQ_CR_2015-16"]) - parseInt(row["RQ_CR_2013-14"]);
+				changeDomain.push(row.change);
+				totalDomain.push(row["RQ_CR_2015-16"]);
+			});
+
+			//finish defining domains
+			changeDomain = d3.set(changeDomain).values().sort(function(a,b){return d3.ascending(parseInt(a),parseInt(b));});
+			totalDomain = d3.set(totalDomain).values().sort(function(a,b){return d3.ascending(parseInt(a),parseInt(b));});
+
+			//nest the data by total and change
+			var collegesTotal = nestBy(nestTotal, d);
+			var collegesChange = nestBy(nestChange, d);
+
+			//data for total axisChart
+			var totalData = {
+				data:{
+					labels:{x:"Credit Hours Requred", y:"# of Programs"},
+					types:[
+						{
+							type:"bar",
+							graphs:collegesTotal
+						}
+					]
+				}
+			};
+
+			//data for change axisChart
+			var changeData = {
+				data:{
+					labels:{x:"Change in Required Credit Hours", y:"# of Programs"},
+					types:[
+						{
+							type:"bar",
+							graphs:collegesChange
+						}
+					]
+				}
+			};
+
+			//set multichart data
+			histogram
+				.data({
+					data:{
+						charts:[
+							{
+								label:"Total",
+								type:"axisChart",
+								properties:{
+									legendOrientation:"top",
+									controls:{stackBars:{visible:true,enabled:true},lockXAxis:{enabled:true}},
+									x:{type:"ordinal", domain:totalDomain},
+									data:totalData
+								}
+
+							},
+							{
+								label:"Change",
+								type:"axisChart",
+								properties:{
+									legendOrientation:"top",
+									controls:{stackBars:{visible:true,enabled:true},lockXAxis:{enabled:true}},
+									x:{type:"ordinal", domain:changeDomain},
+									data:changeData
+								}
+							}
+						]
+					}
+				});
+
+			chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.update();
+
+		});
+
+		d3.select(".programs-overlay").on("click", function(){
+			d3.select(this).classed("hidden", true);
+		});
+
+		$(window).resize(function(){
+			chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.update();
+		});
+
+	});
+
+</script>
+<style>
+	.histogram-wrapper{
+		position:relative;
+	}
+	.programs-overlay{
+		-webkit-transition:opacity 0.5s;
+		transition:opacity 0.5s;
+
+		color:#eee;
+		font-family:"Droid Sans";
+		position:absolute;
+		top:0;
+		bottom:0;
+		width:100%;
+		height:100%;
+		background:rgba(100,100,100,0.6);
+		opacity:1;
+	}
+	.programs-overlay.hidden{
+		opacity:0;
+		pointer-events:none;
+	}
+	.close-overlay{
+		-webkit-transition:color 0.25s;
+		transition:color 0.25s;
+
+		position:absolute;
+		right:10px;
+		top:50px;
+		font-size:15pt;
+		cursor:pointer;
+		color:#aaa;
+	}
+	.close-overlay:hover{
+		color:#eee;
+	}
+
+	.programs{
+		position: relative;
+		top: 51%;
+		transform: translateY(-50%);
+		-webkit-transform: translateY(-50%);
+		text-align:center;
+	}
+
+	.programs table{
+		background:rgba(0,0,0,0.7);
+		border-collapse: collapse;
+		margin:auto;
+		-moz-box-shadow: 0 0 5px #555;
+		-webkit-box-shadow: 0 0 5px#555;
+		box-shadow: 0 0 5px #555;
+	}
+	.programs td{
+		padding:5px 40px;
+		color:#eee;
+		text-align:left;
+	}
+	.programs th{
+		padding:5px 20px;
+		font-size:16pt;
+		font-weight:normal;
+	}
+	tbody tr{
+		border-top:1px solid #555;
+	}
+	tbody tr:last-child{
+		border-bottom:1px solid #555;
+	}
+	.programs-header{
+		/*text-align:center;*/
+		color:#333;
+    text-shadow: 2px 2px rgba(100, 100, 100, 0.2);
+		font-size:20pt;
+		font-weight:bold;
+	}
+	.programs-table-wrapper{
+		max-height:500px;
+		overflow:scroll;
+		display:inline-block;
+		margin:auto;
+	}
+
+	.d2b-axis-type-background.d2b-bar rect{
+		cursor:pointer;
+	}
+</style>
+<body style='margin:0px;'>
+	<div class = 'histogram-wrapper'>
+		<div class = 'histogram'></div>
+		<div class = 'programs-overlay hidden'>
+			<div class = 'programs'>
+				<div class = 'programs-header'>
+				</div>
+				<div class = 'programs-table-wrapper'>
+					<table class = 'programs-table'>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class = 'close-overlay'>Close</div>
+		</div>
+	</div>
+</body>
+</html>

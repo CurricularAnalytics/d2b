@@ -14,8 +14,7 @@ d2b.UTILS.CONTROLS.checkbox = function(){
 	$$.currentData = {label:'',state:false};
 
 	//init event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
-	$$.on.change = function(){};
+	$$.events = d2b.UTILS.chartEvents();
 
 	var control = {};
 
@@ -25,7 +24,7 @@ d2b.UTILS.CONTROLS.checkbox = function(){
 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
 	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.events(control, $$);
 
 	control.checked = function(value){
 		if(!arguments.length) return $$.currentData.state;
@@ -68,12 +67,10 @@ d2b.UTILS.CONTROLS.checkbox = function(){
 				.attr('class','d2b-checkbox-container')
 				.on('click.d2b-click',function(d,i){
 					$$.currentData.state = !$$.currentData.state;
-					for(key in $$.on.change){
-						$$.on.change[key].call(this,d,i,'checkbox');
-					}
+					$$.events.dispatch("change", this, [d,i]);
 					control.update();
 				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'checkbox');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-checkbox');
 
 		newCheckboxContainer
 			.append('rect')
@@ -143,8 +140,7 @@ d2b.UTILS.CONTROLS.radioButtons = function(){
 	$$.currentData = {label:'',values:[], selected:null};
 
 	//init event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
-	$$.on.change = function(){};
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.resetValues = function(){
 		$$.currentData.values.forEach(function(d){
@@ -159,7 +155,7 @@ d2b.UTILS.CONTROLS.radioButtons = function(){
 	control.select = 		d2b.UTILS.CHARTS.MEMBERS.select(control, $$);
 	control.selection = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'selection');
 	control.container = d2b.UTILS.CHARTS.MEMBERS.prop(control, $$, 'container');
-	control.on =				d2b.UTILS.CHARTS.MEMBERS.on(control, $$);
+	control.on =				d2b.UTILS.CHARTS.MEMBERS.events(control, $$);
 
 	control.computedHeight = function(){
 		return $$.computedHeight;
@@ -218,12 +214,10 @@ d2b.UTILS.CONTROLS.radioButtons = function(){
 					$$.resetValues();
 					d.selected = true;
 					$$.currentData.selected = d;
-					for(key in $$.on.change){
-						$$.on.change[key].call($$.selection.node(),$$.currentData,i,'radio-buttons');
-					}
+					$$.events.dispatch("change", $$.selection.node(), [$$.currentData,i]);
 					control.update();
 				})
-				.call(d2b.UTILS.bindElementEvents, $$, 'radio-button');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-radio-button');
 
 		radioButtonContainer
 			.attr('transform',function(d,i){
@@ -655,6 +649,8 @@ d2b.UTILS.CONTROLS.controls = function(){
 	$$.computedHeight=0;
 	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 
+	$$.events = d2b.UTILS.chartEvents();
+
 	$$.selection;
 	$$.scale = 5;
 
@@ -668,50 +664,14 @@ d2b.UTILS.CONTROLS.controls = function(){
 
 	var controls = {};
 
-	controls.width = function(value){
-		if(!arguments.length) return $$.maxWidth;
-		$$.maxWidth = value;
-		return controls;
-	};
-	controls.computedHeight = function(){
-		return $$.computedHeight;
-	};
-	controls.computedWidth = function(){
-		return $$.computedWidth;
-	};
-	controls.selection = function(value){
-		if(!arguments.length) return $$.selection;
-		$$.selection = value;
-		return controls;
-	};
-	controls.scale = function(value){
-		if(!arguments.length) return $$.scale;
-		$$.scale = value;
-		return controls;
-	};
-	controls.animationDuration = function(value){
-		if(!arguments.length) return $$.animationDuration;
-		$$.animationDuration = value;
-		return controls;
-	};
-
-	controls.on = function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return on[key[0]][key[1]];
-			else
-				return on[key[0]]['default'];
-		};
-
-		if(key[1])
-			on[key[0]][key[1]] = value;
-		else
-			on[key[0]]['default'] = value;
-
-		return controls;
-	};
+	controls.scale = 							d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'scale');
+	controls.select = 						d2b.UTILS.CHARTS.MEMBERS.select(controls, $$);
+	controls.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'selection');
+	controls.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'width');
+	controls.computedHeight = 		d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'computedHeight');
+	controls.computedWidth =  		d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'computedWidth');
+	controls.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(controls, $$, 'animationDuration');
+	controls.on =									d2b.UTILS.CHARTS.MEMBERS.events(controls, $$);
 
 	controls.data = function(controlsData, reset){
 		if(!arguments.length) return $$.currentData;
@@ -735,28 +695,8 @@ d2b.UTILS.CONTROLS.controls = function(){
 				.append('g')
 					.attr('class','d2b-control')
 					.each(function(d){
-						d.control = new d2b.UTILS.CONTROLS[d.type]();
-						d.control.selection(d3.select(this))
-							.on('elementClick.d2b-click',function(d,i){
-								for(key in on.elementClick){
-									on.elementClick[key].call(this,d,i);
-								}
-							})
-							.on('change.d2b-change',function(d,i){
-								for(key in on.change){
-									on.change[key].call(this,d,i);
-								}
-							})
-							.on('elementMouseover.d2b-mouseover',function(d,i){
-								for(key in on.elementMouseover){
-									on.elementMouseover[key].call(this,d,i);
-								}
-							})
-							.on('elementMouseout.d2b-mouseout',function(d,i){
-								for(key in on.elementMouseout){
-									on.elementMouseout[key].call(this,d,i);
-								}
-							});
+						d.control = new d2b.UTILS.CONTROLS[d.type]().selection(d3.select(this));
+						$$.events.translateEvents(d.control);
 					});
 
 

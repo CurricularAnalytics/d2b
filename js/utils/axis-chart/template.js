@@ -17,7 +17,7 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -25,6 +25,7 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	//properties that will be set by the axis-chart main code
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -32,10 +33,12 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	//if you need additional chart-type properties, those can go here..
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){

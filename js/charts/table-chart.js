@@ -29,7 +29,7 @@ d2b.CHARTS.tableChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.selectedRow = null;
 
@@ -83,7 +83,8 @@ d2b.CHARTS.tableChart = function(){
 		var subFactValue = subFact.select('g').selectAll('g').data(function(d){return d.values;});
 
 		var newSubFactValue = subFactValue.enter()
-			.append('g');
+			.append('g')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-table-row-sub-fact');
 
 		newSubFactValue.append('rect');
 		newSubFactValue.append('text').attr('class','d2b-subFact-value-label');
@@ -98,7 +99,7 @@ d2b.CHARTS.tableChart = function(){
 				.attr('x', function(d){return d.xPos;})
 				.attr('width', function(d){return d.width;})
 				.attr('height', height)
-				.style('fill', function(d){return $$.color(d.label);});
+				.style('fill', d2b.UTILS.getColor($$.color, 'label'));
 
 		subFactValueTransition
 			.select('text.d2b-subFact-value-label')
@@ -164,6 +165,7 @@ d2b.CHARTS.tableChart = function(){
 		$$.selection.table.row = $$.selection.table.selectAll('g.d2b-table-row').data($$.currentChartData.rows);
 		var newTableRow = $$.selection.table.row.enter()
 			.append('g')
+				.call($$.events.addElementDispatcher, 'main', 'd2b-table-row')
 				.attr('class','d2b-table-row');
 
 		newTableRow.append('rect')
@@ -273,9 +275,10 @@ d2b.CHARTS.tableChart = function(){
 	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -362,6 +365,8 @@ d2b.CHARTS.tableChart = function(){
 		}
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();

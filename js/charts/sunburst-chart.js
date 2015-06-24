@@ -30,9 +30,9 @@ d2b.CHARTS.sunburstChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
-	$$.legend = new d2b.UTILS.LEGENDS.legend();
+	$$.legend = new d2b.UTILS.LEGENDS.legend().color($$.color);
 	//legend orientation 'top', 'bottom', 'left', or 'right'
 	$$.legendOrientation = 'bottom';
 	//legend data
@@ -115,11 +115,17 @@ d2b.CHARTS.sunburstChart = function(){
 	//set arc fill color to coordinate with the closest 'top' parent
 	$$.arcFill = function(d) {
 		var sequence = $$.getAncestors(d).reverse();
-		for(i=0;i<sequence.length;i++){
+
+		if(d.colorKey)
+			return $$.color(d.colorKey);
+
+		var colorSequence = [], limit = sequence.length;
+		for(i=0;i<limit;i++){
 			if(sequence[i].top){
-				return d3.rgb($$.color(sequence[i].name)).brighter(i*0.1);
+				return d3.rgb(d2b.UTILS.getColor($$.color, 'name')(sequence[i])).brighter(i*0.3);
 			}
 		}
+
 		return $$.color(d.name)
 	};
 
@@ -131,15 +137,10 @@ d2b.CHARTS.sunburstChart = function(){
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) >= 0);
 	              }).classed('d2b-transparent',false);
-		// 	.transition()
-		// 		.duration($$.animationDuration/7)
-		// 		.style('opacity',1)
+
 		$$.selection.arcs.arc.filter(function(node) {
 	                return (sequence.indexOf(node) < 0);
 	              }).classed('d2b-transparent',true);
-			// .transition()
-			// 	.duration($$.animationDuration/7)
-			// 	.style('opacity',0.4)
 
 		$$.updateBreadcrumbs(sequence);
 
@@ -158,10 +159,7 @@ d2b.CHARTS.sunburstChart = function(){
 	//on sunburst mouseout reset breadcrumbs, tooltip, and arc highlighting
 	$$.sunburstMouseout = function(d) {
 		$$.resetBreadcrumbs();
-	  $$.selection.arcs.arc.classed('d2b-transparent',false)
-			// .transition()
-			// 	.duration($$.animationDuration/5)
-			// 	.style('opacity',1);
+	  $$.selection.arcs.arc.classed('d2b-transparent',false);
 
 		$$.resetSunburstTooltip();
 	};
@@ -310,8 +308,7 @@ d2b.CHARTS.sunburstChart = function(){
 						outer: this.oldArc.outer
 					};
 				})
-				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
-				// .attrTween("d", $$.arcTween);
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
 
 		//tween paths to new positions
 		var pathTransition = $$.selection.arcs.arc.path
@@ -357,17 +354,6 @@ d2b.CHARTS.sunburstChart = function(){
 			};
 		}
 	};
-
-	// //arc tween from old arc to new arc
-	// $$.arcTween = function(d){
-	// 	var _self = this;
-	// 	var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
-	// 	function tween(t){
-	// 		_self.oldArc = interpolator(t);
-	// 		return $$.arc(_self.oldArc);
-	// 	}
-	// 	return tween;
-	// };
 
 	//reset the breadcrumbs
 	$$.resetBreadcrumbs = function(){
@@ -421,7 +407,10 @@ d2b.CHARTS.sunburstChart = function(){
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
+		$$.legend.color($$.color);
+	});
 
 
 	chart.data = function(chartData, reset){
@@ -477,10 +466,8 @@ d2b.CHARTS.sunburstChart = function(){
 
 		//intialize new legend
 		$$.legend
-				.color($$.color)
-				.selection($$.selection.legend);
+			.selection($$.selection.legend);
 
-		//intialize new legend
 		$$.breadcrumbs
 				.selection($$.selection.breadcrumbs);
 
@@ -521,21 +508,13 @@ d2b.CHARTS.sunburstChart = function(){
 
 		//update controls viz
 		d2b.UTILS.CHARTS.HELPERS.updateControls($$);
-		
+
 		$$.selection.breadcrumbs
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform','translate('+$$.forcedMargin.left+','+0+')');
 
-		//reposition the controls
-		$$.selection.controls
-			.transition()
-				.duration($$.animationDuration)
-				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+0+')');
-
 		$$.breadcrumbs.width($$.innerWidth).update();
-		// $$.forcedMargin.top += Math.max($$.breadcrumbs.computedHeight(), $$.controls.computedHeight());
-		$$.forcedMargin.top += $$.breadcrumbs.computedHeight();
 
 		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
@@ -569,7 +548,7 @@ d2b.CHARTS.sunburstChart = function(){
 		var newArcs =	$$.selection.arcs.arc.enter().append("g")
 			.attr('class','d2b-sunburst-arc')
 			.style('opacity',0)
-			.call(d2b.UTILS.bindElementEvents, $$, 'arc');
+			.call($$.events.addElementDispatcher, 'main', 'd2b-arc');
 
 		var newPaths = newArcs.append("path")
 				.on('mouseover.d2b-mouseover',$$.arcMouseover);
@@ -591,8 +570,9 @@ d2b.CHARTS.sunburstChart = function(){
 
 		$$.resetSunburstTooltip();
 
-
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();

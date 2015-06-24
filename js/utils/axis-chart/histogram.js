@@ -17,7 +17,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	//formatting y values
 	$$.yFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.hist = d3.layout.histogram();
 
@@ -27,6 +27,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	//properties that will be set by the axis-chart main code
 	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
 	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
 	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
@@ -34,7 +35,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
 	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
@@ -70,11 +71,10 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
 
-			// console.log
 			var xVals = graphData.histData.map(function(d){return d.x;});
 			var xRange = [$$.x.customScale(d3.min(xVals)),
 										$$.x.customScale(d3.max(xVals))];
-			// console.log(histWidth)
+										
 			var barWidth = 1.03*Math.abs(xRange[0]-xRange[1])/graphData.histData.length;
 
 			// var barWidth = ($$.width / data.length)/2;
@@ -87,16 +87,17 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 			var newBar = bar.enter()
 				.append('rect')
-					.call(d2b.UTILS.bindElementEvents, $$, 'histogram-bar')
-					.style('fill', $$.color(graphData.label))
+					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
 					.attr('y',$$.y.customScale(0))
 					.attr('height',0)
-					.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);});
+					.call($$.events.addElementDispatcher, 'main', 'd2b-histogram-bar');
 
 			bar
+				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
 				.transition()
 					.duration($$.animationDuration)
-					.attr('x',function(d){return $$.x.customScale(d.x) - barWidth/2;})
+					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
+					.attr('x',function(d){return $$.x.customScale(d.x);})
 					.attr('width',function(d){return Math.max(0, barWidth);})
 					.attr('y', function(d){return $$.y.customBarScale(d.y).y;})
 					.attr('height', function(d){return $$.y.customBarScale(d.y).height;});

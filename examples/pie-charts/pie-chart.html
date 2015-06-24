@@ -14,6 +14,11 @@
 			.width($(window).width())
 			.height($(window).height())
 			.donutRatio(0.5)
+			// .color(
+			// 	d3.scale.ordinal()
+			// 		.domain(["Freshmen", "Sophomores"])
+			// 		.range(["#090","#900"])
+			// )
 			.xFormat({siPrefixed:false,separateThousands:true,units:{},precision:0});
 
 		pieChart
@@ -30,7 +35,8 @@
 					}
 				}
 			)
-			.on('element-mouseout',function(d,i,type){console.log(type)})
+			// .on('update', function(){console.log('updated!')})
+			// .on('element-mouseout',function(type, d, i){console.log(type)})
 			.update(function(){console.log('done!')});
 
 		setTimeout(function(){

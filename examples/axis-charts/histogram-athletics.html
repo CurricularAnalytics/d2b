@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          // this is where the various types of axis-charts will be defined
+          // all of the chart types are optional and can be used in conjunction with one another
+          {
+            // histogram-chart-type
+            type:'histogram',
+            graphs:[
+              // this is where each of the histograms will be defined
+              {
+                //histograms contain a label, an array of bins, and an array of values
+                label:'Sophomores',
+                bins:d3.range(20).map(function(d){return d+40;}),
+                values:d3.range(100).map(d3.random.bates(10)).map(function(d){return d * 20 + 40;})
+              },
+							{
+                //histograms contain a label, an array of bins, and an array of values
+                label:'Juniors',
+                bins:d3.range(20).map(function(d){return d+65;}),
+                values:d3.range(100).map(d3.random.bates(10)).map(function(d){return d * 20 + 65;})
+              },
+							{
+                //histograms contain a label, an array of bins, and an array of values
+                label:'Seniors',
+                bins:d3.range(20).map(function(d){return d+90;}),
+                values:d3.range(100).map(d3.random.bates(10)).map(function(d){return d * 20 + 90;})
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+      .width($(window).width())
+      .height($(window).height())
+      .update();
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

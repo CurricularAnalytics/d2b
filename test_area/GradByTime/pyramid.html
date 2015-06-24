@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<!-- <link rel="stylesheet" type="text/css" href="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.css" />
+<script src="https://s3-us-west-2.amazonaws.com/d2b/d2b.min.js"></script> -->
+
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script>
+
+d2b.CHARTS.pyramid = function(){
+
+	var $$ = {};
+
+	var data, originalData;
+	var multiChart = new d2b.CHARTS.multiChart();
+
+	var years;
+	var currentYear;
+
+	var yDomain;
+
+	var generateRequired = true;
+
+	var toggleYearNotice = function(){
+		d3.select('.year-notice').text(currentYear)
+	};
+
+	var setupYearToggle = function(){
+		d3.select('.toggle-year-left').on('click',function(){
+			if(currentYear > $$.currentChartData.years[0]){
+				currentYear -= 1;
+				toggleYearNotice();
+				chart.update();
+			}
+		});
+		d3.select('.toggle-year-right').on('click',function(){
+			if(currentYear < $$.currentChartData.years[$$.currentChartData.years.length-1]){
+				currentYear += 1;
+				toggleYearNotice();
+				chart.update();
+			}
+		});
+	};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//chart setters
+	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
+	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+
+	chart.data = function(chartData, reset){
+		if(!arguments.length) return $$.currentChartData;
+		if(reset){
+			$$.currentChartData = {};
+		}
+
+		$$.currentChartData = chartData.data;
+
+
+		var max = 0;
+		// console.log($$.currentChartData)
+		$$.currentChartData.years.forEach(function(year){
+			$$.currentChartData.rows.forEach(function(row){
+				max = Math.max(max, row[year]);
+			})
+		})
+		yDomain = [0, max];
+
+		return chart;
+	};
+
+	chart.generate = function(){
+
+		generateRequired = false;
+
+		currentYear = $$.currentChartData.years[$$.currentChartData.years.length-1];
+
+		$$.selection.selectAll('*').remove();
+		$$.selection.container = $$.selection.append('div').attr('class','pyramid-container');
+		$$.selection.notice = $$.selection.container.append('div').attr('class','year-notice');
+		$$.selection.toggleYearLeft = $$.selection.container.append('div').attr('class','toggle-year-left');
+		$$.selection.toggleYearLeft.append('i').attr('class', 'fa fa-caret-left fa-3x');
+		$$.selection.toggleYearRight = $$.selection.container.append('div').attr('class','toggle-year-right');
+		$$.selection.toggleYearRight.append('i').attr('class', 'fa fa-caret-right fa-3x');
+		$$.selection.chart = $$.selection.container.append('div').attr('class','chart');
+
+		multiChart.selection($$.selection.chart);
+
+		setupYearToggle();
+		chart.update();
+
+		return chart;
+
+	};
+
+	chart.update = function(){
+
+		if(generateRequired){
+			return chart.generate();
+		}
+
+		toggleYearNotice();
+
+		var data = {
+			data:{
+				charts:[
+					{
+						label:"Un-Normalized",
+						key:"un",
+						type:"axisChart",
+						properties:{
+							x:{type:"ordinal"},
+							y:{domain:yDomain},
+							yFormat:{units:{after:""}},
+							controls:{hideLegend:{enabled:true}, lockYAxis:{visible:true}},
+							data:{
+								data:{
+									labels:{
+										x:'Time to Degree',
+										y:'Number of Graduates'
+									},
+									types:[
+										{
+											type:'bar',
+											graphs:[
+												{
+													label:'Graduates',
+													values:$$.currentChartData.rows.map(function(d,i){return {x:$$.currentChartData.rows[i].years_to_degree + " Years",y:parseInt(d[currentYear])};})
+												}
+											]
+										}
+									]
+								}
+							}
+						}
+					},
+					{
+						label:"Normalized",
+						key:"n",
+						type:"axisChart",
+						properties:{
+							x:{type:"ordinal"},
+							y:{domain:[0, 100]},
+							yFormat:{units:{after:"%"}},
+							controls:{hideLegend:{enabled:true}, lockYAxis:{visible:true}},
+							data:{
+								data:{
+									labels:{
+										x:'Time to Degree',
+										y:'Percent Graduated'
+									},
+									types:[
+										{
+											type:'bar',
+											graphs:[
+												{
+													label:'Graduates',
+													values:$$.currentChartData.rows.map(function(d,i){return {x:$$.currentChartData.rows[i].years_to_degree + " Years",y:parseInt(d[currentYear+"_norm"])};})
+												}
+											]
+										}
+									]
+								}
+							}
+						}
+					}
+				]
+			}
+		}
+
+		multiChart
+			.data(data)
+			.width($$.width)
+			.height($$.height)
+			.update();
+
+		return chart;
+
+	};
+
+	return chart;
+}
+
+	$(document).ready(function(){
+		var pyramid = new d2b.CHARTS.pyramid();
+
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+		chartLayout
+			.select('.pyramid')
+			.chart(pyramid)
+			.data({
+				"data":
+				{
+					"chartLayout":{
+						"title":"Graduates By Time To Degree"
+					}
+				}
+			});
+
+
+
+		d3.csv("pyramid.csv", function(d){
+			var data = {data:{rows:d, years:[2008,2009,2010,2011,2012,2013]}};
+			pyramid
+				.data(data);
+			chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.update();
+		});
+
+		$(window).resize(function(){
+			chartLayout
+				.width($(window).width())
+				.height($(window).height())
+				.update();
+		});
+
+	});
+
+</script>
+<style>
+	.all-options{
+		text-align:center;
+	}
+
+	.toggle-year-left, .toggle-year-right{
+		-webkit-transition:color 0.25s;
+		transition:color 0.25s;
+		cursor:pointer;
+		position:absolute;
+		z-index:5;
+		top:47px;
+		color:#888;
+		font-size:12px;
+	}
+	.toggle-year-left:hover, .toggle-year-right:hover{
+		color:#333;
+	}
+	.toggle-year-left{
+		left:50%;
+		margin-left:-62px;
+	}
+	.toggle-year-right{
+		left:50%;
+		margin-left:50px;
+	}
+
+	.pyramid-container{
+		z-index:3;
+		position:relative;
+	}
+
+	.year-notice{
+		opacity:1;
+		pointer-events:none;
+		z-index:4;
+		position:absolute;
+		width:100%;
+		top:30px;
+		text-align:center;
+		font-family:"Droid Sans";
+		font-size:20pt;
+		padding:20px 0px;
+	}
+
+</style>
+
+<body style='margin:0px;'>
+	<div class = 'pyramid'></div>
+</body>
+</html>

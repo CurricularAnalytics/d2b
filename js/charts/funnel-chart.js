@@ -29,7 +29,7 @@ d2b.CHARTS.funnelChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.coneHeight = d3.scale.linear();
 	$$.coneCurve = 15;
@@ -139,6 +139,7 @@ d2b.CHARTS.funnelChart = function(){
 			.append('g')
 				.attr('class','d2b-cone')
 				.style('opacity',0)
+				.call($$.events.addElementDispatcher, 'main', 'd2b-cone')
 				.on('mouseout.d2b-mouseout',$$.coneMouseout)
 				.on('mouseover.d2b-mouseover',$$.coneMouseover);
 
@@ -260,7 +261,7 @@ d2b.CHARTS.funnelChart = function(){
 	chart.coneCurve = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'coneCurve');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -343,6 +344,8 @@ d2b.CHARTS.funnelChart = function(){
 		$$.exitCones();
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection)
 
 		if(callback)
 			callback();

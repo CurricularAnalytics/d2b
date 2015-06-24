@@ -93,7 +93,12 @@ d2b.UTILS.breadcrumbs = function(){
 		var breadcrumbHeight = scale * 4;
 		selection.breadcrumb.text = selection.breadcrumb.select('text')
 				.text(function(d){return d.label;})
-				.attr('x',padding+breadcrumbIndentSize)
+				.attr('x',function(d,i){
+					if(i == 0)
+						return padding+breadcrumbIndentSize/2;
+					else
+						return padding+breadcrumbIndentSize;
+				})
 				.attr('y',scale*2.9)
 				.style('font-size',scale*2.5+'px');
 		selection.breadcrumb.path = selection.breadcrumb.select('path');
@@ -129,8 +134,6 @@ d2b.UTILS.breadcrumbs = function(){
 					.attr('transform','translate('+(bcOffset)+',0)');
 
 			bcOffset+=breadcrumbIndentSize + pathWidth;
-
-
 
 		});
 

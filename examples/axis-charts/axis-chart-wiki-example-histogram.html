@@ -40,6 +40,7 @@
     axisChart
       .select('.axis-chart')
       .data(data)
+			.on('element-mouseover', function(type){console.log(this);console.log(type);})
       .width($(window).width())
       .height($(window).height())
       .update();

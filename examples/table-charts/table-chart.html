@@ -66,6 +66,12 @@
 		var tableChart = new d2b.CHARTS.tableChart();
 
 		tableChart
+			// .color(
+			// 	d3.scale.ordinal()
+			// 		.domain(["Full Time", "Part Time"])
+			// 		.range(["#900", "#090"])
+			// )
+			// .on('element-mouseover', function(type){console.log(type)})
 			.select('.table-chart')
 			.width($(window).width())
 			.height($(window).height())
