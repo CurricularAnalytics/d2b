@@ -1,0 +1,792 @@
+{
+	"dashboard": {
+		"topSection":{
+			"key":"University_of_New_Mexico",
+			"name":"University of New Mexico Athletics",
+			"categories":[
+				{
+					"name":"Students",
+					"charts":[
+						{
+							"chart":{
+								"type":"factChart",
+				        "properties":{
+									"data":{
+										"data":{
+											"facts":[
+												{
+													"label":"Total Athletes",
+													"value":1500,
+													"subFacts":[
+														{
+															"label":"Sport",
+															"values":[
+																{"label":"Baseball","value":50},
+																{"label":"Basketball","value":30},
+																{"label":"Cross Country","value":50},
+																{"label":"Football","value":100},
+																{"label":"Golf","value":30},
+																{"label":"Skiing","value":20},
+																{"label":"Soccer","value":22},
+																{"label":"Tennis","value":20},
+																{"label":"Track and Field","value":40},
+																{"label":"Softball","value":30},
+																{"label":"Swimming and Diving","value":25},
+																{"label":"Volleyball","value":25},
+																{"label":"Sand Volleyball","value":20}
+
+															]
+														},
+														{
+															"label":"Department",
+															"values":[
+																{"label":"Arts and Sciences","value":900},
+																{"label":"Anderson School of Management","value":200},
+																{"label":"School of Engineering","value":100},
+																{"label":"Education","value":100},
+																{"label":"Fine Arts","value":100}
+
+															]
+														}
+													]
+												},
+												{
+													"label":"Detailed Breakdown",
+													"value":1500,
+													"subFacts":[
+														{
+															"label":"Gender",
+															"values":[
+																{"label":"Male","value":700},
+																{"label":"Female","value":800}
+															]
+														},
+														{
+															"label":"Year in School",
+															"values":[
+																{"label":"Freshman","value":400},
+																{"label":"Sophomore","value":500},
+																{"label":"Junior","value":300},
+																{"label":"Senior","value":300}
+															]
+														}
+													]
+												}
+											]
+										}
+									}
+				        },
+				        "chartLayoutData":{
+				          "data":{
+				            "chartLayout":{
+				              "title":"Quick Information",
+				              "footnote":"* footnote",
+				              "source":["Office of Institutional Analytics", "Student Data Mart", "Summer 2015"]
+				            }
+				          }
+				        }
+							},
+							"x":0,
+							"y":0,
+							"width":0.5,
+							"height":500
+						},
+						{
+							"chart":{
+								"type":"axisChart",
+				        "properties":{
+				          "x":{"type":"ordinal"},
+				          "controls":{"hideLegend":{"enabled":true}},
+				          "data":{
+				            "data":{
+				              "labels":{
+				                "x":"Sport",
+				                "y":"4 - Year Graduation Rate"
+				              },
+				              "types":[
+				                {
+				                  "type":"bar",
+				                  "graphs":[
+				                    {
+				                      "label":"data 1",
+				                      "values":[
+																{"x":1,"y":80},
+																{"x":2,"y":90},
+																{"x":3,"y":100},
+				                        {"x":4,"y":60}
+
+				                      ]
+				                    }
+				                  ]
+				                }
+				              ]
+				            }
+				          }
+				        },
+				        "chartLayoutData":{
+				          "data":{
+				            "chartLayout":{
+				              "title":"Graduation Rate by Sport",
+				              "footnote":"* footnote",
+				              "source":["Office of Institutional Analytics", "Student Data Mart", "Summer 2015"]
+				            }
+				          }
+				        }
+							},
+							"x":0.5,
+							"y":0,
+							"width":0.5,
+							"height":500
+						}
+					]
+				},
+				{
+					"name":"Progress Towards Degree",
+					"pages":[
+						{
+							"name":"Page 1",
+							"controls":[
+								{"values":[{"label":"Option 1", "selected":true}, {"label":"Option 2"}, {"label":"Longer Option 3"}], "label":"Test Radio Buttons", "key":"testRadioButtons", "type":"radioButtons"},
+								{"values":[{"label":"Option 1", "selected":true}, {"label":"Option 2"}, {"label":"Longer Option 3"}], "label":"Test Radio Buttons2",  "key":"testRadioButtons2", "type":"radioButtons"},
+								{"state":false, "label":"Test Checkbox", "key":"testCheckbox", "type":"checkbox"},
+								{"state":false, "label":"Test Checkbox 2", "key":"testCheckbox2", "type":"checkbox"},
+								{"state":false, "label":"Test Checkbox 3", "key":"testCheckbox3", "type":"checkbox"}
+							],
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Page 2",
+							"url":"http://localhost:4567",
+							"charts":[
+								{
+									"chart":{
+										"type":"axisChart",
+						        "properties":{
+						          "x":{"type":"ordinal"},
+						          "controls":{"hideLegend":{"enabled":true}},
+						          "data":{
+						            "data":{
+						              "labels":{
+						                "x":"Template x label",
+						                "y":"Template y label"
+						              },
+						              "types":[
+						                {
+						                  "type":"bar",
+						                  "graphs":[
+						                    {
+						                      "label":"data 1",
+						                      "values":[
+						                        {"x":1,"y":67},
+						                        {"x":2,"y":211},
+						                        {"x":3,"y":346},
+						                        {"x":4,"y":113}
+						                      ]
+						                    }
+						                  ]
+						                }
+						              ]
+						            }
+						          }
+						        },
+						        "chartLayoutData":{
+						          "data":{
+						            "chartLayout":{
+						              "title":"Template",
+						              "footnote":"* This is something important to note for the chart",
+						              "source":["Office of Institutional Analytics", "Student Data Mart", "Fall 2013"]
+						            }
+						          }
+						        }
+									},
+									"x":0,
+									"y":500,
+									"width":0.5,
+									"height":500
+								},
+								{
+									"chart":{
+										"type":"axisChart",
+						        "properties":{
+						          "x":{"type":"ordinal"},
+						          "controls":{"hideLegend":{"enabled":true}},
+						          "data":{
+						            "data":{
+						              "labels":{
+						                "x":"Template x label",
+						                "y":"Template y label"
+						              },
+						              "types":[
+						                {
+						                  "type":"bar",
+						                  "graphs":[
+						                    {
+						                      "label":"data 1",
+						                      "values":[
+						                        {"x":1,"y":67},
+						                        {"x":2,"y":211},
+						                        {"x":3,"y":346},
+						                        {"x":4,"y":113}
+						                      ]
+						                    }
+						                  ]
+						                }
+						              ]
+						            }
+						          }
+						        },
+						        "chartLayoutData":{
+						          "data":{
+						            "chartLayout":{
+						              "title":"Template",
+						              "footnote":"* This is something important to note for the chart",
+						              "source":["Office of Institutional Analytics", "Student Data Mart", "Fall 2013"]
+						            }
+						          }
+						        }
+									},
+									"x":0.5,
+									"y":500,
+									"width":0.5,
+									"height":500
+								}
+							]
+						},
+						{
+							"name":"Page 3",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Page 4",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Page 5",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Page 6",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Page 7",
+							"url":"http://localhost:4567"
+						}
+					]
+				},
+				{
+					"name":"APR",
+					"url":"http://localhost:4567"
+				}
+			],
+			"sections":[
+				{
+					"name":"Baseball",
+					"categories":[
+						{
+							"name":"Student",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Progress Towards Degree",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"APR",
+							"url":"http://localhost:4567"
+						}
+					],
+					"sections":[
+						{
+							"name":"Nested Subsection",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Progress Towards Degree",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"APR",
+									"url":"http://localhost:4567"
+								}
+							]
+						},
+						{
+							"name":"Nested Subsection 2",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Progress Towards Degree",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"APR",
+									"url":"http://localhost:4567"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name":"Soccer",
+					"categories":[
+						{
+							"name":"Student",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Progress Towards Degree",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"APR",
+							"url":"http://localhost:4567"
+						}
+					]
+				},
+				{
+					"name":"Basketball",
+					"categories":[
+						{
+							"name":"Student",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Progress Towards Degree",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"APR",
+							"url":"http://localhost:4567"
+						}
+					]
+				},
+				{
+					"name":"Cross Country",
+					"categories":[
+						{
+							"name":"Student",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Progress Towards Degree",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"APR",
+							"url":"http://localhost:4567"
+						}
+					]
+				},
+				{
+					"name":"Football",
+					"categories":[
+						{
+							"name":"Student",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"Progress Towards Degree",
+							"url":"http://localhost:4567"
+						},
+						{
+							"name":"APR",
+							"url":"http://localhost:4567"
+						}
+					]
+				}
+			],
+			"sectionGroups":[
+				{
+					"name":"Golf",
+					"sections":[
+						{
+							"name":"Main Campus",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Progress Towards Degree",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"APR",
+									"url":"http://localhost:4567"
+								}
+							],
+							"sectionGroups":[
+								{
+									"name":"College",
+									"sections":[
+										{
+											"name":"Architecture and Planning",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{
+															"name":"Architecture",
+															"categories":[
+																{
+																	"name":"Student",
+																	"url":"http://localhost:4567"
+																},
+																{
+																	"name":"Faculty",
+																	"url":"http://localhost:4567"
+																},
+																{
+																	"name":"Financial",
+																	"url":"http://localhost:4567"
+																}
+															]
+														},
+														{
+															"name":"Environmental Design",
+															"categories":[
+																{
+																	"name":"Student",
+																	"url":"http://localhost:4567"
+																},
+																{
+																	"name":"Faculty",
+																	"url":"http://localhost:4567"
+																},
+																{
+																	"name":"Financial",
+																	"url":"http://localhost:4567"
+																}
+															]
+														}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Arts and Sciences",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Education",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Engineering",
+											"key":"Engineering",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Fine Arts",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Medicine",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Nursing",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"Pharmacy",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										},
+										{
+											"name":"University College",
+											"categories":[
+												{
+													"name":"Student",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Faculty",
+													"url":"http://localhost:4567"
+												},
+												{
+													"name":"Financial",
+													"url":"http://localhost:4567"
+												}
+											],
+											"sectionGroups":[
+												{
+													"name":"Major",
+													"sections":[
+														{}
+													]
+												}
+											]
+
+										}
+									]
+								}
+							]
+						},
+						{
+							"name":"UNM West",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Faculty",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Financial",
+									"url":"http://localhost:4567"
+								}
+							]
+						},
+						{
+							"name":"Gallup",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Faculty",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Financial",
+									"url":"http://localhost:4567"
+								}
+							]
+						},
+						{
+							"name":"Los Alamos",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Faculty",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Financial",
+									"url":"http://localhost:4567"
+								}
+							]
+						},
+						{
+							"name":"Taos",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Faculty",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Financial",
+									"url":"http://localhost:4567"
+								}
+							]
+						},
+						{
+							"name":"Valencia",
+							"categories":[
+								{
+									"name":"Student",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Faculty",
+									"url":"http://localhost:4567"
+								},
+								{
+									"name":"Financial",
+									"url":"http://localhost:4567"
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+
+	}
+}
