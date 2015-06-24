@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Athletics Dashboard</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+
+  <link rel="stylesheet" type="text/css" href="http://d2b.academicdashboards.com/d2b.min.css" />
+  <script src="http://d2b.academicdashboards.com/d2b.min.js"></script>
+
+  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => false %>
+  <%= javascript_include_tag 'application', 'data-turbolinks-track' => false %>
+  <%= csrf_meta_tags %>
+</head>
+<body>
+
+<nav>
+  <ul>
+    <li><%= link_to "/" do %> <i class="fa fa-home"></i> <% end %></li>
+    <%@sports.each do |sport|%>
+      <li><%= link_to sport.name, sport %> </li>
+    <% end %>
+  </ul>
+</nav>
+
+<div id = 'page-wrap'><%= yield %></div>
+
+</body>
+</html>

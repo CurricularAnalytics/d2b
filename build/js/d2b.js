@@ -4717,6 +4717,44 @@ d2b.CHARTS.axisChart = function(){
 		}
 	};
 
+	//loop through tick text for the given axis, if any of them parse as a 0 value assert the d2b-origin-tick class
+	$$.denoteOriginTicks = function(){
+		this.selectAll('.tick text')
+			.each(function(d){
+				if(parseFloat(this.textContent) == 0)
+					d3.select(this.parentNode).classed('d2b-origin-tick', true)
+				else
+					d3.select(this.parentNode).classed('d2b-origin-tick', false)
+			})
+	};
+
+	//get the ranges for the x and y axes
+	$$.getRanges = function(){
+		var range = {};
+		if($$.rotate){
+			if($$.x.invert)
+				range.x=[$$.innerWidth, 0];
+			else
+				range.x=[0, $$.innerWidth];
+
+			if(!$$.y.invert)
+				range.y=[0, $$.innerHeight];
+			else
+				range.y=[$$.innerHeight, 0];
+		}else{
+			if($$.x.invert)
+				range.x=[$$.innerWidth, 0];
+			else
+				range.x=[0, $$.innerWidth];
+
+			if($$.y.invert)
+				range.y=[0, $$.innerHeight];
+			else
+				range.y=[$$.innerHeight, 0];
+		};
+		return range;
+	}
+
 	//update x and y axis (including scales, labels, grid..)
 	$$.updateAxis = function(){
 
@@ -4783,11 +4821,12 @@ d2b.CHARTS.axisChart = function(){
 		//find max tick size on the vertical axis for proper spacing and tick count
 		var maxTickLengthY = 0;
 		$$.selection.axes.y.text = $$.selection.axes.y
+				.call($$.denoteOriginTicks)
 			.selectAll('.tick text')
 				.each(function(d){
 					var length = this.getComputedTextLength();
 					maxTickLengthY = Math.max(maxTickLengthY, length);
-				})
+				});
 
 		if($$.y.type != 'ordinal')
 			$$.y.axis.ticks($$.innerHeight/75);
@@ -4795,6 +4834,7 @@ d2b.CHARTS.axisChart = function(){
 		//find max tick size on the horizontal axis for tick count
 		var maxTickLengthX = 0;
 		$$.selection.axes.x.text = $$.selection.axes.x
+				.call($$.denoteOriginTicks)
 			.selectAll('.tick text')
 				.each(function(d){
 					var length = this.getComputedTextLength();
@@ -4831,28 +4871,7 @@ d2b.CHARTS.axisChart = function(){
 		labelTransition.x.attr('transform','translate('+	$$.innerWidth/2 +','+ labelOffsetPosition+')');
 
 		//set x/y scale range
-		var range = {};
-		if($$.rotate){
-			if($$.x.invert)
-				range.x=[$$.innerWidth, 0];
-			else
-				range.x=[0, $$.innerWidth];
-
-			if(!$$.y.invert)
-				range.y=[0, $$.innerHeight];
-			else
-				range.y=[$$.innerHeight, 0];
-		}else{
-			if($$.x.invert)
-				range.x=[$$.innerWidth, 0];
-			else
-				range.x=[0, $$.innerWidth];
-
-			if($$.y.invert)
-				range.y=[0, $$.innerHeight];
-			else
-				range.y=[$$.innerHeight, 0];
-		}
+		var range = $$.getRanges();
 
 		if($$.x.type.split(',')[0] == 'ordinal'){
 			$$.x.scale.rangeBands(range.x);
@@ -4861,8 +4880,6 @@ d2b.CHARTS.axisChart = function(){
 			$$.x.scale.range(range.x);
 			$$.x.rangeBand = $$.innerWidth/10;
 		}
-
-
 
 		if($$.y.type.split(',')[0] == 'ordinal'){
 			$$.y.scale.rangeBands(range.y);
@@ -4946,7 +4963,6 @@ d2b.CHARTS.axisChart = function(){
 		}
 		gridTransition.y
 			.call($$.y.axis);
-
 		if($$.y.orientation == 'left'){
 			gridTransition.y
 					.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');

@@ -61,81 +61,10 @@
 	font-weight:bold;
 	text-anchor:middle;
 }
-//
-// /*axisChart column specific styles*/
-// .d2b-svg .d2b-bar-columns rect{
-// 	shape-rendering:crispEdges;
-// 	fill-opacity:0.65;
-// 	-webkit-transition: fill-opacity 0.25s;
-//     transition: fill-opacity 0.25s;
-// }
-// .d2b-svg .d2b-bar-columns rect:hover{
-// 	fill-opacity:0.8;
-// }
-//
-// .d2b-svg .d2b-area-columns path{
-// 	fill-opacity:0.25;
-// 	stroke-width:1px;
-// 	-webkit-transition: fill-opacity 0.25s, stroke-width 0.25s;
-//     transition: fill-opacity 0.25s, stroke-width 0.25s;
-// }
-// .d2b-svg .d2b-area-columns path:hover{
-// 	fill-opacity:0.5;
-// 	stroke-width:1.5px;
-// }
-//
-// .d2b-svg .d2b-scatter-columns circle{
-// 	stroke-width:1px;
-// 	stroke:white;
-// 	stroke-opacity:1;
-// 	-webkit-transition: stroke-width 0.25s;
-//     transition: stroke-width 0.25s;
-// }
-// .d2b-svg .d2b-scatter-columns circle:hover{
-// 	stroke-width:1.5px;
-// }
-// .d2b-svg .d2b-line-columns path.d2b-line{
-// 	stroke-width:2px;
-// 	fill:none;
-// 	-webkit-transition: stroke-width 0.25s;
-//   transition: stroke-width 0.25s;
-// }
-// .d2b-svg .d2b-line-columns path.d2b-line:hover{
-// 	stroke-width:4px;
-// }
-//
-//
-// /*axisChart legend hover events*/
-// .d2b-area-columns g.d2b-legend-mouseover path{
-// 	fill-opacity:0.5;
-// 	stroke-width:1.5px;
-// }
-// .d2b-line-columns g.d2b-legend-mouseover path.d2b-line{
-// 	stroke-width:4px;
-// }
-// .d2b-bar-columns g.d2b-legend-mouseover rect{
-// 	fill-opacity:0.8;
-// }
-// .d2b-scatter-columns g.d2b-legend-mouseover circle{
-// 	stroke-width:1.5px;
-// }
-
-/*legend styles*/
-/*.d2b-legend{
-	font-size:13px;
-}*/
 
 
 
 //NEW STARTS HERE
-
-.d2b-axis{
-		// path{
-		// 	stroke-width:1px !important;
-		// 	stroke:#333 !important;
-		// }
-
-}
 
 .d2b-axis-chart{
 	.d2b-axes{
@@ -143,6 +72,11 @@
 			text{
 				text-anchor:middle;
 				font-size:15px;
+				font-weight:bold;
+			}
+		}
+		.d2b-origin-tick{
+			text{
 				font-weight:bold;
 			}
 		}
@@ -160,6 +94,7 @@
 			opacity:0;
 		}
 	}
+
 	.d2b-axis-types{
 		.d2b-axis-types-background{
 			.d2b-line{

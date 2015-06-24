@@ -1,0 +1,30 @@
+nav{
+  ul{
+   padding:0;
+   margin:0;
+   list-style-type: none;
+   background:#333;
+   font-size:14pt;
+   font-family:"Droid Sans";
+   text-align:center;
+   li{
+
+
+     display:inline-block;
+     cursor:pointer;
+     padding:10px;
+
+     a{
+       -webkit-transition:color 0.5s;
+       transition:color 0.5s;
+       color:#eee;
+       text-decoration:none;
+
+       &:hover{
+         color:#bbb;
+         text-decoration:underline;
+       }
+     }
+   }
+  }
+}

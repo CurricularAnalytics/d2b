@@ -205,13 +205,11 @@ html, body, .d2b-container {
   font-weight: bold;
   text-anchor: middle; }
 
-/*legend styles*/
-/*.d2b-legend{
-	font-size:13px;
-}*/
 .d2b-axis-chart .d2b-axes .d2b-label text {
   text-anchor: middle;
   font-size: 15px;
+  font-weight: bold; }
+.d2b-axis-chart .d2b-axes .d2b-origin-tick text {
   font-weight: bold; }
 .d2b-axis-chart .d2b-grid path {
   fill: none; }
