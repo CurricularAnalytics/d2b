@@ -6,7 +6,7 @@ nav#topbar{
   left:0;
   width:100%;
   height:50px;
-  overflow:hidden;
+  // overflow:hidden;
   z-index:1001;
   #unm-link{
     float:right;
@@ -18,8 +18,12 @@ nav#topbar{
     display:inline-block;
     font-family:"Oswald";
     color:#eee;
-    font-size:20px;
+    font-size:16pt;
     padding:10px;
+    #header-alt{
+      font-weight:300;
+      color:#bbb;
+    }
   }
   #sidebar-button{
     -webkit-transition:color 0.5s;
@@ -27,12 +31,12 @@ nav#topbar{
     display:none;
     cursor:pointer;
     color:#eee;
-    font-size:24px;
+    font-size:20pt;
     text-align:center;
     width:35px;
     padding:10px;
     border-right:2px solid #999;
-    height:100%;
+    height:32px;
   }
   background:#333;
   border-bottom:2px solid #999;
@@ -55,7 +59,7 @@ nav#sidebar{
   padding:0;
   margin:0;
   background:#333;
-  font-size:16px;
+  font-size:12pt;
   font-family:"Droid Sans";
 
   a{
@@ -80,7 +84,7 @@ nav#sidebar{
       }
     }
     .nav-icon{
-      font-size:24px;
+      font-size:18pt;
       text-align:center;
       width:35px;
       padding:10px;
@@ -123,7 +127,6 @@ nav#sidebar{
     }
   }
   nav#sidebar{
-    // top:48px;
     width:0px;
   }
   nav#sidebar.expanded{

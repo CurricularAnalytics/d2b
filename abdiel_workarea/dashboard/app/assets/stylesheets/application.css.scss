@@ -28,24 +28,22 @@
  }
 
  #page-wrap{
-
-    margin-left:70px;
-    margin-top:65px;
-
+    margin-left:60px;
+    margin-top:62px;
  }
 
  .chart-layout-container{
-   display:inline-block;
-   margin-right:10px;
+   display:inline;
+   margin-left:5px;
+   margin-right:5px;
 
-   &.end{
-     margin-right:0px;
-   }
+  //  &.end{
+  //    margin-right:0px;
+  //  }
  }
 
  .d2b-chart-layout-wrapper{
-
-    margin-bottom:15px;
+    margin-bottom:10px;
     display:inline-block;
 
     background:white;
@@ -53,14 +51,10 @@
     -moz-box-shadow: 0 0 5px #999;
     -webkit-box-shadow: 0 0 5px #999;
     box-shadow: 0 0 5px #999;
-
-    border-radius: 2px;
-    border: 1px solid #333;
-
  }
 
  @media only screen and (max-width : $mobile_breakpoint) {
    #page-wrap{
-     margin-left:15px;
+     margin-left:5px;
    }
  }

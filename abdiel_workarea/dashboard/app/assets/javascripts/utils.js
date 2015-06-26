@@ -1,9 +1,10 @@
 var updateLayouts = function(layouts){
   var sideBarWidth = $("#sidebar").width();
   var windowHeight = $(window).height() - 90;
+
   var pageWrap = $("#page-wrap");
-  var pageWidth = pageWrap.innerWidth();
-console.log(pageWidth)
+  var pageWidth = pageWrap.innerWidth()-5;
+
   layouts.forEach(function(layout){
     var widthRatio = layout.selection().attr('width');
     var heightRatio = layout.selection().attr('height');
@@ -17,9 +18,9 @@ console.log(pageWidth)
     var layoutWidth;
 
     if ($(window).width() <= 700){
-      layoutWidth = pageWidth - 16;
+      layoutWidth = pageWidth - 10;
   	}else{
-      layoutWidth = (pageWidth * widthRatio) - 16;
+      layoutWidth = (pageWidth * widthRatio) - 10;
     }
 
     layout
