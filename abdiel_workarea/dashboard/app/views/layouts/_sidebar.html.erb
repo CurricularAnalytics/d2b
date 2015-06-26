@@ -1,0 +1,25 @@
+<nav id = 'sidebar'>
+  <%= link_to "/" do %>
+    <div class = 'nav-row <%= current_page?("/")? "nav-current" : nil%>'>
+      <div class = 'nav-icon'>
+        <i class="fa fa-home"></i>
+      </div>
+      <div class = 'nav-name'>
+        Home
+      </div>
+    </div>
+  <% end %>
+  <%@sports.each do |sport|%>
+    <%= link_to sport do %>
+      <div class = 'nav-row <%= current_page?(sport_path(sport))? "nav-current" : nil%>'>
+        <div class = 'nav-icon'>
+          <i class="fa fa-futbol-o"></i>
+        </div>
+        <div class = 'nav-name'>
+          <%=sport.name%>
+        </div>
+      </div>
+    <%end%>
+  <% end %>
+  <br /><br /><br /><br /><br />
+</nav>

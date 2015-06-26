@@ -1,1 +1,72 @@
-<div class = 'grad-rates-by-sport'></div>
+<script>
+  $(document).ready(function(){
+
+    var layouts = [];
+
+    var gradRateBySport = d2b.CHARTS.axisChart()
+        .x({type:'ordinal'})
+        .yFormat({units:{after:"%"}})
+        .controls({hideLegend:{enabled:true}});
+
+    gradRateBySport.mainData = [
+      {name: 'Baseball', rate: 75},
+      {name: 'Basketball', rate: 82},
+      {name: 'Football', rate: 68},
+      {name: 'Swimming', rate: 95},
+      {name: 'Skiing', rate: 90},
+      {name: 'Golf', rate: 91}
+    ];
+
+
+    gradRateBySport.data({
+      data: {
+        labels:{
+          x:'Sport',
+          y:'Percentage'
+        },
+        types:[
+          {
+            type:'bar',
+            graphs:[
+              {
+                label:'Students',
+                values:gradRateBySport.mainData.map(function(d){
+                  return {x: d.name, y: d.rate};
+                })
+              },
+            ]
+          }
+        ]
+      }
+    })
+
+  	gradRateBySport.layout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+    layouts.push(gradRateBySport.layout);
+
+    gradRateBySport.layout
+			.chart(gradRateBySport)
+			// .select('.grad-rates-by-sport')
+      .selection(d3.selectAll('.grad-rates-by-sport'))
+  		.data({
+    		"data":
+    		{
+    			"chartLayout":{
+    				"title":"Graduation Rate By Sport"
+    			}
+    		}
+    	})
+  		// .update();
+
+    updateLayouts(layouts);
+
+    $(window).resize(function(){
+      updateLayouts(layouts);
+    });
+  });
+</script>
+<div class = 'page-cell'>
+  <div class = 'grad-rates-by-sport chart-layout-container' width = '0.5' height = '1' min-height='200' max-height = '600'></div>
+  <div class = 'grad-rates-by-sport chart-layout-container' width = '0.5' height = '1' min-height='200' max-height = '600'></div>
+  <!-- <div class = 'grad-rates-by-sport chart-layout-container' width = '0.34' height = '1' min-height='200' max-height = '600'></div> -->
+</div>
