@@ -3,7 +3,50 @@
 
     var layouts = [];
 
-    var gradRateBySport = d2b.CHARTS.axisChart()
+    //CREATE SPORT SUNBURST
+
+    var sportSunburst = new d2b.CHARTS.customSunburst();
+
+    sportSunburst.layout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+    sportSunburst.data({
+      data:{
+        label:"University of New Mexico",
+        rows:[
+          {sport:"Baseball", college: "Arts and Sciences", gender:"Male", count:10},
+          {sport:"Basketball", college: "Arts and Sciences", gender:"Male", count:10},
+          {sport:"Football", college: "Arts and Sciences", gender:"Male", count:10},
+          {sport:"Golf", college: "Arts and Sciences", gender:"Male", count:10},
+          {sport:"Basketball", college: "Arts and Sciences", gender:"Female", count:10},
+          {sport:"Softball", college: "Arts and Sciences", gender:"Female", count:10},
+          {sport:"Tennis", college: "Arts and Sciences", gender:"Female", count:10},
+          {sport:"Volleyball", college: "Arts and Sciences", gender:"Female", count:10},
+        ],
+        columns:[
+          {label:"Sport", column:"sport", toggle:true, top:true},
+          {label:"College", column:"college", toggle:true},
+          {label:"Gender", column:"gender", toggle:false, top:true},
+        ]
+      }
+    })
+
+    layouts.push(sportSunburst.layout);
+
+    sportSunburst.layout
+			.chart(sportSunburst)
+      .select('.sport-sunburst')
+  		.data({
+    		"data":
+    		{
+    			"chartLayout":{
+    				"title":"UNM Sports"
+    			}
+    		}
+    	})
+
+    //CREATE GRATE RATE BAR CHART
+
+    var gradRateBySport = new d2b.CHARTS.axisChart()
         .x({type:'ordinal'})
         .yFormat({units:{after:"%"}})
         .controls({hideLegend:{enabled:true}});
@@ -67,5 +110,5 @@
 </script>
 <div class = 'page-cell'>
   <div class = 'grad-rates-by-sport chart-layout-container' width = '0.5' height = '1' min-height='200' max-height = '600'></div><!--
---><div class = 'grad-rates-by-sport chart-layout-container' width = '0.5' height = '1' min-height='200' max-height = '600'></div>
+--><div class = 'sport-sunburst chart-layout-container' width = '0.5' height = '1' min-height='200' max-height = '600'></div>
 </div>

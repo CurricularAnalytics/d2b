@@ -1,0 +1,36 @@
+
+.custom-sunburst-toggles{
+  position:absolute;
+  right:30px;
+  top:40px;
+  font-size:13px;
+  font-weight:bold;
+  div{
+    cursor:pointer;
+    -webkit-transition:background 0.25s, color 0.25s, color 0.25s;
+    transition:background 0.25s, color 0.25s, opacity 0.25s;
+
+    text-align:center;
+    font-weight:normal;
+    padding:5px;
+    background:#333;
+    border:2px solid #333;
+    border-radius:2px;
+    margin-bottom:5px;
+    margin-top:5px;
+    color:#eee;
+    &:hover{
+      background:#777;
+    }
+  }
+
+  div.innactive{
+    opacity:0.6;
+    background:#eee;
+    color:#333;
+    &:hover{
+      background:#bbb;
+      opacity:0.8;
+    }
+  }
+}

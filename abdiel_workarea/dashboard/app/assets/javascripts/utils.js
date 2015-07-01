@@ -1,17 +1,18 @@
 var updateLayouts = function(layouts){
   var sideBarWidth = $("#sidebar").width();
-  var windowHeight = $(window).height() - 90;
+  var windowHeight = $(window).height() - 80;
 
   var pageWrap = $("#page-wrap");
   var pageWidth = pageWrap.innerWidth()-5;
 
   layouts.forEach(function(layout){
-    var widthRatio = layout.selection().attr('width');
-    var heightRatio = layout.selection().attr('height');
+    var layoutSelection = layout.selection();
+    var widthRatio = layoutSelection.attr('width');
+    var heightRatio = layoutSelection.attr('height');
     var layoutHeight = Math.max(
-                        layout.selection().attr('min-height') || 0,
+                        layoutSelection.attr('min-height') || 0,
                         Math.min(
-                          layout.selection().attr('max-height') || (heightRatio * windowHeight),
+                          layoutSelection.attr('max-height') || (heightRatio * windowHeight),
                           heightRatio * windowHeight
                         ));
 
@@ -26,6 +27,8 @@ var updateLayouts = function(layouts){
     layout
       .width(layoutWidth)
       .height(layoutHeight)
-      .update();
+      .animationDuration(0)
+      .update()
+      .animationDuration(500);
   });
 };
