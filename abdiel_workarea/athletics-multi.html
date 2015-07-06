@@ -83,10 +83,11 @@
         },
         types:[
           {
-            type:'customLine',
+            type:'line',
             graphs:[
               {
                 label:'Baseball',
+                interpolate:"monotone",
                 values:[
                   {x:2006, y:80},
                   {x:2007, y:73},
@@ -101,6 +102,7 @@
               },
 							{
                 label:'Football',
+                interpolate:"monotone",
                 values:[
                   {x:2006, y:80},
                   {x:2007, y:65},
@@ -115,6 +117,7 @@
               },
 							{
                 label:'Golf',
+                interpolate:"monotone",
                 values:[
                   {x:2006, y:80},
                   {x:2007, y:90},
@@ -129,6 +132,7 @@
               },
 							{
                 label:'Basketball',
+                interpolate:"monotone",
                 values:[
                   {x:2006, y:95},
                   {x:2007, y:100},
@@ -143,6 +147,7 @@
               },
               {
                 label:'Track and Field',
+                interpolate:"monotone",
                 values:[
                   {x:2006, y:95},
                   {x:2007, y:90},
@@ -157,6 +162,7 @@
               },
               {
                 label:'Tennis',
+                interpolate:"monotone",
                 values:[
                   {x:2006, y:95},
                   {x:2007, y:90},
@@ -171,7 +177,7 @@
               },
               {
                 label:'Soccer',
-                interpolate:"cardinal",
+                interpolate:"monotone",
                 values:[
 									{x:2006, y:80},
 									{x:2007, y:73},
@@ -196,6 +202,7 @@
       .select('.custom-axis-chart')
       .width($(window).width())
       .height($(window).height())
+      .xFormat({separateThousands:false})
       .update();
 
     $(window).resize(function(){

@@ -590,7 +590,7 @@ d2b.DASHBOARDS.dashboard = function(){
 
 		dashboardCategory
 			.selection(selection.container.content.dashboardCategory)
-			.on('pageChange.d2b-page-change',function(pageData, iOld, iNew){
+			.on('page-change.d2b-page-change',function(pageData, iOld, iNew){
 // console.log('page change!')
 				var temp = controlsHidden;
 				if(!pageData.controls)

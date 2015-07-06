@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+		axisChart
+			// .xFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:2})
+			// .yFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:0})
+			.legendOrientation('top') 			//default 'bottom'
+			// .x({orientation:'top'})
+			// .x({orientation:'left'}).y({orientation:'bottom'}).rotate(true)
+//set the axis chart data
+			.data({data:{
+				labels:{
+					x:'Template x label',
+					y:'Template y label'
+				},
+				types:[
+					{
+						type:'gridMarker',
+						graphs:[
+							{
+								label:'Point 1',
+								values:[
+									{
+										label:'Test 1',
+										dashed:true,
+										// x:0.45,
+										y:68,
+										// hideCoordinates:true
+									},
+									{
+										label:'Test 2',
+										dashed:true,
+										x:0.65,
+										// y:38,
+										// hideCoordinates:true
+									}
+								]
+							}
+						]
+					},
+					{
+						type:'bar',
+						graphs:[
+							{
+								label: 'Bar 1',
+								// notInLegend:true,
+								values:[
+									{x:0.3, y:50},
+									{x:0.6, y:-150},
+									{x:0.8, y:30}
+								]
+							},
+							{
+								label: 'Bar 2',
+								values:[
+									{x:0.3, y:30},
+									{x:0.6, y:10},
+									{x:0.8, y:4}
+								]
+							},
+							{
+								label: 'Bar 3',
+								values:[
+									{x:0.3, y:10},
+									{x:0.6, y:25},
+									{x:0.8, y:35}
+								]
+							}
+						]
+					}
+				]
+			}});
+
+
+//define chart layout
+			var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+//setup chart layout
+			chartLayout
+					.width($(window).width())			//set the chart width
+					.height($(window).height())		//set the chart height
+					.chart(axisChart)							//set the chart
+					.select('.axis-chart');				//set the container
+
+//set the chart layout data
+			var chartLayoutData = {
+				"data":
+				{
+					"chartLayout":{
+						"title":"Example Axis-Chart Grid Points"
+					}
+				}
+			};
+			chartLayout
+				.data(chartLayoutData)
+				.update();
+
+		setTimeout(function(){
+			axisChart.data({data:{
+				types:[
+					{
+						type:'gridMarker',
+						graphs:[
+							{
+								label:'Point 1',
+								values:[
+									{
+										label:'Test 1',
+										dashed:true,
+										x:0.21,
+										y:38,
+										// hideCoordinates:true
+									}
+								]
+							}
+						]
+					},
+					{
+						type:'bar',
+						graphs:[
+							{
+								label: 'Bar 1',
+								// notInLegend:true,
+								values:[
+									{x:0.3, y:50},
+									{x:0.6, y:-150},
+									{x:0.8, y:30}
+								]
+							},
+							{
+								label: 'Bar 2',
+								values:[
+									{x:0.3, y:30},
+									{x:0.6, y:10},
+									{x:0.8, y:4}
+								]
+							},
+							{
+								label: 'Bar 3',
+								values:[
+									{x:0.3, y:10},
+									{x:0.6, y:25},
+									{x:0.8, y:35}
+								]
+							}
+						]
+					}
+				]
+			}
+		}).update();
+
+		},2000)
+
+		setTimeout(function(){
+			axisChart.data({data:{
+				types:[
+					{
+						type:'gridMarker',
+						graphs:[
+							{
+								label:'Point 1',
+								values:[
+									{
+										label:'Test 1',
+										dashed:true,
+										x:0.31,
+										y:28,
+										// hideCoordinates:true
+									}
+								]
+							}
+						]
+					},
+					{
+						type:'bar',
+						graphs:[
+							{
+								label: 'Bar 1',
+								// notInLegend:true,
+								values:[
+									{x:0.3, y:50},
+									{x:0.6, y:-150},
+									{x:0.8, y:30}
+								]
+							},
+							{
+								label: 'Bar 2',
+								values:[
+									{x:0.3, y:30},
+									{x:0.6, y:10},
+									{x:0.8, y:4}
+								]
+							},
+							{
+								label: 'Bar 3',
+								values:[
+									{x:0.3, y:10},
+									{x:0.6, y:25},
+									{x:0.8, y:35}
+								]
+							}
+						]
+					}
+				]
+			}
+		}).update();
+
+	},4000)
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

@@ -13,11 +13,7 @@ d2b.UTILS.chartPage = function(){
 	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
 
-  // $$.reloadCharts = true;
-
-	$$.on = {
-		update: function(){}
-	};
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.init = function(position){
     if($$.animateFrom || !$$.selection.currentPage){
@@ -114,7 +110,7 @@ d2b.UTILS.chartPage = function(){
 
 	var page = {};
 
-	page.on =				d2b.UTILS.CHARTS.MEMBERS.on(page, $$);
+	page.on =				d2b.UTILS.CHARTS.MEMBERS.events(page, $$);
 
   page.width = function(value){
 		if(!arguments.length) return $$.width;
@@ -164,7 +160,7 @@ d2b.UTILS.chartPage = function(){
 			return console.warn('page was not given a selection');
 
 		var position = $$.getPosition();
-
+    
     if($$.animateFrom && $$.selection.currentPage){
       $$.selection.oldPage = $$.selection.currentPage;
     }
@@ -218,9 +214,11 @@ d2b.UTILS.chartPage = function(){
 			callback();
 		}
 
-		for(key in $$.on.update){
-			$$.on.update[key].call(this,$$.modifiedData);
-		}
+		$$.events.dispatch("update", $$.selection, [$$.modifiedData])
+
+		// for(key in $$.on.update){
+		// 	$$.on.update[key].call(this,$$.modifiedData);
+		// }
 
 		return page;
 	};

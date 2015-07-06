@@ -29,7 +29,7 @@ d2b.CHARTS.mapChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
@@ -192,7 +192,7 @@ d2b.CHARTS.mapChart = function(){
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.filter = function(filters){
 		$$.filterSet = filters;
@@ -291,7 +291,6 @@ console.log($$.filteredTopoData.countries)
 			}
 			d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
-console.log('draw')
 			var path = $$.pathFit($$.filteredTopoData.countries);
 
 			$$.selection.main
@@ -306,6 +305,8 @@ console.log('draw')
 			d3.timer.flush();
 
 		}
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();

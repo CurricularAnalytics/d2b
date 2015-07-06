@@ -21,11 +21,7 @@ d2b.UTILS.dashboardCategory = function(){
   //   }
   // });
 
-  $$.on = {
-    // update: function(){},
-    pageChange: function(){},
-    // pageUpdate: function(){}
-  };
+  $$.events = d2b.UTILS.chartEvents();
 
 	$$.init = function(position){
     if($$.animateFrom || !$$.selection.currentCategory){
@@ -62,8 +58,8 @@ d2b.UTILS.dashboardCategory = function(){
       //       var pageData          = $$.selection.currentCategory.label.pages.select.option[0][selectedIndex].__data__;
       //       // $$.charts = data.charts;
       //
-      //       for(key in $$.on.pageChange){
-      //         $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,selectedIndex);
+      //       for(key in $$.on.page-change){
+      //         $$.on.page-change[key].call(this,pageData,$$.currentPageIndex,selectedIndex);
       //       }
       //       $$.currentPageIndex = selectedIndex;
       //
@@ -90,9 +86,7 @@ d2b.UTILS.dashboardCategory = function(){
         $$.selection.currentCategory.label.pages.style('display','none');
       }
 
-      for(key in $$.on.pageChange){
-        $$.on.pageChange[key].call(this,pageData,0,0);
-      }
+  		$$.events.dispatch("page-change", $$.selection, [pageData, 0, 0]);
 
       // $$.chartPage
       //   .selection($$.selection.chartPage)
@@ -130,7 +124,7 @@ d2b.UTILS.dashboardCategory = function(){
 
 	var category = {};
 
-  category.on =	d2b.UTILS.CHARTS.MEMBERS.on(category, $$);
+  category.on =	d2b.UTILS.CHARTS.MEMBERS.events(category, $$);
 
   category.chartPageSelection =	d2b.UTILS.CHARTS.MEMBERS.prop(category, $$, 'chartPageSelection');
 
@@ -210,9 +204,11 @@ d2b.UTILS.dashboardCategory = function(){
           $$.selection.currentCategory.label.pages.tab.classed('d2b-tab-selected', false);
           d3.select(this).classed('d2b-tab-selected', true);
 
-          for(key in $$.on.pageChange){
-            $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,i);
-          }
+      		$$.events.dispatch("page-change", $$.selection, [pageData, $$.currentPageIndex,i]);
+
+          // for(key in $$.on.page-change){
+          //   $$.on.page-change[key].call(this,pageData,$$.currentPageIndex,i);
+          // }
           $$.currentPageIndex = i;
         })
 
@@ -236,6 +232,8 @@ d2b.UTILS.dashboardCategory = function(){
 				.style('top','0px');
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback){
 			callback();

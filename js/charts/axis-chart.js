@@ -338,6 +338,9 @@ d2b.CHARTS.axisChart = function(){
 			return position;
 		};
 
+		// $$.x.customScale.range = $$.x.scale.range;
+		// console.log($$.x.customScale.range())
+
 		$$.y.customScale = function(value, invert){
 			var position = 0;
 			position = $$.y.scale(value);
@@ -398,7 +401,7 @@ d2b.CHARTS.axisChart = function(){
 
 	};
 
-	//axis modifier is used to make like code for x/y axes reusable
+	//axis modifier is used to make like code for x/y axes repeatable for both axes
 	$$.axisModifier = function(callback, params){
 		if(params){
 			callback('x', params.x);
@@ -478,6 +481,7 @@ d2b.CHARTS.axisChart = function(){
 				y:{dimension: 'innerWidth'}
 			}
 		);
+		//-----------
 
 		//create axis transitions;
 		var axisTransition = {};
@@ -486,6 +490,7 @@ d2b.CHARTS.axisChart = function(){
 				.transition()
 					.duration($$.animationDuration);
 		});
+		//-----------
 
 		//init axes content, later it will be re-transitioned after the margin has been properly computed
 		if($$.initAxes){
@@ -495,20 +500,25 @@ d2b.CHARTS.axisChart = function(){
 			if($$.y.type.split(',')[0] == 'ordinal'){
 				$$.y.scale.rangeBands([0,1]);
 			}
+			if($$.x.type.split(',')[0] == 'ordinal'){
+				$$.x.scale.rangeBands([0,1]);
+			}
 
 			axisTransition.y
 				.call($$.y.axis)
 			axisTransition.x
 				.call($$.x.axis)
 		}
+		//-----------
 
-		//create axis transitions;
+		//create grid transitions
 		var gridTransition = {};
 		$$.axisModifier(function(axis){
 			gridTransition[axis] = $$.selection.grid[axis]
 				.transition()
 					.duration($$.animationDuration);
 		});
+		//-----------
 
 		//find max tick size on the vertical axis for proper spacing and tick count
 		var maxTickLengthY = 0;
@@ -522,6 +532,7 @@ d2b.CHARTS.axisChart = function(){
 
 		if($$.y.type != 'ordinal')
 			$$.y.axis.ticks($$.innerHeight/75);
+		//-----------
 
 		//find max tick size on the horizontal axis for tick count
 		var maxTickLengthX = 0;
@@ -537,6 +548,7 @@ d2b.CHARTS.axisChart = function(){
 			$$.x.axis.ticks($$.innerWidth/maxTickLengthX/6);
 
 		var labelPadding = 10;
+		//-----------
 
 		//modify x/y axis positioning and visiblity
 		$$.axisModifier(
@@ -554,6 +566,7 @@ d2b.CHARTS.axisChart = function(){
 				y:{offset:maxTickLengthY + labelPadding, dimension:'innerWidth'}
 			}
 		);
+		//-----------
 
 		//position x/y labels
 		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLengthY-labelOffset-labelPadding-5 : maxTickLengthY+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
@@ -561,13 +574,14 @@ d2b.CHARTS.axisChart = function(){
 
 		labelOffsetPosition = ($$.x.orientation == 'top')? -labelOffset*1.5-labelPadding:+labelOffset*1+labelPadding+labelTransition.x.node().getBBox().height;
 		labelTransition.x.attr('transform','translate('+	$$.innerWidth/2 +','+ labelOffsetPosition+')');
+		//-----------
 
 		//set x/y scale range
 		var range = $$.getRanges();
 
 		if($$.x.type.split(',')[0] == 'ordinal'){
 			$$.x.scale.rangeBands(range.x);
-			$$.x.rangeBand = $$.x.scale.rangeBand()*0.75;
+			$$.x.rangeBand = $$.x.scale.rangeBand();
 		}else{
 			$$.x.scale.range(range.x);
 			$$.x.rangeBand = $$.innerWidth/10;
@@ -575,15 +589,17 @@ d2b.CHARTS.axisChart = function(){
 
 		if($$.y.type.split(',')[0] == 'ordinal'){
 			$$.y.scale.rangeBands(range.y);
-			$$.y.rangeBand = $$.y.scale.rangeBand()*0.75;
+			$$.y.rangeBand = $$.y.scale.rangeBand();
 		}else{
 			$$.y.scale.range(range.y);
 			$$.y.rangeBand = $$.innerHeight/10;
 		}
+		//-----------
 
 		//set x/y tick size
 		$$.x.axis.tickSize(5);
 		$$.y.axis.tickSize(5);
+		//-----------
 
 		//transition and position x axis
 		axisTransition.x
@@ -596,6 +612,7 @@ d2b.CHARTS.axisChart = function(){
 			axisTransition.x
 					.attr('transform','translate('+$$.forcedMargin.left+','+($$.innerHeight + $$.forcedMargin.top)+')');
 		}
+		//-----------
 
 		//transition and position y axis
 		axisTransition.y
@@ -621,10 +638,12 @@ d2b.CHARTS.axisChart = function(){
 			axisTransition.y
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
+		//-----------
 
 		//set x/y tick size for grid
 		$$.x.axis.tickSize(-$$.innerHeight);
 		$$.y.axis.tickSize(-$$.innerWidth);
+		//-----------
 
 
 		//bind tick-data and tick-events
@@ -641,6 +660,7 @@ d2b.CHARTS.axisChart = function(){
 					.call($$.events.addElementDispatcher, 'main', 'd2b-axis-tick.y');
 			}
 		);
+		//-----------
 
 
 		//transition and position x/y grid lines
@@ -662,6 +682,7 @@ d2b.CHARTS.axisChart = function(){
 			gridTransition.y
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
+		//-----------
 
 	};
 
@@ -1042,7 +1063,7 @@ d2b.CHARTS.axisChart = function(){
 
 		d3.timer.flush();
 
-		$$.events.dispatch("update", $$.selection)
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();

@@ -366,6 +366,44 @@ html, body, .d2b-container {
 		}
 
 
+		.d2b-gridMarker{
+			.d2b-grid-marker-x, .d2b-grid-marker-y{
+				line{
+					stroke-width:1.5px;
+					opacity:0.9;
+					&.d2b-dashed{
+						stroke-dasharray:5,5;
+					}
+				}
+				text{
+					text-anchor:end;
+				}
+				text.d2b-grid-marker-coordinate{
+					font-size:12px;
+				}
+			}
+			.d2b-grid-marker-x{
+				text{
+					// transform:rotate(90);
+					// -webkit-transform:rotate(90);
+				}
+			}
+			.d2b-grid-marker-y{
+				text{
+					// text-anchor:end;
+				}
+			}
+
+			// .d2b-grid-marker-label{
+			// }
+			// .d2b-grid-marker-coordinates{
+			// 	font-size:11px;
+			// }
+			.d2b-grid-marker-circle{
+				fill:white;
+			}
+		}
+
 		.d2b-bubblePack{
 			.d2b-expanded-bubble-indicator{
 				cursor:pointer;

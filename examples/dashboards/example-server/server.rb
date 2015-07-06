@@ -11,7 +11,7 @@ before do
   # header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
 end
 
-post '/' do
+get '/' do
 
   postData = JSON.parse(request.body.read)
 

@@ -21,6 +21,8 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
   $$.groupScale = d3.scale.ordinal();
 
+	$$.padding = "10%";
+
   $$.updateStackedVals = function(yVal, bar){
     if(bar.sHeight < 0){
       yVal+=bar.height;
@@ -30,6 +32,16 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       return {newValue: yVal, modifier: 0};
     }
   };
+
+	$$.getLinearRangeBand = function(){
+		var allXVals = $$.currentChartData.map(function(d){return d.values.map(function(d){return d.x;}).sort()});
+		var maxDistance = $$.width;
+		allXVals.forEach(function(d){
+			for(var i=0;i<d.length-1;i++)
+				maxDistance = Math.min(d[i+1] - d[i]);
+		});
+		return $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + maxDistance);
+	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -48,6 +60,9 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	//additional bar properties
+	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
 
   chart.xValues = function(){
     var values = [];
@@ -96,10 +111,20 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	//chart update
 	chart.update = function(callback){
 
+		var rangeBand = $$.x.rangeBand;
+
+		if($$.x.type == 'ordinal'){
+			rangeBand = $$.x.rangeBand;
+		}else{
+			rangeBand = $$.getLinearRangeBand();
+		}
+// console.log(rangeBand)
+		var padding = d2b.UTILS.visualLength($$.padding, rangeBand);
+
     var barLabels = $$.currentChartData.map(function(d){return d.label;});
     $$.groupScale
       .domain(barLabels)
-      .rangeBands([0, $$.x.rangeBand]);
+      .rangeBands([0 + padding, rangeBand - padding]);
     var stackedYVals = {};
 
 		$$.background.each(function(graphData){
@@ -123,7 +148,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
           .transition()
             .duration($$.animationDuration)
 						.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2})
+            .attr('x',function(d){return $$.x.customScale(d.x) - rangeBand/2 + padding})
             .attr('y', function(d){
               if(!stackedYVals[d.x]){
                 stackedYVals[d.x] = {negative:$$.y.customScale(0), positive:$$.y.customScale(0)};
@@ -141,7 +166,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
               }
 
             })
-            .attr('width',function(d){return Math.max(0, $$.x.rangeBand);})
+            .attr('width',function(d){return Math.max(0, rangeBand - padding*2);})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
         bar.exit()
@@ -161,7 +186,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
           .transition()
             .duration($$.animationDuration)
             .attr('x',function(d){
-							var x = $$.x.customScale(d.x) - $$.x.rangeBand/2;
+							var x = $$.x.customScale(d.x) - rangeBand/2;
 							if(!d.center)
 								x += $$.groupScale(graphData.label)+spacing;
 							return x;
@@ -170,7 +195,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 							if(!d.center)
 								return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);
 							else
-								return $$.x.rangeBand;
+								return rangeBand;
 						})
             .attr('y', function(d){return $$.y.customBarScale(d.y).y;})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});

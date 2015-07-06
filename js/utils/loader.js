@@ -39,7 +39,7 @@ d2b.UTILS.loader = function(){
   /**
    * The main loader function that will resemble this instance of the multi-file
    * loader.
-   * @param paths Array of paths for which to fetch data files.
+   * @param paths -- Array of paths for which to fetch data files.
    *        [
    *          {
    *            key:  'file1',                 // defaults to the file name
@@ -48,7 +48,7 @@ d2b.UTILS.loader = function(){
    *            type: 'csv'                    // default: 'json'
    *          }//,{},{}
    *        ]
-   * @param callback function
+   * @param callback -- function
    *        function(files){
    *          // do something with the files when they have loaded..
    *        }

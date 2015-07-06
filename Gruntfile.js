@@ -76,6 +76,7 @@ module.exports = function(grunt){
 							'js/utils/axis-chart/histogram.js',
 							'js/utils/axis-chart/bubble-pack.js',
 							'js/utils/axis-chart/template.js',
+							'js/utils/axis-chart/grid-marker.js',
 							'js/dashboards/dashboard.js',
 							'js/d3_extensions/sankey.js',
 							'js/d3_extensions/colorbrewer.js'],

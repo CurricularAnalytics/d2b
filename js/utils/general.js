@@ -26,6 +26,14 @@ Array.prototype._reverse = function(){
 	return tmp.reverse();
 };
 
+d2b.UTILS.visualLength = function(value,span){
+	if(value.toString().indexOf('%') > -1){
+		return span * parseFloat(value) / 100;
+	}else{
+		return parseFloat(value);
+	}
+};
+
 /** apply properties to d2b object
 	* use: d2b.UTILS.applyProperties.call(obj, properties);
 	*/

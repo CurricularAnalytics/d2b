@@ -217,8 +217,8 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 	legend.select = 							d2b.UTILS.CHARTS.MEMBERS.select(legend, $$, function(){ $$.generateRequired = true; });
 	legend.selection = 						d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'selection', function(){ $$.generateRequired = true; });
-	legend.width = 								d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'width');
-	legend.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'height');
+	legend.width = 								d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'maxWidth');
+	legend.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'maxHeight');
 	legend.animationDuration = 		d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'animationDuration');
 	legend.legendOrientation = 		d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'legendOrientation');
 	legend.on = 									d2b.UTILS.CHARTS.MEMBERS.events(legend, $$);

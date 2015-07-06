@@ -1,27 +1,27 @@
 d2b.createNameSpace("d2b.UTILS.CHARTS.MEMBERS");
 
-d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
-  return function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return $$.on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return $$.on[key[0]][key[1]];
-			else
-				return $$.on[key[0]]['default'];
-		};
-
-		if(key[1])
-      $$.on[key[0]][key[1]] = value;
-		else
-      $$.on[key[0]]['default'] = value;
-
-    if(callback)
-      callback(value);
-
-		return chart;
-	};
-};
+// d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
+//   return function(key, value){
+// 		key = key.split('.');
+// 		if(!arguments.length) return $$.on;
+// 		else if(arguments.length == 1){
+// 			if(key[1])
+// 				return $$.on[key[0]][key[1]];
+// 			else
+// 				return $$.on[key[0]]['default'];
+// 		};
+//
+// 		if(key[1])
+//       $$.on[key[0]][key[1]] = value;
+// 		else
+//       $$.on[key[0]]['default'] = value;
+//
+//     if(callback)
+//       callback(value);
+//
+// 		return chart;
+// 	};
+// };
 
 d2b.UTILS.CHARTS.MEMBERS.events = function(chart, $$, callback){
   return function(key, listener){

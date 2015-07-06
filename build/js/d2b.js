@@ -111,11 +111,7 @@ d2b.UTILS.chartPage = function(){
 	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
 	$$.animateFrom = null;
 
-  // $$.reloadCharts = true;
-
-	$$.on = {
-		update: function(){}
-	};
+	$$.events = d2b.UTILS.chartEvents();
 
 	$$.init = function(position){
     if($$.animateFrom || !$$.selection.currentPage){
@@ -212,7 +208,7 @@ d2b.UTILS.chartPage = function(){
 
 	var page = {};
 
-	page.on =				d2b.UTILS.CHARTS.MEMBERS.on(page, $$);
+	page.on =				d2b.UTILS.CHARTS.MEMBERS.events(page, $$);
 
   page.width = function(value){
 		if(!arguments.length) return $$.width;
@@ -262,7 +258,7 @@ d2b.UTILS.chartPage = function(){
 			return console.warn('page was not given a selection');
 
 		var position = $$.getPosition();
-
+    
     if($$.animateFrom && $$.selection.currentPage){
       $$.selection.oldPage = $$.selection.currentPage;
     }
@@ -316,9 +312,11 @@ d2b.UTILS.chartPage = function(){
 			callback();
 		}
 
-		for(key in $$.on.update){
-			$$.on.update[key].call(this,$$.modifiedData);
-		}
+		$$.events.dispatch("update", $$.selection, [$$.modifiedData])
+
+		// for(key in $$.on.update){
+		// 	$$.on.update[key].call(this,$$.modifiedData);
+		// }
 
 		return page;
 	};
@@ -672,11 +670,7 @@ d2b.UTILS.dashboardCategory = function(){
   //   }
   // });
 
-  $$.on = {
-    // update: function(){},
-    pageChange: function(){},
-    // pageUpdate: function(){}
-  };
+  $$.events = d2b.UTILS.chartEvents();
 
 	$$.init = function(position){
     if($$.animateFrom || !$$.selection.currentCategory){
@@ -713,8 +707,8 @@ d2b.UTILS.dashboardCategory = function(){
       //       var pageData          = $$.selection.currentCategory.label.pages.select.option[0][selectedIndex].__data__;
       //       // $$.charts = data.charts;
       //
-      //       for(key in $$.on.pageChange){
-      //         $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,selectedIndex);
+      //       for(key in $$.on.page-change){
+      //         $$.on.page-change[key].call(this,pageData,$$.currentPageIndex,selectedIndex);
       //       }
       //       $$.currentPageIndex = selectedIndex;
       //
@@ -741,9 +735,7 @@ d2b.UTILS.dashboardCategory = function(){
         $$.selection.currentCategory.label.pages.style('display','none');
       }
 
-      for(key in $$.on.pageChange){
-        $$.on.pageChange[key].call(this,pageData,0,0);
-      }
+  		$$.events.dispatch("page-change", $$.selection, [pageData, 0, 0]);
 
       // $$.chartPage
       //   .selection($$.selection.chartPage)
@@ -781,7 +773,7 @@ d2b.UTILS.dashboardCategory = function(){
 
 	var category = {};
 
-  category.on =	d2b.UTILS.CHARTS.MEMBERS.on(category, $$);
+  category.on =	d2b.UTILS.CHARTS.MEMBERS.events(category, $$);
 
   category.chartPageSelection =	d2b.UTILS.CHARTS.MEMBERS.prop(category, $$, 'chartPageSelection');
 
@@ -861,9 +853,11 @@ d2b.UTILS.dashboardCategory = function(){
           $$.selection.currentCategory.label.pages.tab.classed('d2b-tab-selected', false);
           d3.select(this).classed('d2b-tab-selected', true);
 
-          for(key in $$.on.pageChange){
-            $$.on.pageChange[key].call(this,pageData,$$.currentPageIndex,i);
-          }
+      		$$.events.dispatch("page-change", $$.selection, [pageData, $$.currentPageIndex,i]);
+
+          // for(key in $$.on.page-change){
+          //   $$.on.page-change[key].call(this,pageData,$$.currentPageIndex,i);
+          // }
           $$.currentPageIndex = i;
         })
 
@@ -887,6 +881,8 @@ d2b.UTILS.dashboardCategory = function(){
 				.style('top','0px');
 
 		d3.timer.flush();
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback){
 			callback();
@@ -1443,12 +1439,7 @@ d2b.UTILS.CONTROLS.htmlControls = function(){
 	};
 
 	//init event object
-	$$.on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){},
-		change:function(){}
-	};
+	$$.events = d2b.UTILS.chartEvents();
 
 	var controls = {};
 
@@ -1480,7 +1471,7 @@ d2b.UTILS.CONTROLS.htmlControls = function(){
 		return controls;
 	};
 
-	controls.on =				d2b.UTILS.CHARTS.MEMBERS.on(controls, $$);
+	controls.on =				d2b.UTILS.CHARTS.MEMBERS.events(controls, $$);
 
 	controls.data = function(controlsData, reset){
 		if(!arguments.length) return $$.currentData;
@@ -1518,9 +1509,7 @@ d2b.UTILS.CONTROLS.htmlControls = function(){
 					.scale($$.scale)
 					.data(d)
 					.on('change.d2b-change',function(d,i){
-						for(key in $$.on.change){
-							$$.on.change[key].call(this,$$.controlsHash,d,i);
-						}
+						$$.events.dispatch("change", $$.selection, [$$.controlsHash,d,i]);
 					})
 					.update();
 			});
@@ -1727,6 +1716,14 @@ Array.prototype._reverse = function(){
 	var tmp = [];
 	Array.prototype.push.apply(tmp, this)
 	return tmp.reverse();
+};
+
+d2b.UTILS.visualLength = function(value,span){
+	if(value.toString().indexOf('%') > -1){
+		return span * parseFloat(value) / 100;
+	}else{
+		return parseFloat(value);
+	}
 };
 
 /** apply properties to d2b object
@@ -2257,8 +2254,8 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 	legend.select = 							d2b.UTILS.CHARTS.MEMBERS.select(legend, $$, function(){ $$.generateRequired = true; });
 	legend.selection = 						d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'selection', function(){ $$.generateRequired = true; });
-	legend.width = 								d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'width');
-	legend.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'height');
+	legend.width = 								d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'maxWidth');
+	legend.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'maxHeight');
 	legend.animationDuration = 		d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'animationDuration');
 	legend.legendOrientation = 		d2b.UTILS.CHARTS.MEMBERS.prop(legend, $$, 'legendOrientation');
 	legend.on = 									d2b.UTILS.CHARTS.MEMBERS.events(legend, $$);
@@ -2454,28 +2451,28 @@ d2b.UTILS.breadcrumbs = function(){
 
 d2b.createNameSpace("d2b.UTILS.CHARTS.MEMBERS");
 
-d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
-  return function(key, value){
-		key = key.split('.');
-		if(!arguments.length) return $$.on;
-		else if(arguments.length == 1){
-			if(key[1])
-				return $$.on[key[0]][key[1]];
-			else
-				return $$.on[key[0]]['default'];
-		};
-
-		if(key[1])
-      $$.on[key[0]][key[1]] = value;
-		else
-      $$.on[key[0]]['default'] = value;
-
-    if(callback)
-      callback(value);
-
-		return chart;
-	};
-};
+// d2b.UTILS.CHARTS.MEMBERS.on = function(chart, $$, callback){
+//   return function(key, value){
+// 		key = key.split('.');
+// 		if(!arguments.length) return $$.on;
+// 		else if(arguments.length == 1){
+// 			if(key[1])
+// 				return $$.on[key[0]][key[1]];
+// 			else
+// 				return $$.on[key[0]]['default'];
+// 		};
+//
+// 		if(key[1])
+//       $$.on[key[0]][key[1]] = value;
+// 		else
+//       $$.on[key[0]]['default'] = value;
+//
+//     if(callback)
+//       callback(value);
+//
+// 		return chart;
+// 	};
+// };
 
 d2b.UTILS.CHARTS.MEMBERS.events = function(chart, $$, callback){
   return function(key, listener){
@@ -2717,7 +2714,7 @@ d2b.UTILS.loader = function(){
   /**
    * The main loader function that will resemble this instance of the multi-file
    * loader.
-   * @param paths Array of paths for which to fetch data files.
+   * @param paths -- Array of paths for which to fetch data files.
    *        [
    *          {
    *            key:  'file1',                 // defaults to the file name
@@ -2726,7 +2723,7 @@ d2b.UTILS.loader = function(){
    *            type: 'csv'                    // default: 'json'
    *          }//,{},{}
    *        ]
-   * @param callback function
+   * @param callback -- function
    *        function(files){
    *          // do something with the files when they have loaded..
    *        }
@@ -4646,6 +4643,9 @@ d2b.CHARTS.axisChart = function(){
 			return position;
 		};
 
+		// $$.x.customScale.range = $$.x.scale.range;
+		// console.log($$.x.customScale.range())
+
 		$$.y.customScale = function(value, invert){
 			var position = 0;
 			position = $$.y.scale(value);
@@ -4706,7 +4706,7 @@ d2b.CHARTS.axisChart = function(){
 
 	};
 
-	//axis modifier is used to make like code for x/y axes reusable
+	//axis modifier is used to make like code for x/y axes repeatable for both axes
 	$$.axisModifier = function(callback, params){
 		if(params){
 			callback('x', params.x);
@@ -4786,6 +4786,7 @@ d2b.CHARTS.axisChart = function(){
 				y:{dimension: 'innerWidth'}
 			}
 		);
+		//-----------
 
 		//create axis transitions;
 		var axisTransition = {};
@@ -4794,6 +4795,7 @@ d2b.CHARTS.axisChart = function(){
 				.transition()
 					.duration($$.animationDuration);
 		});
+		//-----------
 
 		//init axes content, later it will be re-transitioned after the margin has been properly computed
 		if($$.initAxes){
@@ -4803,20 +4805,25 @@ d2b.CHARTS.axisChart = function(){
 			if($$.y.type.split(',')[0] == 'ordinal'){
 				$$.y.scale.rangeBands([0,1]);
 			}
+			if($$.x.type.split(',')[0] == 'ordinal'){
+				$$.x.scale.rangeBands([0,1]);
+			}
 
 			axisTransition.y
 				.call($$.y.axis)
 			axisTransition.x
 				.call($$.x.axis)
 		}
+		//-----------
 
-		//create axis transitions;
+		//create grid transitions
 		var gridTransition = {};
 		$$.axisModifier(function(axis){
 			gridTransition[axis] = $$.selection.grid[axis]
 				.transition()
 					.duration($$.animationDuration);
 		});
+		//-----------
 
 		//find max tick size on the vertical axis for proper spacing and tick count
 		var maxTickLengthY = 0;
@@ -4830,6 +4837,7 @@ d2b.CHARTS.axisChart = function(){
 
 		if($$.y.type != 'ordinal')
 			$$.y.axis.ticks($$.innerHeight/75);
+		//-----------
 
 		//find max tick size on the horizontal axis for tick count
 		var maxTickLengthX = 0;
@@ -4845,6 +4853,7 @@ d2b.CHARTS.axisChart = function(){
 			$$.x.axis.ticks($$.innerWidth/maxTickLengthX/6);
 
 		var labelPadding = 10;
+		//-----------
 
 		//modify x/y axis positioning and visiblity
 		$$.axisModifier(
@@ -4862,6 +4871,7 @@ d2b.CHARTS.axisChart = function(){
 				y:{offset:maxTickLengthY + labelPadding, dimension:'innerWidth'}
 			}
 		);
+		//-----------
 
 		//position x/y labels
 		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLengthY-labelOffset-labelPadding-5 : maxTickLengthY+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
@@ -4869,13 +4879,14 @@ d2b.CHARTS.axisChart = function(){
 
 		labelOffsetPosition = ($$.x.orientation == 'top')? -labelOffset*1.5-labelPadding:+labelOffset*1+labelPadding+labelTransition.x.node().getBBox().height;
 		labelTransition.x.attr('transform','translate('+	$$.innerWidth/2 +','+ labelOffsetPosition+')');
+		//-----------
 
 		//set x/y scale range
 		var range = $$.getRanges();
 
 		if($$.x.type.split(',')[0] == 'ordinal'){
 			$$.x.scale.rangeBands(range.x);
-			$$.x.rangeBand = $$.x.scale.rangeBand()*0.75;
+			$$.x.rangeBand = $$.x.scale.rangeBand();
 		}else{
 			$$.x.scale.range(range.x);
 			$$.x.rangeBand = $$.innerWidth/10;
@@ -4883,15 +4894,17 @@ d2b.CHARTS.axisChart = function(){
 
 		if($$.y.type.split(',')[0] == 'ordinal'){
 			$$.y.scale.rangeBands(range.y);
-			$$.y.rangeBand = $$.y.scale.rangeBand()*0.75;
+			$$.y.rangeBand = $$.y.scale.rangeBand();
 		}else{
 			$$.y.scale.range(range.y);
 			$$.y.rangeBand = $$.innerHeight/10;
 		}
+		//-----------
 
 		//set x/y tick size
 		$$.x.axis.tickSize(5);
 		$$.y.axis.tickSize(5);
+		//-----------
 
 		//transition and position x axis
 		axisTransition.x
@@ -4904,6 +4917,7 @@ d2b.CHARTS.axisChart = function(){
 			axisTransition.x
 					.attr('transform','translate('+$$.forcedMargin.left+','+($$.innerHeight + $$.forcedMargin.top)+')');
 		}
+		//-----------
 
 		//transition and position y axis
 		axisTransition.y
@@ -4929,10 +4943,12 @@ d2b.CHARTS.axisChart = function(){
 			axisTransition.y
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
+		//-----------
 
 		//set x/y tick size for grid
 		$$.x.axis.tickSize(-$$.innerHeight);
 		$$.y.axis.tickSize(-$$.innerWidth);
+		//-----------
 
 
 		//bind tick-data and tick-events
@@ -4949,6 +4965,7 @@ d2b.CHARTS.axisChart = function(){
 					.call($$.events.addElementDispatcher, 'main', 'd2b-axis-tick.y');
 			}
 		);
+		//-----------
 
 
 		//transition and position x/y grid lines
@@ -4970,6 +4987,7 @@ d2b.CHARTS.axisChart = function(){
 			gridTransition.y
 					.attr('transform','translate('+($$.innerWidth + $$.forcedMargin.left)+','+$$.forcedMargin.top+')');
 		}
+		//-----------
 
 	};
 
@@ -5350,7 +5368,7 @@ d2b.CHARTS.axisChart = function(){
 
 		d3.timer.flush();
 
-		$$.events.dispatch("update", $$.selection)
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();
@@ -8151,7 +8169,7 @@ d2b.CHARTS.mapChart = function(){
 	//formatting x values
 	$$.xFormat = function(value){return value};
 	//event object
-	$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.events = d2b.UTILS.chartEvents();
 	//legend OBJ
 	$$.legend = new d2b.UTILS.LEGENDS.legend();
 	//legend orientation 'top', 'bottom', 'left', or 'right'
@@ -8314,7 +8332,7 @@ d2b.CHARTS.mapChart = function(){
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.on(chart, $$);
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 
 	chart.filter = function(filters){
 		$$.filterSet = filters;
@@ -8413,7 +8431,6 @@ console.log($$.filteredTopoData.countries)
 			}
 			d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
-console.log('draw')
 			var path = $$.pathFit($$.filteredTopoData.countries);
 
 			$$.selection.main
@@ -8428,6 +8445,8 @@ console.log('draw')
 			d3.timer.flush();
 
 		}
+
+		$$.events.dispatch("update", $$.selection);
 
 		if(callback)
 			callback();
@@ -8465,6 +8484,8 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
   $$.groupScale = d3.scale.ordinal();
 
+	$$.padding = "10%";
+
   $$.updateStackedVals = function(yVal, bar){
     if(bar.sHeight < 0){
       yVal+=bar.height;
@@ -8474,6 +8495,16 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       return {newValue: yVal, modifier: 0};
     }
   };
+
+	$$.getLinearRangeBand = function(){
+		var allXVals = $$.currentChartData.map(function(d){return d.values.map(function(d){return d.x;}).sort()});
+		var maxDistance = $$.width;
+		allXVals.forEach(function(d){
+			for(var i=0;i<d.length-1;i++)
+				maxDistance = Math.min(d[i+1] - d[i]);
+		});
+		return $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + maxDistance);
+	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -8492,6 +8523,9 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	//additional bar properties
+	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
 
   chart.xValues = function(){
     var values = [];
@@ -8540,10 +8574,20 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	//chart update
 	chart.update = function(callback){
 
+		var rangeBand = $$.x.rangeBand;
+
+		if($$.x.type == 'ordinal'){
+			rangeBand = $$.x.rangeBand;
+		}else{
+			rangeBand = $$.getLinearRangeBand();
+		}
+// console.log(rangeBand)
+		var padding = d2b.UTILS.visualLength($$.padding, rangeBand);
+
     var barLabels = $$.currentChartData.map(function(d){return d.label;});
     $$.groupScale
       .domain(barLabels)
-      .rangeBands([0, $$.x.rangeBand]);
+      .rangeBands([0 + padding, rangeBand - padding]);
     var stackedYVals = {};
 
 		$$.background.each(function(graphData){
@@ -8567,7 +8611,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
           .transition()
             .duration($$.animationDuration)
 						.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-            .attr('x',function(d){return $$.x.customScale(d.x) - $$.x.rangeBand/2})
+            .attr('x',function(d){return $$.x.customScale(d.x) - rangeBand/2 + padding})
             .attr('y', function(d){
               if(!stackedYVals[d.x]){
                 stackedYVals[d.x] = {negative:$$.y.customScale(0), positive:$$.y.customScale(0)};
@@ -8585,7 +8629,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
               }
 
             })
-            .attr('width',function(d){return Math.max(0, $$.x.rangeBand);})
+            .attr('width',function(d){return Math.max(0, rangeBand - padding*2);})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
 
         bar.exit()
@@ -8605,7 +8649,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
           .transition()
             .duration($$.animationDuration)
             .attr('x',function(d){
-							var x = $$.x.customScale(d.x) - $$.x.rangeBand/2;
+							var x = $$.x.customScale(d.x) - rangeBand/2;
 							if(!d.center)
 								x += $$.groupScale(graphData.label)+spacing;
 							return x;
@@ -8614,7 +8658,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 							if(!d.center)
 								return Math.max(0, $$.groupScale.rangeBand() - 2*spacing);
 							else
-								return $$.x.rangeBand;
+								return rangeBand;
 						})
             .attr('y', function(d){return $$.y.customBarScale(d.y).y;})
             .attr('height', function(d){return $$.y.customBarScale(d.y).height;});
@@ -9014,6 +9058,8 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 	$$.hist = d3.layout.histogram();
 
+	$$.padding = "0";
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -9032,6 +9078,9 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	//additional histogram properties
+	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
 
 	chart.xValues = function(){
     var values = [];
@@ -9067,8 +9116,12 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 			var xVals = graphData.histData.map(function(d){return d.x;});
 			var xRange = [$$.x.customScale(d3.min(xVals)),
 										$$.x.customScale(d3.max(xVals))];
-										
+
 			var barWidth = 1.03*Math.abs(xRange[0]-xRange[1])/graphData.histData.length;
+
+			var padding = d2b.UTILS.visualLength($$.padding, barWidth);
+
+			barWidth -= 1*padding;
 
 			// var barWidth = ($$.width / data.length)/2;
 
@@ -9090,7 +9143,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 				.transition()
 					.duration($$.animationDuration)
 					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-					.attr('x',function(d){return $$.x.customScale(d.x);})
+					.attr('x',function(d){return $$.x.customScale(d.x) - padding;})
 					.attr('width',function(d){return Math.max(0, barWidth);})
 					.attr('y', function(d){return $$.y.customBarScale(d.y).y;})
 					.attr('height', function(d){return $$.y.customBarScale(d.y).height;});
@@ -9705,6 +9758,343 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
+/*axis-chart-grid-marker*/
+d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
+
+	//private store
+	var $$ = {};
+
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
+	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+	//carries current data set
+	$$.currentChartData = {};
+	//formatting x values
+	$$.xFormat = function(value){return value};
+	//formatting y values
+	$$.yFormat = function(value){return value};
+	//event object
+	$$.events = d2b.UTILS.chartEvents();
+
+	$$.centerMouseover = function(){
+		d3.select(this).select('.d2b-grid-marker-circle.d2b-background')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r', 7);
+	};
+
+	$$.centerMouseout = function(){
+		d3.select(this).select('.d2b-grid-marker-circle.d2b-background')
+			.transition()
+				.duration($$.animationDuration/2)
+				.attr('r', 3.5);
+	};
+
+	$$.newGroup = function(elem, graphData){
+		var newXMarker = elem
+			.append('g')
+				.attr('class','d2b-grid-marker-x')
+				.call($$.updateMarkers, graphData, 'x', false);
+
+		newXMarker
+			.append('line')
+				.attr('class','d2b-grid-marker-line');
+		newXMarker
+			.append('text')
+				.attr('class','d2b-grid-marker-coordinate')
+				.attr('transform','rotate(-90)')
+				.attr('x', -5)
+				.attr('y', 12);
+
+		var newYMarker = elem
+			.append('g')
+				.attr('class','d2b-grid-marker-y')
+				.call($$.updateMarkers, graphData, 'y', false);
+
+		newYMarker
+			.append('line')
+				.attr('class','d2b-grid-marker-line');
+		newYMarker
+			.append('text')
+				.attr('class','d2b-grid-marker-coordinate')
+				.attr('x', -5)
+				.attr('y', 12);
+
+		var newGroupCenter = elem
+			.append('g')
+				.attr('class','d2b-grid-marker-center')
+				.on('mouseover.d2b-mouseover', $$.centerMouseover)
+				.on('mouseout.d2b-mouseout', $$.centerMouseout)
+				.call($$.updateCenter, graphData, false)
+				.call($$.events.addElementDispatcher, 'main', 'd2b-grid-marker');
+
+		newGroupCenter
+			.append('circle')
+				.attr('r', '3.5px')
+				.attr('class', 'd2b-grid-marker-circle d2b-background');
+
+		newGroupCenter
+			.append('circle')
+				.attr('r', '3.5px')
+				.attr('class', 'd2b-grid-marker-circle d2b-foreground');
+
+		elem
+			.append('g')
+				.attr('class', 'd2b-grid-marker-label')
+				.call($$.updateLabel, graphData, false)
+			.append('text');
+
+	};
+
+	$$.updateMarker = {};
+	$$.updateMarker.x = function(elem, range, graphData){
+		elem
+			.style('opacity',1)
+			.attr('transform', function(d){
+				return 'translate('+$$.x.customScale(d.x)+',0)';
+			})
+		.select('line')
+			.attr('x1', 0)
+			.attr('x2', 0)
+			.attr('y1', range[0])
+			.attr('y2', range[1])
+			.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+	};
+	$$.updateMarker.y = function(elem, range, graphData){
+		elem
+			.style('opacity',1)
+			.attr('transform', function(d){
+				return 'translate('+range[1]+','+$$.y.customScale(d.y)+')';
+			})
+		.select('line')
+			.attr('x1', range[0])
+			.attr('x2', -range[1])
+			.attr('y1', 0)
+			.attr('y2', 0)
+			.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+	};
+
+	$$.updateMarkers = function(elem, graphData, orient, transition){
+		var x = 'x', y = 'y';
+		if(orient == 'y'){
+			x = 'y';
+			y = 'x';
+		}
+
+		var range = $$[y].scale.range();
+		
+		//position marker grouping if transition flag is set transition to new position/opacity
+		elem.each(function(d){
+			var elemTransition = d3.select(this);
+			if(transition)
+				elemTransition = elemTransition.transition().duration($$.animationDuration);
+
+			if(d[x]){
+				elemTransition
+					.call($$.updateMarker[x], range, graphData)
+			}else{
+				elemTransition
+					.style('opacity',0)
+			}
+		});
+
+		//set line attributes
+		elem.select('line')
+			.classed('d2b-dashed', function(d){return (d.dashed);});
+
+		elem.select('text.d2b-grid-marker-coordinate')
+			.text(function(d){return $$[x+'Format'](d[x]);});
+	};
+
+	$$.updateLabel = function(elem, graphData, transition){
+		this
+			.each(function(d){
+				var elemTransition = d3.select(this);
+				var textTransition = elemTransition.select('text');
+
+				if(transition){
+					elemTransition = elemTransition.transition().duration($$.animationDuration);
+					textTransition = textTransition.transition().duration($$.animationDuration);
+				}
+
+				textTransition
+					.text(function(d){return d.label;})
+
+				if(d.x != null && d.y != null){
+					if($$.x.customScale(d.x) > $$.width/2){
+						elemTransition
+							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')');
+
+						textTransition
+							.style('text-anchor','end')
+							.attr('x', -5)
+							.attr('y', -5);
+					}else{;
+						elemTransition
+							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')');
+
+						textTransition
+							.style('text-anchor','start')
+							.attr('x', 5)
+							.attr('y', -5);
+					}
+				}else if(d.y != null){
+					elemTransition
+						.attr('transform', 'translate('+$$.x.scale.range()[1]+','+$$.y.customScale(d.y)+')');
+
+					textTransition
+						.style('text-anchor', 'end')
+						.attr('x', -5)
+						.attr('y', -5);
+				}else{
+					elemTransition
+						.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.scale.range()[1]+')');
+
+					textTransition
+						.style('text-anchor', 'end')
+						.attr('x', -5)
+						.attr('y', -5)
+						.attr('transform', 'rotate(-90)');
+				}
+			});
+
+
+	};
+
+	$$.updateCenter = function(elem, graphData, transition){
+		if(transition)
+			elem = elem.transition().duration($$.animationDuration);
+
+		elem.each(function(d){
+			if(d.y != null && d.x != null){
+				elem
+						.style('opacity', 1)
+						.attr('transform', function(d){return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')';})
+					.selectAll('.d2b-grid-marker-circle')
+						.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+			}else{
+				elem.style('opacity',0);
+			}
+		})
+
+	};
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+	var chart = {};
+
+	//properties that will be set by the axis-chart main code
+	chart.foreground = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'foreground');
+	chart.background = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'background');
+	chart.general =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'general');
+	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
+	chart.x = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'x');
+	chart.y = 									d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'y');
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yFormat');
+	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
+	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+
+	//if you need additional chart-type properties, those can go here..
+
+	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
+	chart.xValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(d){
+			if(d.values){
+				d.values.forEach(function(d2){
+					if(d2.x)
+						values.push(d2.x);
+				})
+			}else
+				if(d2.x)
+					values.push(d.x);
+		});
+		return values;
+  };
+	chart.yValues = function(){
+		var values = [];
+		$$.currentChartData.forEach(function(d){
+			if(d.values){
+				d.values.forEach(function(d2){
+					if(d2.y)
+						values.push(d2.y);
+				})
+			}else
+				if(d2.y)
+					values.push(d.y);
+		});
+		return values;
+	};
+
+	chart.data = function(chartData){
+		if(!arguments.length) return $$.currentChartData;
+		$$.currentChartData = chartData;
+		return chart;
+	};
+
+	//chart update
+	chart.update = function(callback){
+		$$.background.each(function(graphData){
+			var graph = d3.select(this);
+		});
+
+		$$.foreground.each(function(graphData){
+			var graph = d3.select(this);
+
+			var data = graphData.values || [graphData];
+
+			var group = graph.selectAll('g.d2b-grid-marker').data(data);
+
+			//enter group and all components with transitions
+
+			var newGroup = group.enter()
+				.append('g')
+					.attr('class', 'd2b-grid-marker')
+					.call($$.newGroup, graphData);
+
+			group.select('g.d2b-grid-marker-x')
+				.call($$.updateMarkers, graphData, 'x', true);
+
+			group.select('g.d2b-grid-marker-y')
+				.call($$.updateMarkers, graphData, 'y', true);
+
+			group.select('g.d2b-grid-marker-label')
+				.call($$.updateLabel, graphData, 'y', true)
+				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return '';});//$$.yFormat(d.y);});
+
+			var groupCenter = group.select('g.d2b-grid-marker-center')
+				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return '';});//$$.yFormat(d.y);});
+
+			groupCenter
+				.call($$.updateCenter, graphData, true);
+
+			//exit group
+
+			group.exit()
+				.transition()
+					.duration($$.animationDuration)
+					.style('opacity',0)
+					.remove();
+		});
+
+		d3.timer.flush();
+
+		if(callback)
+			callback();
+
+		return chart;
+	};
+
+	return chart;
+};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
 d2b.DASHBOARDS.dashboard = function(){
 
 	//define axisChart variables
@@ -10295,7 +10685,7 @@ d2b.DASHBOARDS.dashboard = function(){
 
 		dashboardCategory
 			.selection(selection.container.content.dashboardCategory)
-			.on('pageChange.d2b-page-change',function(pageData, iOld, iNew){
+			.on('page-change.d2b-page-change',function(pageData, iOld, iNew){
 // console.log('page change!')
 				var temp = controlsHidden;
 				if(!pageData.controls)

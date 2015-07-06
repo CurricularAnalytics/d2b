@@ -246,6 +246,17 @@ html, body, .d2b-container {
     fill-opacity: 1; }
 .d2b-axis-chart .d2b-axis-types .d2b-axis-types-foreground circle {
   stroke-width: 2px; }
+.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x line, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y line {
+  stroke-width: 1.5px;
+  opacity: 0.9; }
+  .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x line.d2b-dashed, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y line.d2b-dashed {
+    stroke-dasharray: 5,5; }
+.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x text, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y text {
+  text-anchor: end; }
+.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x text.d2b-grid-marker-coordinate, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y text.d2b-grid-marker-coordinate {
+  font-size: 12px; }
+.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-circle {
+  fill: white; }
 .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator {
   cursor: pointer; }
   .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator rect {

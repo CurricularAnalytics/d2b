@@ -1,7 +1,7 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*axis-chart-histogram*/
-d2b.UTILS.AXISCHART.TYPES.histogram = function(){
+/*axis-chart-template*/
+d2b.UTILS.AXISCHART.TYPES.template = function(){
 
 	//private store
 	var $$ = {};
@@ -18,10 +18,6 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	$$.yFormat = function(value){return value};
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
-
-	$$.hist = d3.layout.histogram();
-
-	$$.padding = "0";
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -42,31 +38,21 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
-	//additional histogram properties
-	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
+	//if you need additional chart-type properties, those can go here..
 
+	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
     var values = [];
-		$$.currentChartData.forEach(function(graphData){
-			values = values.concat(graphData.histData.map(function(d){return d.x;}));
-		});
     return values;
   };
 	chart.yValues = function(){
 		var values = [];
-		$$.currentChartData.forEach(function(graphData){
-			values = values.concat(graphData.histData.map(function(d){return d.y;}));
-		});
 		return values;
 	};
 
 	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
-		$$.currentChartData.forEach(function(graphData){
-			graphData.histData = $$.hist.bins(graphData.bins)(graphData.values);
-		});
-
 		return chart;
 	};
 
@@ -75,48 +61,14 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 		$$.background.each(function(graphData){
 			var graph = d3.select(this);
+			//code for the background visualization goes here
+			//this will iterate through all of the background graph containers of this type
+		});
 
-			var xVals = graphData.histData.map(function(d){return d.x;});
-			var xRange = [$$.x.customScale(d3.min(xVals)),
-										$$.x.customScale(d3.max(xVals))];
-
-			var barWidth = 1.03*Math.abs(xRange[0]-xRange[1])/graphData.histData.length;
-
-			var padding = d2b.UTILS.visualLength($$.padding, barWidth);
-
-			barWidth -= 1*padding;
-
-			// var barWidth = ($$.width / data.length)/2;
-
-			graph.selectAll('rect')
-
-			var bar = graph.selectAll('rect').data(graphData.histData, function(d,i){
-				return d.x;
-			});
-
-			var newBar = bar.enter()
-				.append('rect')
-					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-					.attr('y',$$.y.customScale(0))
-					.attr('height',0)
-					.call($$.events.addElementDispatcher, 'main', 'd2b-histogram-bar');
-
-			bar
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-				.transition()
-					.duration($$.animationDuration)
-					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-					.attr('x',function(d){return $$.x.customScale(d.x) - padding;})
-					.attr('width',function(d){return Math.max(0, barWidth);})
-					.attr('y', function(d){return $$.y.customBarScale(d.y).y;})
-					.attr('height', function(d){return $$.y.customBarScale(d.y).height;});
-
-			bar.exit()
-				.transition()
-					.duration($$.animationDuration)
-					.attr('y', $$.y.customScale(0))
-					.attr('height',0);
-
+		$$.foreground.each(function(graphData){
+			var graph = d3.select(this);
+			//code for the foreground visualization goes here
+			//this will iterate through all of the foreground graph containers of this type
 		});
 
 		d3.timer.flush();

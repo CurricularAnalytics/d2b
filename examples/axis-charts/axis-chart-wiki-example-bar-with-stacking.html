@@ -2,8 +2,7 @@
 <html>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
 <script src="../../bower_components/jquery/dist/jquery.js"></script>
-<!-- <script src="../../vendor/js/vendor.js"></script> -->
-<script src="../../bower_components/d3/d3.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <script>
 	$(document).ready(function(){
@@ -21,27 +20,28 @@
           // all of the chart types are optional and can be used in conjunction with one another
           {
             // bar-chart-type
-            type:'line',
+            type:'bar',
+						properties:{
+							// padding:"5%"
+							// padding:5
+						},
             graphs:[
               // this is where each of the bar graphs will be defined
-              // {
-              //   //bar graphs contain a label and an array of x,y values
-              //   label:'Bar Graph 1',
-              //   values:[
-              //     {x:'x1', y:100},
-              //     {x:'x2', y:120},
-              //     {x:'x3', y:80}
-              //   ]
-              // },
+              {
+                //bar graphs contain a label and an array of x,y values
+                label:'Bar Graph 1',
+                values:[
+                  {x:'x1', y:100},
+                  {x:'x2', y:120},
+                  {x:'x3', y:80}
+                ]
+              },
               {
                 label:'Bar Graph 2',
                 values:[
-                  // {x:'4-Year Overall', y:50, center:true},
-                  // {x:'5-Year Overall', y:70, center:true},
-                  // {x:'6-Year Overall', y:9000000, center:true}
-	                  {x:4, y:50, center:true},
-	                  {x:5, y:70, center:true},
-	                  {x:6, y:9000000, center:true}
+                  {x:'x1', y:50},
+                  {x:'x2', y:70},
+                  {x:'x4', y:90}
                 ]
               }//,{},{}..
             ]
@@ -56,20 +56,13 @@
       .select('.axis-chart')
       .data(data)
 			.x({type:'ordinal'})
-			// .rotate(true)
-			// .x({type:'ordinal', orientation:'left'})
-			// .y({orientation:'bottom'})
+			.controls({stackBars:{enabled:true,visible:true}}) //enabled flag will default the stacked orientation
+																												 //visible flag will provide a checkbox for the user to
+																												 //switch between stacked/grouped bars
 			.legendOrientation('top')
       .width($(window).width())
       .height($(window).height())
       .update();
-
-		$(window).resize(function(){
-			axisChart
-	      .width($(window).width())
-	      .height($(window).height())
-	      .update();
-		})
 
 	});
 

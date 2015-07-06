@@ -539,12 +539,7 @@ d2b.UTILS.CONTROLS.htmlControls = function(){
 	};
 
 	//init event object
-	$$.on = {
-		elementMouseover:function(){},
-		elementMouseout:function(){},
-		elementClick:function(){},
-		change:function(){}
-	};
+	$$.events = d2b.UTILS.chartEvents();
 
 	var controls = {};
 
@@ -576,7 +571,7 @@ d2b.UTILS.CONTROLS.htmlControls = function(){
 		return controls;
 	};
 
-	controls.on =				d2b.UTILS.CHARTS.MEMBERS.on(controls, $$);
+	controls.on =				d2b.UTILS.CHARTS.MEMBERS.events(controls, $$);
 
 	controls.data = function(controlsData, reset){
 		if(!arguments.length) return $$.currentData;
@@ -614,9 +609,7 @@ d2b.UTILS.CONTROLS.htmlControls = function(){
 					.scale($$.scale)
 					.data(d)
 					.on('change.d2b-change',function(d,i){
-						for(key in $$.on.change){
-							$$.on.change[key].call(this,$$.controlsHash,d,i);
-						}
+						$$.events.dispatch("change", $$.selection, [$$.controlsHash,d,i]);
 					})
 					.update();
 			});
