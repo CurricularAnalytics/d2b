@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		data = {
+			data: {
+				partition: {
+					"name": "University of New Mexico",
+					"top": true,
+					"children": [
+						{
+							"name": "Football",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 15,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 20,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 65,
+									// "top": true
+								}
+
+							]
+						},
+						{
+							"name": "Soccer",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 3,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 10,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 17,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Tennis",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 2,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 3,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 15,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Softball",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 4,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 6,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 20,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Volleyball",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 2,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 7,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 4,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Swimming and Diving",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 1,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 10,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 9,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Sand Volleyball",
+							"top": true,
+							"children": [
+
+								{
+									"name": "University College",
+									"size": 5,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 10,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Track and Field",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 10,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 5,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 20,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Skiing",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 3,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 5,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 12,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Golf",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 2,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 5,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 8,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Cross Country",
+							"top": true,
+							"children": [
+								{
+									"name": "Anderson School of Management",
+									"size": 6,
+									// "top": true
+								},
+								{
+									"name": "University College",
+									"size": 10,
+									// "top": true
+								},
+								{
+									"name": "Arts and Sciences",
+									"size": 4,
+									// "top": true
+								}
+							]
+						},
+						{
+							"name": "Baseball",
+							"top": true,
+							"children": [
+										{
+											"name": "Anderson School of Management",
+											"size": 5,
+											// "top": true
+										},
+										{
+											"name": "University College",
+											"size": 10,
+											// "top": true
+										},
+										{
+											"name": "Arts and Sciences",
+											"size": 15,
+											// "top": true
+								}
+							]
+						}
+					]
+				}
+			}
+		};
+
+
+		var chart = new d2b.CHARTS.sunburstChart();
+
+		chart
+			.select('.sunburst-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.xFormat({siPrefixed:false,units:{}, separateThousands:true,precision:0})
+			.legendOrientation('left')
+			.controls({sort:{visible:false},invert:{visible:true},hideLegend:{visible:true}})
+			.data(data)
+			.update();
+
+	});
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'sunburst-chart'></div>
+</body>
+</html>

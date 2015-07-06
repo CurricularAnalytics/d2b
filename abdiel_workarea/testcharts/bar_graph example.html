@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+
+	<script src= "http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src= "http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script type="text/javascript">
+		var data = [
+			{x:"a",y:100},
+			{x:"b",y:120},
+			{x:"c",y:70},
+			{x:"d",y:50},
+
+			]
+			var width =960
+			var height = 500
+			var margin = 30
+
+		var y = d3.scale.linear()
+			.domain([0,d3.max(data,function(d){return d.y;})])
+			.range([height-margin*2,0])
+
+		var x = d3.scale.ordinal()
+			.domain(data.map(function(d){return d.x}))
+			.rangeRoundBands([0,width-margin*2],.1)
+
+		var xaxis = d3.svg.axis().scale(x).orient("bottom").tickSize(height-margin*2)
+		var yaxis = d3.svg.axis().scale(y).orient("left")
+
+		$(document).ready(function(){
+
+			var svg = d3.select("body").append("svg")
+			svg
+				.attr("width", width)
+				.attr("height", height)
+			var g=svg.append("g").attr("transform","translate("+margin+","+margin+")")
+			g.append("g").attr("class","xaxis").call(xaxis)
+
+			g.append("g").attr("class","yaxis").call(yaxis)
+
+			var bars=g.append("g")
+				var bar=bars.selectAll("g").data(data)
+
+				var newbar=bar.enter()
+					.append("g")
+
+				newbar.append("rect")
+					.attr("x",function(d){return x(d.x)})
+					.attr("y",function(d){return y(d.y)})
+					.attr("width",x.rangeBand())
+					.attr("height",function(d){return height-2*margin-y(d.y)})
+
+		});
+
+
+
+
+	</script>
+	<style>
+
+	.xaxis path{fill:none;}
+
+	.xaxis line{stroke:#000;stroke-width:1px;}
+
+	.yaxis path{fill:none;}
+
+	.yaxis line{stroke:#000;stroke-width:1px;}
+	rect{fill:rgb(193,0,55);}
+
+	</style>
+</head>
+<body>
+</body>
+</html>

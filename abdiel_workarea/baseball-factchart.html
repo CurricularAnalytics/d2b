@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		var data = {
+			data:{
+				facts:[
+					{
+						label:"Gender/ Ethnicity",
+						value:35,
+						subFacts:[
+							{
+								label:"Gender",
+								values:[
+									{label:'Female',value:0},
+									{label:'Male',value:35},
+
+								]
+							},
+							{
+								label:"Ethnicity",
+								values:[
+									{label:'Hispanic',value:8},
+									{label:'White',value:18},
+									{label:'American Indian',value:1},
+									{label:'Non Res',value:0},
+									{label:'Asian',value:0},
+									{label:'Black',value:0},
+									{label:'Two or More',value:2},
+									{label:'Unknown',value:0},
+									{label:'Nat.Haw./PI',value:0},
+								]
+							}
+						]
+					},
+					{
+						label:"Year in School / College",
+						value:35,
+						subFacts:[
+							{
+								label:"Year in School",
+								values:[
+									{label:'Freshman',value:7},
+									{label:'Sophomore',value:9},
+									{label:'Junior',value:8},
+									{label:'Senior',value:12},
+								]
+							},
+							{
+								label:"College",
+								values:[
+									{label:'Anderson School of Management',value:3},
+									{label:'Arts and Sciences',value:20},
+									{label:'University College',value:14},
+								]
+							}
+						]
+					}
+				]
+			}
+		}
+
+		var factChart = new d2b.CHARTS.factChart();
+
+		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout();
+
+		factChart
+
+			.on('update', function(){console.log('updated!')})
+			.data(data)
+			.xFormat({separateThousands:true})
+
+		chartLayout
+			.select('.fact-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.chart(factChart)
+			.animationDuration(500)
+			.data({data:{chartLayout:{title:"Baseball Breakdown"}}})
+			.update()
+			.update()
+
+		$(window).resize(function(){
+			chartLayout.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'fact-chart'></div>
+</body>
+</html>
