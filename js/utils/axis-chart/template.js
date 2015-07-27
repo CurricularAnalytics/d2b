@@ -19,6 +19,12 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
 
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y);
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -37,6 +43,7 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//if you need additional chart-type properties, those can go here..
 

@@ -245,7 +245,10 @@ html, body, .d2b-container {
   .d2b-axis-chart .d2b-axis-types .d2b-axis-types-background .d2b-bar rect:hover {
     fill-opacity: 1; }
 .d2b-axis-chart .d2b-axis-types .d2b-axis-types-foreground circle {
-  stroke-width: 2px; }
+  stroke-width: 1px; }
+.d2b-axis-chart .d2b-axis-types .d2b-axis-types-foreground path.d2b-symbol {
+  stroke-width: 1px;
+  fill: white; }
 .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x line, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y line {
   stroke-width: 1.5px;
   opacity: 0.9; }
@@ -253,30 +256,37 @@ html, body, .d2b-container {
     stroke-dasharray: 5,5; }
 .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x text, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y text {
   text-anchor: end; }
+.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x text.d2b-inverted, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y text.d2b-inverted {
+  text-anchor: start; }
 .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-x text.d2b-grid-marker-coordinate, .d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-y text.d2b-grid-marker-coordinate {
-  font-size: 12px; }
-.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-circle {
+  font-size: 10px; }
+.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-symbol {
   fill: white; }
+.d2b-axis-chart .d2b-axis-types .d2b-gridMarker .d2b-grid-marker-label {
+  font-size: 10px;
+  font-weight: bold; }
 .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator {
   cursor: pointer; }
   .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator rect {
-    fill-opacity: 0.6;
-    -webkit-transition: stroke-width 0.25s;
-    transition: stroke-width 0.25s;
-    stroke-width: 0px; }
+    fill-opacity: 0.2;
+    -webkit-transition: stroke-width 0.25s, stroke-opacity 0.25s;
+    transition: stroke-width 0.25s, stroke-opacity 0.25s;
+    stroke-width: 1.5px;
+    stroke-opacity: 0.7; }
   .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator text {
-    text-anchor: middle; }
+    text-anchor: start; }
   .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-expanded-bubble-indicator:hover rect {
-    stroke-width: 2px; }
+    stroke-width: 2.5px;
+    stroke-opacity: 1; }
 .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-bubble {
   opacity: 0.7;
   cursor: pointer; }
 .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-hidden {
   pointer-events: none; }
-.d2b-axis-chart .d2b-axis-types .d2b-bubblePack circle.d2b-bubble-background {
-  stroke-width: 2.5px;
+.d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-bubble-background {
+  stroke-width: 1.5px;
   fill: none; }
-.d2b-axis-chart .d2b-axis-types .d2b-bubblePack circle.d2b-bubble-foreground {
+.d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-bubble-foreground {
   stroke: none; }
 
 .d2b-sankey-chart .d2b-sankey-labels {
@@ -749,7 +759,7 @@ html, body, .d2b-container {
           box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
           background: white; }
 
-g.d2b-legend-item .d2b-legend-circle-background {
+g.d2b-legend-item .d2b-legend-symbol-background {
   fill-opacity: 0; }
 g.d2b-legend-item.d2b-active {
   cursor: pointer; }

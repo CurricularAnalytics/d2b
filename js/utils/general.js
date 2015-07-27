@@ -34,12 +34,24 @@ d2b.UTILS.visualLength = function(value,span){
 	}
 };
 
+// d2b.UTILS.defined = function(value){
+// 	return value != null && value != undefined;
+// };
+
 /** apply properties to d2b object
 	* use: d2b.UTILS.applyProperties.call(obj, properties);
 	*/
 d2b.UTILS.applyProperties = function(properties){
 	for(var key in properties)
 		this[key](properties[key]);
+
+		for(key in properties){
+			if(properties[key].args)
+				this[key].apply(this, properties[key].args)
+			else
+				this[key](properties[key]);
+		}
+
 };
 
 /** check for existance of a nested attribute
@@ -79,6 +91,27 @@ d2b.UTILS.getColor = function(color, defaultAttribute, data, reverse){
 /*tooltip utilities*/
 
 /*Bind Tooltip Events*/
+
+d2b.UTILS.bindToolip = function(element, html, data){
+	if(html){
+		element
+			.on('mouseover.d2b-mouseover-tooltip', function(d,i){
+				var nodeData = (typeof data === "function")? data.apply(this, arguments) : (data || d);
+				var nodeHtml = (typeof html === "function")? html.apply(this, [nodeData, i]) : html;
+				d2b.UTILS.createTooltip(d3.select(this), nodeHtml);
+			})
+			.on('mouseout.d2b-mouseout-tooltip', function(d,i){
+				d2b.UTILS.removeTooltip();
+			});
+	}else{
+		element
+			.on('mouseover.d2b-mouseover-tooltip', null)
+			.on('mouseout.d2b-mouseout-tooltip', null);
+	}
+
+};
+
+//this tooltip binder will be depricated after all charts have been switched over----
 d2b.UTILS.tooltip = function(element, heading, content, d){
 	element
 			.on('mouseover.d2b-mouseover-tooltip',function(d,i){
@@ -89,6 +122,31 @@ d2b.UTILS.tooltip = function(element, heading, content, d){
 			});
 };
 
+d2b.UTILS.createTooltip = function(elem, html){
+	var body = d3.select('body');
+	var tooltip = body.append('div')
+			.attr('class','d2b-general-tooltip')
+			.html(html)
+			.style('opacity',0);
+
+	tooltip
+		.transition()
+			.duration(50)
+			.style('opacity',1);
+
+	tooltip.call(d2b.UTILS.moveTooltip);
+
+	elem.on('mousemove',function(){
+		tooltip
+			.transition()
+				.duration(50)
+				.ease('linear')
+				.call(d2b.UTILS.moveTooltip);
+	});
+	return tooltip;
+};
+
+//this tooltip creator will be depricated after all charts have been switched over----
 d2b.UTILS.createGeneralTooltip = function(elem, heading, content, d){
 	var body = d3.select('body');
 	var adGeneralTooltip = body.append('div')
@@ -107,42 +165,36 @@ d2b.UTILS.createGeneralTooltip = function(elem, heading, content, d){
 			.html(d.tooltipContent);
 	}
 
-	var scroll = d2b.UTILS.scrollOffset();
+	adGeneralTooltip.call(d2b.UTILS.moveTooltip);
 
-	var bodyWidth = body.node().getBoundingClientRect().width;
-
-	var pos = {left:0,top:0};
-
-	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
-								scroll.left+d3.event.clientX+10 :
-								scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
-	pos.top = scroll.top+d3.event.clientY-10;
-
-	d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
 	elem.on('mousemove',function(){
-		scroll = d2b.UTILS.scrollOffset();
-
-		pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
-		scroll.left+d3.event.clientX+10 :
-									scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
-		pos.top = scroll.top+d3.event.clientY-10;
-
-		d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
+		adGeneralTooltip
+			.transition()
+				.duration(50)
+				.ease('linear')
+				.call(d2b.UTILS.moveTooltip);
 	});
 	return adGeneralTooltip;
 };
+
 d2b.UTILS.removeTooltip = function(){
 	d3.selectAll('.d2b-general-tooltip')
 			.remove();
 };
-d2b.UTILS.moveTooltip = function(tooltip, x, y, duration){
+d2b.UTILS.moveTooltip = function(tooltip){
+	var body = d3.select('body');
+	var scroll = d2b.UTILS.scrollOffset();
+	var bodyWidth = body.node().getBoundingClientRect().width;
+
+	var x = (scroll.left+d3.event.clientX < bodyWidth/2)?
+								scroll.left+d3.event.clientX+10 :
+								scroll.left+d3.event.clientX-tooltip.node().getBoundingClientRect().width-10;
+	var y = scroll.top+d3.event.clientY-10;
+
 	tooltip
-		.transition()
-			.duration(duration)
-			.ease('linear')
-			.style('opacity',1)
-			.style('top',y+'px')
-			.style('left',x+'px');
+		.style('opacity',1)
+		.style('top',y+'px')
+		.style('left',x+'px');
 
 	d3.timer.flush();
 };
@@ -306,6 +358,7 @@ d2b.createNameSpace("d2b.UTILS.TWEENS");
 d2b.UTILS.TWEENS.arcTween = function(transition, arc){
 	transition.attrTween("d",function(d){
 		var _self = this;
+		_self.oldArc = _self.oldArc || _self.newArc;
 		var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
 		function tween(t){
 			_self.oldArc = interpolator(t);

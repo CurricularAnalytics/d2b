@@ -42,6 +42,7 @@
 				domain:[500, -200]						//!DOMAIN is only used if the lockXAxis control is enabled, default [0, 1], set the domain for the chosen scale type
 			})
 
+
 //set the controls for this chart, only hideLegend currenlty available for axis-charts
 			.controls({'hideLegend':{'enabled':false,'visible':true},'stackBars':{'visible':true, 'enabled':true}})
 			// default {
@@ -154,6 +155,9 @@
 					}
 				]
 			}})
+
+			console.log(axisChart.persistentData())
+			axisChart.persistentData()['area']['Area 1'].hide = true;
 //pre-defined events
 			// .on('elementClick', function(d,i,type){
 			// 	console.log(type);

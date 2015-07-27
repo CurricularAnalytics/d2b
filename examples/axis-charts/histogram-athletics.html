@@ -19,6 +19,47 @@
           // this is where the various types of axis-charts will be defined
           // all of the chart types are optional and can be used in conjunction with one another
           {
+						type:'gridMarker',
+						graphs:[
+							{
+								notInLegend:true,
+								label:'Sophomores',
+								key:"sop-marker",
+								values:[
+									{
+										dashed:true,
+										label:'Required Hours',
+										x:48
+									}
+								]
+							},
+							{
+								notInLegend:true,
+								label:'Juniors',
+								key:"jun-marker",
+								values:[
+									{
+										dashed:true,
+										label:'Required Hours',
+										x:70
+									}
+								]
+							},
+							{
+								notInLegend:true,
+								label:'Seniors',
+								key:"sen-marker",
+								values:[
+									{
+										dashed:true,
+										label:'Required Hours',
+										x:96
+									}
+								]
+							}
+						]
+					},
+					{
             // histogram-chart-type
             type:'histogram',
             graphs:[

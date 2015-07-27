@@ -107,3 +107,41 @@ d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
     .append('g')
       .attr('class','d2b-controls');
 };
+
+
+//symbol helpers
+d2b.UTILS.CHARTS.HELPERS.symbolEnter = function(elem){
+  elem.append('path').attr('class', 'd2b-symbol d2b-background');
+  elem.append('path').attr('class', 'd2b-symbol d2b-foreground');
+};
+d2b.UTILS.CHARTS.HELPERS.symbolUpdate = function(elem, stroke, fill, size){
+  size = size || 40;
+  var symbol = d2b.UTILS.symbol().size(size);
+
+  elem.select('.d2b-symbol.d2b-background')
+      .attr('d', function(d){return symbol.type(d.symbolType)();})
+      .style('stroke', stroke)
+      .style('fill', fill);
+  elem.select('.d2b-symbol.d2b-foreground')
+  		.attr('d', function(d){return symbol.type(d.symbolType)();})
+  		.style('stroke', stroke)
+  		.style('fill', fill);
+};
+d2b.UTILS.CHARTS.HELPERS.symbolEvents = function(elem, size){
+  size = size || 40;
+  var symbol = d2b.UTILS.symbol();
+  elem.on('mouseover.d2b-symbol-mouseover', function(){
+    d3.select(this)
+      .select('.d2b-symbol.d2b-background')
+      .transition()
+        .duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+    		.attr('d', function(d){return symbol.size(size + 15 * Math.pow(size,0.5)).type(d.symbolType)();})
+  });
+  elem.on('mouseout.d2b-symbol-mouseout', function(){
+    d3.select(this)
+      .select('.d2b-symbol.d2b-background')
+      .transition()
+        .duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+    		.attr('d', function(d){return symbol.size(size).type(d.symbolType)();})
+  });
+};

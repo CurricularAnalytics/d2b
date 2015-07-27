@@ -49,6 +49,10 @@ d2b.CHARTS.pieChart = function(){
 				}
 			};
 
+	$$.tooltip = function(d){
+		return "<b>"+d.label+":</b> "+$$.xFormat(d.value)+" ("+d3.round(100*d.value/$$.pieTotal, 1)+"%)";
+	};
+
 	$$.donutRatio = 0;
 
 	//initialize the d3 arc shape
@@ -99,7 +103,7 @@ d2b.CHARTS.pieChart = function(){
 				.attr('class','d2b-arc')
 				.style('opacity',0)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-arc')
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.data.label+'</b>';},function(d){return $$.xFormat(d.data.value);});
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return d.data;});
 
 		//create arc path
 		newArc.append('path')
@@ -147,10 +151,12 @@ d2b.CHARTS.pieChart = function(){
 					$$.persistentData.focusedArc = null;
 					chart.update();
 				})
+
+		$$.selection.pie.arc.path.transition = $$.selection.pie.arc.path
 			.transition()
 				.duration($$.animationDuration/1.5)
 				.style('opacity',1)
-				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
 
 		// arc text
 		$$.selection.pie.arc.text = $$.selection.pie.arc.select('text')
@@ -215,7 +221,7 @@ d2b.CHARTS.pieChart = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
 		$$.legend.color($$.color);
 	});
-
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 	chart.donutRatio = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'donutRatio');
 
 	chart.data = function(chartData, reset){

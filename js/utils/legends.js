@@ -22,7 +22,22 @@ d2b.UTILS.LEGENDS.legend = function(){
 	//init event object
 	$$.events = d2b.UTILS.chartEvents();
 
-	var itemEnter = function(){
+	$$.getPathForeground = function(d){
+		var scale = Math.pow($$.scale/1.7, 1.5);
+		if(d.open)
+			return d.path.size(scale * 4)(d);
+		else
+			return d.path.size(scale * 15)(d);
+	};
+	$$.getPathBackground = function(d){
+		var scale = Math.pow($$.scale/1.7, 1.5);
+		if(d.open || !d.hovered)
+			return d.path.size(scale * 15)(d);
+		else if(d.hovered)
+			return d.path.size(scale * 35)(d);
+	};
+
+	$$.enterElements = function(){
 
 				$$.computedHeight = 0;
 				$$.computedWidth = 0;
@@ -43,15 +58,15 @@ d2b.UTILS.LEGENDS.legend = function(){
 							var elem = d3.select(this);
 							if($$.active){
 								if(d.open){
-									elem.select('circle.d2b-legend-circle-foreground')
+									elem.select('path.d2b-legend-symbol-foreground')
 										.transition()
 											.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 											.style('fill-opacity', 0.4);
 								}else{
-									elem.select('circle.d2b-legend-circle-background')
+									elem.select('path.d2b-legend-symbol-background')
 										.transition()
 											.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-											.attr('r',$$.scale*1.5);
+											.attr('d', $$.getPathBackground(d));
 								}
 							}
 						})
@@ -59,7 +74,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 							d.hovered = false;
 							var elem = d3.select(this);
 
-							elem.select('circle.d2b-legend-circle-foreground')
+							elem.select('path.d2b-legend-symbol-foreground')
 								.transition()
 									.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 									.style('fill-opacity', function(d){
@@ -68,19 +83,19 @@ d2b.UTILS.LEGENDS.legend = function(){
 										else
 											return 0.8;
 									});
-							elem.select('circle.d2b-legend-circle-background')
+							elem.select('path.d2b-legend-symbol-background')
 								.transition()
 									.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-									.attr('r',$$.scale);
+									.attr('d', $$.getPathBackground(d));
 						})
 						.call($$.events.addElementDispatcher, 'main', 'd2b-legend-item');
 
-				newItem.append('circle')
-					.attr('class', 'd2b-legend-circle-background')
+				newItem.append('path')
+					.attr('class', 'd2b-legend-symbol-background')
 					.style('stroke', d2b.UTILS.getColor($$.color, 'label'));
 
-				newItem.append('circle')
-					.attr('class', 'd2b-legend-circle-foreground')
+				newItem.append('path')
+					.attr('class', 'd2b-legend-symbol-foreground')
 					.style('fill', d2b.UTILS.getColor($$.color, 'label'));
 
 				newItem.append('text')
@@ -88,30 +103,25 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 	};
 
-	var updateElements = function(){
 
-				var circleBackground = $$.selection.item.select('circle.d2b-legend-circle-background');
+	$$.updateElements = function(){
 
-				circleBackground
+				var symbolBackground = $$.selection.item.select('path.d2b-legend-symbol-background');
+
+				symbolBackground
 					.transition()
 						.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 						.style('stroke', d2b.UTILS.getColor($$.color, 'label'))
-						.style('stroke-width', $$.scale/4)
-						.attr('y',$$.scale/2)
-						.attr('r',function(d){
-							if(d.open)
-								return $$.scale;
-							else
-								return (d.hovered)?$$.scale*1.5:$$.scale;
-						});
+						.style('stroke-width', 1)
+						.attr('transform', 'translate(0,'+$$.scale/10+')')
+						.attr('d', function(d){return $$.getPathBackground(d);});
 
-				var circleForeground = $$.selection.item.select('circle.d2b-legend-circle-foreground');
+				var symbolForeground = $$.selection.item.select('path.d2b-legend-symbol-foreground');
 
-				circleForeground
+				symbolForeground
 					.transition()
 						.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-						.attr('r',$$.scale)
-						.attr('y',$$.scale/2)
+						.attr('transform', 'translate(0,'+$$.scale/10+')')
 						.style('fill', d2b.UTILS.getColor($$.color, 'label'))
 						.style('fill-opacity', function(d){
 							if(d.open)
@@ -119,12 +129,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 							else
 								return 0.8;
 						})
-						.attr('r',function(d){
-							if(d.open)
-								return $$.scale * 0.5;
-							else
-								return $$.scale;
-						});
+						.attr('d', function(d){return $$.getPathForeground(d);});
 
 				$$.selection.item.classed('d2b-active', ($$.active)? true:false)
 
@@ -135,7 +140,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 	};
 
-	var updatePositions = function(){
+	$$.updatePositions = function(){
 
 		var xCurrent = $$.scale + $$.padding;
 		var yCurrent = $$.scale + $$.padding;
@@ -205,7 +210,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 		}
 	};
 
-	var itemExit = function(){
+	$$.exitElements = function(){
 		$$.selection.item.exit()
 			.transition()
 				.duration($$.animationDuration)
@@ -236,6 +241,11 @@ d2b.UTILS.LEGENDS.legend = function(){
 	legend.data = function(legendData, reset){
 		if(!arguments.length) return $$.currentLegendData;
 		$$.currentLegendData = legendData.data;
+
+		$$.currentLegendData.items.forEach(function(item){
+			item.path = d2b.UTILS.symbol().type(item.symbol || 'circle');
+		});
+
 		return legend;
 	}
 
@@ -243,10 +253,10 @@ d2b.UTILS.LEGENDS.legend = function(){
 		if(!$$.selection)
 			return console.warn('legend was not given a selection');
 
-		itemEnter();
-		updateElements();
-		updatePositions();
-		itemExit();
+		$$.enterElements();
+		$$.updateElements();
+		$$.updatePositions();
+		$$.exitElements();
 
 		$$.events.dispatch("update", $$.selection);
 

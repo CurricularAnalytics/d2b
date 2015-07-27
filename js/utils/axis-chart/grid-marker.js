@@ -19,18 +19,24 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
 
-	$$.centerMouseover = function(){
-		d3.select(this).select('.d2b-grid-marker-circle.d2b-background')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r', 7);
-	};
+	$$.labelOffset = 3;
 
-	$$.centerMouseout = function(){
-		d3.select(this).select('.d2b-grid-marker-circle.d2b-background')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r', 3.5);
+	$$.symbol = d2b.UTILS.symbol();
+
+	$$.tooltip = function(d){
+		var tooltip = d.graph.label;
+		if(d.data.label && d.graph.label.toLowerCase() != d.data.label.toLowerCase())
+			tooltip += " - "+d.data.label;
+
+		tooltip = "<u><b>"+tooltip+"</b></u>";
+
+		if( (d.line != 'y') && d.data.x != null )
+			tooltip += "<br /><b>x: </b>"+$$.xFormat(d.data.x);
+
+		if( (d.line != 'x') && d.data.y != null )
+			tooltip += "<br /><b>y: </b>"+$$.xFormat(d.data.y);
+
+		return tooltip
 	};
 
 	$$.newGroup = function(elem, graphData){
@@ -46,8 +52,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 			.append('text')
 				.attr('class','d2b-grid-marker-coordinate')
 				.attr('transform','rotate(-90)')
-				.attr('x', -5)
-				.attr('y', 12);
+				.attr('y', 7+$$.labelOffset);
 
 		var newYMarker = elem
 			.append('g')
@@ -60,26 +65,15 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 		newYMarker
 			.append('text')
 				.attr('class','d2b-grid-marker-coordinate')
-				.attr('x', -5)
-				.attr('y', 12);
+				.attr('y', 7+$$.labelOffset);
 
 		var newGroupCenter = elem
 			.append('g')
 				.attr('class','d2b-grid-marker-center')
-				.on('mouseover.d2b-mouseover', $$.centerMouseover)
-				.on('mouseout.d2b-mouseout', $$.centerMouseout)
 				.call($$.updateCenter, graphData, false)
-				.call($$.events.addElementDispatcher, 'main', 'd2b-grid-marker');
-
-		newGroupCenter
-			.append('circle')
-				.attr('r', '3.5px')
-				.attr('class', 'd2b-grid-marker-circle d2b-background');
-
-		newGroupCenter
-			.append('circle')
-				.attr('r', '3.5px')
-				.attr('class', 'd2b-grid-marker-circle d2b-foreground');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-grid-marker')
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEnter)
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEvents);
 
 		elem
 			.append('g')
@@ -92,29 +86,37 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	$$.updateMarker = {};
 	$$.updateMarker.x = function(elem, range, graphData){
 		elem
-			.style('opacity',1)
-			.attr('transform', function(d){
-				return 'translate('+$$.x.customScale(d.x)+',0)';
-			})
-		.select('line')
-			.attr('x1', 0)
-			.attr('x2', 0)
-			.attr('y1', range[0])
-			.attr('y2', range[1])
-			.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+				.style('opacity',1)
+				.attr('transform', function(d){
+					return 'translate('+$$.x.customScale(d.x)+',0)';
+				})
+			.select('line')
+				.attr('x1', 0)
+				.attr('x2', 0)
+				.attr('y1', range[0])
+				.attr('y2', range[1])
+				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+
+		elem
+			.select('.d2b-grid-marker-coordinate')
+				.attr('x', function(d){return (d.invert)? -range[0]+$$.labelOffset : -$$.labelOffset;});
 	};
 	$$.updateMarker.y = function(elem, range, graphData){
 		elem
-			.style('opacity',1)
-			.attr('transform', function(d){
-				return 'translate('+range[1]+','+$$.y.customScale(d.y)+')';
-			})
-		.select('line')
-			.attr('x1', range[0])
-			.attr('x2', -range[1])
-			.attr('y1', 0)
-			.attr('y2', 0)
-			.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+				.style('opacity',1)
+				.attr('transform', function(d){
+					return 'translate('+range[1]+','+$$.y.customScale(d.y)+')';
+				})
+			.select('line')
+				.attr('x1', range[0])
+				.attr('x2', -range[1])
+				.attr('y1', 0)
+				.attr('y2', 0)
+				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+
+		elem
+			.select('.d2b-grid-marker-coordinate')
+				.attr('x', function(d){return (d.invert)? -range[1]+$$.labelOffset : -$$.labelOffset;});
 	};
 
 	$$.updateMarkers = function(elem, graphData, orient, transition){
@@ -125,10 +127,11 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 		}
 
 		var range = $$[y].scale.range();
-		
+
 		//position marker grouping if transition flag is set transition to new position/opacity
 		elem.each(function(d){
-			var elemTransition = d3.select(this);
+			var elemTransition = d3.select(this)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {line:x, data:d, graph:graphData};});
 			if(transition)
 				elemTransition = elemTransition.transition().duration($$.animationDuration);
 
@@ -146,6 +149,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 			.classed('d2b-dashed', function(d){return (d.dashed);});
 
 		elem.select('text.d2b-grid-marker-coordinate')
+			.classed('d2b-inverted', function(d){return d.invert;})
 			.text(function(d){return $$[x+'Format'](d[x]);});
 	};
 
@@ -162,6 +166,8 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 
 				textTransition
 					.text(function(d){return d.label;})
+					.attr('y', -$$.labelOffset)
+					.attr('transform', 'rotate(0)');
 
 				if(d.x != null && d.y != null){
 					if($$.x.customScale(d.x) > $$.width/2){
@@ -170,34 +176,46 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 
 						textTransition
 							.style('text-anchor','end')
-							.attr('x', -5)
-							.attr('y', -5);
+							.attr('x', $$.labelOffset);
 					}else{;
 						elemTransition
 							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')');
 
 						textTransition
 							.style('text-anchor','start')
-							.attr('x', 5)
-							.attr('y', -5);
+							.attr('x', $$.labelOffset);
 					}
 				}else if(d.y != null){
-					elemTransition
-						.attr('transform', 'translate('+$$.x.scale.range()[1]+','+$$.y.customScale(d.y)+')');
+					if(d.invert){
+						elemTransition
+							.attr('transform', 'translate('+$$.x.scale.range()[0]+','+$$.y.customScale(d.y)+')');
+						textTransition
+							.style('text-anchor', 'start')
+							.attr('x', $$.labelOffset);
+					}else{
+						elemTransition
+							.attr('transform', 'translate('+$$.x.scale.range()[1]+','+$$.y.customScale(d.y)+')');
+						textTransition
+							.style('text-anchor', 'end')
+							.attr('x', -$$.labelOffset);
+					}
 
-					textTransition
-						.style('text-anchor', 'end')
-						.attr('x', -5)
-						.attr('y', -5);
 				}else{
-					elemTransition
-						.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.scale.range()[1]+')');
-
-					textTransition
-						.style('text-anchor', 'end')
-						.attr('x', -5)
-						.attr('y', -5)
-						.attr('transform', 'rotate(-90)');
+					if(d.invert){
+						elemTransition
+							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.scale.range()[0]+')');
+						textTransition
+							.style('text-anchor', 'start')
+							.attr('x', $$.labelOffset)
+							.attr('transform', 'rotate(-90)');
+					}else{
+						elemTransition
+							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.scale.range()[1]+')');
+						textTransition
+							.style('text-anchor', 'end')
+							.attr('x', -$$.labelOffset)
+							.attr('transform', 'rotate(-90)');
+					}
 				}
 			});
 
@@ -205,16 +223,22 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	};
 
 	$$.updateCenter = function(elem, graphData, transition){
-		if(transition)
-			elem = elem.transition().duration($$.animationDuration);
 
 		elem.each(function(d){
+
+			d.symbolType = d.symbol || graphData.symbol || 'circle';
+
+			var elem = d3.select(this);
+
+			if(transition)
+				elem = elem.transition().duration($$.animationDuration);
+
 			if(d.y != null && d.x != null){
 				elem
 						.style('opacity', 1)
-						.attr('transform', function(d){return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')';})
-					.selectAll('.d2b-grid-marker-circle')
-						.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+						.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')')
+						.call(d2b.UTILS.CHARTS.HELPERS.symbolUpdate, d2b.UTILS.getColor($$.color, 'label', [graphData]), '');
+
 			}else{
 				elem.style('opacity',0);
 			}
@@ -240,8 +264,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
-
-	//if you need additional chart-type properties, those can go here..
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
@@ -253,7 +276,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 						values.push(d2.x);
 				})
 			}else
-				if(d2.x)
+				if(d.x)
 					values.push(d.x);
 		});
 		return values;
@@ -267,7 +290,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 						values.push(d2.y);
 				})
 			}else
-				if(d2.y)
+				if(d.y)
 					values.push(d.y);
 		});
 		return values;
@@ -307,9 +330,11 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 
 			group.select('g.d2b-grid-marker-label')
 				.call($$.updateLabel, graphData, 'y', true)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return '';});//$$.yFormat(d.y);});
 
 			var groupCenter = group.select('g.d2b-grid-marker-center')
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return '';});//$$.yFormat(d.y);});
 
 			groupCenter

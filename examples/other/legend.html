@@ -22,7 +22,7 @@
 			.height($(window).height())
 			// .width($(window).width())
 			.orientation('vertical')
-			.scale(5)
+			// .scale(20)
 			.padding(20)
 			// .on('elementMouseover',function(d,i){
 			// 	console.log('moused over!');
@@ -37,24 +37,21 @@
 			// 	console.log('clicked!');
 			// });
 
-		legend.data({
-			data:{
-				items:[
-					{label:'legend item 1'},
-					{label:'legend item 2'},
-					{label:'legend item 3'},
-					{label:'legend item 4'},
-					{label:'legend item 5'},
-					{label:'legend item 6'},
-					{label:'legend item 7'},
-					{label:'legend item 8'},
-					{label:'legend item 9'},
-					{label:'legend item 10'}
-				]
-			}
-		}).update();
+		var itemNumber = 1;
 
+		legend
+			.active(true)
+			.data({
+				data:{
+					items:
+						d2b.UTILS.symbolTypes.map(function(symbol){return {label:'legend item '+(itemNumber++), symbol:symbol}}).concat(
+							d2b.UTILS.symbolTypes.map(function(symbol){return {label:'legend item '+(itemNumber++), symbol:symbol, open:true}})
+						)
+				}
+			})
+			.update();
 
+		console.log(d2b.UTILS.symbolTypes)
 
 		d3.select('.block').style('top',legend.computedHeight()+'px');
 		d3.select('.block2').style('left',legend.computedWidth()+'px');

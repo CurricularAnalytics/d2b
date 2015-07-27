@@ -387,8 +387,12 @@ d2b.CHARTS.sunburstChart = function(){
 
 		var breadcrumbsSelection = $$.breadcrumbs.selection();
 		breadcrumbsSelection.breadcrumb.path
-			.attr('stroke-width',2)
-			.attr('stroke',function(d){return $$.arcFill(d.data);});
+			// .attr('stroke-width',2)
+			.attr('stroke-width',1.5)
+			.style('fill-opacity',0.2)
+			.style('stroke-opacity',0.7)
+			.style('fill',function(d){return $$.arcFill(d.data);})
+			.style('stroke',function(d){return d3.rgb($$.arcFill(d.data)).darker(1);});
 
 	};
 
