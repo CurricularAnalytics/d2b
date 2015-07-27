@@ -31,6 +31,10 @@ d2b.CHARTS.tableChart = function(){
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
 
+	$$.tooltip = function(d){
+		return "<b>"+d.label+"</b>: "+$$.xFormat(d.value);
+	};
+
 	$$.selectedRow = null;
 
 	$$.updateSubFacts = function(row, subFacts, subFactsData, x, padding, height, showValueLabels){
@@ -90,7 +94,7 @@ d2b.CHARTS.tableChart = function(){
 		newSubFactValue.append('text').attr('class','d2b-subFact-value-label');
 
 		var subFactValueTransition = subFactValue
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return $$.xFormat(d.value);})
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return d;})
 			.transition()
 				.duration($$.animationDuration);
 
@@ -279,6 +283,7 @@ d2b.CHARTS.tableChart = function(){
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;

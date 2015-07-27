@@ -15,6 +15,7 @@
 			// 	   .domain(["Academic Affairs","Administration","color-individual"])
 			// 	   .range(["rgb(193,0,55)", "rgb(0,0,200)" , "rgb(0,200,0)"])
 			// )
+			.tooltip(function(d){console.log(d);return '<u><b>'+d.label+'</b></u><br />'+d.value;})
 			.xFormat({nice:true,siPrefixed:false,units:{before:'$'}, separateThousands:false,precision:1})
 			.controls({sortByChange:{visible:true},hideLegend:{visible:true},colorByChange:{visible:true}})
 

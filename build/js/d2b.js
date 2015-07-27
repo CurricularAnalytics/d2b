@@ -1726,12 +1726,24 @@ d2b.UTILS.visualLength = function(value,span){
 	}
 };
 
+// d2b.UTILS.defined = function(value){
+// 	return value != null && value != undefined;
+// };
+
 /** apply properties to d2b object
 	* use: d2b.UTILS.applyProperties.call(obj, properties);
 	*/
 d2b.UTILS.applyProperties = function(properties){
 	for(var key in properties)
 		this[key](properties[key]);
+
+		for(key in properties){
+			if(properties[key].args)
+				this[key].apply(this, properties[key].args)
+			else
+				this[key](properties[key]);
+		}
+
 };
 
 /** check for existance of a nested attribute
@@ -1771,6 +1783,27 @@ d2b.UTILS.getColor = function(color, defaultAttribute, data, reverse){
 /*tooltip utilities*/
 
 /*Bind Tooltip Events*/
+
+d2b.UTILS.bindToolip = function(element, html, data){
+	if(html){
+		element
+			.on('mouseover.d2b-mouseover-tooltip', function(d,i){
+				var nodeData = (typeof data === "function")? data.apply(this, arguments) : (data || d);
+				var nodeHtml = (typeof html === "function")? html.apply(this, [nodeData, i]) : html;
+				d2b.UTILS.createTooltip(d3.select(this), nodeHtml);
+			})
+			.on('mouseout.d2b-mouseout-tooltip', function(d,i){
+				d2b.UTILS.removeTooltip();
+			});
+	}else{
+		element
+			.on('mouseover.d2b-mouseover-tooltip', null)
+			.on('mouseout.d2b-mouseout-tooltip', null);
+	}
+
+};
+
+//this tooltip binder will be depricated after all charts have been switched over----
 d2b.UTILS.tooltip = function(element, heading, content, d){
 	element
 			.on('mouseover.d2b-mouseover-tooltip',function(d,i){
@@ -1781,6 +1814,31 @@ d2b.UTILS.tooltip = function(element, heading, content, d){
 			});
 };
 
+d2b.UTILS.createTooltip = function(elem, html){
+	var body = d3.select('body');
+	var tooltip = body.append('div')
+			.attr('class','d2b-general-tooltip')
+			.html(html)
+			.style('opacity',0);
+
+	tooltip
+		.transition()
+			.duration(50)
+			.style('opacity',1);
+
+	tooltip.call(d2b.UTILS.moveTooltip);
+
+	elem.on('mousemove',function(){
+		tooltip
+			.transition()
+				.duration(50)
+				.ease('linear')
+				.call(d2b.UTILS.moveTooltip);
+	});
+	return tooltip;
+};
+
+//this tooltip creator will be depricated after all charts have been switched over----
 d2b.UTILS.createGeneralTooltip = function(elem, heading, content, d){
 	var body = d3.select('body');
 	var adGeneralTooltip = body.append('div')
@@ -1799,42 +1857,36 @@ d2b.UTILS.createGeneralTooltip = function(elem, heading, content, d){
 			.html(d.tooltipContent);
 	}
 
-	var scroll = d2b.UTILS.scrollOffset();
+	adGeneralTooltip.call(d2b.UTILS.moveTooltip);
 
-	var bodyWidth = body.node().getBoundingClientRect().width;
-
-	var pos = {left:0,top:0};
-
-	pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
-								scroll.left+d3.event.clientX+10 :
-								scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
-	pos.top = scroll.top+d3.event.clientY-10;
-
-	d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 0);
 	elem.on('mousemove',function(){
-		scroll = d2b.UTILS.scrollOffset();
-
-		pos.left = (scroll.left+d3.event.clientX < bodyWidth/2)?
-		scroll.left+d3.event.clientX+10 :
-									scroll.left+d3.event.clientX-adGeneralTooltip.node().getBoundingClientRect().width-10;
-		pos.top = scroll.top+d3.event.clientY-10;
-
-		d2b.UTILS.moveTooltip(adGeneralTooltip, pos.left, pos.top, 50);
+		adGeneralTooltip
+			.transition()
+				.duration(50)
+				.ease('linear')
+				.call(d2b.UTILS.moveTooltip);
 	});
 	return adGeneralTooltip;
 };
+
 d2b.UTILS.removeTooltip = function(){
 	d3.selectAll('.d2b-general-tooltip')
 			.remove();
 };
-d2b.UTILS.moveTooltip = function(tooltip, x, y, duration){
+d2b.UTILS.moveTooltip = function(tooltip){
+	var body = d3.select('body');
+	var scroll = d2b.UTILS.scrollOffset();
+	var bodyWidth = body.node().getBoundingClientRect().width;
+
+	var x = (scroll.left+d3.event.clientX < bodyWidth/2)?
+								scroll.left+d3.event.clientX+10 :
+								scroll.left+d3.event.clientX-tooltip.node().getBoundingClientRect().width-10;
+	var y = scroll.top+d3.event.clientY-10;
+
 	tooltip
-		.transition()
-			.duration(duration)
-			.ease('linear')
-			.style('opacity',1)
-			.style('top',y+'px')
-			.style('left',x+'px');
+		.style('opacity',1)
+		.style('top',y+'px')
+		.style('left',x+'px');
 
 	d3.timer.flush();
 };
@@ -1998,6 +2050,7 @@ d2b.createNameSpace("d2b.UTILS.TWEENS");
 d2b.UTILS.TWEENS.arcTween = function(transition, arc){
 	transition.attrTween("d",function(d){
 		var _self = this;
+		_self.oldArc = _self.oldArc || _self.newArc;
 		var interpolator = d3.interpolate(_self.oldArc,_self.newArc)
 		function tween(t){
 			_self.oldArc = interpolator(t);
@@ -2059,7 +2112,22 @@ d2b.UTILS.LEGENDS.legend = function(){
 	//init event object
 	$$.events = d2b.UTILS.chartEvents();
 
-	var itemEnter = function(){
+	$$.getPathForeground = function(d){
+		var scale = Math.pow($$.scale/1.7, 1.5);
+		if(d.open)
+			return d.path.size(scale * 4)(d);
+		else
+			return d.path.size(scale * 15)(d);
+	};
+	$$.getPathBackground = function(d){
+		var scale = Math.pow($$.scale/1.7, 1.5);
+		if(d.open || !d.hovered)
+			return d.path.size(scale * 15)(d);
+		else if(d.hovered)
+			return d.path.size(scale * 35)(d);
+	};
+
+	$$.enterElements = function(){
 
 				$$.computedHeight = 0;
 				$$.computedWidth = 0;
@@ -2080,15 +2148,15 @@ d2b.UTILS.LEGENDS.legend = function(){
 							var elem = d3.select(this);
 							if($$.active){
 								if(d.open){
-									elem.select('circle.d2b-legend-circle-foreground')
+									elem.select('path.d2b-legend-symbol-foreground')
 										.transition()
 											.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 											.style('fill-opacity', 0.4);
 								}else{
-									elem.select('circle.d2b-legend-circle-background')
+									elem.select('path.d2b-legend-symbol-background')
 										.transition()
 											.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-											.attr('r',$$.scale*1.5);
+											.attr('d', $$.getPathBackground(d));
 								}
 							}
 						})
@@ -2096,7 +2164,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 							d.hovered = false;
 							var elem = d3.select(this);
 
-							elem.select('circle.d2b-legend-circle-foreground')
+							elem.select('path.d2b-legend-symbol-foreground')
 								.transition()
 									.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 									.style('fill-opacity', function(d){
@@ -2105,19 +2173,19 @@ d2b.UTILS.LEGENDS.legend = function(){
 										else
 											return 0.8;
 									});
-							elem.select('circle.d2b-legend-circle-background')
+							elem.select('path.d2b-legend-symbol-background')
 								.transition()
 									.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-									.attr('r',$$.scale);
+									.attr('d', $$.getPathBackground(d));
 						})
 						.call($$.events.addElementDispatcher, 'main', 'd2b-legend-item');
 
-				newItem.append('circle')
-					.attr('class', 'd2b-legend-circle-background')
+				newItem.append('path')
+					.attr('class', 'd2b-legend-symbol-background')
 					.style('stroke', d2b.UTILS.getColor($$.color, 'label'));
 
-				newItem.append('circle')
-					.attr('class', 'd2b-legend-circle-foreground')
+				newItem.append('path')
+					.attr('class', 'd2b-legend-symbol-foreground')
 					.style('fill', d2b.UTILS.getColor($$.color, 'label'));
 
 				newItem.append('text')
@@ -2125,30 +2193,25 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 	};
 
-	var updateElements = function(){
 
-				var circleBackground = $$.selection.item.select('circle.d2b-legend-circle-background');
+	$$.updateElements = function(){
 
-				circleBackground
+				var symbolBackground = $$.selection.item.select('path.d2b-legend-symbol-background');
+
+				symbolBackground
 					.transition()
 						.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
 						.style('stroke', d2b.UTILS.getColor($$.color, 'label'))
-						.style('stroke-width', $$.scale/4)
-						.attr('y',$$.scale/2)
-						.attr('r',function(d){
-							if(d.open)
-								return $$.scale;
-							else
-								return (d.hovered)?$$.scale*1.5:$$.scale;
-						});
+						.style('stroke-width', 1)
+						.attr('transform', 'translate(0,'+$$.scale/10+')')
+						.attr('d', function(d){return $$.getPathBackground(d);});
 
-				var circleForeground = $$.selection.item.select('circle.d2b-legend-circle-foreground');
+				var symbolForeground = $$.selection.item.select('path.d2b-legend-symbol-foreground');
 
-				circleForeground
+				symbolForeground
 					.transition()
 						.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-						.attr('r',$$.scale)
-						.attr('y',$$.scale/2)
+						.attr('transform', 'translate(0,'+$$.scale/10+')')
 						.style('fill', d2b.UTILS.getColor($$.color, 'label'))
 						.style('fill-opacity', function(d){
 							if(d.open)
@@ -2156,12 +2219,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 							else
 								return 0.8;
 						})
-						.attr('r',function(d){
-							if(d.open)
-								return $$.scale * 0.5;
-							else
-								return $$.scale;
-						});
+						.attr('d', function(d){return $$.getPathForeground(d);});
 
 				$$.selection.item.classed('d2b-active', ($$.active)? true:false)
 
@@ -2172,7 +2230,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 
 	};
 
-	var updatePositions = function(){
+	$$.updatePositions = function(){
 
 		var xCurrent = $$.scale + $$.padding;
 		var yCurrent = $$.scale + $$.padding;
@@ -2242,7 +2300,7 @@ d2b.UTILS.LEGENDS.legend = function(){
 		}
 	};
 
-	var itemExit = function(){
+	$$.exitElements = function(){
 		$$.selection.item.exit()
 			.transition()
 				.duration($$.animationDuration)
@@ -2273,6 +2331,11 @@ d2b.UTILS.LEGENDS.legend = function(){
 	legend.data = function(legendData, reset){
 		if(!arguments.length) return $$.currentLegendData;
 		$$.currentLegendData = legendData.data;
+
+		$$.currentLegendData.items.forEach(function(item){
+			item.path = d2b.UTILS.symbol().type(item.symbol || 'circle');
+		});
+
 		return legend;
 	}
 
@@ -2280,10 +2343,10 @@ d2b.UTILS.LEGENDS.legend = function(){
 		if(!$$.selection)
 			return console.warn('legend was not given a selection');
 
-		itemEnter();
-		updateElements();
-		updatePositions();
-		itemExit();
+		$$.enterElements();
+		$$.updateElements();
+		$$.updatePositions();
+		$$.exitElements();
 
 		$$.events.dispatch("update", $$.selection);
 
@@ -2673,6 +2736,44 @@ d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG = function(_chart){
       .attr('class','d2b-controls');
 };
 
+
+//symbol helpers
+d2b.UTILS.CHARTS.HELPERS.symbolEnter = function(elem){
+  elem.append('path').attr('class', 'd2b-symbol d2b-background');
+  elem.append('path').attr('class', 'd2b-symbol d2b-foreground');
+};
+d2b.UTILS.CHARTS.HELPERS.symbolUpdate = function(elem, stroke, fill, size){
+  size = size || 40;
+  var symbol = d2b.UTILS.symbol().size(size);
+
+  elem.select('.d2b-symbol.d2b-background')
+      .attr('d', function(d){return symbol.type(d.symbolType)();})
+      .style('stroke', stroke)
+      .style('fill', fill);
+  elem.select('.d2b-symbol.d2b-foreground')
+  		.attr('d', function(d){return symbol.type(d.symbolType)();})
+  		.style('stroke', stroke)
+  		.style('fill', fill);
+};
+d2b.UTILS.CHARTS.HELPERS.symbolEvents = function(elem, size){
+  size = size || 40;
+  var symbol = d2b.UTILS.symbol();
+  elem.on('mouseover.d2b-symbol-mouseover', function(){
+    d3.select(this)
+      .select('.d2b-symbol.d2b-background')
+      .transition()
+        .duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+    		.attr('d', function(d){return symbol.size(size + 15 * Math.pow(size,0.5)).type(d.symbolType)();})
+  });
+  elem.on('mouseout.d2b-symbol-mouseout', function(){
+    d3.select(this)
+      .select('.d2b-symbol.d2b-background')
+      .transition()
+        .duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
+    		.attr('d', function(d){return symbol.size(size).type(d.symbolType)();})
+  });
+};
+
 /**
  *   This 'loader' will instantiate a multi-file loader. It is used to avoid
  *   duplicate (redundant) file requests and process multiple file requests
@@ -2878,6 +2979,81 @@ d2b.UTILS.chartEvents = function(){
 		});
 	};
 	return handler;
+};
+
+d2b.MATH = {};
+
+//  mean, median, mode, midpoint, and range are usefull in hierarchical positioning
+//  where the position of the parent nodes are relative to their leaf nodes
+//  by the chosen statistical metric
+
+d2b.MATH.mean = function(arr, value, weight){
+  if(!(typeof weight === "function"))
+    weight = function(){return 1};
+  if(!(typeof value === "function"))
+    value = function(item){return item};
+
+  var totalWeight = d3.sum(arr, function(item){return weight(item)});
+
+  var mean = 0;
+  arr.forEach(function(item){
+    mean += value(item) * weight(item) / totalWeight;
+  });
+  return mean;
+};
+d2b.MATH.median = function(arr, value, weight){
+  if(!(typeof weight === "function"))
+    weight = function(){return 1};
+  if(!(typeof value === "function"))
+    value = function(item){return item};
+
+  var medians = [], midWeight = d3.sum(arr, function(item){return weight(item)})/2;
+
+  arr.sort(function(a,b){return d3.ascending(value(a), value(b))});
+
+  var currentPosition = 0;
+  arr.forEach(function(item){
+    if(currentPosition == midWeight){
+      medians.push(value(item));
+    }
+
+    currentPosition += weight(item);
+
+    if(currentPosition >= midWeight && medians.length == 0){
+      medians.push(value(item));
+    }
+  });
+
+  return d2b.MATH.mean(medians);
+};
+d2b.MATH.mode = function(arr, value, weight){ //finish mode...
+  if(!(typeof weight === "function"))
+    weight = function(){return 1};
+  if(!(typeof value === "function"))
+    value = function(item){return item};
+
+  var modes = [], maxFrequency = 0, frequencies = {};
+
+  arr.forEach(function(item){
+    frequencies[value(item)] = frequencies[value(item)] || 0;
+    frequencies[value(item)] += weight(item);
+
+    if(frequencies[value(item)] > maxFrequency){
+      maxFrequency = frequencies[value(item)];
+      modes = [value(item)];
+    }else if(frequencies[value(item)] == maxFrequency){
+      modes.push(value(item));
+    }
+  });
+
+  return d2b.MATH.mean(modes);
+};
+d2b.MATH.midpoint = function(arr, value){
+  return d3.mean(d3.extent(arr, function(item){return (value)? value(item) : item;}))
+};
+d2b.MATH.range = function(arr, value){
+  var extent = d3.extent(arr, function(item){return (value)? value(item) : item;});
+  return extent[1] - extent[0];
 };
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
@@ -3269,8 +3445,12 @@ d2b.CHARTS.sunburstChart = function(){
 
 		var breadcrumbsSelection = $$.breadcrumbs.selection();
 		breadcrumbsSelection.breadcrumb.path
-			.attr('stroke-width',2)
-			.attr('stroke',function(d){return $$.arcFill(d.data);});
+			// .attr('stroke-width',2)
+			.attr('stroke-width',1.5)
+			.style('fill-opacity',0.2)
+			.style('stroke-opacity',0.7)
+			.style('fill',function(d){return $$.arcFill(d.data);})
+			.style('stroke',function(d){return d3.rgb($$.arcFill(d.data)).darker(1);});
 
 	};
 
@@ -3527,10 +3707,24 @@ d2b.CHARTS.bubbleChart = function(){
 		fontSize:d3.scale.linear().range([10, 30]).domain([0, 500])
 	};
 
+	$$.formatPercent = d3.format("%");
+	$$.bubbleChange = function(d){
+		var changeHTML = '';
+
+		if(isNaN(d.change)){}
+		else if(d.change >= 0)
+			changeHTML = '(+'+$$.formatPercent(d.change)+')';
+		else if(d.change < 0)
+			changeHTML = '('+$$.formatPercent(d.change)+')';
+
+		return $$.xFormat(d.value)+' '+changeHTML;
+	};
+	$$.tooltip = function(d){
+		return "<b>"+d.label+":</b> "+$$.bubbleChange(d);
+	};
 
 	$$.longestGroupsTick = 0;
 
-	$$.formatPercent = d3.format("%");
 
 	//change axis init and tick formatting
 	changeAxis = d3.svg.axis().orient("top")
@@ -3845,17 +4039,6 @@ d2b.CHARTS.bubbleChart = function(){
 		}
 	};
 
-	$$.bubbleChange = function(d, i){
-		var changeHTML = '';
-
-		if(isNaN(d.change)){}
-		else if(d.change >= 0)
-			changeHTML = '(+'+$$.formatPercent(d.change)+')';
-		else if(d.change < 0)
-			changeHTML = '('+$$.formatPercent(d.change)+')';
-
-		return $$.xFormat(d.value)+' '+changeHTML;
-	};
 
 	//GP async loop
 	$$.asyncLoop = function(iterations, process, exit){
@@ -3905,7 +4088,8 @@ d2b.CHARTS.bubbleChart = function(){
 		var newBubble = $$.selection.group.bubbles.bubble.enter()
 			.append('g')
 				.attr('class','d2b-bubble')
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},$$.bubbleChange)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return d;})
+				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},$$.bubbleChange)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble');
 
 		newBubble.append('circle')
@@ -4096,6 +4280,7 @@ d2b.CHARTS.bubbleChart = function(){
 		$$.controls.animationDuration($$.animationDuration);
 	});
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
@@ -4336,10 +4521,10 @@ d2b.CHARTS.axisChart = function(){
 	};
 	//formatting x values
 	$$.xFormat = function(value){return value};
+	$$.xFormatAxis = $$.xFormat;
 	//formatting y values
 	$$.yFormat = function(value){return value};
-	//event object
-	// $$.on = d2b.CONSTANTS.DEFAULTEVENTS();
+	$$.yFormatAxis = $$.yFormat;
 
 	$$.events = d2b.UTILS.chartEvents();
 
@@ -4388,7 +4573,6 @@ d2b.CHARTS.axisChart = function(){
 		if(d2b.UTILS.AXISCHART.TYPES[type].tools){
 			var tools = d2b.UTILS.AXISCHART.TYPES[type].tools();
 			if(tools){
-
 				//controlsData tools
 				if(tools.controlsData){
 					for(control in tools.controlsData){
@@ -4446,7 +4630,7 @@ d2b.CHARTS.axisChart = function(){
 
 		$$.selection.types.background.type.each(function(d){
 			this.d2bType
-				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}));
+				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.key].hide;}));
 			if(this.d2bType.xValues)
 				xValues = xValues.concat(this.d2bType.xValues());
 			if(this.d2bType.yValues)
@@ -4535,10 +4719,10 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.foreground.type.graph = $$.selection.types.foreground.type.selectAll('g.d2b-axis-chart-foreground-graph')
 			.data(
 				function(d){
-					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
+					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.key].hide;})
 				},
 				function(d,i){
-					return d.label;
+					return d.key;
 				}
 			);
 		$$.selection.types.foreground.type.graph.enter()
@@ -4549,14 +4733,14 @@ d2b.CHARTS.axisChart = function(){
 		//save the foreground in data for use with the legend events
 		$$.selection.types.foreground.type.graph
 				.each(function(graph){
-					$$.persistentChartData[graph.type][graph.label].foreground = d3.select(this);
+					$$.persistentChartData[graph.type][graph.key].foreground = d3.select(this);
 				})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);
 
 		$$.selection.types.foreground.type.graph.exit()
-			.each(function(d){$$.persistentChartData[d.type][d.label].foreground = null;})
+			.each(function(d){$$.persistentChartData[d.type][d.key].foreground = null;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
@@ -4591,10 +4775,10 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.background.type.graph = $$.selection.types.background.type.selectAll('g.d2b-axis-chart-background-graph')
 			.data(
 				function(d){
-					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;})
+					return d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.key].hide;})
 				},
 				function(d,i){
-					return d.label;
+					return d.key;
 				}
 			);
 		$$.selection.types.background.type.graph.enter()
@@ -4605,13 +4789,13 @@ d2b.CHARTS.axisChart = function(){
 		//save the background in data for use with the legend events
 		$$.selection.types.background.type.graph
 				.each(function(graph){
-					$$.persistentChartData[graph.type][graph.label].background = d3.select(this);
+					$$.persistentChartData[graph.type][graph.key].background = d3.select(this);
 				})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);
 		$$.selection.types.background.type.graph.exit()
-			.each(function(d){$$.persistentChartData[d.type][d.label].background = null;})
+			.each(function(d){$$.persistentChartData[d.type][d.key].background = null;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
@@ -4680,7 +4864,7 @@ d2b.CHARTS.axisChart = function(){
 		$$.selection.types.background.type.each(function(d){
 			var type = d3.select(this);
 			var graphs = type.selectAll('.d2b-axis-chart-background-graph');
-			d.backgroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;});
+			d.backgroundGraphs = graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.key].hide;});
 
 			d2b.UTILS.applyProperties.call(this.d2bType, d.properties);
 
@@ -4694,7 +4878,7 @@ d2b.CHARTS.axisChart = function(){
 				.general(d.general)
 				.foreground(d.foregroundGraphs)
 				.background(d.backgroundGraphs)
-				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.label].hide;}))
+				.data(d.graphs.filter(function(graph){return !$$.persistentChartData[graph.type][graph.key].hide;}))
 				.update();
 		});
 
@@ -4708,13 +4892,9 @@ d2b.CHARTS.axisChart = function(){
 
 	//axis modifier is used to make like code for x/y axes repeatable for both axes
 	$$.axisModifier = function(callback, params){
-		if(params){
-			callback('x', params.x);
-			callback('y', params.y);
-		}else{
-			callback('x');
-			callback('y');
-		}
+		params = params || {x:null, y:null};
+		callback('x', params.x);
+		callback('y', params.y);
 	};
 
 	//loop through tick text for the given axis, if any of them parse as a 0 value assert the d2b-origin-tick class
@@ -4826,31 +5006,22 @@ d2b.CHARTS.axisChart = function(){
 		//-----------
 
 		//find max tick size on the vertical axis for proper spacing and tick count
-		var maxTickLengthY = 0;
-		$$.selection.axes.y.text = $$.selection.axes.y
-				.call($$.denoteOriginTicks)
-			.selectAll('.tick text')
-				.each(function(d){
-					var length = this.getComputedTextLength();
-					maxTickLengthY = Math.max(maxTickLengthY, length);
-				});
+		var maxTickLength = {x: 0, y: 0};
 
+		$$.axisModifier(function(axis){
+			$$.selection.axes[axis].text = $$.selection.axes[axis]
+					.call($$.denoteOriginTicks)
+				.selectAll('.tick text')
+					.each(function(d){
+						var length = this.getComputedTextLength();
+						maxTickLength[axis] = Math.max(maxTickLength[axis], length);
+					});
+		});
 		if($$.y.type != 'ordinal')
 			$$.y.axis.ticks($$.innerHeight/75);
-		//-----------
-
-		//find max tick size on the horizontal axis for tick count
-		var maxTickLengthX = 0;
-		$$.selection.axes.x.text = $$.selection.axes.x
-				.call($$.denoteOriginTicks)
-			.selectAll('.tick text')
-				.each(function(d){
-					var length = this.getComputedTextLength();
-					maxTickLengthX = Math.max(maxTickLengthX, length);
-				});
-
 		if($$.x.type != 'ordinal')
-			$$.x.axis.ticks($$.innerWidth/maxTickLengthX/6);
+			$$.x.axis.ticks($$.innerWidth/maxTickLength.x/6);
+		//-----------
 
 		var labelPadding = 10;
 		//-----------
@@ -4868,13 +5039,13 @@ d2b.CHARTS.axisChart = function(){
 			},
 			{
 				x:{offset:10 + labelPadding, dimension:'innerHeight'},
-				y:{offset:maxTickLengthY + labelPadding, dimension:'innerWidth'}
+				y:{offset:maxTickLength.y + labelPadding, dimension:'innerWidth'}
 			}
 		);
 		//-----------
 
 		//position x/y labels
-		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLengthY-labelOffset-labelPadding-5 : maxTickLengthY+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
+		var labelOffsetPosition = ($$.y.orientation == 'left')? -maxTickLength.y-labelOffset-labelPadding-5 : maxTickLength.y+labelOffset+labelPadding+labelTransition.y.node().getBBox().width;
 		labelTransition.y.attr('transform','translate('+ labelOffsetPosition +','+ $$.innerHeight/2 +')');
 
 		labelOffsetPosition = ($$.x.orientation == 'top')? -labelOffset*1.5-labelPadding:+labelOffset*1+labelPadding+labelTransition.x.node().getBBox().height;
@@ -4930,7 +5101,7 @@ d2b.CHARTS.axisChart = function(){
 						var length = this.getComputedTextLength();
 						verifyMaxTickLengthY = Math.max(verifyMaxTickLengthY, length);
 					});
-					if(maxTickLengthY != verifyMaxTickLengthY)
+					if(maxTickLength.y != verifyMaxTickLengthY)
 						chart.update();
 				},10);
 
@@ -5011,8 +5182,11 @@ d2b.CHARTS.axisChart = function(){
 		}
 	});
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat', function(){$$.xAlias.axis.tickFormat($$.xFormat);});
-	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat', function(){$$.yAlias.axis.tickFormat($$.yFormat);});
+	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
+	chart.xFormatAxis = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormatAxis', function(){$$.xAlias.axis.tickFormat($$.xFormatAxis);});
+	chart.yFormatAxis = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormatAxis', function(){$$.yAlias.axis.tickFormat($$.yFormatAxis);});
+	chart.persistentData = 			d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'persistentChartData');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
@@ -5077,8 +5251,9 @@ d2b.CHARTS.axisChart = function(){
 				if(!$$.persistentChartData[type.type])
 					$$.persistentChartData[type.type] = {};
 				type.graphs.forEach(function(graph){
-					if(!$$.persistentChartData[type.type][graph.label])
-						$$.persistentChartData[type.type][graph.label] = {hide:false};
+					graph.key = graph.key || graph.label;
+					if(!$$.persistentChartData[type.type][graph.key])
+						$$.persistentChartData[type.type][graph.key] = {hide:false};
 				});
 			});
 
@@ -5172,15 +5347,15 @@ d2b.CHARTS.axisChart = function(){
 		var resetHidden = function(){
 			$$.currentChartData.types.forEach(function(type){
 				type.graphs.forEach(function(graph){
-					$$.persistentChartData[graph.type][graph.label].hide = false;
+					$$.persistentChartData[graph.type][graph.key].hide = false;
 				});
 			});
 		};
 
 		$$.legend.on('element-mouseover',function(t,d){
 
-			var background = $$.persistentChartData[d.type][d.label].background;
-			var foreground = $$.persistentChartData[d.type][d.label].foreground;
+			var background = $$.persistentChartData[d.type][d.key].background;
+			var foreground = $$.persistentChartData[d.type][d.key].foreground;
 
 			if(background && foreground){
 				var backgroundNode = background.node();
@@ -5230,12 +5405,12 @@ d2b.CHARTS.axisChart = function(){
 					.style('opacity', 1);
 		})
 		.on('element-click', function(t,d){
-			$$.persistentChartData[d.type][d.label].hide = !$$.persistentChartData[d.type][d.label].hide;
+			$$.persistentChartData[d.type][d.key].hide = !$$.persistentChartData[d.type][d.key].hide;
 			var allHidden = true;
 
 			$$.currentChartData.types.forEach(function(type){
 				type.graphs.forEach(function(graph){
-					if(allHidden == true && !$$.persistentChartData[graph.type][graph.label].hide)
+					if(allHidden == true && !$$.persistentChartData[graph.type][graph.key].hide)
 						allHidden = false;
 				});
 			});
@@ -5248,7 +5423,7 @@ d2b.CHARTS.axisChart = function(){
 		.on('element-dblclick', function(t,d){
 			$$.currentChartData.types.forEach(function(type){
 				type.graphs.forEach(function(graph){
-					$$.persistentChartData[graph.type][graph.label].hide = graph.label != d.label;
+					$$.persistentChartData[graph.type][graph.key].hide = graph.key != d.key;
 				});
 			});
 
@@ -5312,7 +5487,7 @@ d2b.CHARTS.axisChart = function(){
 									}
 								)
 								.map(function(graph,i){
-									graph.open = $$.persistentChartData[type.type][graph.label].hide;
+									graph.open = $$.persistentChartData[type.type][graph.key].hide;
 									return graph;
 								})
 						}
@@ -5323,7 +5498,6 @@ d2b.CHARTS.axisChart = function(){
 		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
 		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
-			// || ($$.legend.computedWidth() && ($$.legendOrientation == 'top'||$$.legendOrientation == 'bottom'))){
 			$$.forcedMargin[$$.legendOrientation] += 10;
 		}
 
@@ -5432,6 +5606,13 @@ d2b.CHARTS.sankeyChart = function(){
 
 	$$.xFormat = function(value){return value};
 
+	$$.nodeTooltip = function(d){
+		return '<b>'+d.name+' : </b>'+$$.xFormat(d.value);
+	}
+	$$.linkTooltip = function(d){
+		return '<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+': </b>'+$$.xFormat(d.value);
+	};
+
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 
@@ -5454,6 +5635,9 @@ d2b.CHARTS.sankeyChart = function(){
 	chart.nodePadding = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'nodePadding');
 	chart.layout = 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'layout');
 	chart.minLinkWidth = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'minLinkWidth');
+
+	chart.nodeTooltip = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'nodeTooltip');
+	chart.linkTooltip = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'linkTooltip');
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -5707,12 +5891,6 @@ d2b.CHARTS.sankeyChart = function(){
 		var newNode = node.enter()
 			.append('g')
 				.attr('class','d2b-sankey-node')
-				.on('mouseover.d2b-mouseover',function(d,i){
-					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',$$.xFormat(d.value));
-				})
-				.on('mouseout.d2b-mouseout',function(d,i){
-					d2b.UTILS.removeTooltip();
-				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',0)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-sankey-node');
@@ -5723,6 +5901,7 @@ d2b.CHARTS.sankeyChart = function(){
 				.text(function(d){return d.shortName;});
 
 		node
+				.call(d2b.UTILS.bindToolip, $$.nodeTooltip, function(d){return d;})
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
@@ -5754,12 +5933,6 @@ d2b.CHARTS.sankeyChart = function(){
 		var newLink = link.enter()
 			.append('g')
 				.attr('class','d2b-sankey-link')
-				.on('mouseover.d2b-mouseover',function(d,i){
-					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',$$.xFormat(d.value));
-				})
-				.on('mouseout.d2b-mouseout',function(d,i){
-					d2b.UTILS.removeTooltip();
-				})
 				.style('opacity',0)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-sankey-node');
 
@@ -5780,6 +5953,7 @@ d2b.CHARTS.sankeyChart = function(){
 
 
 		link
+				.call(d2b.UTILS.bindToolip, $$.linkTooltip, function(d){return d;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);
@@ -5871,6 +6045,10 @@ d2b.CHARTS.pieChart = function(){
 				}
 			};
 
+	$$.tooltip = function(d){
+		return "<b>"+d.label+":</b> "+$$.xFormat(d.value)+" ("+d3.round(100*d.value/$$.pieTotal, 1)+"%)";
+	};
+
 	$$.donutRatio = 0;
 
 	//initialize the d3 arc shape
@@ -5921,7 +6099,7 @@ d2b.CHARTS.pieChart = function(){
 				.attr('class','d2b-arc')
 				.style('opacity',0)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-arc')
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.data.label+'</b>';},function(d){return $$.xFormat(d.data.value);});
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return d.data;});
 
 		//create arc path
 		newArc.append('path')
@@ -5969,10 +6147,12 @@ d2b.CHARTS.pieChart = function(){
 					$$.persistentData.focusedArc = null;
 					chart.update();
 				})
+
+		$$.selection.pie.arc.path.transition = $$.selection.pie.arc.path
 			.transition()
 				.duration($$.animationDuration/1.5)
 				.style('opacity',1)
-				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
 
 		// arc text
 		$$.selection.pie.arc.text = $$.selection.pie.arc.select('text')
@@ -6037,7 +6217,7 @@ d2b.CHARTS.pieChart = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
 		$$.legend.color($$.color);
 	});
-
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 	chart.donutRatio = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'donutRatio');
 
 	chart.data = function(chartData, reset){
@@ -6218,12 +6398,84 @@ d2b.CHARTS.guageChart = function(){
 	$$.events = d2b.UTILS.chartEvents();
 
 	$$.percentFormat = d2b.UTILS.numberFormat({"precision":2,"units":{"after":'%'}});
+	$$.percent = 0;
 
 	$$.arc = d3.svg.arc()
-		.innerRadius(0)
-		.outerRadius(0)
     .startAngle(function(d, i){return d.start;})
-    .endAngle(function(d, i){return d.end;});
+    .endAngle(function(d, i){return d.end;})
+    .innerRadius(function(d, i){return d.inner;})
+    .outerRadius(function(d, i){return d.outer;});
+
+
+	$$.tooltip = function(d){
+		if(d.value != null)
+			return "<b>"+d.label+":</b> "+$$.xFormat(d.value)+" ("+d.percent*100+"%)";
+		else
+			return "<b>"+d.label+":</b> "+d.percent*100+"%";
+	};
+
+	$$.getPercent = function(){
+		//Set the percent for the guage either by:
+		//	-using the user supplied percent
+		//	-calculating the percent with the user supplied value and total amounts
+		//	-defaulting the percent to 0
+		if($$.currentChartData.percent != null)
+			return $$.currentChartData.percent;
+		else if($$.currentChartData.value != null && $$.currentChartData.total != null)
+			return $$.currentChartData.value / $$.currentChartData.total;
+		else
+			return 0;
+	};
+
+	$$.getData = function(){
+		return [
+			{
+				label: $$.currentChartData.label,
+				value: $$.currentChartData.value,
+				percent: $$.percent,
+				start: -Math.PI/2,
+				end: Math.PI * $$.percent - Math.PI/2,
+				color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
+				filled:true
+			},
+			{
+				percent: $$.percent,
+				start: Math.PI * $$.percent - Math.PI/2,
+				end: Math.PI/2,
+				color: '#ddd',
+				filled:false
+			}
+		]
+	};
+
+	$$.setNewArc = function(elem, inner, outer){
+		elem.each(function(d){
+			this.newArc = {
+				start: d.start,
+				end: d.end,
+				inner: inner,
+				outer: outer
+			}
+		})
+	};
+
+	$$.arcMouseover = function(d){
+		var arc = d3.select(this).select('path');
+		arc
+				.call($$.setNewArc, $$.radius.inner, $$.radius.outerMouseover)
+			.transition()
+				.duration($$.animationDuration/4)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
+	};
+
+	$$.arcMouseout = function(d){
+		var arc = d3.select(this).select('path');
+		arc
+				.call($$.setNewArc, $$.radius.inner, $$.radius.outer)
+			.transition()
+				.duration($$.animationDuration/4)
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
+	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -6237,6 +6489,7 @@ d2b.CHARTS.guageChart = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -6252,7 +6505,6 @@ d2b.CHARTS.guageChart = function(){
 	//chart generate
 	chart.generate = function(callback) {
 		$$.generateRequired = false;
-
 
 		//clean container
 	  $$.selection.selectAll('*').remove();
@@ -6294,9 +6546,6 @@ d2b.CHARTS.guageChart = function(){
 				.attr('class', 'd2b-guage-arc-percent')
 				.text('0%');
 
-		// $$.selection.arcs.filled = $$.selection.arcs.append('path');
-		// $$.selection.arcs.empty = $$.selection.arcs.append('path');
-
 		//auto update chart
 		var temp = $$.animationDuration;
 		chart
@@ -6326,135 +6575,42 @@ d2b.CHARTS.guageChart = function(){
 
 		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		var radius = {
-					current:{
-										outer:($$.currentChartData.label)?
+		$$.radius = {};
+
+		$$.radius.outer = ($$.currentChartData.label)?
 											Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2 :
-											Math.min($$.outerHeight * 2, $$.outerWidth)/2
-									},
-					previous:{inner:$$.arc.innerRadius(),outer:$$.arc.outerRadius()}
-				};
-		radius.current.inner = 0.8 * radius.current.outer;
+											Math.min($$.outerHeight * 2, $$.outerWidth)/2;
+		$$.radius.inner = 0.8 * $$.radius.outer;
+		$$.radius.outerMouseover = $$.radius.outer * 1.03;
 
-		$$.arc
-			.innerRadius(radius.current.inner)
-			.outerRadius(radius.current.outer);
+		$$.percent = $$.getPercent();
 
-		//Set the data for the filled and empty arcs either by:
-		//	-using the user supplied percent
-		//	-calculating the percent with the value and total amounts
-		//	-defaulting the percent to 0
-		var data = [];
-		var percent = 0;
-		if($$.currentChartData.percent){
-			percent = $$.currentChartData.percent;
-			data = [
-				{
-					percent: percent,
-					start: -Math.PI/2,
-					end:Math.PI*$$.currentChartData.percent-Math.PI/2,
-					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
-					filled:true
-				},
-				{
-					percent: percent,
-					start: Math.PI*$$.currentChartData.percent-Math.PI/2,
-					end:Math.PI/2,
-					color: '#ddd',
-					filled:false
-				}
-			];
-		}else if($$.currentChartData.value && $$.currentChartData.total){
-			percent = $$.currentChartData.value/$$.currentChartData.total;
-			data = [
-				{
-					percent: percent,
-					start: -Math.PI/2,
-					end:Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
-					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
-					filled:true
-				},
-				{
-					percent: percent,
-					start: Math.PI*$$.currentChartData.value/$$.currentChartData.total-Math.PI/2,
-					end:Math.PI/2, color: '#ddd', filled:false
-				}
-			];
-		}else{
-			percent = 0;
-			data = [
-				{
-					percent: percent,
-					start:-Math.PI/2,
-					end:-Math.PI/2,
-					color: d2b.UTILS.getColor($$.color, 'label')($$.currentChartData),
-					filled:true
-				},
-				{
-					percent: percent,
-					start:-Math.PI/2,
-					end:Math.PI/2,
-					color:"#ddd",
-					filled : false
-				}
-			];
-		}
-
-		$$.selection.arcs.arc = $$.selection.arcs.selectAll('g').data(data);
+		$$.selection.arcs.arc = $$.selection.arcs.selectAll('g').data($$.getData());
 
 		var newArc = $$.selection.arcs.arc.enter()
 			.append('g')
 		newArc
 			.append('path')
-				.attr('d', $$.arc)
+				// .attr('d', $$.arc)
 				.style('fill', function(d){return d.color;})
-				.each(function(d){
-					this._current = {start:d.start, end:d.end};
-					this._radiusCurrent = {inner:radius.current.inner, outer:radius.current.outer};
-				})
-		newArc.filter(function(d){return d.filled;})
-				.on('mouseover.d2b-mouseover',function(d,i){
-					var arc = d3.select(this);
-					arc
-						.transition()
-							.duration($$.animationDuration/4)
-							.attr('transform','scale(1.05)');
-					d2b.UTILS.createGeneralTooltip(arc,'<b>'+$$.currentChartData.label+'</b>',$$.percentFormat( 100*d.percent ));
-				})
-				.on('mouseout.d2b-mouseout',function(d,i){
-					var arc = d3.select(this);
-					arc
-						.transition()
-							.duration($$.animationDuration/4)
-							.attr('transform','scale(1)');
-					d2b.UTILS.removeTooltip();
-				})
+
+		newArc
+			.filter(function(d){return d.filled;})
+				.on('mouseover.d2b-mouseover', $$.arcMouseover)
+				.on('mouseout.d2b-mouseout', $$.arcMouseout)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-arc');
 
+		$$.selection.arcs.arc
+			.filter(function(d){return d.filled;})
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return d;});
+
 		$$.selection.arcs.arc.path = $$.selection.arcs.arc.select('path')
+				.call($$.setNewArc, $$.radius.inner, $$.radius.outer)
 			.transition()
 				.duration($$.animationDuration)
-				.attrTween('d', function(d){
-					var _self = this;
-					var i = d3.interpolate(_self._current, {start: d.start, end: d.end});
-					var r = d3.interpolate(_self._radiusCurrent, {inner:radius.current.inner, outer:radius.current.outer});
-					return function(t) {
-						_self._current = i(t);
-						_self._radiusCurrent = r(t);
-						$$.arc
-							.innerRadius(_self._radiusCurrent.inner)
-							.outerRadius(_self._radiusCurrent.outer);
-						return $$.arc(_self._current);
-					};
-				})
+				.call(d2b.UTILS.TWEENS.arcTween, $$.arc)
 				.style('fill', function(d){return d.color;})
 				.attr('class', 'd2b-arc');
-
-		// $$.selection.main
-			// .transition()
-			// 	.duration($$.animationDuration)
-	    //   .attr('transform','translate('+$$.outerWidth+','+$$.outerHeight+')');
-
 
 		$$.selection.arcs
 			.transition()
@@ -6473,22 +6629,22 @@ d2b.CHARTS.guageChart = function(){
 					var _self = this;
 					if(!_self._current)
 						_self._current = 0;
-	        var i = d3.interpolate(_self._current, percent);
+	        var i = d3.interpolate(_self._current, $$.percent);
 	        return function(t) {
 						_self._current = i(t);
 						_self.textContent = d3.format('%')(i(t));
 	        };
 		    })
-				.attr('font-size', radius.current.inner * 0.5 + 'px');
+				.attr('font-size', $$.radius.inner * 0.5 + 'px');
 
 		$$.selection.arcLabels.start
 			.transition()
 				.duration($$.animationDuration)
-				.attr('x', -(radius.current.outer - (radius.current.outer-radius.current.inner)/2));
+				.attr('x', -($$.radius.outer - ($$.radius.outer-$$.radius.inner)/2));
 		$$.selection.arcLabels.end
 			.transition()
 				.duration($$.animationDuration)
-				.attr('x', (radius.current.outer - (radius.current.outer-radius.current.inner)/2));
+				.attr('x', ($$.radius.outer - ($$.radius.outer-$$.radius.inner)/2));
 
 
 		$$.selection.arcHeader
@@ -7434,6 +7590,10 @@ d2b.CHARTS.tableChart = function(){
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
 
+	$$.tooltip = function(d){
+		return "<b>"+d.label+"</b>: "+$$.xFormat(d.value);
+	};
+
 	$$.selectedRow = null;
 
 	$$.updateSubFacts = function(row, subFacts, subFactsData, x, padding, height, showValueLabels){
@@ -7493,7 +7653,7 @@ d2b.CHARTS.tableChart = function(){
 		newSubFactValue.append('text').attr('class','d2b-subFact-value-label');
 
 		var subFactValueTransition = subFactValue
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return $$.xFormat(d.value);})
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return d;})
 			.transition()
 				.duration($$.animationDuration);
 
@@ -7682,6 +7842,7 @@ d2b.CHARTS.tableChart = function(){
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -8506,6 +8667,12 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 		return $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + maxDistance);
 	};
 
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y);
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -8523,6 +8690,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//additional bar properties
 	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
@@ -8599,8 +8767,10 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       var newBar = bar.enter()
         .append('rect')
 				.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);}, function(d){return d;})
 				.call($$.events.addElementDispatcher, 'main', 'd2b-bar');
+
+			bar
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 
       if($$.controlsData.stackBars.enabled){
         newBar
@@ -8719,23 +8889,16 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
 
+	$$.symbol = d2b.UTILS.symbol();
+
 	$$.line = d3.svg.line()
     .x(function(d) { return $$.x.customScale(d.x); })
     .y(function(d) { return $$.y.customScale(d.y); });
 
-	$$.pointMouseover = function(){
-		d3.select(this)
-				.select('.d2b-line-point-foreground')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r',7);
-	};
-	$$.pointMouseout = function(){
-		d3.select(this)
-				.select('.d2b-line-point-foreground')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r',3.5);
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y);
 	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
@@ -8755,6 +8918,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	chart.xValues = function(){
     var values = [];
@@ -8811,26 +8975,16 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 				.append('g')
 				.attr('transform',function(d){
 					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')';
-				});
+				})
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEnter)
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEvents);
 
-			newPoint
-				.append('circle')
-					.attr('class', 'd2b-line-point-foreground')
-					.attr('r', 3.5)
-
-			newPoint
-				.append('circle')
-					.attr('class', 'd2b-line-point-background')
-					.attr('r', 3.5)
-				.call($$.events.addElementDispatcher, 'main', 'd2b-line-point');
 
 			point
-				.on('mouseover', $$.pointMouseover)
-				.on('mouseout', $$.pointMouseout)
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
-				.selectAll('circle')
-					.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-					.style('fill', 'white');
+					.each(function(d){d.symbolType = d.symbol || graphData.symbol || 'circle';})
+					.call(d2b.UTILS.CHARTS.HELPERS.symbolUpdate, d2b.UTILS.getColor($$.color, 'label', [graphData]), '')
+					.call($$.events.addElementDispatcher, 'main', 'd2b-line-point')
+					.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 
 			point
 				.transition()
@@ -8884,6 +9038,13 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
     .y1(function(d) { return $$.y.customScale(d.y); })
     .y0(function(d) { return $$.y.customScale(d.y0); });
 
+	$$.symbol = d2b.UTILS.symbol();
+
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data[d.yPos]);
+	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -8903,20 +9064,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
-	$$.pointMouseover = function(){
-		d3.select(this)
-				.select('.d2b-area-point-foreground')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r',7);
-	};
-	$$.pointMouseout = function(){
-		d3.select(this)
-				.select('.d2b-area-point-foreground')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r',3.5);
-	};
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	$$.updatePoints = function(graphData, graph, yType){
 
@@ -8927,28 +9075,20 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 				.attr('class','d2b-'+yType+'-point')
 				.attr('transform',function(d){
 					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d[yType])+')';
-				});
+				})
+				.call($$.events.addElementDispatcher, 'main', 'd2b-area-point-'+yType)
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEnter)
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEvents);
 
-		newPoint
-			.append('circle')
-				.attr('class', 'd2b-area-point-foreground')
-				.attr('r', 3.5)
-
-		newPoint
-			.append('circle')
-				.attr('class', 'd2b-area-point-background')
-				.attr('r', 3.5)
-				.call($$.events.addElementDispatcher, 'main', 'd2b-area-point-'+yType);
+		$$.foreground.point[yType].each(function(d){
+			d.symbolType = d.symbol || graphData.symbol || 'circle';
+		});
 
 		$$.foreground.point[yType]
-			.selectAll('circle')
-				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-				.style('fill', 'white');
+			.call(d2b.UTILS.CHARTS.HELPERS.symbolUpdate, d2b.UTILS.getColor($$.color, 'label', [graphData]), '');
 
 		$$.foreground.point[yType]
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);})
-				.on('mouseover', $$.pointMouseover)
-				.on('mouseout', $$.pointMouseout)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {yPos: yType, data:d, graph:graphData};})
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform',function(d){
@@ -9060,6 +9200,12 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 	$$.padding = "0";
 
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y);
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -9078,6 +9224,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//additional histogram properties
 	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
@@ -9139,7 +9286,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 					.call($$.events.addElementDispatcher, 'main', 'd2b-histogram-bar');
 
 			bar
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 				.transition()
 					.duration($$.animationDuration)
 					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
@@ -9182,6 +9329,10 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	//carries current data set
 	$$.currentChartData = {};
 
+	$$.positionType = 'mean';
+	$$.positionTypeX = $$.positionType;
+	$$.positionTypeY = $$.positionType;
+
   $$.packData = [];
 
 	//formatting x values
@@ -9200,8 +9351,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     expandedNodes:{}
   };
 
-	$$.radiusScale = [1,1];
-	$$.radius = d3.scale.linear();
+	$$.sizeScale = [1,1];
+	$$.size = d3.scale.linear();
 
 	//breacrumbs OBJ
 	$$.breadcrumbs = new d2b.UTILS.breadcrumbs();
@@ -9236,8 +9387,9 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 		var breadcrumbsSelection = $$.breadcrumbs.selection();
 		breadcrumbsSelection.breadcrumb.path
-			.attr('stroke-width',2)
-			.style('fill-opacity',0.5)
+			.attr('stroke-width',1.5)
+			.style('fill-opacity',0.2)
+			.style('stroke-opacity',0.7)
 			.style('fill', function(d){return $$.fill(d.data);})
 			.attr('stroke',function(d){return $$.fillDark(d.data);});
 
@@ -9257,17 +9409,29 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	};
 
 
+	$$.getLeaves = function(node, leaves){
+		leaves = leaves || [];
+		if(node.children){
+			node.children.forEach(function(childNode){
+				if(childNode.children)
+					leaves = leaves.concat($$.getLeaves(childNode));
+				else
+					leaves.push(childNode);
+			});
+		}
+		return leaves
+	};
 
   //This function will find the weighted position of all parent nodes based on child x/y/size
-  $$.setParentPositions = function(node){
+  $$.setParentPositions = function(node, positionTypeX, positionTypeY){
     if(node.children){
-      node.x0 = 0;
-      node.y0 = 0;
-      node.children.forEach(function(childNode){
-        $$.setParentPositions(childNode);
-        node.x0 += (childNode.x0 * childNode.value)/node.value;
-        node.y0 += (childNode.y0 * childNode.value)/node.value;
-      });
+			node.leaves = $$.getLeaves(node);
+			node.children.forEach(function(childNode){
+				$$.setParentPositions(childNode, positionTypeX, positionTypeY);
+			});
+
+			node.x0 = d2b.MATH[positionTypeX](node.leaves, function(leaf){return leaf.x0;}, function(leaf){return leaf.value/node.value;});
+			node.y0 = d2b.MATH[positionTypeY](node.leaves, function(leaf){return leaf.y0;}, function(leaf){return leaf.value/node.value;});
     }
   };
 
@@ -9308,6 +9472,29 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 			return false;
 	};
 
+	$$.getSymbolPathSmall = function(d){
+		return $$.getSymbol(d).size(75)(d);
+	};
+	$$.getSymbolPath = function(d){
+		return $$.getSymbol(d).size($$.size(d.value))(d);
+	};
+	$$.getSymbolPathEnlarged = function(d){
+		return $$.getSymbol(d).size(15*Math.pow($$.size(d.value),0.5) + $$.size(d.value))(d);
+	};
+
+	$$.getSymbol = function(d){
+		return d2b.UTILS.symbol().type(d.symbolType);
+	};
+
+	$$.getTopSymbolType = function(d){
+		if(d.topSymbol)
+			return d.topSymbol;
+		else if(d.parent)
+			return $$.getTopSymbolType(d.parent);
+		else
+			return false;
+	};
+
 	$$.fill = function(d){
 		var key;
 		if(d.colorKey)
@@ -9326,6 +9513,16 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		return d3.rgb($$.fill(d)).darker(1);
 	};
 
+	$$.tooltip = function(d){
+		var label = d.graph.label;
+		if(d.data.name && d.graph.label.toLowerCase() != d.data.name.toLowerCase())
+			label += " - "+d.data.name;
+		return "<u><b>"+label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x0)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y0)+"<br />\
+						<b><i>"+d.data.value+"</i></b>";
+	};
+
 	//Define Bubble Object
 	$$.bubble = {};
 
@@ -9334,8 +9531,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		d3.select(this)
 			.select('.d2b-bubble-background')
 			.transition()
-				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-				.attr('r', 3+$$.radius(node.value));
+				.attr('d', $$.getSymbolPathEnlarged);
 	};
 	$$.bubble.mouseout = function(node){
 		$$.resetBreadcrumbs();
@@ -9343,7 +9539,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 			.select('.d2b-bubble-background')
 			.transition()
 				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-				.attr('r', $$.radius(node.value));
+				.attr('d', $$.getSymbolPath);
 	};
 	$$.bubble.enter = function(graph, graphData, bubble){
 		var newBubble = bubble.enter()
@@ -9353,27 +9549,28 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 					if(d.parent){
 						if(!$$.persistentData.expandedNodes[d.parent.key])
 							return 'translate('+$$.x.customScale(d.parent.x0)+','+$$.y.customScale(d.parent.y0)+')';
-					}
-					return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
+					}else
+						return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
 				})
 				.style('opacity',0)
 	      .on('mouseover.d2b-mouseover',$$.bubble.mouseover)
-	      .on('mouseout.d2b-mouseout',$$.bubble.mouseout);
+	      .on('mouseout.d2b-mouseout',$$.bubble.mouseout)
+				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble');
 
 		newBubble
-			.append('circle')
+			.append('path')
 				.attr('class','d2b-bubble-background');
 
 		newBubble
-			.append('circle')
-				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble')
+			.append('path')
 				.attr('class','d2b-bubble-foreground')
 				.style('fill', $$.fill);
 	};
   $$.bubble.update = function(graph, graphData, bubble){
 
 		bubble
-			.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+			.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
+			// .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
 
     //customize bubbles that contain children
     var bubbleWithChildren = bubble
@@ -9404,12 +9601,13 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         .style('opacity',0.7)
         .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
     bubbleVisibleTransition
-      .select('circle.d2b-bubble-background')
-        .attr('r', function(d){return $$.radius(d.value);});
+      .select('path.d2b-bubble-background')
+				.attr('d', $$.getSymbolPath);
+
     bubbleVisibleTransition
-      .select('circle.d2b-bubble-foreground')
+      .select('path.d2b-bubble-foreground')
 				.style('fill', $$.fill)
-        .attr('r', function(d){return $$.radius(d.value);});
+				.attr('d', $$.getSymbolPath);
 
     //transition hidden bubbles
     var bubbleHiddenTransition = bubble.filter($$.hidden)
@@ -9426,11 +9624,11 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
           return translate;
         });
     bubbleHiddenTransition
-      .select('circle.d2b-bubble-background')
-        .attr('r', function(d){return $$.radius(d.value);});
+      .select('path.d2b-bubble-background')
+				.attr('d', $$.getSymbolPath);
     bubbleHiddenTransition
-      .select('circle.d2b-bubble-foreground')
-        .attr('r', function(d){return $$.radius(d.value);});
+      .select('path.d2b-bubble-foreground')
+				.attr('d', $$.getSymbolPath);
 
   };
   $$.bubble.exit = function(graph, graphData, bubble){
@@ -9464,31 +9662,49 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     newIndicator
       .append('rect')
 				.style('fill', $$.fill)
-        .attr('width', 50)
+				.style('stroke', $$.fillDark)
         .attr('height', 20);
+		newIndicator
+			.append('path')
+			.style('fill', $$.fill)
+			.attr('transform','translate(10, 10)');
     newIndicator
       .append('text')
-        .attr('x', 25)
+        .attr('x', 20)
         .attr('y', 15)
-        .text(function(d){return d.name.substring(0,5);});
+        .text(function(d){return d.name.substring(0,4).trim();});
 
 	};
 	$$.expandedBubbleIndicator.update = function(graph, graphData, indicator, position){
-		indicator
-			.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+		var indicatorTransition = indicator
+			.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform', function(d){
-					position.x += 55;
+					var elem = d3.select(this);
+					var width = elem.select('text').node().getComputedTextLength() + 30;
+
+					//save desired indicatorWidth onto the rect element
+					elem.select('rect').each(function(){this.indicatorWidth = width;})
+
+					width += 5;
+
+					position.x += width;
 					if(position.x > $$.width-20){
 						position.y += 25;
-						position.x = 65;
+						position.x = width + 10;
 					}
-					return 'translate('+(position.x - 55)+','+position.y+')';
-				})
+					return 'translate('+(position.x - width)+','+position.y+')';
+				});
+		indicatorTransition
 			.select('rect')
+				.attr('width', function(){return this.indicatorWidth;})
 				.style('fill', $$.fill)
 				.style('stroke', $$.fillDark);
+		indicatorTransition
+			.select('path')
+				.attr('d', $$.getSymbolPathSmall)
+				.style('fill', $$.fill)
 
 		$$.breadcrumbsContainer
 			.transition()
@@ -9504,7 +9720,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 				.remove();
 	};
 
-	$$.cleanRadiusScale = function(scale){
+	$$.cleanSizeScale = function(scale){
 		if(scale){
 			if(scale.length == 1)
 				return [scale[0], scale[0]];
@@ -9513,6 +9729,24 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		}else if(scale === null){
 				return [1,1];
 		}
+	};
+
+	$$.initData = function(){
+		var max = 0;
+    $$.currentChartData.forEach(function(graphData, graphIndex){
+			graphData.packed = $$.pack(graphData.pack)
+      $$.setParentPositions(graphData.pack, $$.positionTypeX, $$.positionTypeY);
+      graphData.packed.forEach(function(d){
+				d.graphLabel = graphData.label;
+				d.graphColorKey = graphData.colorKey;
+				d.subFillColorKey = $$.getTop(d) || graphData.colorKey || graphData.label;
+				d.symbolType = d.symbol || $$.getTopSymbolType(d) || graphData.symbol || 'circle';
+				$$.addNodeKey(d, graphIndex);
+				d.key += graphData.label;
+	    });
+			max = Math.max(max,graphData.packed[0].value);
+		});
+		$$.size.domain([0, max]);
 	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
@@ -9533,10 +9767,22 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//type specific properties
-	chart.radiusScale =	 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'radiusScale', function(){
-		$$.radiusScale = $$.cleanRadiusScale($$.radiusScale);
+	chart.sizeScale =	 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'sizeScale', function(){
+		$$.sizeScale = $$.cleanSizeScale($$.sizeScale);
+	});
+	chart.positionType = 			d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'positionType', function(){
+		$$.positionTypeX = $$.positionType;
+		$$.positionTypeY = $$.positionType;
+		$$.initData();
+	});
+	chart.positionTypeX = 		d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'positionTypeX', function(){
+		$$.initData();
+	});
+	chart.positionTypeY = 		d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'positionTypeY', function(){
+		$$.initData();
 	});
 
 	//xValues and yValues are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
@@ -9572,20 +9818,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
 
-		var max = 0;
-    $$.currentChartData.forEach(function(graphData, graphIndex){
-			graphData.packed = $$.pack(graphData.pack)
-      $$.setParentPositions(graphData.pack);
-      graphData.packed.forEach(function(d){
-				d.graphLabel = graphData.label;
-				d.graphColorKey = graphData.colorKey;
-				d.subFillColorKey = $$.getTop(d) || graphData.label;
-				$$.addNodeKey(d, graphIndex);
-				d.key += graphData.label;
-	    });
-			max = Math.max(max,graphData.packed[0].value);
-		});
-		$$.radius.domain([0, max]);
+		$$.initData();
+
 		return chart;
 	};
 
@@ -9603,8 +9837,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		}
 		$$.breadcrumbs.width($$.width);
 
-		//update radius scale range
-		$$.radius.range([$$.radiusScale[0] * 1, $$.radiusScale[1] * Math.min($$.width, $$.height)/10]);
+		//update size scale range
+		$$.size.range([$$.sizeScale[0] * 10, $$.sizeScale[1] * Math.min($$.width, $$.height) * 10]);
 
 		//init indicator origin
 		var indicatorPosition = {x:10, y:10};
@@ -9614,14 +9848,17 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 			var graph = d3.select(this);
 
-      var bubble = graph.selectAll('g.d2b-bubble').data(graphData.packed, function(d){return d.key;});
+      var bubble = graph
+				.selectAll('g.d2b-bubble')
+					.data(graphData.packed, function(d){return d.key;});
 
       $$.bubble.enter(graph, graphData, bubble);
       $$.bubble.update(graph, graphData, bubble);
       $$.bubble.exit(graph, graphData, bubble);
 
-			var expandedBubbleIndicator = graph.selectAll('g.d2b-expanded-bubble-indicator')
-				.data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
+			var expandedBubbleIndicator = graph
+				.selectAll('g.d2b-expanded-bubble-indicator')
+					.data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
 
 			$$.expandedBubbleIndicator.enter(graph, graphData, expandedBubbleIndicator);
 			$$.expandedBubbleIndicator.update(graph, graphData, expandedBubbleIndicator, indicatorPosition);
@@ -9673,6 +9910,12 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
 
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y);
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -9691,6 +9934,7 @@ d2b.UTILS.AXISCHART.TYPES.template = function(type){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//if you need additional chart-type properties, those can go here..
 
@@ -9777,18 +10021,24 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	//event object
 	$$.events = d2b.UTILS.chartEvents();
 
-	$$.centerMouseover = function(){
-		d3.select(this).select('.d2b-grid-marker-circle.d2b-background')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r', 7);
-	};
+	$$.labelOffset = 3;
 
-	$$.centerMouseout = function(){
-		d3.select(this).select('.d2b-grid-marker-circle.d2b-background')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r', 3.5);
+	$$.symbol = d2b.UTILS.symbol();
+
+	$$.tooltip = function(d){
+		var tooltip = d.graph.label;
+		if(d.data.label && d.graph.label.toLowerCase() != d.data.label.toLowerCase())
+			tooltip += " - "+d.data.label;
+
+		tooltip = "<u><b>"+tooltip+"</b></u>";
+
+		if( (d.line != 'y') && d.data.x != null )
+			tooltip += "<br /><b>x: </b>"+$$.xFormat(d.data.x);
+
+		if( (d.line != 'x') && d.data.y != null )
+			tooltip += "<br /><b>y: </b>"+$$.xFormat(d.data.y);
+
+		return tooltip
 	};
 
 	$$.newGroup = function(elem, graphData){
@@ -9804,8 +10054,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 			.append('text')
 				.attr('class','d2b-grid-marker-coordinate')
 				.attr('transform','rotate(-90)')
-				.attr('x', -5)
-				.attr('y', 12);
+				.attr('y', 7+$$.labelOffset);
 
 		var newYMarker = elem
 			.append('g')
@@ -9818,26 +10067,15 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 		newYMarker
 			.append('text')
 				.attr('class','d2b-grid-marker-coordinate')
-				.attr('x', -5)
-				.attr('y', 12);
+				.attr('y', 7+$$.labelOffset);
 
 		var newGroupCenter = elem
 			.append('g')
 				.attr('class','d2b-grid-marker-center')
-				.on('mouseover.d2b-mouseover', $$.centerMouseover)
-				.on('mouseout.d2b-mouseout', $$.centerMouseout)
 				.call($$.updateCenter, graphData, false)
-				.call($$.events.addElementDispatcher, 'main', 'd2b-grid-marker');
-
-		newGroupCenter
-			.append('circle')
-				.attr('r', '3.5px')
-				.attr('class', 'd2b-grid-marker-circle d2b-background');
-
-		newGroupCenter
-			.append('circle')
-				.attr('r', '3.5px')
-				.attr('class', 'd2b-grid-marker-circle d2b-foreground');
+				.call($$.events.addElementDispatcher, 'main', 'd2b-grid-marker')
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEnter)
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEvents);
 
 		elem
 			.append('g')
@@ -9850,29 +10088,37 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	$$.updateMarker = {};
 	$$.updateMarker.x = function(elem, range, graphData){
 		elem
-			.style('opacity',1)
-			.attr('transform', function(d){
-				return 'translate('+$$.x.customScale(d.x)+',0)';
-			})
-		.select('line')
-			.attr('x1', 0)
-			.attr('x2', 0)
-			.attr('y1', range[0])
-			.attr('y2', range[1])
-			.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+				.style('opacity',1)
+				.attr('transform', function(d){
+					return 'translate('+$$.x.customScale(d.x)+',0)';
+				})
+			.select('line')
+				.attr('x1', 0)
+				.attr('x2', 0)
+				.attr('y1', range[0])
+				.attr('y2', range[1])
+				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+
+		elem
+			.select('.d2b-grid-marker-coordinate')
+				.attr('x', function(d){return (d.invert)? -range[0]+$$.labelOffset : -$$.labelOffset;});
 	};
 	$$.updateMarker.y = function(elem, range, graphData){
 		elem
-			.style('opacity',1)
-			.attr('transform', function(d){
-				return 'translate('+range[1]+','+$$.y.customScale(d.y)+')';
-			})
-		.select('line')
-			.attr('x1', range[0])
-			.attr('x2', -range[1])
-			.attr('y1', 0)
-			.attr('y2', 0)
-			.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+				.style('opacity',1)
+				.attr('transform', function(d){
+					return 'translate('+range[1]+','+$$.y.customScale(d.y)+')';
+				})
+			.select('line')
+				.attr('x1', range[0])
+				.attr('x2', -range[1])
+				.attr('y1', 0)
+				.attr('y2', 0)
+				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+
+		elem
+			.select('.d2b-grid-marker-coordinate')
+				.attr('x', function(d){return (d.invert)? -range[1]+$$.labelOffset : -$$.labelOffset;});
 	};
 
 	$$.updateMarkers = function(elem, graphData, orient, transition){
@@ -9883,10 +10129,11 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 		}
 
 		var range = $$[y].scale.range();
-		
+
 		//position marker grouping if transition flag is set transition to new position/opacity
 		elem.each(function(d){
-			var elemTransition = d3.select(this);
+			var elemTransition = d3.select(this)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {line:x, data:d, graph:graphData};});
 			if(transition)
 				elemTransition = elemTransition.transition().duration($$.animationDuration);
 
@@ -9904,6 +10151,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 			.classed('d2b-dashed', function(d){return (d.dashed);});
 
 		elem.select('text.d2b-grid-marker-coordinate')
+			.classed('d2b-inverted', function(d){return d.invert;})
 			.text(function(d){return $$[x+'Format'](d[x]);});
 	};
 
@@ -9920,6 +10168,8 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 
 				textTransition
 					.text(function(d){return d.label;})
+					.attr('y', -$$.labelOffset)
+					.attr('transform', 'rotate(0)');
 
 				if(d.x != null && d.y != null){
 					if($$.x.customScale(d.x) > $$.width/2){
@@ -9928,34 +10178,46 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 
 						textTransition
 							.style('text-anchor','end')
-							.attr('x', -5)
-							.attr('y', -5);
+							.attr('x', $$.labelOffset);
 					}else{;
 						elemTransition
 							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')');
 
 						textTransition
 							.style('text-anchor','start')
-							.attr('x', 5)
-							.attr('y', -5);
+							.attr('x', $$.labelOffset);
 					}
 				}else if(d.y != null){
-					elemTransition
-						.attr('transform', 'translate('+$$.x.scale.range()[1]+','+$$.y.customScale(d.y)+')');
+					if(d.invert){
+						elemTransition
+							.attr('transform', 'translate('+$$.x.scale.range()[0]+','+$$.y.customScale(d.y)+')');
+						textTransition
+							.style('text-anchor', 'start')
+							.attr('x', $$.labelOffset);
+					}else{
+						elemTransition
+							.attr('transform', 'translate('+$$.x.scale.range()[1]+','+$$.y.customScale(d.y)+')');
+						textTransition
+							.style('text-anchor', 'end')
+							.attr('x', -$$.labelOffset);
+					}
 
-					textTransition
-						.style('text-anchor', 'end')
-						.attr('x', -5)
-						.attr('y', -5);
 				}else{
-					elemTransition
-						.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.scale.range()[1]+')');
-
-					textTransition
-						.style('text-anchor', 'end')
-						.attr('x', -5)
-						.attr('y', -5)
-						.attr('transform', 'rotate(-90)');
+					if(d.invert){
+						elemTransition
+							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.scale.range()[0]+')');
+						textTransition
+							.style('text-anchor', 'start')
+							.attr('x', $$.labelOffset)
+							.attr('transform', 'rotate(-90)');
+					}else{
+						elemTransition
+							.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.scale.range()[1]+')');
+						textTransition
+							.style('text-anchor', 'end')
+							.attr('x', -$$.labelOffset)
+							.attr('transform', 'rotate(-90)');
+					}
 				}
 			});
 
@@ -9963,16 +10225,22 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	};
 
 	$$.updateCenter = function(elem, graphData, transition){
-		if(transition)
-			elem = elem.transition().duration($$.animationDuration);
 
 		elem.each(function(d){
+
+			d.symbolType = d.symbol || graphData.symbol || 'circle';
+
+			var elem = d3.select(this);
+
+			if(transition)
+				elem = elem.transition().duration($$.animationDuration);
+
 			if(d.y != null && d.x != null){
 				elem
 						.style('opacity', 1)
-						.attr('transform', function(d){return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')';})
-					.selectAll('.d2b-grid-marker-circle')
-						.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]));
+						.attr('transform', 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d.y)+')')
+						.call(d2b.UTILS.CHARTS.HELPERS.symbolUpdate, d2b.UTILS.getColor($$.color, 'label', [graphData]), '');
+
 			}else{
 				elem.style('opacity',0);
 			}
@@ -9998,8 +10266,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
-
-	//if you need additional chart-type properties, those can go here..
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//these are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
 	chart.xValues = function(){
@@ -10011,7 +10278,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 						values.push(d2.x);
 				})
 			}else
-				if(d2.x)
+				if(d.x)
 					values.push(d.x);
 		});
 		return values;
@@ -10025,7 +10292,7 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 						values.push(d2.y);
 				})
 			}else
-				if(d2.y)
+				if(d.y)
 					values.push(d.y);
 		});
 		return values;
@@ -10065,9 +10332,11 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 
 			group.select('g.d2b-grid-marker-label')
 				.call($$.updateLabel, graphData, 'y', true)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return '';});//$$.yFormat(d.y);});
 
 			var groupCenter = group.select('g.d2b-grid-marker-center')
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},function(d){return '';});//$$.yFormat(d.y);});
 
 			groupCenter
@@ -11457,3 +11726,235 @@ var colorbrewer = {YlGn: {
 11: ["#8dd3c7","#ffffb3","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5","#d9d9d9","#bc80bd","#ccebc5"],
 12: ["#8dd3c7","#ffffb3","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5","#d9d9d9","#bc80bd","#ccebc5","#ffed6f"]
 }};
+
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+// Add symbols to the default d3 svg support
+
+d2b.UTILS.symbol = function(){
+  var $$ = {};
+
+  $$.size = 150;
+  $$.d3Symbol = d3.svg.symbol().type('circle');
+  $$.symbol = $$.d3Symbol;
+
+  var symbol = function(d, i){
+    return $$.symbol($$.size.call(this, d, i));
+  };
+
+  symbol.size = function(size){
+    $$.size = d3.functor(size);
+    $$.d3Symbol.size($$.size);
+
+    return symbol;
+  };
+
+  symbol.type = function(type){
+    if(d3.svg.symbolTypes.indexOf(type) > -1)
+      $$.symbol = $$.d3Symbol.type(type).size($$.size);
+    else if(d2b.UTILS.symbolTypes.indexOf(type) > -1)
+      $$.symbol = d2b.UTILS.symbols[type];
+    else
+      $$.symbol = $$.d3Symbol.type('circle').size($$.size);
+
+    return symbol;
+  };
+
+  return symbol;
+};
+
+d2b.UTILS.symbols = {
+  star: function(size){
+    var sin36 = Math.sin(d2b.UTILS.toRadians(36));
+    var cos36 = Math.cos(d2b.UTILS.toRadians(36));
+
+    var sin54 = Math.sin(d2b.UTILS.toRadians(54));
+    var cos54 = Math.cos(d2b.UTILS.toRadians(54));
+
+    var sin18 = Math.sin(d2b.UTILS.toRadians(18));
+    var cos18 = Math.cos(d2b.UTILS.toRadians(18));
+    var tan18 = Math.tan(d2b.UTILS.toRadians(18));
+
+    var r = Math.sqrt(size/(5*cos36*(sin36+cos36/tan18)));
+    var r2 = r*sin36 + r*cos36/tan18;
+
+    return "M" + 0 +","+ -r2
+          +"L" + r*cos54 +","+ -r*sin54
+          +" " + r2*cos18 +","+ -r2*sin18
+          +" " + r*cos18 +","+ r*sin18
+          +" " + r2*sin36 +","+ r2*cos36
+          +" " + 0 +","+ r
+          +" " + -r2*sin36 +","+ r2*cos36
+          +" " + -r*cos18 +","+ r*sin18
+          +" " + -r2*cos18 +","+ -r2*sin18
+          +" " + -r*cos54 +","+ -r*sin54
+          +" " + 0 +","+ -r2 +"Z";
+  },
+  mars: function(size){
+    var r = Math.sqrt(size/(Math.PI+5/4));
+    var sqrt8 = Math.sqrt(8);
+    var sqrt2 = Math.sqrt(2);
+    var s = 0.3125 * r;
+
+    return "M" + r/sqrt8 + ","+ 0
+          +"A" + r +","+ r +" 0 1,1 "+ 0 + ","+ -r/sqrt8
+          +"L" + r*(5/4-1/sqrt2) + ","+ -r*(1/sqrt8 + 5/4 - 1/sqrt2)
+          +" " + (r*(5/4-1/sqrt2)-s) + ","+ -r*(1/sqrt8 + 5/4 - 1/sqrt2)
+          +" " + (r*(5/4-1/sqrt2)-s) + ","+ -r*(1/sqrt8 + 7/4 - 1/sqrt2)
+          +" " + r*(7/4-1/sqrt2+1/sqrt8) + ","+ -r*(1/sqrt8 + 7/4 - 1/sqrt2)
+          +" " + r*(7/4-1/sqrt2+1/sqrt8) + ","+ (-r*(5/4 - 1/sqrt2) + s)
+          +" " + r*(5/4-1/sqrt2+1/sqrt8) + ","+ (-r*(5/4 - 1/sqrt2) + s)
+          +" " + r*(5/4-1/sqrt2+1/sqrt8) + ","+ -r*(5/4 - 1/sqrt2)
+          +"Z";
+
+  },
+  venus: function(size){
+    var r = Math.sqrt(size/(Math.PI+5/4));
+
+    //center point is at ~ 3/4*r down from the center of the circle
+
+    return "M" + -r/4 + ","+ r/4
+          +"A" + r +","+ r +" 0 1,1 "+ r/4 + ","+ r/4
+          +"L" + r/4 + ","+ (3*r/4)
+          +" " + r*3/4 + ","+ (3*r/4)
+          +" " + r*3/4 + ","+ (5*r/4)
+          +" " + r/4 + ","+ (5*r/4)
+          +" " + r/4 + ","+ (7*r/4)
+          +" " + -r/4 + ","+ (7*r/4)
+          +" " + -r/4 + ","+ (5*r/4)
+          +" " + -r*3/4 + ","+ (5*r/4)
+          +" " + -r*3/4 + ","+ (3*r/4)
+          +" " + -r/4 + ","+ (3*r/4)
+          +"Z";
+  },
+  // asterisk: function(size){
+  //   //TODO
+  //   var l = Math.sqrt(size/11.7043);
+  //   var sqrt_3 = Math.sqrt(3);
+  //   var s = l*sqrt_3/2;
+  //   var sqrt_8 = Math.sqrt(8);
+  //
+  //   var current = {x:0,y:0}
+  //
+  //   return "M" + (current.x -= l/2) +","+ (current.y -= s)
+  //         +"L" + current.x +","+ (current.y -= l)
+  //         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += 1/4) +","+ (current.y -= l/4)
+  //         +"L" + (current.x += l/2) +","+ current.y
+  //         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += 1/4) +","+ (current.y += l/4)
+  //         +"L" + current.x +","+ (current.y += l)
+  //         +" " + (current.x += l*sqrt_3/2) +","+ (current.y -= l/2)
+  //         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += l*sqrt_3/(2*sqrt_8)) +","+ (current.y += l/(2*sqrt_8))
+  //         +"L" + (current.x += l/4) +","+ (current.y += l*sqrt_3/4)
+  //         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x -= l/(2*sqrt_8)) +","+ (current.y += l*sqrt_3/(2*sqrt_8))
+  //
+  //         +"L" + 0 +","+ 100
+  //         +"Z";
+  // },
+  close: function(size){
+    var r = Math.sqrt(size/5); // border length of each side
+    var r2 = Math.sqrt(r*r/2); // small side of intersecting triangle for each far point
+    var r3 = Math.sqrt(1/2)*r; // from center to the close intersection point
+    var r4 = r2 + r3;          // long side of intersecting triangle for each far point
+
+    return "M" + 0 +","+ -r3
+          +"L" + r2 +","+ -r4
+          +" " + r4 +","+ -r2
+          +" " + r3 +","+ 0
+          +" " + r4 +","+ r2
+          +" " + r2 +","+ r4
+          +" " + 0 +","+ r3
+          +" " + -r2 +","+ r4
+          +" " + -r4 +","+ r2
+          +" " + -r3 +","+ 0
+          +" " + -r4 +","+ -r2
+          +" " + -r2 +","+ -r4
+          +" " + 0 +","+ -r3 +"Z";
+
+  },
+  "rect-horizontal": function(size){
+    var sideRatio = 3; // 3 to 1
+    var r = Math.sqrt(size/sideRatio);
+    var r2 = r*sideRatio;
+
+    return "M" + -r2/2 +","+ -r/2
+          +"L" + r2/2 +","+ -r/2
+          +" " + r2/2 +","+ r/2
+          +" " + -r2/2 +","+ r/2 +"Z";
+  },
+  "rect-vertical": function(size){
+    var sideRatio = 1/3; // 1 to 3
+    var r = Math.sqrt(size/sideRatio);
+    var r2 = r*sideRatio;
+
+    return "M" + -r2/2 +","+ -r/2
+          +"L" + r2/2 +","+ -r/2
+          +" " + r2/2 +","+ r/2
+          +" " + -r2/2 +","+ r/2 +"Z";
+  },
+  "arrow-right": function(size){
+    var r = Math.sqrt(4/5 * size);
+
+    return "M" + -r +","+ -r/4
+          +"L" + 0 +","+ -r/4
+          +" " + 0 +","+ -3*r/4
+          +" " + r +","+ 0
+          +" " + 0 +","+ 3*r/4
+          +" " + 0 +","+ r/4
+          +" " + -r +","+ r/4 +"Z";
+
+  },
+  "arrow-left": function(size){
+    var r = Math.sqrt(4/5 * size);
+
+    return "M" + r +","+ -r/4
+          +"L" + 0 +","+ -r/4
+          +" " + 0 +","+ -3*r/4
+          +" " + -r +","+ 0
+          +" " + 0 +","+ 3*r/4
+          +" " + 0 +","+ r/4
+          +" " + r +","+ r/4 +"Z";
+
+  },
+  "arrow-up": function(size){
+    var r = Math.sqrt(4/5 * size);
+
+    return "M" + -r/4 +","+ r
+          +"L" + -r/4 +","+ 0
+          +" " + -3*r/4 +","+ 0
+          +" " + 0 +","+ -r
+          +" " + 3*r/4 +","+ 0
+          +" " + r/4 +","+ 0
+          +" " + r/4 +","+ r +"Z";
+
+  },
+  "arrow-down": function(size){
+    var r = Math.sqrt(4/5 * size);
+
+    return "M" + -r/4 +","+ -r
+          +"L" + -r/4 +","+ 0
+          +" " + -3*r/4 +","+ 0
+          +" " + 0 +","+ r
+          +" " + 3*r/4 +","+ 0
+          +" " + r/4 +","+ 0
+          +" " + r/4 +","+ -r +"Z";
+
+  }
+
+};
+
+//more keys for the close symbol
+d2b.UTILS.symbols["cross-diagonal"] = d2b.UTILS.symbols.close;
+d2b.UTILS.symbols["x"] = d2b.UTILS.symbols.close;
+
+d2b.UTILS.toRadians = function(angle) {
+  return angle * (Math.PI / 180);
+}
+
+d2b.UTILS.symbolTypes = d3.svg.symbolTypes.concat(
+  [
+    "star", "close", //"asterisk",
+    "rect-horizontal", "rect-vertical",
+    "arrow-right", "arrow-left", "arrow-up", "arrow-down",
+    "venus", "mars"
+  ]
+);//, "male", "female", "asterisk"]);

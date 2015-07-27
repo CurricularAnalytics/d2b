@@ -361,10 +361,13 @@ html, body, .d2b-container {
 		}
 		.d2b-axis-types-foreground{
 			circle{
-				stroke-width:2px;
+				stroke-width:1px;
+			}
+			path.d2b-symbol{
+				stroke-width:1px;
+				fill:white;
 			}
 		}
-
 
 		.d2b-gridMarker{
 			.d2b-grid-marker-x, .d2b-grid-marker-y{
@@ -378,29 +381,19 @@ html, body, .d2b-container {
 				text{
 					text-anchor:end;
 				}
+				text.d2b-inverted{
+					text-anchor:start;
+				}
 				text.d2b-grid-marker-coordinate{
-					font-size:12px;
+					font-size:10px;
 				}
 			}
-			.d2b-grid-marker-x{
-				text{
-					// transform:rotate(90);
-					// -webkit-transform:rotate(90);
-				}
-			}
-			.d2b-grid-marker-y{
-				text{
-					// text-anchor:end;
-				}
-			}
-
-			// .d2b-grid-marker-label{
-			// }
-			// .d2b-grid-marker-coordinates{
-			// 	font-size:11px;
-			// }
-			.d2b-grid-marker-circle{
+			.d2b-grid-marker-symbol{
 				fill:white;
+			}
+			.d2b-grid-marker-label{
+				font-size:10px;
+				font-weight:bold;
 			}
 		}
 
@@ -408,17 +401,19 @@ html, body, .d2b-container {
 			.d2b-expanded-bubble-indicator{
 				cursor:pointer;
 				rect{
-					fill-opacity:0.6;
-					-webkit-transition: stroke-width 0.25s;
-					transition: stroke-width 0.25s;
-					stroke-width:0px;
+					fill-opacity:0.2;
+					-webkit-transition: stroke-width 0.25s, stroke-opacity 0.25s;
+					transition: stroke-width 0.25s, stroke-opacity 0.25s;
+					stroke-width:1.5px;
+					stroke-opacity:0.7;
 				}
 				text{
-					text-anchor:middle;
+					text-anchor:start;
 				}
 				&:hover{
 					rect{
-						stroke-width:2px;
+						stroke-width:2.5px;
+						stroke-opacity:1;
 					}
 				}
 			}
@@ -429,11 +424,11 @@ html, body, .d2b-container {
 			.d2b-hidden{
 				pointer-events:none;
 			}
-			circle.d2b-bubble-background{
-				stroke-width:2.5px;
+			.d2b-bubble-background{
+				stroke-width:1.5px;
 				fill:none;
 			}
-			circle.d2b-bubble-foreground{
+			.d2b-bubble-foreground{
 				stroke:none;
 				// stroke-opacity:0;
 			}
@@ -1263,7 +1258,7 @@ html, body, .d2b-container {
 }
 
 g.d2b-legend-item{
-  .d2b-legend-circle-background{
+  .d2b-legend-symbol-background{
     fill-opacity:0;
   }
   &.d2b-active{

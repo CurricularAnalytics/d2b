@@ -24,6 +24,9 @@
 				types:[
 					{
 						type:'gridMarker',
+						properties:{
+							tooltip:null
+						},
 						graphs:[
 							{
 								label:'Point 1',
@@ -32,12 +35,15 @@
 										label:'Test 1',
 										dashed:true,
 										// x:0.45,
+										// invert:true,
 										y:68,
+										x:0.4
 										// hideCoordinates:true
 									},
 									{
 										label:'Test 2',
 										dashed:true,
+										// invert:true,
 										x:0.65,
 										// y:38,
 										// hideCoordinates:true
@@ -103,117 +109,117 @@
 				.data(chartLayoutData)
 				.update();
 
-		setTimeout(function(){
-			axisChart.data({data:{
-				types:[
-					{
-						type:'gridMarker',
-						graphs:[
-							{
-								label:'Point 1',
-								values:[
-									{
-										label:'Test 1',
-										dashed:true,
-										x:0.21,
-										y:38,
-										// hideCoordinates:true
-									}
-								]
-							}
-						]
-					},
-					{
-						type:'bar',
-						graphs:[
-							{
-								label: 'Bar 1',
-								// notInLegend:true,
-								values:[
-									{x:0.3, y:50},
-									{x:0.6, y:-150},
-									{x:0.8, y:30}
-								]
-							},
-							{
-								label: 'Bar 2',
-								values:[
-									{x:0.3, y:30},
-									{x:0.6, y:10},
-									{x:0.8, y:4}
-								]
-							},
-							{
-								label: 'Bar 3',
-								values:[
-									{x:0.3, y:10},
-									{x:0.6, y:25},
-									{x:0.8, y:35}
-								]
-							}
-						]
-					}
-				]
-			}
-		}).update();
-
-		},2000)
-
-		setTimeout(function(){
-			axisChart.data({data:{
-				types:[
-					{
-						type:'gridMarker',
-						graphs:[
-							{
-								label:'Point 1',
-								values:[
-									{
-										label:'Test 1',
-										dashed:true,
-										x:0.31,
-										y:28,
-										// hideCoordinates:true
-									}
-								]
-							}
-						]
-					},
-					{
-						type:'bar',
-						graphs:[
-							{
-								label: 'Bar 1',
-								// notInLegend:true,
-								values:[
-									{x:0.3, y:50},
-									{x:0.6, y:-150},
-									{x:0.8, y:30}
-								]
-							},
-							{
-								label: 'Bar 2',
-								values:[
-									{x:0.3, y:30},
-									{x:0.6, y:10},
-									{x:0.8, y:4}
-								]
-							},
-							{
-								label: 'Bar 3',
-								values:[
-									{x:0.3, y:10},
-									{x:0.6, y:25},
-									{x:0.8, y:35}
-								]
-							}
-						]
-					}
-				]
-			}
-		}).update();
-
-	},4000)
+	// 	setTimeout(function(){
+	// 		axisChart.data({data:{
+	// 			types:[
+	// 				{
+	// 					type:'gridMarker',
+	// 					graphs:[
+	// 						{
+	// 							label:'Point 1',
+	// 							values:[
+	// 								{
+	// 									label:'Test 1',
+	// 									dashed:true,
+	// 									x:0.21,
+	// 									y:38,
+	// 									// hideCoordinates:true
+	// 								}
+	// 							]
+	// 						}
+	// 					]
+	// 				},
+	// 				{
+	// 					type:'bar',
+	// 					graphs:[
+	// 						{
+	// 							label: 'Bar 1',
+	// 							// notInLegend:true,
+	// 							values:[
+	// 								{x:0.3, y:50},
+	// 								{x:0.6, y:-150},
+	// 								{x:0.8, y:30}
+	// 							]
+	// 						},
+	// 						{
+	// 							label: 'Bar 2',
+	// 							values:[
+	// 								{x:0.3, y:30},
+	// 								{x:0.6, y:10},
+	// 								{x:0.8, y:4}
+	// 							]
+	// 						},
+	// 						{
+	// 							label: 'Bar 3',
+	// 							values:[
+	// 								{x:0.3, y:10},
+	// 								{x:0.6, y:25},
+	// 								{x:0.8, y:35}
+	// 							]
+	// 						}
+	// 					]
+	// 				}
+	// 			]
+	// 		}
+	// 	}).update();
+	//
+	// 	},2000)
+	//
+	// 	setTimeout(function(){
+	// 		axisChart.data({data:{
+	// 			types:[
+	// 				{
+	// 					type:'gridMarker',
+	// 					graphs:[
+	// 						{
+	// 							label:'Point 1',
+	// 							values:[
+	// 								{
+	// 									label:'Test 1',
+	// 									dashed:true,
+	// 									x:0.31,
+	// 									y:28,
+	// 									// hideCoordinates:true
+	// 								}
+	// 							]
+	// 						}
+	// 					]
+	// 				},
+	// 				{
+	// 					type:'bar',
+	// 					graphs:[
+	// 						{
+	// 							label: 'Bar 1',
+	// 							// notInLegend:true,
+	// 							values:[
+	// 								{x:0.3, y:50},
+	// 								{x:0.6, y:-150},
+	// 								{x:0.8, y:30}
+	// 							]
+	// 						},
+	// 						{
+	// 							label: 'Bar 2',
+	// 							values:[
+	// 								{x:0.3, y:30},
+	// 								{x:0.6, y:10},
+	// 								{x:0.8, y:4}
+	// 							]
+	// 						},
+	// 						{
+	// 							label: 'Bar 3',
+	// 							values:[
+	// 								{x:0.3, y:10},
+	// 								{x:0.6, y:25},
+	// 								{x:0.8, y:35}
+	// 							]
+	// 						}
+	// 					]
+	// 				}
+	// 			]
+	// 		}
+	// 	}).update();
+	//
+	// },4000)
 
 		$(window).resize(function(){
 			chartLayout.height($(window).height()).width($(window).width()).update();

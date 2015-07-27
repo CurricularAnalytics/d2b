@@ -56,6 +56,7 @@ module.exports = function(grunt){
 							'js/utils/chart-helpers.js',
 							'js/utils/loader.js',
 							'js/utils/events.js',
+							'js/utils/math.js',
 							'js/charts/sunburst-chart.js',
 							'js/charts/bubble-chart.js',
 							'js/charts/axis-chart.js',
@@ -79,7 +80,8 @@ module.exports = function(grunt){
 							'js/utils/axis-chart/grid-marker.js',
 							'js/dashboards/dashboard.js',
 							'js/d3_extensions/sankey.js',
-							'js/d3_extensions/colorbrewer.js'],
+							'js/d3_extensions/colorbrewer.js',
+							'js/d3_extensions/symbol.js'],
 	      dest: 'build/js/d2b.js',
 	    },
 	    css: {

@@ -24,6 +24,13 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
     .y1(function(d) { return $$.y.customScale(d.y); })
     .y0(function(d) { return $$.y.customScale(d.y0); });
 
+	$$.symbol = d2b.UTILS.symbol();
+
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data[d.yPos]);
+	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
@@ -43,20 +50,7 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
 
-	$$.pointMouseover = function(){
-		d3.select(this)
-				.select('.d2b-area-point-foreground')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r',7);
-	};
-	$$.pointMouseout = function(){
-		d3.select(this)
-				.select('.d2b-area-point-foreground')
-			.transition()
-				.duration($$.animationDuration/2)
-				.attr('r',3.5);
-	};
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	$$.updatePoints = function(graphData, graph, yType){
 
@@ -67,28 +61,20 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 				.attr('class','d2b-'+yType+'-point')
 				.attr('transform',function(d){
 					return 'translate('+$$.x.customScale(d.x)+','+$$.y.customScale(d[yType])+')';
-				});
+				})
+				.call($$.events.addElementDispatcher, 'main', 'd2b-area-point-'+yType)
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEnter)
+				.call(d2b.UTILS.CHARTS.HELPERS.symbolEvents);
 
-		newPoint
-			.append('circle')
-				.attr('class', 'd2b-area-point-foreground')
-				.attr('r', 3.5)
-
-		newPoint
-			.append('circle')
-				.attr('class', 'd2b-area-point-background')
-				.attr('r', 3.5)
-				.call($$.events.addElementDispatcher, 'main', 'd2b-area-point-'+yType);
+		$$.foreground.point[yType].each(function(d){
+			d.symbolType = d.symbol || graphData.symbol || 'circle';
+		});
 
 		$$.foreground.point[yType]
-			.selectAll('circle')
-				.style('stroke', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-				.style('fill', 'white');
+			.call(d2b.UTILS.CHARTS.HELPERS.symbolUpdate, d2b.UTILS.getColor($$.color, 'label', [graphData]), '');
 
 		$$.foreground.point[yType]
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d[yType]);})
-				.on('mouseover', $$.pointMouseover)
-				.on('mouseout', $$.pointMouseout)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {yPos: yType, data:d, graph:graphData};})
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform',function(d){

@@ -43,6 +43,12 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 		return $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + maxDistance);
 	};
 
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y);
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -60,6 +66,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//additional bar properties
 	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
@@ -136,8 +143,10 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
       var newBar = bar.enter()
         .append('rect')
 				.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
-        .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);}, function(d){return d;})
 				.call($$.events.addElementDispatcher, 'main', 'd2b-bar');
+
+			bar
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 
       if($$.controlsData.stackBars.enabled){
         newBar

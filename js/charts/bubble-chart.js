@@ -60,10 +60,24 @@ d2b.CHARTS.bubbleChart = function(){
 		fontSize:d3.scale.linear().range([10, 30]).domain([0, 500])
 	};
 
+	$$.formatPercent = d3.format("%");
+	$$.bubbleChange = function(d){
+		var changeHTML = '';
+
+		if(isNaN(d.change)){}
+		else if(d.change >= 0)
+			changeHTML = '(+'+$$.formatPercent(d.change)+')';
+		else if(d.change < 0)
+			changeHTML = '('+$$.formatPercent(d.change)+')';
+
+		return $$.xFormat(d.value)+' '+changeHTML;
+	};
+	$$.tooltip = function(d){
+		return "<b>"+d.label+":</b> "+$$.bubbleChange(d);
+	};
 
 	$$.longestGroupsTick = 0;
 
-	$$.formatPercent = d3.format("%");
 
 	//change axis init and tick formatting
 	changeAxis = d3.svg.axis().orient("top")
@@ -378,17 +392,6 @@ d2b.CHARTS.bubbleChart = function(){
 		}
 	};
 
-	$$.bubbleChange = function(d, i){
-		var changeHTML = '';
-
-		if(isNaN(d.change)){}
-		else if(d.change >= 0)
-			changeHTML = '(+'+$$.formatPercent(d.change)+')';
-		else if(d.change < 0)
-			changeHTML = '('+$$.formatPercent(d.change)+')';
-
-		return $$.xFormat(d.value)+' '+changeHTML;
-	};
 
 	//GP async loop
 	$$.asyncLoop = function(iterations, process, exit){
@@ -438,7 +441,8 @@ d2b.CHARTS.bubbleChart = function(){
 		var newBubble = $$.selection.group.bubbles.bubble.enter()
 			.append('g')
 				.attr('class','d2b-bubble')
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},$$.bubbleChange)
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return d;})
+				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},$$.bubbleChange)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble');
 
 		newBubble.append('circle')
@@ -629,6 +633,7 @@ d2b.CHARTS.bubbleChart = function(){
 		$$.controls.animationDuration($$.animationDuration);
 	});
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);

@@ -51,6 +51,13 @@ d2b.CHARTS.sankeyChart = function(){
 
 	$$.xFormat = function(value){return value};
 
+	$$.nodeTooltip = function(d){
+		return '<b>'+d.name+' : </b>'+$$.xFormat(d.value);
+	}
+	$$.linkTooltip = function(d){
+		return '<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+': </b>'+$$.xFormat(d.value);
+	};
+
 	/*DEFINE CHART OBJECT AND MEMBERS*/
 	var chart = {};
 
@@ -73,6 +80,9 @@ d2b.CHARTS.sankeyChart = function(){
 	chart.nodePadding = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'nodePadding');
 	chart.layout = 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'layout');
 	chart.minLinkWidth = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'minLinkWidth');
+
+	chart.nodeTooltip = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'nodeTooltip');
+	chart.linkTooltip = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'linkTooltip');
 
 	chart.data = function(chartData, reset){
 		if(!arguments.length) return $$.currentChartData;
@@ -326,12 +336,6 @@ d2b.CHARTS.sankeyChart = function(){
 		var newNode = node.enter()
 			.append('g')
 				.attr('class','d2b-sankey-node')
-				.on('mouseover.d2b-mouseover',function(d,i){
-					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.name+'</b>',$$.xFormat(d.value));
-				})
-				.on('mouseout.d2b-mouseout',function(d,i){
-					d2b.UTILS.removeTooltip();
-				})
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
 				.style('opacity',0)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-sankey-node');
@@ -342,6 +346,7 @@ d2b.CHARTS.sankeyChart = function(){
 				.text(function(d){return d.shortName;});
 
 		node
+				.call(d2b.UTILS.bindToolip, $$.nodeTooltip, function(d){return d;})
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform',function(d){return 'translate('+d.x+','+d.y+')';})
@@ -373,12 +378,6 @@ d2b.CHARTS.sankeyChart = function(){
 		var newLink = link.enter()
 			.append('g')
 				.attr('class','d2b-sankey-link')
-				.on('mouseover.d2b-mouseover',function(d,i){
-					d2b.UTILS.createGeneralTooltip(d3.select(this),'<b>'+d.source.name+' <i class="fa fa-arrow-right"></i> '+d.target.name+'</b>',$$.xFormat(d.value));
-				})
-				.on('mouseout.d2b-mouseout',function(d,i){
-					d2b.UTILS.removeTooltip();
-				})
 				.style('opacity',0)
 				.call($$.events.addElementDispatcher, 'main', 'd2b-sankey-node');
 
@@ -399,6 +398,7 @@ d2b.CHARTS.sankeyChart = function(){
 
 
 		link
+				.call(d2b.UTILS.bindToolip, $$.linkTooltip, function(d){return d;})
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',1);

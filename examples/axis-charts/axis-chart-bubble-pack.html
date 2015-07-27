@@ -32,12 +32,15 @@
             {
                 type: 'bubblePack',
 								properties: {
-									radiusScale: [2]
+									sizeScale: [2],
+									//
 								},
                 graphs: [
                     {
                         label: 'Analytics',
+												// tooltip: function(d){return 'label: '+d;},
                         pack: {
+														topSymbol:'triangle-down',
                             "name": "analytics",
                             "children": [
                                 {
@@ -104,6 +107,7 @@
                     },
                     {
                         label: "Animate",
+												symbol:'star',
                         pack: {
                             "name": "analytics",
                             "children": [

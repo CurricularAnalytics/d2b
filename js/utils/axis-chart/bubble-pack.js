@@ -13,6 +13,10 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	//carries current data set
 	$$.currentChartData = {};
 
+	$$.positionType = 'mean';
+	$$.positionTypeX = $$.positionType;
+	$$.positionTypeY = $$.positionType;
+
   $$.packData = [];
 
 	//formatting x values
@@ -31,8 +35,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     expandedNodes:{}
   };
 
-	$$.radiusScale = [1,1];
-	$$.radius = d3.scale.linear();
+	$$.sizeScale = [1,1];
+	$$.size = d3.scale.linear();
 
 	//breacrumbs OBJ
 	$$.breadcrumbs = new d2b.UTILS.breadcrumbs();
@@ -67,8 +71,9 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 		var breadcrumbsSelection = $$.breadcrumbs.selection();
 		breadcrumbsSelection.breadcrumb.path
-			.attr('stroke-width',2)
-			.style('fill-opacity',0.5)
+			.attr('stroke-width',1.5)
+			.style('fill-opacity',0.2)
+			.style('stroke-opacity',0.7)
 			.style('fill', function(d){return $$.fill(d.data);})
 			.attr('stroke',function(d){return $$.fillDark(d.data);});
 
@@ -88,17 +93,29 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	};
 
 
+	$$.getLeaves = function(node, leaves){
+		leaves = leaves || [];
+		if(node.children){
+			node.children.forEach(function(childNode){
+				if(childNode.children)
+					leaves = leaves.concat($$.getLeaves(childNode));
+				else
+					leaves.push(childNode);
+			});
+		}
+		return leaves
+	};
 
   //This function will find the weighted position of all parent nodes based on child x/y/size
-  $$.setParentPositions = function(node){
+  $$.setParentPositions = function(node, positionTypeX, positionTypeY){
     if(node.children){
-      node.x0 = 0;
-      node.y0 = 0;
-      node.children.forEach(function(childNode){
-        $$.setParentPositions(childNode);
-        node.x0 += (childNode.x0 * childNode.value)/node.value;
-        node.y0 += (childNode.y0 * childNode.value)/node.value;
-      });
+			node.leaves = $$.getLeaves(node);
+			node.children.forEach(function(childNode){
+				$$.setParentPositions(childNode, positionTypeX, positionTypeY);
+			});
+
+			node.x0 = d2b.MATH[positionTypeX](node.leaves, function(leaf){return leaf.x0;}, function(leaf){return leaf.value/node.value;});
+			node.y0 = d2b.MATH[positionTypeY](node.leaves, function(leaf){return leaf.y0;}, function(leaf){return leaf.value/node.value;});
     }
   };
 
@@ -139,6 +156,29 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 			return false;
 	};
 
+	$$.getSymbolPathSmall = function(d){
+		return $$.getSymbol(d).size(75)(d);
+	};
+	$$.getSymbolPath = function(d){
+		return $$.getSymbol(d).size($$.size(d.value))(d);
+	};
+	$$.getSymbolPathEnlarged = function(d){
+		return $$.getSymbol(d).size(15*Math.pow($$.size(d.value),0.5) + $$.size(d.value))(d);
+	};
+
+	$$.getSymbol = function(d){
+		return d2b.UTILS.symbol().type(d.symbolType);
+	};
+
+	$$.getTopSymbolType = function(d){
+		if(d.topSymbol)
+			return d.topSymbol;
+		else if(d.parent)
+			return $$.getTopSymbolType(d.parent);
+		else
+			return false;
+	};
+
 	$$.fill = function(d){
 		var key;
 		if(d.colorKey)
@@ -157,6 +197,16 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		return d3.rgb($$.fill(d)).darker(1);
 	};
 
+	$$.tooltip = function(d){
+		var label = d.graph.label;
+		if(d.data.name && d.graph.label.toLowerCase() != d.data.name.toLowerCase())
+			label += " - "+d.data.name;
+		return "<u><b>"+label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x0)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y0)+"<br />\
+						<b><i>"+d.data.value+"</i></b>";
+	};
+
 	//Define Bubble Object
 	$$.bubble = {};
 
@@ -165,8 +215,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		d3.select(this)
 			.select('.d2b-bubble-background')
 			.transition()
-				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-				.attr('r', 3+$$.radius(node.value));
+				.attr('d', $$.getSymbolPathEnlarged);
 	};
 	$$.bubble.mouseout = function(node){
 		$$.resetBreadcrumbs();
@@ -174,7 +223,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 			.select('.d2b-bubble-background')
 			.transition()
 				.duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-				.attr('r', $$.radius(node.value));
+				.attr('d', $$.getSymbolPath);
 	};
 	$$.bubble.enter = function(graph, graphData, bubble){
 		var newBubble = bubble.enter()
@@ -184,27 +233,28 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 					if(d.parent){
 						if(!$$.persistentData.expandedNodes[d.parent.key])
 							return 'translate('+$$.x.customScale(d.parent.x0)+','+$$.y.customScale(d.parent.y0)+')';
-					}
-					return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
+					}else
+						return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';
 				})
 				.style('opacity',0)
 	      .on('mouseover.d2b-mouseover',$$.bubble.mouseover)
-	      .on('mouseout.d2b-mouseout',$$.bubble.mouseout);
+	      .on('mouseout.d2b-mouseout',$$.bubble.mouseout)
+				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble');
 
 		newBubble
-			.append('circle')
+			.append('path')
 				.attr('class','d2b-bubble-background');
 
 		newBubble
-			.append('circle')
-				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble')
+			.append('path')
 				.attr('class','d2b-bubble-foreground')
 				.style('fill', $$.fill);
 	};
   $$.bubble.update = function(graph, graphData, bubble){
 
 		bubble
-			.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+			.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
+			// .call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
 
     //customize bubbles that contain children
     var bubbleWithChildren = bubble
@@ -235,12 +285,13 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
         .style('opacity',0.7)
         .attr('transform', function(d){return 'translate('+$$.x.customScale(d.x0)+','+$$.y.customScale(d.y0)+')';});
     bubbleVisibleTransition
-      .select('circle.d2b-bubble-background')
-        .attr('r', function(d){return $$.radius(d.value);});
+      .select('path.d2b-bubble-background')
+				.attr('d', $$.getSymbolPath);
+
     bubbleVisibleTransition
-      .select('circle.d2b-bubble-foreground')
+      .select('path.d2b-bubble-foreground')
 				.style('fill', $$.fill)
-        .attr('r', function(d){return $$.radius(d.value);});
+				.attr('d', $$.getSymbolPath);
 
     //transition hidden bubbles
     var bubbleHiddenTransition = bubble.filter($$.hidden)
@@ -257,11 +308,11 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
           return translate;
         });
     bubbleHiddenTransition
-      .select('circle.d2b-bubble-background')
-        .attr('r', function(d){return $$.radius(d.value);});
+      .select('path.d2b-bubble-background')
+				.attr('d', $$.getSymbolPath);
     bubbleHiddenTransition
-      .select('circle.d2b-bubble-foreground')
-        .attr('r', function(d){return $$.radius(d.value);});
+      .select('path.d2b-bubble-foreground')
+				.attr('d', $$.getSymbolPath);
 
   };
   $$.bubble.exit = function(graph, graphData, bubble){
@@ -295,31 +346,49 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
     newIndicator
       .append('rect')
 				.style('fill', $$.fill)
-        .attr('width', 50)
+				.style('stroke', $$.fillDark)
         .attr('height', 20);
+		newIndicator
+			.append('path')
+			.style('fill', $$.fill)
+			.attr('transform','translate(10, 10)');
     newIndicator
       .append('text')
-        .attr('x', 25)
+        .attr('x', 20)
         .attr('y', 15)
-        .text(function(d){return d.name.substring(0,5);});
+        .text(function(d){return d.name.substring(0,4).trim();});
 
 	};
 	$$.expandedBubbleIndicator.update = function(graph, graphData, indicator, position){
-		indicator
-			.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+' - '+d.name+'</b>';},function(d){return d.value;})
+		var indicatorTransition = indicator
+			.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 			.transition()
 				.duration($$.animationDuration)
 				.attr('transform', function(d){
-					position.x += 55;
+					var elem = d3.select(this);
+					var width = elem.select('text').node().getComputedTextLength() + 30;
+
+					//save desired indicatorWidth onto the rect element
+					elem.select('rect').each(function(){this.indicatorWidth = width;})
+
+					width += 5;
+
+					position.x += width;
 					if(position.x > $$.width-20){
 						position.y += 25;
-						position.x = 65;
+						position.x = width + 10;
 					}
-					return 'translate('+(position.x - 55)+','+position.y+')';
-				})
+					return 'translate('+(position.x - width)+','+position.y+')';
+				});
+		indicatorTransition
 			.select('rect')
+				.attr('width', function(){return this.indicatorWidth;})
 				.style('fill', $$.fill)
 				.style('stroke', $$.fillDark);
+		indicatorTransition
+			.select('path')
+				.attr('d', $$.getSymbolPathSmall)
+				.style('fill', $$.fill)
 
 		$$.breadcrumbsContainer
 			.transition()
@@ -335,7 +404,7 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 				.remove();
 	};
 
-	$$.cleanRadiusScale = function(scale){
+	$$.cleanSizeScale = function(scale){
 		if(scale){
 			if(scale.length == 1)
 				return [scale[0], scale[0]];
@@ -344,6 +413,24 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		}else if(scale === null){
 				return [1,1];
 		}
+	};
+
+	$$.initData = function(){
+		var max = 0;
+    $$.currentChartData.forEach(function(graphData, graphIndex){
+			graphData.packed = $$.pack(graphData.pack)
+      $$.setParentPositions(graphData.pack, $$.positionTypeX, $$.positionTypeY);
+      graphData.packed.forEach(function(d){
+				d.graphLabel = graphData.label;
+				d.graphColorKey = graphData.colorKey;
+				d.subFillColorKey = $$.getTop(d) || graphData.colorKey || graphData.label;
+				d.symbolType = d.symbol || $$.getTopSymbolType(d) || graphData.symbol || 'circle';
+				$$.addNodeKey(d, graphIndex);
+				d.key += graphData.label;
+	    });
+			max = Math.max(max,graphData.packed[0].value);
+		});
+		$$.size.domain([0, max]);
 	};
 
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
@@ -364,10 +451,22 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//type specific properties
-	chart.radiusScale =	 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'radiusScale', function(){
-		$$.radiusScale = $$.cleanRadiusScale($$.radiusScale);
+	chart.sizeScale =	 				d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'sizeScale', function(){
+		$$.sizeScale = $$.cleanSizeScale($$.sizeScale);
+	});
+	chart.positionType = 			d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'positionType', function(){
+		$$.positionTypeX = $$.positionType;
+		$$.positionTypeY = $$.positionType;
+		$$.initData();
+	});
+	chart.positionTypeX = 		d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'positionTypeX', function(){
+		$$.initData();
+	});
+	chart.positionTypeY = 		d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'positionTypeY', function(){
+		$$.initData();
 	});
 
 	//xValues and yValues are used by the axis-chart to automatically set the scale domains based on the returned set of x/y values;
@@ -403,20 +502,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		if(!arguments.length) return $$.currentChartData;
 		$$.currentChartData = chartData;
 
-		var max = 0;
-    $$.currentChartData.forEach(function(graphData, graphIndex){
-			graphData.packed = $$.pack(graphData.pack)
-      $$.setParentPositions(graphData.pack);
-      graphData.packed.forEach(function(d){
-				d.graphLabel = graphData.label;
-				d.graphColorKey = graphData.colorKey;
-				d.subFillColorKey = $$.getTop(d) || graphData.label;
-				$$.addNodeKey(d, graphIndex);
-				d.key += graphData.label;
-	    });
-			max = Math.max(max,graphData.packed[0].value);
-		});
-		$$.radius.domain([0, max]);
+		$$.initData();
+
 		return chart;
 	};
 
@@ -434,8 +521,8 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 		}
 		$$.breadcrumbs.width($$.width);
 
-		//update radius scale range
-		$$.radius.range([$$.radiusScale[0] * 1, $$.radiusScale[1] * Math.min($$.width, $$.height)/10]);
+		//update size scale range
+		$$.size.range([$$.sizeScale[0] * 10, $$.sizeScale[1] * Math.min($$.width, $$.height) * 10]);
 
 		//init indicator origin
 		var indicatorPosition = {x:10, y:10};
@@ -445,14 +532,17 @@ d2b.UTILS.AXISCHART.TYPES.bubblePack = function(){
 
 			var graph = d3.select(this);
 
-      var bubble = graph.selectAll('g.d2b-bubble').data(graphData.packed, function(d){return d.key;});
+      var bubble = graph
+				.selectAll('g.d2b-bubble')
+					.data(graphData.packed, function(d){return d.key;});
 
       $$.bubble.enter(graph, graphData, bubble);
       $$.bubble.update(graph, graphData, bubble);
       $$.bubble.exit(graph, graphData, bubble);
 
-			var expandedBubbleIndicator = graph.selectAll('g.d2b-expanded-bubble-indicator')
-				.data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
+			var expandedBubbleIndicator = graph
+				.selectAll('g.d2b-expanded-bubble-indicator')
+					.data(graphData.packed.filter(function(d){return $$.persistentData.expandedNodes[d.key];}), function(d){return d.key;});
 
 			$$.expandedBubbleIndicator.enter(graph, graphData, expandedBubbleIndicator);
 			$$.expandedBubbleIndicator.update(graph, graphData, expandedBubbleIndicator, indicatorPosition);

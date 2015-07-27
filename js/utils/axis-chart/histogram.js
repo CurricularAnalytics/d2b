@@ -23,6 +23,12 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 
 	$$.padding = "0";
 
+	$$.tooltip = function(d){
+		return "<u><b>"+d.graph.label+"</b></u> <br />\
+						<b>x:</b> "+$$.xFormat(d.data.x)+"<br />\
+						<b>y:</b> "+$$.yFormat(d.data.y);
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -41,6 +47,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'controlsData');
 	chart.axisChart = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axisChart');
+	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 
 	//additional histogram properties
 	chart.padding =		 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
@@ -102,7 +109,7 @@ d2b.UTILS.AXISCHART.TYPES.histogram = function(){
 					.call($$.events.addElementDispatcher, 'main', 'd2b-histogram-bar');
 
 			bar
-				.call(d2b.UTILS.tooltip, function(d){return '<b>'+graphData.label+'</b>';},function(d){return $$.yFormat(d.y);})
+				.call(d2b.UTILS.bindToolip, $$.tooltip, function(d){return {data:d, graph:graphData};})
 				.transition()
 					.duration($$.animationDuration)
 					.style('fill', d2b.UTILS.getColor($$.color, 'label', [graphData]))
