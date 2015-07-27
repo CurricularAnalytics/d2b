@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../bower_components/jquery/dist/jquery.js"></script>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+
+	$(document).ready(function(){
+
+
+    var data =
+    {
+      data:{
+        labels:{
+          x:'GPA',
+          y:'Number of Students'
+        },
+        types:[
+          {
+            type:'histogram',
+            graphs:[
+              {
+                label:'Tennis',
+								bins:[0.5,1.0,1.5,2.0,2.33,2.5,3.0,3.3,3.5,,3.7,4.0],
+                values:d3.range(100).map(d3.random.bates(.1))
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+			.on('element-mouseover', function(type){console.log(this);console.log(type);})
+      .width($(window).width())
+      .height($(window).height())
+      .update();
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>
