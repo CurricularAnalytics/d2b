@@ -17,16 +17,54 @@
           y:'Number of Students'
         },
         types:[
-          {
-            type:'histogram',
-            graphs:[
-              {
-                label:'Tennis',
-								bins:[0.5,1.0,1.5,2.0,2.33,2.5,3.0,3.3,3.5,,3.7,4.0],
-                values:d3.range(100).map(d3.random.bates(.1))
-              }
-            ]
-          }
+          // {
+          //   type:'histogram',
+          //   graphs:[
+          //     {
+          //       label:'Tennis',
+					// 			bins:[0.5,1.0,1.5,2.0,2.33,2.5,3.0,3.3,3.5,3.7,4.0],
+          //       values:d3.range(100).map(d3.random.bates(.1))
+          //     }
+          //   ]
+          // },
+					{
+						type:'bar',
+						properties:{
+							padding:"0%"
+						},
+						graphs:[
+							{
+								label:'Tennis Bar',
+								values:[
+									{
+										x:2.00,
+										y:3,
+										students:[
+											{name:"John Doe", gpa:"2.02"},
+											{name:"Jane Doe", gpa:"2.01"},
+											{name:"John Frank", gpa:"1.99"}
+										]
+									},
+									{
+										x:2.20,
+										y:20
+									},
+									{
+										x:2.30,
+										y:30
+									},
+									{
+										x:2.40,
+										y:24
+									},
+									{
+										x:2.60,
+										y:20
+									}
+								]
+							}
+						]
+					}
         ]
       }
     }
@@ -36,7 +74,9 @@
     axisChart
       .select('.axis-chart')
       .data(data)
-			.on('element-mouseover', function(type){console.log(this);console.log(type);})
+			// .x({domain:[1.5,4]})
+			// .controls({lockXAxis:{enabled:true}})
+			// .on('element-mouseover', function(type, d){console.log(this);console.log(type);console.log(d);})
       .width($(window).width())
       .height($(window).height())
       .update();

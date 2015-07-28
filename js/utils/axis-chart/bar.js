@@ -35,12 +35,12 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	$$.getLinearRangeBand = function(){
 		var allXVals = $$.currentChartData.map(function(d){return d.values.map(function(d){return d.x;}).sort()});
-		var maxDistance = $$.width;
+		var maxDistance = Infinity;
 		allXVals.forEach(function(d){
 			for(var i=0;i<d.length-1;i++)
-				maxDistance = Math.min(d[i+1] - d[i]);
+				maxDistance = Math.min(d[i+1] - d[i], maxDistance);
 		});
-		return $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + maxDistance);
+		return (maxDistance==Infinity)? $$.width : $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + maxDistance);
 	};
 
 	$$.tooltip = function(d){
@@ -125,6 +125,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 		}else{
 			rangeBand = $$.getLinearRangeBand();
 		}
+		console.log(rangeBand)
 // console.log(rangeBand)
 		var padding = d2b.UTILS.visualLength($$.padding, rangeBand);
 
