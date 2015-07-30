@@ -100,6 +100,7 @@ d2b.CHARTS.axisChart = function(){
 		orientation:'bottom',
 		domain:[0,1],
 		hide: false,
+		tickCountMultiplier: 1,
 		tickData:{}
 	};
 	$$.xAlias.axis.scale($$.xAlias.scale).orient($$.xAlias.orientation);
@@ -110,6 +111,7 @@ d2b.CHARTS.axisChart = function(){
 		orientation:'left',
 		domain:[0,1],
 		hide: false,
+		tickCountMultiplier: 1,
 		tickData:{}
 	};
 	$$.yAlias.axis.scale($$.yAlias.scale).orient($$.yAlias.orientation);
@@ -528,9 +530,9 @@ d2b.CHARTS.axisChart = function(){
 					});
 		});
 		if($$.y.type != 'ordinal')
-			$$.y.axis.ticks($$.innerHeight/75);
+			$$.y.axis.ticks($$.y.tickCountMultiplier * $$.innerHeight/75);
 		if($$.x.type != 'ordinal')
-			$$.x.axis.ticks($$.innerWidth/maxTickLength.x/6);
+			$$.x.axis.ticks($$.x.tickCountMultiplier * $$.innerWidth/maxTickLength.x/6);
 		//-----------
 
 		var labelPadding = 10;
@@ -720,30 +722,20 @@ d2b.CHARTS.axisChart = function(){
 
 	//x/y setters
 	chart.x = d2b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
-		if(value.orientation)
-			$$.xAlias.orientation = value.orientation;
-
+		$$.xAlias.orientation = value.orientation || $$.xAlias.orientation;
+		$$.xAlias.tickCountMultiplier = value.tickCountMultiplier || $$.xAlias.tickCountMultiplier;
 		$$.xAlias.axis
 			.scale($$.xAlias.scale)
 			.orient($$.xAlias.orientation);
-
-		if(value.tickData){
-			$$.xAlias.tickData = value.tickData;
-		}
-
+		$$.xAlias.tickData = value.tickData || $$.xAlias.tickData;
 	});
 	chart.y = d2b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
-		if(value.orientation)
-			$$.yAlias.orientation = value.orientation;
-
+		$$.yAlias.orientation = value.orientation || $$.yAlias.orientation;
+		$$.yAlias.tickCountMultiplier = value.tickCountMultiplier || $$.yAlias.tickCountMultiplier;
 		$$.yAlias.axis
 			.scale($$.yAlias.scale)
 			.orient($$.yAlias.orientation);
-
-		if(value.tickData){
-			$$.yAlias.tickData = value.tickData;
-		}
-
+		$$.yAlias.tickData = value.tickData || $$.yAlias.tickData;
 	});
 
 	//data setter

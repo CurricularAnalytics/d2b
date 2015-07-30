@@ -40,7 +40,6 @@ d2b.CHARTS.guageChart = function(){
     .innerRadius(function(d, i){return d.inner;})
     .outerRadius(function(d, i){return d.outer;});
 
-
 	$$.tooltip = function(d){
 		if(d.value != null)
 			return "<b>"+d.label+":</b> "+$$.xFormat(d.value)+" ("+d.percent*100+"%)";
@@ -96,7 +95,7 @@ d2b.CHARTS.guageChart = function(){
 	$$.arcMouseover = function(d){
 		var arc = d3.select(this).select('path');
 		arc
-				.call($$.setNewArc, $$.radius.inner, $$.radius.outerMouseover)
+				.call($$.setNewArc, $$.radius.inner, $$.radius.outer * 1.03)
 			.transition()
 				.duration($$.animationDuration/4)
 				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
@@ -151,7 +150,7 @@ d2b.CHARTS.guageChart = function(){
 	  //create group container
 	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
-	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+	      // .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		//init main chart container
 		$$.selection.main = $$.selection.group
@@ -201,21 +200,31 @@ d2b.CHARTS.guageChart = function(){
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
+		$$.innerWidth = $$.outerWidth - $$.forcedMargin.left - $$.forcedMargin.right;
+		$$.innerHeight = $$.outerHeight - $$.forcedMargin.top - $$.forcedMargin.bottom;
 
 		//init svg dimensions
 		$$.selection.svg
 				.attr('width',$$.width)
 				.attr('height',$$.height);
 
-		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		var headerHeight = ($$.currentChartData.label)? 20 : 0;
+		var labelHeight = 20;
 
 		$$.radius = {};
 
-		$$.radius.outer = ($$.currentChartData.label)?
-											Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2 :
-											Math.min($$.outerHeight * 2, $$.outerWidth)/2;
+		$$.radius.outer = Math.min($$.innerHeight * 2 - headerHeight * 2 - labelHeight * 2, $$.innerWidth)/2;
 		$$.radius.inner = 0.8 * $$.radius.outer;
-		$$.radius.outerMouseover = $$.radius.outer * 1.03;
+
+		$$.forcedMargin.top = $$.forcedMargin.top + $$.innerHeight/2  + ($$.radius.outer)/2 - labelHeight/2 + headerHeight/2;
+		$$.forcedMargin.left = $$.forcedMargin.left + $$.innerWidth/2;
+
+		$$.selection.group
+			.transition()
+				.duration($$.animationDuration)
+	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
+
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		$$.percent = $$.getPercent();
 
@@ -246,16 +255,6 @@ d2b.CHARTS.guageChart = function(){
 				.style('fill', function(d){return d.color;})
 				.attr('class', 'd2b-arc');
 
-		$$.selection.arcs
-			.transition()
-				.duration($$.animationDuration)
-	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-10)+')');
-
-		$$.selection.arcLabels
-			.transition()
-				.duration($$.animationDuration)
-	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-10)+')');
-
 		$$.selection.arcLabels.percent
 			.transition()
 				.duration($$.animationDuration)
@@ -285,8 +284,7 @@ d2b.CHARTS.guageChart = function(){
 				.text($$.currentChartData.label)
 			.transition()
 				.duration($$.animationDuration)
-				.attr('x',$$.outerWidth/2)
-				.attr('y',20);
+				.attr('y',-$$.radius.outer - 10);
 
 
 		d3.timer.flush();

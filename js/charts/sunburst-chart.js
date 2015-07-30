@@ -527,7 +527,7 @@ d2b.CHARTS.sunburstChart = function(){
 				.duration($$.animationDuration)
 				.attr('transform','translate('+($$.forcedMargin.left+$$.innerWidth/2)+','+($$.forcedMargin.top+$$.innerHeight/2)+')');
 
-		$$.radius.outer = Math.min($$.innerWidth,$$.innerHeight)/2-20;
+		$$.radius.outer = Math.min($$.innerWidth,$$.innerHeight)/2;
 		$$.radius.inner = $$.radius.outer/3;
 
 

@@ -10,7 +10,6 @@
 <script>
 	$(document).ready(function(){
 
-
 		var randomizePositions = function(node){
 			if(node.children){
 				node.children.forEach(function(child){
@@ -1123,7 +1122,12 @@
 
 		var axisChart = new d2b.CHARTS.axisChart();
 
-		axisChart.legendOrientation('top').data(data).controls({bubbleSubFill:{enabled:true,visible:true}});
+		axisChart
+			.x({tickCountMultiplier: 0.5})
+			.y({tickCountMultiplier: 1})
+			.legendOrientation('top')
+			.data(data)
+			.controls({bubbleSubFill:{enabled:true,visible:true}});
 
 //
 //
@@ -1196,7 +1200,7 @@
 			chartLayout
 					.width($(window).width())			//set the chart width
 					.height($(window).height())		//set the chart height
-					.chart(axisChart)							//set the chart
+					.chart(axisChart)
 					.select('.axis-chart');				//set the container
 
 //set the chart layout data

@@ -140,7 +140,7 @@
 
 		//load csv data
 		d3.csv("data.csv", function(d){
-
+			
 			//filter only programs with numeric required credit hours
 			d = d.filter(function(row){
 				row["RQ_CR_2015-16"] = getMaxRange(row["RQ_CR_2015-16"]);

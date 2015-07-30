@@ -42,11 +42,12 @@ d2b.createNameSpace("d2b.UTILS.AXISCHART.TYPES");
 d2b.createNameSpace("d2b.CONSTANTS");
 
 d2b.CONSTANTS = {
-  DEFAULTPALETTE: {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"},
+  // DEFAULTPALETTE: {primary:"rgb(42,54,82)",secondary:"rgb(11,22,47)"},
   DEFAULTWIDTH: function(){ return 960; },
   DEFAULTHEIGHT: function(){ return 540; },
   DEFAULTMARGIN: function(){ return {left:0,right:0,top:0,bottom:0}; },
   DEFAULTFORCEDMARGIN: function(){ return {left:30, bottom:20, right:30, top:20}; },
+  // DEFAULTFORCEDMARGIN: function(){ return {left:0, bottom:0, right:0, top:0}; },
   DEFAULTCOLOR: function(){ return d3.scale.category10(); },
   DEFAULTEVENTS: function(){ return {
                             		elementMouseover:function(){},
@@ -3585,7 +3586,7 @@ d2b.CHARTS.sunburstChart = function(){
 				.duration($$.animationDuration)
 				.attr('transform','translate('+($$.forcedMargin.left+$$.innerWidth/2)+','+($$.forcedMargin.top+$$.innerHeight/2)+')');
 
-		$$.radius.outer = Math.min($$.innerWidth,$$.innerHeight)/2-20;
+		$$.radius.outer = Math.min($$.innerWidth,$$.innerHeight)/2;
 		$$.radius.inner = $$.radius.outer/3;
 
 
@@ -4590,6 +4591,7 @@ d2b.CHARTS.axisChart = function(){
 		orientation:'bottom',
 		domain:[0,1],
 		hide: false,
+		tickCountMultiplier: 1,
 		tickData:{}
 	};
 	$$.xAlias.axis.scale($$.xAlias.scale).orient($$.xAlias.orientation);
@@ -4600,6 +4602,7 @@ d2b.CHARTS.axisChart = function(){
 		orientation:'left',
 		domain:[0,1],
 		hide: false,
+		tickCountMultiplier: 1,
 		tickData:{}
 	};
 	$$.yAlias.axis.scale($$.yAlias.scale).orient($$.yAlias.orientation);
@@ -5018,9 +5021,9 @@ d2b.CHARTS.axisChart = function(){
 					});
 		});
 		if($$.y.type != 'ordinal')
-			$$.y.axis.ticks($$.innerHeight/75);
+			$$.y.axis.ticks($$.y.tickCountMultiplier * $$.innerHeight/75);
 		if($$.x.type != 'ordinal')
-			$$.x.axis.ticks($$.innerWidth/maxTickLength.x/6);
+			$$.x.axis.ticks($$.x.tickCountMultiplier * $$.innerWidth/maxTickLength.x/6);
 		//-----------
 
 		var labelPadding = 10;
@@ -5210,30 +5213,20 @@ d2b.CHARTS.axisChart = function(){
 
 	//x/y setters
 	chart.x = d2b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'xAlias', function(value){
-		if(value.orientation)
-			$$.xAlias.orientation = value.orientation;
-
+		$$.xAlias.orientation = value.orientation || $$.xAlias.orientation;
+		$$.xAlias.tickCountMultiplier = value.tickCountMultiplier || $$.xAlias.tickCountMultiplier;
 		$$.xAlias.axis
 			.scale($$.xAlias.scale)
 			.orient($$.xAlias.orientation);
-
-		if(value.tickData){
-			$$.xAlias.tickData = value.tickData;
-		}
-
+		$$.xAlias.tickData = value.tickData || $$.xAlias.tickData;
 	});
 	chart.y = d2b.UTILS.CHARTS.MEMBERS.scale(chart, $$, 'yAlias',function(value){
-		if(value.orientation)
-			$$.yAlias.orientation = value.orientation;
-
+		$$.yAlias.orientation = value.orientation || $$.yAlias.orientation;
+		$$.yAlias.tickCountMultiplier = value.tickCountMultiplier || $$.yAlias.tickCountMultiplier;
 		$$.yAlias.axis
 			.scale($$.yAlias.scale)
 			.orient($$.yAlias.orientation);
-
-		if(value.tickData){
-			$$.yAlias.tickData = value.tickData;
-		}
-
+		$$.yAlias.tickData = value.tickData || $$.yAlias.tickData;
 	});
 
 	//data setter
@@ -6406,7 +6399,6 @@ d2b.CHARTS.guageChart = function(){
     .innerRadius(function(d, i){return d.inner;})
     .outerRadius(function(d, i){return d.outer;});
 
-
 	$$.tooltip = function(d){
 		if(d.value != null)
 			return "<b>"+d.label+":</b> "+$$.xFormat(d.value)+" ("+d.percent*100+"%)";
@@ -6462,7 +6454,7 @@ d2b.CHARTS.guageChart = function(){
 	$$.arcMouseover = function(d){
 		var arc = d3.select(this).select('path');
 		arc
-				.call($$.setNewArc, $$.radius.inner, $$.radius.outerMouseover)
+				.call($$.setNewArc, $$.radius.inner, $$.radius.outer * 1.03)
 			.transition()
 				.duration($$.animationDuration/4)
 				.call(d2b.UTILS.TWEENS.arcTween, $$.arc);
@@ -6517,7 +6509,7 @@ d2b.CHARTS.guageChart = function(){
 	  //create group container
 	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
-	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
+	      // .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		//init main chart container
 		$$.selection.main = $$.selection.group
@@ -6567,21 +6559,31 @@ d2b.CHARTS.guageChart = function(){
 		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
+		$$.innerWidth = $$.outerWidth - $$.forcedMargin.left - $$.forcedMargin.right;
+		$$.innerHeight = $$.outerHeight - $$.forcedMargin.top - $$.forcedMargin.bottom;
 
 		//init svg dimensions
 		$$.selection.svg
 				.attr('width',$$.width)
 				.attr('height',$$.height);
 
-		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+		var headerHeight = ($$.currentChartData.label)? 20 : 0;
+		var labelHeight = 20;
 
 		$$.radius = {};
 
-		$$.radius.outer = ($$.currentChartData.label)?
-											Math.min($$.outerHeight * 2 - 80, $$.outerWidth)/2 :
-											Math.min($$.outerHeight * 2, $$.outerWidth)/2;
+		$$.radius.outer = Math.min($$.innerHeight * 2 - headerHeight * 2 - labelHeight * 2, $$.innerWidth)/2;
 		$$.radius.inner = 0.8 * $$.radius.outer;
-		$$.radius.outerMouseover = $$.radius.outer * 1.03;
+
+		$$.forcedMargin.top = $$.forcedMargin.top + $$.innerHeight/2  + ($$.radius.outer)/2 - labelHeight/2 + headerHeight/2;
+		$$.forcedMargin.left = $$.forcedMargin.left + $$.innerWidth/2;
+
+		$$.selection.group
+			.transition()
+				.duration($$.animationDuration)
+	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')')
+
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
 		$$.percent = $$.getPercent();
 
@@ -6612,16 +6614,6 @@ d2b.CHARTS.guageChart = function(){
 				.style('fill', function(d){return d.color;})
 				.attr('class', 'd2b-arc');
 
-		$$.selection.arcs
-			.transition()
-				.duration($$.animationDuration)
-	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-10)+')');
-
-		$$.selection.arcLabels
-			.transition()
-				.duration($$.animationDuration)
-	      .attr('transform','translate('+$$.outerWidth/2+','+($$.outerHeight-10)+')');
-
 		$$.selection.arcLabels.percent
 			.transition()
 				.duration($$.animationDuration)
@@ -6651,8 +6643,7 @@ d2b.CHARTS.guageChart = function(){
 				.text($$.currentChartData.label)
 			.transition()
 				.duration($$.animationDuration)
-				.attr('x',$$.outerWidth/2)
-				.attr('y',20);
+				.attr('y',-$$.radius.outer - 10);
 
 
 		d3.timer.flush();
@@ -7697,6 +7688,10 @@ d2b.CHARTS.tableChart = function(){
 				.attr('transform', function(d,i){
 					return 'translate(0,'+$$.forcedMargin.top+')'
 				});
+
+		rowTransition.select('rect.d2b-row-border')
+			.attr('width',$$.innerWidth);
+
 		rowTransition.select('rect.d2b-row-background')
 			.attr('height',$$.innerHeight);
 
@@ -7877,8 +7872,7 @@ d2b.CHARTS.tableChart = function(){
 				// });
 
 	  //create group container
-	  // $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-		$$.forcedMargin = {top:10,left:20, right:20,bottom:10};
+	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
 	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
@@ -7910,8 +7904,7 @@ d2b.CHARTS.tableChart = function(){
 		}
 
 		//init forcedMargin
-		// $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-		$$.forcedMargin = {top:10,left:20, right:20,bottom:10};
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
@@ -8659,12 +8652,12 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	$$.getLinearRangeBand = function(){
 		var allXVals = $$.currentChartData.map(function(d){return d.values.map(function(d){return d.x;}).sort()});
-		var maxDistance = Infinity;
+		var minDistance = Infinity;
 		allXVals.forEach(function(d){
 			for(var i=0;i<d.length-1;i++)
-				maxDistance = Math.min(d[i+1] - d[i], maxDistance);
+				minDistance = Math.min(d[i+1] - d[i], minDistance);
 		});
-		return (maxDistance==Infinity)? $$.width : $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + maxDistance);
+		return (minDistance==Infinity)? $$.width : $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + minDistance);
 	};
 
 	$$.tooltip = function(d){
@@ -8749,8 +8742,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 		}else{
 			rangeBand = $$.getLinearRangeBand();
 		}
-		console.log(rangeBand)
-// console.log(rangeBand)
+
 		var padding = d2b.UTILS.visualLength($$.padding, rangeBand);
 
     var barLabels = $$.currentChartData.map(function(d){return d.label;});

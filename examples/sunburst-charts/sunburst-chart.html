@@ -13,12 +13,14 @@
 			.select('.sunburst-chart')
 			.width($(window).width())
 			.height($(window).height())
+			// .width(100).height(100)
+			// .on('update',function(){d3.selectAll('text').remove()})
 			.xFormat({siPrefixed:false,units:{}, separateThousands:true,precision:0})
 			// .sort(null)
 			// .on('elementMouseout',function(d,i,type){console.log(type);})
 			.legendOrientation('bottom')
 			.controls({sort:{visible:true},invert:{visible:true},hideLegend:{visible:true}})
-
+			// .controls({hideLegend:{enabled:true}})
 											chartData  = {
 												partition: {
 															"name": "University of New Mexico",

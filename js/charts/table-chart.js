@@ -138,6 +138,10 @@ d2b.CHARTS.tableChart = function(){
 				.attr('transform', function(d,i){
 					return 'translate(0,'+$$.forcedMargin.top+')'
 				});
+
+		rowTransition.select('rect.d2b-row-border')
+			.attr('width',$$.innerWidth);
+
 		rowTransition.select('rect.d2b-row-background')
 			.attr('height',$$.innerHeight);
 
@@ -318,8 +322,7 @@ d2b.CHARTS.tableChart = function(){
 				// });
 
 	  //create group container
-	  // $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-		$$.forcedMargin = {top:10,left:20, right:20,bottom:10};
+	  $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 	  $$.selection.group = $$.selection.svg.append('g')
 	      .attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
@@ -351,8 +354,7 @@ d2b.CHARTS.tableChart = function(){
 		}
 
 		//init forcedMargin
-		// $$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-		$$.forcedMargin = {top:10,left:20, right:20,bottom:10};
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 

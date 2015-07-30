@@ -18,12 +18,21 @@
 			// )
 			.width($(window).width())
 			.height($(window).height())
-			.data({data:{percent:0.4, colorKey: 'test', label:'4-Year Accepted Major'}})
+			.data({data:{
+				percent:0.4,
+				colorKey: 'test',
+				label:'4-Year Accepted Major'
+				}})
 			.update();
 
 		setTimeout(function(){
 			guageChart
-				.data({data:{value: 8000, total: 10000, label:'4-Year Accepted Major'}})
+				.data({
+					data:{
+						value: 8000,
+						total: 10000,
+						label:'4-Year Accepted Major'
+					}})
 				.update();
 		},2000);
 

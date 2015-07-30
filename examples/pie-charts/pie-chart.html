@@ -11,16 +11,17 @@
 
 		pieChart
 			.select('.pie-chart')
-			.width($(window).width())
-			.height($(window).height())
-			.donutRatio(0.5)
+			.height($(window).height()).width($(window).width())
+			.donutRatio(0.7)
+			.legendOrientation('right')
+			.controls({hideLegend:{enabled:true}})
 			// .color(
 			// 	d3.scale.ordinal()
 			// 		.domain(["Freshmen", "Sophomores"])
 			// 		.range(["#090","#900"])
 			// )
-			.xFormat({siPrefixed:false,separateThousands:true,units:{},precision:0});
-
+			.xFormat({siPrefixed:false,separateThousands:true,units:{},precision:0})
+			// .on('update',function(){d3.selectAll('text').style('display','none');})
 		pieChart
 			.data(
 				{
