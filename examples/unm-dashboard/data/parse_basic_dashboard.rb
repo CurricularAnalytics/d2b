@@ -104,7 +104,7 @@ def collegeGradRatesChart(name, college)
     properties:{
       data:{
         data:{
-          guages:collegeGradRatesGuages(college),
+          gauges:collegeGradRatesGuages(college),
           chart:{
             type:"multiChart",
             data:{
@@ -124,7 +124,7 @@ def collegeGradRatesChart(name, college)
 end
 
 def collegeGradRatesGuages (college)
-  guages = [
+  gauges = [
     {
       label:"4-Year",
       percents:college[:values].select{|v| v[:year_count]=="4_year" && v[:type]=="accepted"}.map{|v| v[:y]/100}
@@ -150,8 +150,8 @@ def collegeGradRatesGuages (college)
       percents:college[:values].select{|v| v[:year_count]=="6_year" && v[:type]=="intended"}.map{|v| v[:y]/100}
     }
   ]
-  puts guages
-  return guages
+  puts gauges
+  return gauges
 
 end
 
@@ -293,7 +293,7 @@ def allGradRatesChart
     properties:{
       data:{
         data:{
-          guages:[
+          gauges:[
 						{"label":'4-Year', "percents": [0.1239, 0.1502, 0.1505]},
 						{"label":'5-Year', "percents": [0.3720, 0.3961, 0.3760]},
 						{"label":'6-Year', "percents": [0.4582, 0.4818, 0.4757]},

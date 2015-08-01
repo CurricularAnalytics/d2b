@@ -7,10 +7,10 @@
 <script>
 	$(document).ready(function(){
 
-		var guageChart = new d2b.CHARTS.guageChart();
+		var gaugeChart = new d2b.CHARTS.gaugeChart();
 
-		guageChart
-			.select('.guage-chart')
+		gaugeChart
+			.select('.gauge-chart')
 			// .color(
 			// 	d3.scale.ordinal()
 			// 		.domain(['4-Year Accepted Major', 'test'])
@@ -26,7 +26,7 @@
 			.update();
 
 		setTimeout(function(){
-			guageChart
+			gaugeChart
 				.data({
 					data:{
 						value: 8000,
@@ -37,7 +37,7 @@
 		},2000);
 
 		$(window).resize(function(){
-			guageChart.height($(window).height()).width($(window).width()).update();
+			gaugeChart.height($(window).height()).width($(window).width()).update();
 		});
 
 	})
@@ -45,6 +45,6 @@
 <style>
 </style>
 <body style='margin:0px;'>
-	<div class = 'guage-chart'></div>
+	<div class = 'gauge-chart'></div>
 </body>
 </html>
