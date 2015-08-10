@@ -411,7 +411,14 @@
 										}
 
 		chart
-			.data({data:chartData}).update();
+			.data({data:chartData}).on('update', function(){
+				d3.selectAll(".d2b-sunburst-arc").each(function(d,i){
+					console.log(d)
+				});
+			}).update();
+
+
+
 
 		$(window).resize(function(){
 			chart.height($(window).height()).width($(window).width()).update(function(){console.log("resized!")});

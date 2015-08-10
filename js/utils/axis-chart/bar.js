@@ -38,7 +38,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 		var minDistance = Infinity;
 		allXVals.forEach(function(d){
 			for(var i=0;i<d.length-1;i++)
-				minDistance = Math.min(d[i+1] - d[i], minDistance);
+				minDistance = Math.min(Math.abs(d[i+1] - d[i]), minDistance);
 		});
 		return (minDistance==Infinity)? $$.width : $$.x.customScale(Math.min.apply(null,$$.x.scale.domain()) + minDistance);
 	};

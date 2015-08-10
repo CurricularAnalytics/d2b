@@ -7,6 +7,81 @@
 <script src="../../build/js/d2b.js"></script>
 <script>
 	$(document).ready(function(){
+		var students = {
+			"off_track":{
+				"values":[
+					{"key":"0","x":0.0,"y":62},
+					{"key":"1","x":0.05,"y":90},
+					{"key":"2","x":0.1,"y":114},
+					{"key":"3","x":0.15,"y":100},
+					{"key":"4","x":0.2,"y":115},
+					{"key":"5","x":0.25,"y":116},
+					{"key":"6","x":0.3,"y":138},
+					{"key":"7","x":0.35,"y":104},
+					{"key":"8","x":0.4,"y":113},
+					{"key":"9","x":0.45,"y":121},
+					{"key":"10","x":0.5,"y":67},
+					{"key":"11","x":0.55,"y":86},
+					{"key":"12","x":0.6,"y":65},
+					{"key":"13","x":0.65,"y":63},
+					{"key":"14","x":0.7,"y":66},
+					{"key":"15","x":0.75,"y":63},
+					{"key":"16","x":0.8,"y":59},
+					{"key":"17","x":0.85,"y":44},
+					{"key":"18","x":0.9,"y":15},
+					{"key":"19","x":0.95,"y":2}
+				]
+			},
+			"on_track":{
+				"values":[
+					{"key":"0","x":0.0,"y":13},
+					{"key":"1","x":0.05,"y":9},
+					{"key":"2","x":0.1,"y":4},
+					{"key":"3","x":0.15,"y":34},
+					{"key":"4","x":0.2,"y":37},
+					{"key":"5","x":0.25,"y":11},
+					{"key":"6","x":0.3,"y":4},
+					{"key":"7","x":0.35,"y":1},
+					{"key":"8","x":0.4,"y":15},
+					{"key":"9","x":0.45,"y":12},
+					{"key":"10","x":0.5,"y":6},
+					{"key":"11","x":0.55,"y":2},
+					{"key":"12","x":0.6,"y":0},
+					{"key":"13","x":0.65,"y":10},
+					{"key":"14","x":0.7,"y":5},
+					{"key":"15","x":0.75,"y":0},
+					{"key":"16","x":0.8,"y":1},
+					{"key":"17","x":0.85,"y":0},
+					{"key":"18","x":0.9,"y":2},
+					{"key":"19","x":0.95,"y":0}
+				]
+			},
+			"ahead":{
+				"values":[
+					{"key":"0","x":0.0,"y":0},
+					{"key":"1","x":0.05,"y":0},
+					{"key":"2","x":0.1,"y":0},
+					{"key":"3","x":0.15,"y":0},
+					{"key":"4","x":0.2,"y":0},
+					{"key":"5","x":0.25,"y":0},
+					{"key":"6","x":0.3,"y":0},
+					{"key":"7","x":0.35,"y":0},
+					{"key":"8","x":0.4,"y":0},
+					{"key":"9","x":0.45,"y":0},
+					{"key":"10","x":0.5,"y":0},
+					{"key":"11","x":0.55,"y":0},
+					{"key":"12","x":0.6,"y":1},
+					{"key":"13","x":0.65,"y":0},
+					{"key":"14","x":0.7,"y":0},
+					{"key":"15","x":0.75,"y":0},
+					{"key":"16","x":0.8,"y":0},
+					{"key":"17","x":0.85,"y":0},
+					{"key":"18","x":0.9,"y":0},
+					{"key":"19","x":0.95,"y":0}
+				]
+			}
+		}
+
 
     var data =
     {
@@ -33,18 +108,21 @@
               //     {x:'x3', y:80}
               //   ]
               // },
-              {
+							{
+                label:'Bar Graph 1',
+								symbol:'square',
+                values:students.off_track.values
+              },
+							{
                 label:'Bar Graph 2',
-								symbol:'star',
-                values:[
-                  // {x:'4-Year Overall', y:50, center:true},
-                  // {x:'5-Year Overall', y:70, center:true},
-                  // {x:'6-Year Overall', y:9000000, center:true}
-	                  {x:4, y:50, center:true},
-	                  {x:5, y:70, center:true},
-	                  {x:6, y:9000000, center:true}
-                ]
-              }//,{},{}..
+								symbol:'square',
+                values:students.on_track.values
+              },
+							{
+                label:'Bar Graph 3',
+								symbol:'square',
+                values:students.ahead.values
+              }
             ]
           }
         ]
@@ -56,13 +134,15 @@
     axisChart
       .select('.axis-chart')
       .data(data)
-			.x({type:'ordinal'})
-			.yFormat({separateThousands:true})
+			// .x({type:'ordinal'})
+			.controls({lockXAxis:{enabled:true},stackBars:{enabled:true}})
+			.x({domain:[-0.1, 1.1]})
+			// .yFormat({separateThousands:true})
 			// .xFormatAxis({units:{after:"test test"}})
 			// .rotate(true)
 			// .x({type:'ordinal', orientation:'left'})
 			// .y({orientation:'bottom'})
-			.legendOrientation('top')
+			// .legendOrientation('top')
       .width($(window).width())
       .height($(window).height())
       .update();

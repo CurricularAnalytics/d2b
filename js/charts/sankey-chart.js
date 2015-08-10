@@ -294,6 +294,8 @@ d2b.CHARTS.sankeyChart = function(){
 			columnHeader = $$.selection.group.columnHeaders.selectAll('g.d2b-sankey-column-header').data($$.currentChartData.columnHeaders);
 			columnHeader.enter()
 				.append('g')
+					.style('opacity',0)
+					.attr('transform',function(d,i){return 'translate('+(columnHeaderScale(i)+$$.nodeWidth/2)+','+0+')'})
 					.attr('class','d2b-sankey-column-header')
 				.append('text')
 					.attr('y',16)
@@ -304,11 +306,20 @@ d2b.CHARTS.sankeyChart = function(){
 							return $$.nodeWidth/2;
 					});
 
-			columnHeader.select('text').text(function(d){return d;});
+			columnHeader
+				.select('text')
+					.text(function(d){return d;});
 			columnHeader
 				.transition()
 					.duration($$.animationDuration)
+					.style('opacity',1)
 					.attr('transform',function(d,i){return 'translate('+(columnHeaderScale(i)+$$.nodeWidth/2)+','+0+')'})
+
+			columnHeader.exit()
+				.transition()
+					.duration($$.animationDuration)
+					.style('opacity', 0)
+					.remove();
 
 			$$.forcedMargin.top += 25;
 		}
@@ -325,7 +336,7 @@ d2b.CHARTS.sankeyChart = function(){
 
 
 		var node = $$.selection.group.sankey.nodes.selectAll('g.d2b-sankey-node')
-				.data($$.currentChartData.nodes,function(d,i){
+				.data($$.currentChartData.nodes.filter(function(d){return d.value;}),function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
 						else if(d.key && d.key != 'auto')
@@ -366,7 +377,7 @@ d2b.CHARTS.sankeyChart = function(){
 				.attr('y',function(d){return d.dy/2+5;})
 
 		var link = $$.selection.group.sankey.links.selectAll('g.d2b-sankey-link')
-				.data($$.currentChartData.links,function(d,i){
+				.data($$.currentChartData.links.filter(function(d){return d.value;}),function(d,i){
 						if(d.key == 'unique')
 							return Math.floor((1 + Math.random()) * 0x10000)
 						else if(d.key && d.key != 'auto')
