@@ -276,9 +276,9 @@ html, body, .d2b-container {
   pointer-events: none;
   text-anchor: middle; }
 
-.d2b-guage-chart path {
+.d2b-gauge-chart path {
   fill-opacity: 0.8; }
-.d2b-guage-chart text {
+.d2b-gauge-chart text {
   text-anchor: middle; }
 
 .d2b-iframe-chart iframe {

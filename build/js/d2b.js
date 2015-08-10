@@ -6370,8 +6370,8 @@ d2b.CHARTS.pieChart = function(){
 
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-/*guage chart*/
-d2b.CHARTS.guageChart = function(){
+/*gauge chart*/
+d2b.CHARTS.gaugeChart = function(){
 
 	//private store
 	var $$ = {};
@@ -6418,7 +6418,7 @@ d2b.CHARTS.guageChart = function(){
 	};
 
 	$$.getPercent = function(){
-		//Set the percent for the guage either by:
+		//Set the percent for the gauge either by:
 		//	-using the user supplied percent
 		//	-calculating the percent with the user supplied value and total amounts
 		//	-defaulting the percent to 0
@@ -6525,18 +6525,18 @@ d2b.CHARTS.guageChart = function(){
 		//init main chart container
 		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d2b-guage-chart');
+				.attr('class','d2b-gauge-chart');
 
 		$$.selection.arcs = $$.selection.main.append('g');
 
 
 		$$.selection.arcHeader = $$.selection.main
 			.append('text')
-				.attr('class','d2b-guage-arc-header');
+				.attr('class','d2b-gauge-arc-header');
 
 		$$.selection.arcLabels = $$.selection.main
 			.append('g')
-						.attr('class','d2b-guage-arc-labels');
+						.attr('class','d2b-gauge-arc-labels');
 
 		$$.selection.arcLabels.start = $$.selection.arcLabels.append('text')
 				.attr('y', 20)
@@ -6546,7 +6546,7 @@ d2b.CHARTS.guageChart = function(){
 				.text('100%');
 		$$.selection.arcLabels.percent = $$.selection.arcLabels
 			.append('text')
-				.attr('class', 'd2b-guage-arc-percent')
+				.attr('class', 'd2b-gauge-arc-percent')
 				.text('0%');
 
 		//auto update chart

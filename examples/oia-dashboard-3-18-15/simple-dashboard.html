@@ -35,7 +35,7 @@
 			//event object
 			$$.on = d2b.CONSTANTS.DEFAULTEVENTS();
 
-			$$.guageScale = d3.scale.ordinal();
+			$$.gaugeScale = d3.scale.ordinal();
 
 			/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 			var chart = {};
@@ -65,7 +65,7 @@
 				$$.generateRequired = false;
 
 				//init main chart container
-				$$.selection.guages = $$.selection.append('div');
+				$$.selection.gauges = $$.selection.append('div');
 
 				$$.selection.internalChart = $$.selection.append('div');
 
@@ -104,54 +104,54 @@
 				$$.outerHeight = $$.height;
 
 				var domain = [];
-				for(var i=0;i<$$.currentChartData.guages.length;i++){
+				for(var i=0;i<$$.currentChartData.gauges.length;i++){
 					domain.push(i);
 				}
 
-				$$.guageScale
+				$$.gaugeScale
 					.domain(domain)
 					.rangeBands([0, $$.outerWidth]);
 
 
 
-				if($$.outerHeight * 0.25 > $$.guageScale.rangeBand()/2)
-					var guageHeight = $$.guageScale.rangeBand()/2;
+				if($$.outerHeight * 0.25 > $$.gaugeScale.rangeBand()/2)
+					var gaugeHeight = $$.gaugeScale.rangeBand()/2;
 				else
-					var guageHeight = $$.outerHeight * 0.25;
+					var gaugeHeight = $$.outerHeight * 0.25;
 
-				guageHeight = Math.max(130, guageHeight);
+				gaugeHeight = Math.max(130, gaugeHeight);
 
-				var internalChartHeight = $$.outerHeight - guageHeight;
+				var internalChartHeight = $$.outerHeight - gaugeHeight;
 
 
 				//init svg dimensions
-				$$.selection.guages
+				$$.selection.gauges
 					.transition()
 						.duration($$.animationDuration)
 					// .style('background','red')
 						.style('width',$$.outerWidth+'px')
-						.style('height',guageHeight+'px');
+						.style('height',gaugeHeight+'px');
 
-				$$.selection.guages.guage = $$.selection.guages.selectAll('div').data($$.currentChartData.guages);
+				$$.selection.gauges.gauge = $$.selection.gauges.selectAll('div').data($$.currentChartData.gauges);
 
 
 
-				$$.selection.guages.guage.enter()
+				$$.selection.gauges.gauge.enter()
 					.append('div')
 						.each(function(d){
-							this.chart = new d2b.CHARTS.guageChart();
+							this.chart = new d2b.CHARTS.gaugeChart();
 							this.chart
 									.color($$.color)
 									.select(this);
 						});
 
-				$$.selection.guages.guage
+				$$.selection.gauges.gauge
 					.style('position','absolute')
-						.style('left',function(d,i){return $$.guageScale(i) + 'px';})
+						.style('left',function(d,i){return $$.gaugeScale(i) + 'px';})
 						.each(function(d){
 							this.chart
-									.width($$.guageScale.rangeBand())
-									.height(guageHeight)
+									.width($$.gaugeScale.rangeBand())
+									.height(gaugeHeight)
 									.data({data:{label:d.label, percent:d.percents[0]}})
 									.update();
 						});
@@ -168,11 +168,11 @@
 				$$.internalChart
 						.on('elementClick',function(d,i,t){
 							if(t == 'chart-button'){
-								$$.selection.guages.guage
+								$$.selection.gauges.gauge
 									.each(function(d){
 										this.chart
-												.width($$.guageScale.rangeBand())
-												.height(guageHeight)
+												.width($$.gaugeScale.rangeBand())
+												.height(gaugeHeight)
 												.data({data:{label:d.label, percent:d.percents[i]}})
 												.update();
 									});
