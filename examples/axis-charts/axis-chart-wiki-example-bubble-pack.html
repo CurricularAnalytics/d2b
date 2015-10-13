@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
-<script src="../../bower_components/jquery/dist/jquery.js"></script>
+
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <script>
@@ -42,28 +42,36 @@
                         {
                           name:'Child 1-1',
                           size:5,
-                          x0:0.3,
-                          y0:100
+                          x:0.3,
+                          y:100
                         },
                         {
                           name:'Child 1-2',
                           size:15,
-                          x0:0.6,
-                          y0:50
+                          x:0.6,
+                          y:50
                         }
                       ]
                     },
                     {
                       name:'Child 2',
                       size:30,
-                      x0:1.2,
-                      y0:160
+                      x:1.2,
+                      y:160
                     },
                     {
                       name:'Child 3',
                       size:18,
-                      x0:1.8,
-                      y0:120
+                      x:1.8,
+                      y:120
+                    },
+                    {
+                      name:'Child 4',
+											values: [
+												{x:1.8, y: 120, size:10},
+												{x:1.2, y: 300, size:5},
+												{x:3.7, y: 10, size:15}
+											]
                     }
 
                   ]
@@ -81,6 +89,7 @@
       .select('.axis-chart')
       .legendOrientation('top')
 			.data(data)
+			.tooltipLayout(1)
 			// .on('element-mouseover', function(type){console.log(this);console.log(type);})
       .width($(window).width())
       .height($(window).height())

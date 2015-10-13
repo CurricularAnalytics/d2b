@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+  var loader = d2b.UTILS.loader();
+
+  var files = [
+    {key: 'people', path: 'http://path-to-file.example', file: 'people.csv'},
+    {key: 'dates', path: 'http://path-to-file.example', file: 'dates.json'}
+  ];
+
+  loader(files, function(data){
+    console.log('Done with first load!');
+    console.log(data.people);
+    console.log(data.dates);
+  });
+
+  files.push({key: 'states', path: 'http://path-to-file.example', file: 'dates.topo.json'});
+
+  loader(files, function(data){
+    console.log('Done with second load!');
+    console.log(data.people);
+    console.log(data.dates);
+    console.log(data.states);
+  });
+</script>
+<body style='margin:0px;'>
+<!-- <div style='' class = 'chart-layout'></div> -->
+</body>
+</html>

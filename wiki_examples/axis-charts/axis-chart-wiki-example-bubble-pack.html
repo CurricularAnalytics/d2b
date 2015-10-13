@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          // this is where the various types of axis-charts will be defined
+          // all of the chart types are optional and can be used in conjunction with one another
+          {
+            // bubble-pack-chart-type
+            type:'bubblePack',
+						properties:{
+							positionType:'median'
+							// positionTypeX:'midpoint',
+							// positionTypeY:'mean'
+						},
+            graphs:[
+              // this is where each of the histograms will be defined
+              {
+                // bubble packs contain a label and pack object
+                // for guidelines on how to construct the pack, visit d3's pack layout wiki
+                // then add the x0 and y0 attributes to the pack leaves
+                label:'Bubble Pack 1',
+                pack:{
+                  name:'Parent',
+                  children:[
+                    {
+                      name:'Child 1',
+                      children:[
+                        {
+                          name:'Child 1-1',
+                          size:5,
+                          x0:0.3,
+                          y0:100
+                        },
+                        {
+                          name:'Child 1-2',
+                          size:15,
+                          x0:0.6,
+                          y0:50
+                        }
+                      ]
+                    },
+                    {
+                      name:'Child 2',
+                      size:30,
+                      x0:1.2,
+                      y0:160
+                    },
+                    {
+                      name:'Child 3',
+                      size:18,
+                      x0:1.8,
+                      y0:120
+                    }
+
+                  ]
+                }
+              }//,{},{}..
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+      .select('.axis-chart')
+      .legendOrientation('top')
+			.data(data)
+			// .on('element-mouseover', function(type){console.log(this);console.log(type);})
+      .width($(window).width())
+      .height($(window).height())
+      .update();
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

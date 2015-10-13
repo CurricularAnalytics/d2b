@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<style>
+	path{
+    fill:none;
+		/*fill:rgba(193,0,55,1);*/
+	}
+  line{
+    stroke:black;
+    stroke-width:1px;
+  }
+  svg{
+    /*background:rgba(193,0,55,0.3);*/
+  }
+</style>
+<script>
+	$(document).ready(function(){
+
+    var width = 600;
+    var height = 400;
+
+		var g = d3.select('.axis')
+        .attr('width', width)
+        .attr('height', height)
+      .append('g')
+
+    var content = d3.select('.axis').append('g');
+				// .attr('transform', 'translate(100,100)');
+
+    // var axis = d2b.SVG.axis();
+
+    var scale_x = d3.scale.ordinal().domain([1,2,3,4,5]);
+    var scale_y = d3.scale.linear().domain([-9.3,227.3]);
+    var scale_x2 = d3.scale.linear().domain([0,800]);
+    var scale_y2 = d3.scale.linear().domain([0,800]);
+
+    // var axis_x = d3.svg.axis().scale(scale_x);
+    // var axis_y = d3.svg.axis().scale(scale_y);
+    // var axis_x2 = d3.svg.axis().scale(scale_x2);
+    // var axis_y2 = d3.svg.axis().scale(scale_y2);
+
+    var axis = d2b.SVG.axis()
+      .width(width)
+      .height(height)
+			// .customPadding(50)
+      .x({scale:scale_x, orientation:'bottom-outside', labelOutside:'X-axis', labelInside: 'Thousands of Dollars'})
+      .y({scale:scale_y, orientation:'left-outside', labelOutside:'Y-axis', labelInside: 'Thousands of Dollars'})
+      // .x2({axis:axis_x2, orientation:'top-outside', hidden:false, labelOutside:'X2-axis', labelInside:'inside'})
+      // .y2({axis:axis_y2, orientation:'right-outside', hidden:false, labelOutside:'Y2-axis', labelInside:'inside'});
+
+    g.call(axis);
+
+
+    content
+      .attr('transform', 'translate('+axis.box().padding.left+','+axis.box().padding.top+')');
+    var point = content.append('circle').attr('r', 5)
+      // .datum({x2:100, y2:200, x:2, y:40})
+      .attr('cx',axis.scale('x')(2))
+      .attr('cy',axis.scale('y')(40))
+
+    // console.log(axis.scale('x').rangeBand());
+
+    // console.log(axis.box())
+		//
+    setTimeout(function(){
+      height = width = 1000;
+
+      d3.select('.symbol')
+        .attr('width', width)
+        .attr('height', height)
+
+      scale_x = d3.scale.linear().domain([0,200]);
+      scale_y.domain([-30,50]);
+
+      // axis_x.scale(scale_x)
+
+      axis
+      //   .width(width)
+      //   .height(height)
+      //   .customPadding(30)
+      //   .x({hidden:true})
+      //   .y({hidden:true})
+        .x({scale:scale_x, orientation:'top-outside'})
+      //   .y({axis:axis_y, orientation:'right-outside'})
+      //   .x2({hidden:true})
+      //   .y2({hidden:true})
+
+      g
+        .transition().duration(1750)
+        .call(axis);
+
+      content
+        .transition().duration(1750)
+        .attr('transform', 'translate('+axis.box().padding.left+','+axis.box().padding.top+')');
+
+      point
+        .transition().duration(1750)
+	      .attr('cx',axis.scale('x')(2))
+	      .attr('cy',axis.scale('y')(40))
+
+      console.log(axis.box())
+    }, 1000);
+
+
+
+    // setTimeout(function(){
+    //   height = width = 1000;
+    //
+    //   d3.select('.symbol')
+    //     // .attr('width', width)
+    //     // .attr('height', height)
+    //
+    //   // scale_x = d3.scale.linear().domain([0,200]);
+    //   // scale_y.domain([-30,0]);
+    //
+    //   // axis_x.scale(scale_x)
+    //
+    //   axis
+    //     // .width(width)
+    //     // .height(height)
+    //     // .customPadding(30)
+    //     .x({hidden:false})
+    //     // .y({hidden:false})
+    //     // .x({axis:axis_x, orientation:'top-outside'})
+    //     // .y({axis:axis_y, orientation:'right-outside'})
+    //     // .x2({hidden:true})
+    //     // .y2({hidden:true})
+    //
+    //   g
+    //     .transition().duration(750)
+    //     .call(axis);
+    //
+    //   point
+    //     .transition().duration(750)
+    //     .attr('cx',axis.box().padding.left + scale_x(2) + scale_x.rangeBand()/2)
+    //     .attr('cy',axis.box().padding.top + scale_y(40))
+    //
+    // }, 2000);
+
+	})
+</script>
+
+<body style='margin:0px;'>
+
+<svg class = 'axis' width = '1000', height = '1000'></svg>
+
+</body>
+</html>

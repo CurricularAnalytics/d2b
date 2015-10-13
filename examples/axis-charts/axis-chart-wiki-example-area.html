@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
-<script src="../../bower_components/jquery/dist/jquery.js"></script>
+
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <script>
@@ -19,36 +19,63 @@
           {
             // area-chart-type
             type:'area',
+						offset:'wiggle',
             graphs:[
               // this is where each of the area graphs will be defined
-              {
+							{
                 //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
                 label:'Area Graph 1',
                 interpolate:'basis', //default 'linear', for the complete list of types visit d3's shapes wiki page
                 values:[
-                  {x:0, y:200, y0:0},
-                  {x:0.5, y:190, y0:0},
-                  {x:1, y:180, y0:0},
-                  {x:1.5, y:130, y0:0},
-                  {x:2, y:20, y0:0}
+                  {x:0, y:200},
+                  {x:0.5, y:190},
+                  {x:1, y:180},
+                  {x:1.5, y:130},
+                  {x:2, y:20}
                 ]
-              }//,{},{}..
+              },
+							{
+                //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                label:'Area Graph 2',
+                interpolate:'basis', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                values:[
+                  {x:0, y:200},
+                  {x:0.5, y:190},
+                  {x:1, y:180},
+                  {x:1.5, y:130},
+                  {x:2, y:20}
+                ]
+              }
             ]
           }
         ]
       }
     }
 
-		var axisChart = new d2b.CHARTS.axisChart();
+		var customAxis = d2b.SVG.axis();
+
+		customAxis.y({axis:d3.svg.axis().tickFormat(function(d){return d3.format("%")(d);})})
+
+		var axisChart = d2b.CHARTS.axisChart();
 
     axisChart
       .select('.axis-chart')
+			.legendOrientation('right')
+			.axis(customAxis)
+			.tooltipLayout(1)
       .data(data)
       .width($(window).width())
       .height($(window).height())
-			.on('element-mouseover', function(type, d){console.log(d)})
-			// .on('update', function(){console.log(this)})
-      .update();
+			.controls({stackAreas:{enabled:true, visible:true, offset:'expand'}})
+			// .on('element-mouseover', function(type, d, i){console.log(type, i, d)})
+			.on('update', function(){
+				d3.selectAll('.d2b-axis-chart-background-graph path').on('mouseover', function(d){
+					console.log(d)
+				});
+
+			})
+      .update()
+			// .tooltipLayout(1).update();
 	});
 
 </script>

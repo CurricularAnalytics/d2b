@@ -1,0 +1,47 @@
+.d2b-axis, .d2b-axis-grid{
+  path{
+    fill:none;
+    stroke-width:1px;
+    stroke:#bbb;
+    // display:none;
+  }
+  line{
+    stroke: #ddd;
+  }
+  text{
+    fill:#333;
+    font-size:13px;
+    font-family:"Droid Sans";
+  }
+
+  .d2b-origin-tick{
+    text{
+      font-weight:bold;
+    }
+    // line{
+    //   stroke-width:1.5px;
+    // }
+  }
+
+  text.d2b-axis-label{
+
+    &.d2b-label-outside{
+      text-anchor:middle;
+      font-weight:bold;
+      font-size:15px;
+    }
+    &.d2b-label-inside{
+      fill:#555;
+      text-anchor:end;
+      font-size:13px;
+    }
+  }
+}
+.d2b-axis-grid{
+  text{
+    display:none;
+  }
+}
+.d2b-axis-background{
+  fill:rgba(255,255,255,0);
+}

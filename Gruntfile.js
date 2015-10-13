@@ -2,13 +2,16 @@ module.exports = function(grunt){
 
 	// Project configuration.
 	grunt.initConfig({
-	  sass: {                              // Task
-	    dist: {                            // Target
-	      // options: {                       // Target options
-	      //   style: 'expanded'
-	      // },
-	      files: {                         // Dictionary of files
-	        'build/css/d2b.css': 'build/css/d2b.scss',       // 'destination': 'source'
+		jasmine:{
+			src: ['vendor/js/d3.min.js', 'vendor/js/jquery.min.js', 'build/js/d2b.min.js'],
+			options:{
+				specs: 'spec/d2b/**/*.js'
+			}
+		},
+	  sass: {
+	    dist: {
+	      files: {
+	        'build/css/d2b.css': 'build/css/d2b.scss',
 	      }
 	    }
 	  },
@@ -37,72 +40,19 @@ module.exports = function(grunt){
 		},
 	  concat: {
 	    vendor: {
-	      src: ['bower_components/d3/d3.min.js'],
+	      src: ['vendor/js/d3.min.js', 'vendor/js/jquery.min.js'],
 	      dest: 'vendor/js/vendor.js',
 	    },
 	    js: {
-	      src: ['js/init.js',
-							'js/constants.js',
-							'js/utils/chart-adapters.js',
-							'js/utils/chart-page.js',
-							'js/utils/chart-layout.js',
-							'js/utils/dashboard-category.js',
-							'js/utils/controls.js',
-							'js/utils/layouts.js',
-							'js/utils/general.js',
-							'js/utils/legends.js',
-							'js/utils/breadcrumbs.js',
-							'js/utils/chart-members.js',
-							'js/utils/chart-helpers.js',
-							'js/utils/loader.js',
-							'js/utils/events.js',
-							'js/utils/math.js',
-							'js/charts/sunburst-chart.js',
-							'js/charts/bubble-chart.js',
-							'js/charts/axis-chart.js',
-							'js/charts/sankey-chart.js',
-							'js/charts/pie-chart.js',
-							'js/charts/gauge-chart.js',
-							'js/charts/iframe-chart.js',
-							'js/charts/multi-chart.js',
-							'js/charts/template-chart.js',
-							'js/charts/fact-chart.js',
-							'js/charts/table-chart.js',
-							'js/charts/funnel-chart.js',
-							'js/charts/map-chart.js',
-							'js/utils/axis-chart/scatter.js',
-							'js/utils/axis-chart/bar.js',
-							'js/utils/axis-chart/line.js',
-							'js/utils/axis-chart/area.js',
-							'js/utils/axis-chart/histogram.js',
-							'js/utils/axis-chart/bubble-pack.js',
-							'js/utils/axis-chart/template.js',
-							'js/utils/axis-chart/grid-marker.js',
-							'js/dashboards/dashboard.js',
-							'js/d3_extensions/sankey.js',
-							'js/d3_extensions/colorbrewer.js',
-							'js/d3_extensions/symbol.js'],
+	      src: ['src/js/init.js',
+							'src/js/constants.js',
+							'src/js/**/*.js'],
 	      dest: 'build/js/d2b.js',
 	    },
 	    css: {
-	      src: ['css/init.scss','css/utils.scss',
-							'css/charts/axis-chart.scss',
-							'css/charts/sankey-chart.scss',
-							'css/charts/pie-chart.scss',
-							'css/charts/gauge-chart.scss',
-							'css/charts/iframe-chart.scss',
-							'css/charts/multi-chart.scss',
-							'css/charts/sunburst-chart.scss',
-							'css/charts/bubble-chart.scss',
-							'css/charts/fact-chart.scss',
-							'css/charts/table-chart.scss',
-							'css/charts/funnel-chart.scss',
-							'css/charts/general.scss',
-							'css/charts/map-chart.scss',
-							'css/dashboards/dashboard.scss',
-							'css/utils/dashboard-category.scss',
-							'css/utils/chart-page.scss',
-							'css/utils/legend.scss'],
+	      src: ['src/css/init.scss',
+							'src/css/utils.scss',
+							'src/css/**/*.scss'],
 	      dest: 'build/css/d2b.scss',
 	    },
 	  },
@@ -121,19 +71,23 @@ module.exports = function(grunt){
 		    },
 		  },
 		  js: {
-		    files: ['js/**/*.js'],
-		    tasks: ['concat:css','sass','concat:js','uglify', 'cssmin'],
+		    files: ['src/js/**/*.js'],
+		    tasks: ['concat:css','sass','concat:js','uglify', 'cssmin', 'jasmine'],
 		    options: {
 		      spawn: false,
 		    },
 		  },
 		  css: {
-		    files: ['css/**/*.scss'],
-		    tasks: ['concat:css','sass','concat:js','uglify', 'cssmin'],
+		    files: ['src/css/**/*.scss'],
+		    tasks: ['concat:css','sass','concat:js','uglify', 'cssmin', 'jasmine'],
 		    options: {
 		      spawn: false,
 		    },
 		  },
+			spec: {
+				files: ['spec/d2b/**/*.js'],
+				tasks: ['jasmine']
+			}
 		},
 		connect: {
 			server: {
@@ -155,5 +109,6 @@ module.exports = function(grunt){
 	grunt.loadNpmTasks('grunt-contrib-connect');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.registerTask('default',['concat','sass','uglify', 'cssmin','connect','watch']);
+	grunt.loadNpmTasks('grunt-contrib-jasmine');
+	grunt.registerTask('default',['concat','sass','uglify', 'cssmin','connect', 'jasmine', 'watch']);
 };

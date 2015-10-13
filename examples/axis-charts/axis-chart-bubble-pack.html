@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <!-- <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" /> -->
-<script src="../../bower_components/jquery/dist/jquery.js"></script>
+
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
@@ -16,8 +16,8 @@
 					randomizePositions(child);
 				});
 			}else{
-				node.x0 = 1000 * Math.random() - 500;
-				node.y0 = 1000 * Math.random() - 500;
+				node.x = 1000 * Math.random() - 500;
+				node.y = 1000 * Math.random() - 500;
 			}
 		};
 
@@ -31,7 +31,7 @@
             {
                 type: 'bubblePack',
 								properties: {
-									sizeScale: [2],
+									// sizeScale: [2],
 									//
 								},
                 graphs: [
@@ -1123,11 +1123,12 @@
 		var axisChart = new d2b.CHARTS.axisChart();
 
 		axisChart
-			.x({tickCountMultiplier: 0.5})
-			.y({tickCountMultiplier: 1})
+			.controls({lockYAxis:{enabled:true, domain:[-500, 500]}, lockXAxis:{enabled:true, domain:[-500, 500]}})
+			// .tooltipLayout(1)
+			// .x({tickCountMultiplier: 0.5})
+			// .y({tickCountMultiplier: 1})
 			.legendOrientation('top')
-			.data(data)
-			.controls({bubbleSubFill:{enabled:true,visible:true}});
+			.data(data);
 
 //
 //
@@ -1213,7 +1214,7 @@
 				}
 			};
 			chartLayout
-				.animationDuration(1000)
+				// .animationDuration(1000)
 				.data(chartLayoutData)
 
 //update the chart layout
@@ -1227,7 +1228,7 @@
 			data.data.types[0].graphs.forEach(function(graph){
 				randomizePositions(graph.pack);
 			});
-			axisChart.data(data).update();
+			axisChart.data(data).rotate(true).update();
 
 		},2000)
 

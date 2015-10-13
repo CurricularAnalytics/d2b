@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<style>.d2b-point{display:none;}</style>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+		
+		var data = {
+			data:{
+				types:[
+					{
+						type:'bar',
+						properties:{
+							padding:'1%',
+							tooltip:function(d){return d.data.x+' : '+Math.abs(d.data.y);}
+						},
+						graphs:[
+							{
+								label:'male',
+								values: [
+									{x:0, y:10},
+									{x:1, y:20},
+									{x:2, y:30},
+									{x:3, y:35},
+									{x:4, y:45},
+									{x:5, y:40},
+									{x:6, y:32},
+									{x:7, y:22},
+									{x:8, y:16},
+								]
+
+							},
+							{
+								label:'female',
+								values: [
+									{x:0, y:-10},
+									{x:1, y:-23},
+									{x:2, y:-36},
+									{x:3, y:-45},
+									{x:4, y:-55},
+									{x:5, y:-62},
+									{x:6, y:-35},
+									{x:7, y:-21},
+									{x:8, y:-11},
+								]
+
+							}
+						]
+					}
+				]
+			}
+		}
+
+		var axis = d2b.SVG.axis();
+
+		axis.x({scale:d3.scale.ordinal()});
+		axis.y({axis:d3.svg.axis().tickFormat(function(d){return Math.abs(d);})});
+
+		var axisChart = d2b.CHARTS.axisChart();
+
+		axisChart
+		  .select('.axis-chart')
+			.axis(axis)
+			.rotate(true)
+			.controls({stackBars:{enabled:true}})
+			.tooltipLayout(1)
+		  .data(data)
+		  .width($(window).width())
+		  .height($(window).height())
+		  .update();
+
+
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<style>.d2b-point{display:none;}</style>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+		d3.csv("area-data.csv", function(d){
+			var format = d3.time.format("%m/%d/%y");
+			d.forEach(function(row){
+				row.date = format.parse(row.date);
+			});
+
+
+			var nest = d3.nest().key(function(d){
+				return d.key;
+			});
+
+			var nesting = nest.entries(d);
+
+
+			var data = {
+				data:{
+					types:[
+						{
+							type:'area',
+							properties:{
+								offset:'silhouette',
+								tooltip: function(d){return d.graph.label+" : "+d.data.y;}
+							},
+							graphs:nesting.map(function(set){
+								return {
+									interpolate:'monotone',
+									label:set.key,
+									values:set.values.map(function(value){
+										return {
+											x: value.date,
+											// x:Math.random(),
+											y:parseFloat(value.value)
+										};
+									})
+								}
+							})
+						}
+					]
+				}
+			}
+
+			var offsets = ["silhouette", "zero", "expand", "wiggle"];
+			var currentOffset = 0;
+
+			var axis = d2b.SVG.axis();
+
+			axis.x({scale:d3.time.scale()});
+
+			var axisChart = d2b.CHARTS.axisChart();
+
+			axisChart
+			  .select('.axis-chart')
+				.axis(axis)
+				.controls({stackAreas:{enabled:true, visible:true},lockXAxis:{enabled:true, domain:d3.extent(d, function(d) { return d.date; })}})
+				.tooltipLayout(1)
+			  .data(data)
+			  .width($(window).width())
+			  .height($(window).height())
+			  .update()
+
+			setInterval(function(){
+				currentOffset += 1;
+				if(currentOffset > offsets.length-1)
+					currentOffset = 0;
+				// console.log(offsets[currentOffset])
+				data.data.types[0].properties.offset = offsets[currentOffset];
+				//
+				// var data = {
+				// 	data:{
+				// 		types:[
+				// 			{
+				// 				type:'area',
+				// 				properties:{
+				// 					offset:offsets[currentOffset],
+				// 					tooltip: function(d){return d.graph.label+" : "+d.data.y;}
+				// 				},
+				// 				graphs:nesting.map(function(set){
+				// 					return {
+				// 						interpolate:'monotone',
+				// 						label:set.key,
+				// 						values:set.values.map(function(value){
+				// 							return {
+				// 								x: value.date,
+				// 								// x:Math.random(),
+				// 								y:parseFloat(value.value)
+				// 							};
+				// 						})
+				// 					}
+				// 				})
+				// 			}
+				// 		]
+				// 	}
+				// }
+
+				axisChart.data(data).update();
+			}, 3000);
+
+		});
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

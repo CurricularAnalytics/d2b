@@ -1,0 +1,44 @@
+@import url('//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css');
+@import url('//fonts.googleapis.com/css?family=Quicksand');
+@import url('//fonts.googleapis.com/css?family=Oswald:400,300,700');
+@import url('//fonts.googleapis.com/css?family=Droid+Sans:400,700');
+
+//colors
+$dark_main:#333;
+$hover_dark:#555;
+$light:#bbb;
+$lightest:#eee;
+$note:#777;
+
+//dashboard shadows
+$dashboard_shadow: 0px 2px 3px rgba(100,100,100,0.5);
+$dashboard_shadow_inset: inset 0px 0px 4px rgba(100,100,100,0.7);
+
+//palette
+$palette_main: rgb(193,0,55);
+$palette_main_darker: #870026;
+
+//fonts
+$main:"Droid Sans", Arial;
+$alt1:"Oswald", Arial;
+$alt2:"Quicksand", Arial;
+
+html, body, .d2b-container {
+  height: 100%;
+}
+
+.d2b-container{
+	*, *:before, *:after{
+		box-sizing:border-box;
+	}
+}
+
+.d2b-container{
+	font-family:$main;
+	color:$dark_main;
+	ul{
+		list-style-type: none;
+		margin:0px;
+		padding:0px;
+	}
+}

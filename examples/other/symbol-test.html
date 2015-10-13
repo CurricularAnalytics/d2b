@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<script src="../../bower_components/jquery/dist/jquery.js"></script>
+
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
@@ -14,6 +14,7 @@
 
 		var path = d3.select('.symbol').append('svg')
 			.append('path')
+				.datum({symbolType: null})
 				.style('fill', 'black')
 				.style('stroke-width', '2px')
 				.style('stroke', 'steelblue')
@@ -25,8 +26,10 @@
 
 			var type = types[index]
 
-			var symbol = d2b.UTILS.symbol().type(type)
+			var symbol = d2b.UTILS.symbol().type("close")//.type(function(d){return d.symbolType;})
 					.size(6000);
+
+			path.each(function(d){d.symbolType = type;})
 
 			path
 					.attr('d', symbol);

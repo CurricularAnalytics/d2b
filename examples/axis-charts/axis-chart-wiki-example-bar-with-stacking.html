@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
-<script src="../../bower_components/jquery/dist/jquery.js"></script>
+
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <script>
@@ -20,28 +20,33 @@
           // all of the chart types are optional and can be used in conjunction with one another
           {
             // bar-chart-type
-            type:'bar',
+            type:'area',
 						properties:{
-							// padding:"5%"
-							// padding:5
+							// offset:"silhouette"
+							// padding:"2%"
+							// padding:0
 						},
             graphs:[
               // this is where each of the bar graphs will be defined
               {
                 //bar graphs contain a label and an array of x,y values
                 label:'Bar Graph 1',
+								interpolate:'monotone',
                 values:[
-                  {x:'x1', y:100},
-                  {x:'x2', y:120},
-                  {x:'x3', y:80}
+                  {x:1, y:50},
+									{x:2, y:-25},
+                  {x:3, y:-70},
+                  {x:4, y:90}
                 ]
               },
               {
                 label:'Bar Graph 2',
+								interpolate:'monotone',
                 values:[
-                  {x:'x1', y:50},
-                  {x:'x2', y:70},
-                  {x:'x4', y:90}
+                  {x:1, y:50},
+									{x:2, y:25},
+                  {x:3, y:-70},
+                  {x:4, y:90}
                 ]
               }//,{},{}..
             ]
@@ -55,8 +60,11 @@
     axisChart
       .select('.axis-chart')
       .data(data)
-			.x({type:'ordinal'})
-			.controls({stackBars:{enabled:true,visible:true}}) //enabled flag will default the stacked orientation
+			.tooltipLayout(1)
+			.controls({
+				stackAreas:{enabled:true,visible:true},
+				// lockXAxis:{enabled:true, domain:[0, 5]}
+			}) //enabled flag will default the stacked orientation
 																												 //visible flag will provide a checkbox for the user to
 																												 //switch between stacked/grouped bars
 			.legendOrientation('top')

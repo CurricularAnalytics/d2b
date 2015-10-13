@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<style>.d2b-point{display:none;}</style>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+
+<style>
+.d2b-axis.d2b-x line, .d2b-axis.d2b-x2 line, .d2b-axis-grid.d2b-x line, .d2b-axis-grid.d2b-x2 line{
+	display:none;
+}
+line{
+	opacity:0.5;
+}
+</style>
+
+<script>
+
+	updateChart = function(){
+		var yearBornDomain = [year-95, year+5];
+		scaleX2.domain([95, -5]);
+
+		var rows = data.filter(function(d){return d.year === year});
+
+					var axisChartData = {
+						data:{
+							labels:{x:'Year Born', y:'Number of People'},
+							types:[
+								{
+									type:'bar',
+									properties:{
+										padding:'2%',
+										// tooltip:function(d){return d.data.x;}
+									},
+									graphs:[
+										{
+											center:true,
+											label:'Male',
+											values:
+												rows
+													.filter(function(row){return row.sex === 1})
+													.map(function(row){return {x:year - row.age, y:row.people};})
+										},
+										{
+											center:true,
+											label:'Female',
+											values:
+												rows
+													.filter(function(row){return row.sex === 2})
+													.map(function(row){return {x:year - row.age, y:row.people};})
+										}
+									]
+								}
+							]
+						}
+					}
+
+				axisChart
+					.controls({lockXAxis:{enabled:true, domain:yearBornDomain}})
+				  .data(axisChartData)
+				  .width($(window).width())
+				  .height($(window).height())
+				  .update();
+
+	};
+
+	var year = 2000;
+	var data, axisChart = d2b.CHARTS.axisChart();
+	var axis = d2b.SVG.axis();
+	var scaleX = d3.scale.linear();
+	var scaleX2 = d3.scale.linear();
+
+	$(document).ready(function(){
+
+		var color = d3.scale.ordinal().domain(["Female", "Male"]).range(["#e377c2", "#1f77b4"]);
+
+		axis.x({axis:d3.svg.axis().tickFormat(function(d){return d;}),scale:scaleX});
+		axis.x2({labelOutside:"Age", hidden:false, scale:scaleX2})
+
+		axisChart
+			.yFormat({nice:true})
+			.color(color)
+		  .select('.axis-chart')
+			.axis(axis)
+			.legendOrientation("right")
+			.controls({
+				lockYAxis:{enabled:true, domain:[0, 12000000]}
+			})
+			.tooltipLayout(1)
+			.on('update', function(){
+				d3.select('.d2b-axis-chart').node().appendChild(d3.select('.d2b-axes').node());
+			});
+
+
+		d3.csv("pyramid-data.csv", function(d){
+			d.forEach(function(row){
+				row.year = parseInt(row.year);
+				row.sex = parseInt(row.sex);
+				row.age = parseInt(row.age);
+				row.people = parseInt(row.people);
+			});
+
+			data = d;
+			updateChart();
+		});
+
+
+	  d3.select(window).on("keydown", function() {
+	    switch (d3.event.keyCode) {
+	      case 37: year = Math.max(1850, year - 10); break;
+	      case 39: year = Math.min(2000, year + 10); break;
+	    }
+	    updateChart();
+	  });
+
+		$(window).resize(function(){
+			updateChart();
+		});
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

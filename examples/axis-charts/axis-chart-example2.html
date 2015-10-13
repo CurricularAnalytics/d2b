@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<script src="../../bower_components/jquery/dist/jquery.js"></script>
+
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
@@ -20,22 +20,22 @@
 			.yFormat({nice:false,siPrefixed:false,separateThousands:false,units:{before:"", after:""},precision:0})
 
 //set the x scale properties
-			.x({
-				orientation:'bottom', 						//default 'bottom', can be set to right or left if rotated, bottom or top if not
-				invert:false, 								//default false
-				hide: false, 									//default false
-				// type:'ordinal', 							//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
-				domain:[-0.1, 1.1]			//default [0, 1], set the domain for the chosen scale type
-			})
-
-//set the y scale type to quantitative,linear (this is default) and the domain as [0,300]
-			.y({
-				orientation:'left', 					//default 'left', can be set to top or bottom if rotated, right or left if not
-				invert:false, 								//default false
-				hide: false, 									//default false
-				type:'quantitative,linear', 	//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
-				domain:[-200, 500]								//default [0, 1], set the domain for the chosen scale type
-			})
+// 			.x({
+// 				orientation:'bottom', 						//default 'bottom', can be set to right or left if rotated, bottom or top if not
+// 				invert:false, 								//default false
+// 				hide: false, 									//default false
+// 				// type:'ordinal', 							//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
+// 				domain:[-0.1, 1.1]			//default [0, 1], set the domain for the chosen scale type
+// 			})
+//
+// //set the y scale type to quantitative,linear (this is default) and the domain as [0,300]
+// 			.y({
+// 				orientation:'left', 					//default 'left', can be set to top or bottom if rotated, right or left if not
+// 				invert:false, 								//default false
+// 				hide: false, 									//default false
+// 				type:'quantitative,linear', 	//default 'quantitative,linear', can be set to 'ordinal', 'time', or any quantitative scale denoted by 'quantitative,type'
+// 				domain:[-200, 500]								//default [0, 1], set the domain for the chosen scale type
+// 			})
 
 //set the controls for this chart, only hideLegend currenlty available for axis-charts
 			.controls({'lockXAxis':{'enabled':true}, 'hideLegend':{'enabled':false,'visible':true},'stackBars':{'visible':true}}) // default {'hideLegend':{'enabled':false,'visible':false}}
@@ -59,7 +59,7 @@
 						// properties:{
 						// 	padding:"30%"
 						// },
-						type:'bar',
+						type:'line',
 						graphs:[
 							{
 								label: 'Bar 1',

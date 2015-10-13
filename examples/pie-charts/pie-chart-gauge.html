@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<style>
+	/*text{
+		display:none;
+	}*/
+</style>
+<script>
+
+	var color = d3.scale.linear().domain([0, 100]).range(['green', 'red']);
+
+	var customize = function(){
+		this.selectAll('.d2b-arc').each(function(d){
+			var elem = d3.select(this);
+			var text = elem.select('text');
+			if(d.data.label === 'Empty'){
+				elem.style('display', 'none');
+			}else{
+				text
+					.style('display', 'none');
+				var customText = elem.selectAll('text.custom-text').data([d]);
+				var customTextSize = Math.min($(window).height(), $(window).width())/8;
+				customText.enter().append('text').attr('class','custom-text')
+				customText
+						.style('font-weight', 'normal')
+					.transition().duration(500)
+						.style('font-size', customTextSize+'px')
+						.style('fill', color(d.data.colorKey))
+						.attr('transform', 'translate(0,'+customTextSize/2+')')
+						.tween("text", function(){
+							var myText = '';
+							var self = this;
+							return function(){
+								text.each(function(){
+									myText = this.textContent;
+								});
+								self.textContent = myText;
+							};
+						})
+			}
+		});
+	};
+
+	$(document).ready(function(){
+
+		var pieChart = new d2b.CHARTS.pieChart();
+
+		pieChart
+			.select('.pie-chart')
+			.height($(window).height()).width($(window).width())
+			.donutRatio(0.8)
+			.color(color)
+			.controls({hideLegend:{enabled:true}})
+			.on('update', customize);
+
+		pieChart
+			.data(
+				{
+					data:{
+						values:[
+							{label:'CPU', value:78, colorKey:78},
+							{label:'Empty', value:22}
+						]
+					}
+				}
+			).update();
+
+		setTimeout(function(){
+			pieChart
+				.data(
+					{
+						data:{
+							values:[
+								{label:'CPU', value:22, colorKey:22},
+								{label:'Empty', value:78}
+							]
+						}
+					}
+				).update();
+		},2000);
+		setTimeout(function(){
+			pieChart
+				.data(
+					{
+						data:{
+							values:[
+								{label:'CPU', value:84, colorKey:84},
+								{label:'Empty', value:16}
+							]
+						}
+					}
+				).update();
+		},4000);
+
+		$(window).resize(function(){
+			pieChart.height($(window).height()).width($(window).width()).update();
+		});
+
+	})
+</script>
+
+<body style='margin:0px;'>
+<div class = 'pie-chart'></div>
+
+</body>
+</html>

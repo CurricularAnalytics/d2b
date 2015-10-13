@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<style>.d2b-point{display:none;}</style>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<style>
+	.d2b-point-background{
+		display:none;
+	}
+	.d2b-point-foreground{
+		display:none;
+	}
+</style>
+<script>
+	$(document).ready(function(){
+
+		var data = {
+			data:{
+				types:[
+					{
+						type:'line',
+						properties:{
+							// padding:'1%',
+							// tooltip:function(d){return d.data.x+' : '+Math.abs(d.data.y);}
+						},
+						graphs:[
+							{
+								label:'sine',
+								values: d3.range(0,Math.PI*2,0.01).map(function(d){return {x:d, y:Math.sin(d)};})
+
+							},
+							{
+								label:'cosine',
+								values: d3.range(0,Math.PI*2,0.01).map(function(d){return {x:d, y:Math.cos(d)};})
+
+							}
+						]
+					}
+				]
+			}
+		}
+
+		var axis = d2b.SVG.axis();
+
+		axis.x({scale:d3.scale.ordinal()});
+		axis.y({axis:d3.svg.axis().tickFormat(function(d){return Math.abs(d);})});
+
+		var axisChart = d2b.CHARTS.axisChart();
+
+		axisChart
+		  .select('.axis-chart')
+			// .axis(axis)
+			// .rotate(true)
+			// .controls({stackBars:{enabled:true}})
+			.tooltipLayout(1)
+		  .data(data)
+		  .width($(window).width())
+		  .height($(window).height())
+		  .update();
+
+
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

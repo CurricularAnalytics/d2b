@@ -1,7 +1,7 @@
-@import url(http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css);
-@import url(http://fonts.googleapis.com/css?family=Quicksand);
-@import url(https://fonts.googleapis.com/css?family=Oswald:400,300,700);
-@import url(https://fonts.googleapis.com/css?family=Droid+Sans:400,700);
+@import url("//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css");
+@import url("//fonts.googleapis.com/css?family=Quicksand");
+@import url("//fonts.googleapis.com/css?family=Oswald:400,300,700");
+@import url("//fonts.googleapis.com/css?family=Droid+Sans:400,700");
 html, body, .d2b-container {
   height: 100%; }
 
@@ -102,20 +102,6 @@ html, body, .d2b-container {
 .d2b-breadcrumb path {
   fill: #eee; }
 
-.d2b-general-tooltip {
-  z-index: 10000;
-  font-family: "Droid Sans", Arial;
-  font-size: 10pt;
-  position: absolute;
-  pointer-events: none;
-  background: rgba(0, 0, 0, 0.75);
-  color: #eee;
-  padding: 5px 10px;
-  border-radius: 1px;
-  max-width: 250px;
-  -webkit-box-shadow: 0 0 5px #555;
-  box-shadow: 0 0 5px #555; }
-
 .d2b-checkbox-container {
   cursor: pointer; }
   .d2b-checkbox-container text {
@@ -141,6 +127,9 @@ html, body, .d2b-container {
   .d2b-radio-button-container circle.d2b-radio-button-outer {
     stroke: #333;
     fill-opacity: 0; }
+
+.d2b-point-foreground, .d2b-point-background {
+  stroke: black; }
 
 /*d2b*/
 .d2b-svg {
@@ -283,115 +272,6 @@ html, body, .d2b-container {
   cursor: pointer; }
 .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-hidden {
   pointer-events: none; }
-.d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-bubble-background {
-  stroke-width: 1.5px;
-  fill: none; }
-.d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-bubble-foreground {
-  stroke: none; }
-
-.d2b-sankey-chart .d2b-sankey-labels {
-  font-size: 17pt; }
-  .d2b-sankey-chart .d2b-sankey-labels .d2b-sankey-label-source text {
-    text-anchor: start; }
-  .d2b-sankey-chart .d2b-sankey-labels .d2b-sankey-label-destination text {
-    text-anchor: end; }
-.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header text {
-  text-anchor: middle;
-  font-weight: bold;
-  font-size: 16px; }
-.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header:first-child text {
-  text-anchor: start; }
-.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header:last-child text {
-  text-anchor: end; }
-.d2b-sankey-chart .d2b-sankey .d2b-sankey-links path {
-  fill: none;
-  stroke-opacity: 0.7; }
-  .d2b-sankey-chart .d2b-sankey .d2b-sankey-links path:hover {
-    stroke-opacity: 0.9; }
-.d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes text {
-  font-size: 10pt;
-  font-weight: bold;
-  pointer-events: none; }
-.d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes rect {
-  fill: #eee;
-  stroke-width: 2px;
-  stroke: #bbb; }
-  .d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes rect:hover {
-    stroke: #333; }
-
-.d2b-pie-chart .d2b-arc path {
-  fill-opacity: 0.8;
-  stroke: white; }
-.d2b-pie-chart .d2b-arc text {
-  fill: white;
-  font-weight: bold;
-  pointer-events: none;
-  text-anchor: middle; }
-
-.d2b-gauge-chart path {
-  fill-opacity: 0.8; }
-.d2b-gauge-chart text {
-  text-anchor: middle; }
-
-.d2b-iframe-chart iframe {
-  border: 0px; }
-
-.d2b-multi-chart-buttons-wrapper {
-  height: 45px;
-  text-align: center;
-  padding-top: 10px;
-  width: 100%; }
-  .d2b-multi-chart-buttons-wrapper ul.d2b-buttons {
-    margin-left: 5px;
-    margin-right: 5px;
-    padding: 0px;
-    margin-top: 0px;
-    background: #f8f8f8;
-    display: inline-block;
-    white-space: nowrap;
-    border-radius: 2px;
-    border: 1px solid #333; }
-    .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li {
-      border-right: 1px solid #333;
-      cursor: pointer;
-      font-family: "Droid Sans";
-      display: inline-block;
-      padding: 7px 10px;
-      color: #777; }
-      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li.d2b-selected {
-        box-shadow: inset 0px 2px 4px #bbb; }
-      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li.d2b-selected {
-        background: #eee;
-        color: #333; }
-      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li:hover {
-        background: #eee; }
-      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li:last-child {
-        border-right: 0px; }
-
-.d2b-sunburst .d2b-sunburst-arcs path {
-  fill-opacity: 0.9;
-  stroke: white;
-  stroke-width: 1;
-  -webkit-transition: fill-opacity 0.25s;
-  transition: fill-opacity 0.25s; }
-  .d2b-sunburst .d2b-sunburst-arcs path:hover {
-    fill-opacity: 1;
-    stroke: white; }
-.d2b-sunburst .d2b-sunburst-arcs .d2b-sunburst-arc.d2b-transparent path {
-  fill-opacity: 0.4;
-  stroke: white;
-  stroke-width: 1;
-  -webkit-transition: fill-opacity 0.25s;
-  transition: fill-opacity 0.25s; }
-
-.d2b-sunburst-tooltip text {
-  pointer-events: none;
-  text-anchor: middle; }
-  .d2b-sunburst-tooltip text tspan:first-child {
-    font-size: 12pt;
-    font-weight: bold; }
-  .d2b-sunburst-tooltip text tspan:last-child {
-    font-size: 16pt; }
 
 .d2b-bubble-chart-buttons-wrapper {
   height: 55px;
@@ -477,6 +357,119 @@ html, body, .d2b-container {
   fill: #333;
   text-anchor: middle; }
 
+.d2b-funnel-chart tspan {
+  pointer-events: none;
+  text-anchor: middle;
+  fill: white; }
+.d2b-funnel-chart text {
+  pointer-events: none; }
+.d2b-funnel-chart .d2b-cone-text .d2b-cone-value {
+  font-weight: bold; }
+
+.d2b-gauge-chart path {
+  fill-opacity: 0.8; }
+.d2b-gauge-chart text {
+  text-anchor: middle; }
+
+.d2b-iframe-chart iframe {
+  border: 0px; }
+
+.d2b-multi-chart-buttons-wrapper {
+  height: 45px;
+  text-align: center;
+  padding-top: 10px;
+  width: 100%; }
+  .d2b-multi-chart-buttons-wrapper ul.d2b-buttons {
+    margin-left: 5px;
+    margin-right: 5px;
+    padding: 0px;
+    margin-top: 0px;
+    background: #f8f8f8;
+    display: inline-block;
+    white-space: nowrap;
+    border-radius: 2px;
+    border: 1px solid #333; }
+    .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li {
+      border-right: 1px solid #333;
+      cursor: pointer;
+      font-family: "Droid Sans";
+      display: inline-block;
+      padding: 7px 10px;
+      color: #777; }
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li.d2b-selected {
+        box-shadow: inset 0px 2px 4px #bbb; }
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li.d2b-selected {
+        background: #eee;
+        color: #333; }
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li:hover {
+        background: #eee; }
+      .d2b-multi-chart-buttons-wrapper ul.d2b-buttons li:last-child {
+        border-right: 0px; }
+
+.d2b-pie-chart .d2b-arc path {
+  fill-opacity: 0.8;
+  stroke: white; }
+.d2b-pie-chart .d2b-arc text {
+  fill: white;
+  font-weight: bold;
+  pointer-events: none;
+  text-anchor: middle; }
+
+.d2b-sankey-chart .d2b-sankey-labels {
+  font-size: 17pt; }
+  .d2b-sankey-chart .d2b-sankey-labels .d2b-sankey-label-source text {
+    text-anchor: start; }
+  .d2b-sankey-chart .d2b-sankey-labels .d2b-sankey-label-destination text {
+    text-anchor: end; }
+.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header text {
+  text-anchor: middle;
+  font-weight: bold;
+  font-size: 16px; }
+.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header:first-child text {
+  text-anchor: start; }
+.d2b-sankey-chart .d2b-sankey-column-headers .d2b-sankey-column-header:last-child text {
+  text-anchor: end; }
+.d2b-sankey-chart .d2b-sankey .d2b-sankey-links path {
+  fill: none;
+  stroke-opacity: 0.7; }
+  .d2b-sankey-chart .d2b-sankey .d2b-sankey-links path:hover {
+    stroke-opacity: 0.9; }
+.d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes text {
+  font-size: 10pt;
+  font-weight: bold;
+  pointer-events: none; }
+.d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes rect {
+  fill: #eee;
+  stroke-width: 2px;
+  stroke: #bbb; }
+  .d2b-sankey-chart .d2b-sankey .d2b-sankey-nodes rect:hover {
+    stroke: #333; }
+
+.d2b-sunburst .d2b-sunburst-arcs path {
+  fill-opacity: 0.9;
+  stroke: white;
+  stroke-width: 1;
+  -webkit-transition: fill-opacity 0.25s;
+  transition: fill-opacity 0.25s; }
+  .d2b-sunburst .d2b-sunburst-arcs path:hover {
+    fill-opacity: 1;
+    stroke: white; }
+.d2b-sunburst .d2b-sunburst-arcs .d2b-sunburst-arc.d2b-transparent path {
+  fill-opacity: 0.4;
+  stroke: white;
+  stroke-width: 1;
+  -webkit-transition: fill-opacity 0.25s;
+  transition: fill-opacity 0.25s; }
+
+.d2b-sunburst-tooltip text {
+  pointer-events: none;
+  text-anchor: middle; }
+  .d2b-sunburst-tooltip text tspan:first-child {
+    font-size: 12pt;
+    font-weight: bold; }
+  .d2b-sunburst-tooltip text tspan:last-child {
+    font-size: 16pt; }
+
 .d2b-table-chart .d2b-table-row text {
   font-size: 16px;
   fill: #333; }
@@ -505,15 +498,6 @@ html, body, .d2b-container {
   fill: white;
   font-size: 11px;
   text-anchor: middle; }
-
-.d2b-funnel-chart tspan {
-  pointer-events: none;
-  text-anchor: middle;
-  fill: white; }
-.d2b-funnel-chart text {
-  pointer-events: none; }
-.d2b-funnel-chart .d2b-cone-text .d2b-cone-value {
-  font-weight: bold; }
 
 .d2b-dashboard .d2b-header {
   border-bottom: 2px solid #555;
@@ -686,6 +670,113 @@ html, body, .d2b-container {
   font-family: "Droid Sans", Arial;
   margin-top: 78px; }
 
+.d2b-axis path, .d2b-axis-grid path {
+  fill: none;
+  stroke-width: 1px;
+  stroke: #bbb; }
+.d2b-axis line, .d2b-axis-grid line {
+  stroke: #ddd; }
+.d2b-axis text, .d2b-axis-grid text {
+  fill: #333;
+  font-size: 13px;
+  font-family: "Droid Sans"; }
+.d2b-axis .d2b-origin-tick text, .d2b-axis-grid .d2b-origin-tick text {
+  font-weight: bold; }
+.d2b-axis text.d2b-axis-label.d2b-label-outside, .d2b-axis-grid text.d2b-axis-label.d2b-label-outside {
+  text-anchor: middle;
+  font-weight: bold;
+  font-size: 15px; }
+.d2b-axis text.d2b-axis-label.d2b-label-inside, .d2b-axis-grid text.d2b-axis-label.d2b-label-inside {
+  fill: #555;
+  text-anchor: end;
+  font-size: 13px; }
+
+.d2b-axis-grid text {
+  display: none; }
+
+.d2b-axis-background {
+  fill: rgba(255, 255, 255, 0); }
+
+.d2b-tooltip-layout-1 {
+  pointer-events: none; }
+  .d2b-tooltip-layout-1 text {
+    fill: white; }
+  .d2b-tooltip-layout-1 rect {
+    stroke-width: 2px; }
+  .d2b-tooltip-layout-1 circle {
+    fill: white;
+    stroke-width: 2px; }
+
+.d2b-general-tooltip-left:after {
+  left: 100%;
+  margin-left: 17px; }
+.d2b-general-tooltip-left:before {
+  left: 100%; }
+
+.d2b-general-tooltip-right:after {
+  left: -17px; }
+.d2b-general-tooltip-right:before {
+  left: -13px; }
+
+.d2b-general-tooltip {
+  box-sizing: content-box;
+  z-index: 10000;
+  font-family: "Droid Sans", Arial;
+  font-size: 10pt;
+  position: absolute;
+  pointer-events: none;
+  background: #555;
+  border: 2px solid #333;
+  color: #eee;
+  padding: 5px 5px;
+  max-width: 250px; }
+  .d2b-general-tooltip:after {
+    background: transparent;
+    border-color: inherit;
+    border-style: solid;
+    border-width: 2px;
+    content: '';
+    height: 8px;
+    width: 8px;
+    position: absolute;
+    top: 50%;
+    border-radius: 50%;
+    -ms-transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%); }
+  .d2b-general-tooltip:before {
+    border-color: inherit;
+    border-style: solid;
+    border-width: 2px;
+    content: '';
+    position: absolute;
+    overflow: hidden;
+    height: 0px;
+    width: 9px;
+    top: 50%;
+    -ms-transform: translate(0%, -50%);
+    -webkit-transform: translate(0%, -50%);
+    transform: translate(0%, -50%); }
+
+.d2b-chart-page-container {
+  position: relative; }
+  .d2b-chart-page-container .d2b-chart-page {
+    position: absolute;
+    z-index: 0; }
+    .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout {
+      position: absolute;
+      overflow: hidden; }
+      .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout .d2b-chart-layout-wrapper {
+        padding: 5px;
+        overflow: hidden; }
+        .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout .d2b-chart-layout-wrapper .d2b-chart-layout {
+          border-radius: 1px;
+          overflow: hidden;
+          -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
+          -moz-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
+          box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
+          background: white; }
+
 .d2b-dashboard-category {
   position: relative;
   height: 80px; }
@@ -739,25 +830,6 @@ html, body, .d2b-container {
             background: #870026; }
           .d2b-dashboard-category .d2b-category .d2b-category-label .d2b-category-label-pages .d2b-page-tab.d2b-tab-selected {
             background: #870026; }
-
-.d2b-chart-page-container {
-  position: relative; }
-  .d2b-chart-page-container .d2b-chart-page {
-    position: absolute;
-    z-index: 0; }
-    .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout {
-      position: absolute;
-      overflow: hidden; }
-      .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout .d2b-chart-layout-wrapper {
-        padding: 5px;
-        overflow: hidden; }
-        .d2b-chart-page-container .d2b-chart-page .d2b-page-chart-layout .d2b-chart-layout-wrapper .d2b-chart-layout {
-          border-radius: 1px;
-          overflow: hidden;
-          -webkit-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
-          -moz-box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
-          box-shadow: 0px 2px 3px rgba(100, 100, 100, 0.5);
-          background: white; }
 
 g.d2b-legend-item .d2b-legend-symbol-background {
   fill-opacity: 0; }

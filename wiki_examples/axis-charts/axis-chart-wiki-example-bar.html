@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          // this is where the various types of axis-charts will be defined
+          // all of the chart types are optional and can be used in conjunction with one another
+          {
+            // bar-chart-type
+            type:'bar',
+						properties:{
+							padding:25
+						},
+            graphs:[
+              // this is where each of the bar graphs will be defined
+              {
+                //bar graphs contain a label and an array of x,y values
+                label:'Bar Graph 1',
+                values:[
+                  {x:1, y:100},
+                  {x:2, y:120},
+                  {x:3, y:80}
+                ]
+              },
+              {
+                label:'Bar Graph 2',
+                values:[
+                  {x:1, y:50},
+                  {x:2, y:70},
+                  {x:4, y:90}
+                ]
+              }//,{},{}..
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+			.x({type:'ordinal'})
+			.legendOrientation('top')
+      .width($(window).width())
+      .height($(window).height())
+      .update();
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

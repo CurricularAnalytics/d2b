@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          {
+            // area-chart-type
+            type:'area',
+            graphs:[
+              // this is where each of the area graphs will be defined
+              {
+                //area graphs contain a label, interpolator-string, and an array of x,y,y0 values
+                label:'Area Graph 1',
+                interpolate:'basis', //default 'linear', for the complete list of types visit d3's shapes wiki page
+                values:[
+                  {x:0, y:200, y0:0},
+                  {x:0.5, y:190, y0:0},
+                  {x:1, y:180, y0:0},
+                  {x:1.5, y:130, y0:0},
+                  {x:2, y:20, y0:0}
+                ]
+              }//,{},{}..
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = new d2b.CHARTS.axisChart();
+
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+      .width($(window).width())
+      .height($(window).height())
+			.on('element-mouseover', function(type, d){console.log(d)})
+			// .on('update', function(){console.log(this)})
+      .update();
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

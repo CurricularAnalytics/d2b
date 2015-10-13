@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<style>
+	path{
+    fill:none;
+		/*fill:rgba(193,0,55,1);*/
+	}
+  line{
+    stroke:black;
+    stroke-width:1px;
+  }
+  svg{
+    /*background:rgba(193,0,55,0.3);*/
+  }
+</style>
+<script>
+	$(document).ready(function(){
+
+    var width = 600;
+    var height = 400;
+
+    var chartSVG = d3.select('.chart');
+		var axisSVG = chartSVG
+        .attr('width', width)
+        .attr('height', height)
+      .append('g');
+
+    var contentSVG = chartSVG
+      .append('g');
+
+    var tooltipSVG = chartSVG
+      .append('g');
+
+    var scale = {};
+    scale.x = d3.scale.linear().domain([0, 100]);
+    scale.y = d3.scale.linear().domain([0, 50]);
+
+    var axis = {};
+    axis.x = d3.svg.axis();
+    axis.y = d3.svg.axis();
+
+    var axes = d2b.SVG.axis()
+      .width(width)
+      .height(height)
+      .x({axis:axis.x, scale:scale.x, orientation:'bottom-outside', labelOutside:'X-axis'})
+      .y({axis:axis.y, scale:scale.y, orientation:'left-outside', labelOutside:'Y-axis'});
+
+    axisSVG.call(axes);
+    var axisBox = axes.box();
+
+    var tooltip = d2b.SVG.tooltip().x(scale.x).y(scale.y).layout(0);
+
+    contentSVG
+        // .call(tooltip.tracker)
+        .attr('transform', 'translate('+axisBox.padding.left+','+axisBox.padding.top+')')
+      .append('rect')
+        .style('fill-opacity','0')
+        .attr('width', axisBox.innerWidth)
+        .attr('height', axisBox.innerHeight);
+
+    tooltipSVG
+      // .call(tooltip.container)
+      .attr('transform', 'translate('+axisBox.padding.left+','+axisBox.padding.top+')');
+
+    var color = d3.scale.category10();
+
+    var pointData = [{x:2, y:2}, {x:10, y:20}, {x:30, y:25}, {x:80, y:40}]
+
+    var point = contentSVG.selectAll('g.point').data(pointData);
+
+    point._enter = point.enter()
+      .append('g')
+        .attr('class', 'point')
+        .attr('transform', function(d){return 'translate('+scale.x(d.x)+','+scale.y(d.y)+')'})
+        .call(tooltip.graph, {
+              key: 'graph-circle',
+              content: function(d){return 'x: '+d.x+' y: '+d.y;},
+              // data: function(d){return d;},
+              // x:function(d){return d.x;},
+              y:function(d){return d.y;},
+              fill:function(d,i){return color(i+'circle');}
+            });
+
+    point._enter._circle = point._enter
+      .append('circle')
+        .attr('r', 6)
+        .style('fill', function(d,i){return color(i+'circle');});
+
+
+    var squareData = [{x:13, y:23}, {x:66, y:30}, {x:75, y:35}, {x:88, y:45}]
+
+    var square = contentSVG.selectAll('g.square').data(squareData);
+
+    var squareWidth = 10;
+
+    square._enter = square.enter()
+      .append('g')
+        .attr('class', 'point')
+        .attr('transform', function(d){return 'translate('+(scale.x(d.x) - squareWidth/2)+','+(scale.y(d.y) - squareWidth/2)+')'})
+        .call(tooltip.graph, {
+              key: 'graph-square',
+              content: function(d){return 'x: '+d.x+' y: '+d.y;},
+              // data: function(d){return d;},
+              x:function(d){return d.x;},
+              y:function(d){return d.y;},
+              fill:function(d,i){return color(i+'square');}
+            });
+
+    square._enter._square = square._enter
+      .append('rect')
+        .attr('width', squareWidth)
+        .attr('height', squareWidth)
+        .style('fill', function(d,i){return color(i+'square');});
+
+
+    tooltip.start();
+
+
+	})
+</script>
+
+<body style='margin:0px;'>
+
+<svg class = 'chart' width = '1000', height = '1000'></svg>
+
+</body>
+</html>

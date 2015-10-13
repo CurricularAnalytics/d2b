@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<style>
+	path{
+		/*fill:rgba(193,0,55,1);*/
+	}
+</style>
+<script>
+	$(document).ready(function(){
+
+		var data = [
+			{
+				fill: 'red', stroke:'blue', size: 15000, active:false, type:'circle'
+			},
+			{
+				fill: 'blue', stroke:'red', size: 1500, active:true, type:'venus'
+			}
+		]
+
+		var g = d3.select('.symbol').append('g').datum({active: true, stroke: 'black'})
+				.attr('transform', 'translate(100,100)');
+
+		var point = d2b.SVG.point()
+			.fill(function(d, i){return d.fill;})
+			.stroke(function(d){return d.stroke;})
+			.active(true)
+			.size(function(d){return d.size;})
+			.type(function(d){return d.type;});
+
+		g.call(point);
+
+		var i = 0;
+
+		var interval = setInterval(function(){
+			if(i >= data.length-1){
+				clearInterval(interval)
+				// i = 0;
+			}
+
+			g.datum(data[i])
+				.transition().duration(1000)
+				.call(point);
+
+			i++;
+		}, 2000);
+
+	})
+</script>
+
+<body style='margin:0px;'>
+
+<svg class = 'symbol' width = '1000', height = '1000'></svg>
+
+</body>
+</html>
