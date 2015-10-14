@@ -260,21 +260,22 @@ d2b.UTILS.grid = function(width, height, count){
 };
 
 /*automaticaly get scale domain from a set of values*/
-d2b.UTILS.domain = function(values, scale){
-	var domain = [], extent, range, paddingCoefficient = 0.00;//paddingCoefficient = 0.25;
+d2b.UTILS.domain = function(values, scale, padding){
+	var domain = [], extent, range;
 	if(scale && scale.rangeBand){
 		domain = d3.set(values).values();
+		padding = null;
 	}else if(values.length == 0){
 		domain = [0,1];
 	}else if(values.length == 1){
 		domain = [values[0]/2, values[0]*1.5];
 	}else{
 		domain = d3.extent(values);
-		// range = extent[1] - extent[0];
-		// domain = [
-		// 					 (extent[0] >= 0)? 0 : extent[0]-range*paddingCoefficient,
-		// 					 extent[1]+range*paddingCoefficient
-		// 			   ];		//
+	}
+
+	if(padding){
+		domain[0] -= padding[0];
+		domain[1] += padding[1];
 	}
 
 	return domain;

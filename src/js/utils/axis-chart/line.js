@@ -123,8 +123,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 						y:function(d){return d.y;},
 						fill:d2b.UTILS.getColor($$.color, 'label', [graphData])
 					}
-				)
-				// .call(d2b.UTILS.bindTooltip, $$.tooltip, function(d){return {data:d, graph:graphData};})
+				);
 
 			point
 				.transition()

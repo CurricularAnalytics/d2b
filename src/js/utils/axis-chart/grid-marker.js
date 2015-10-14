@@ -313,9 +313,6 @@ d2b.UTILS.AXISCHART.TYPES.gridMarker = function(){
 
 	//chart update
 	chart.update = function(callback){
-		$$.background.each(function(graphData){
-			var graph = d3.select(this);
-		});
 
 		$$.foreground.each(function(graphData){
 			var graph = d3.select(this);

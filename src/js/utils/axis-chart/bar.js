@@ -153,7 +153,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
 	//chart update
 	chart.update = function(callback){
-		// console.log($$.currentChartData)
+
 		if($$.controlsData.stackBars.enabled){
 			d3.layout.stack()
 		    .values(function(d) { return d.values; })

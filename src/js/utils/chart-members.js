@@ -27,7 +27,7 @@ d2b.UTILS.CHARTS.MEMBERS.prop = function(chart, $$, property, callback){
   return function(value){
     if(!arguments.length) return $$[property];
     $$[property] = value;
-    if(callback) (value);
+    if(callback) callback(value);
     return chart;
   }
 };

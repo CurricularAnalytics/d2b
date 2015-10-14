@@ -345,16 +345,6 @@ d2b.SVG.axis = function(){
       g._update = d3.transition(g)
         .attr('transform', 'translate('+$$.padding.left+','+$$.padding.top+')');
 
-      //make background
-      // g.background = g.selectAll('rect.d2b-axis-background').data([0]);
-      // g.background._enter = g.background.enter()
-      //   .append('rect')
-      //     .attr('class','d2b-axis-background');
-      //
-      // g.background._update = d3.transition(g.background)
-      //   .attr('width', $$.innerWidth)
-      //   .attr('height', $$.innerHeight);
-
       //make grid
       g.grid = g.selectAll('g.d2b-axis-grid').data($$.axesVisible, function(d){return d.key;});
       g.grid._enter = g.grid.enter()
@@ -473,14 +463,11 @@ d2b.SVG.axis = function(){
 
     scale.range = function(){
       var range = [];
-      if(_scale.rangeBands){
-        range = _scale.rangeBands();
+      if(_scale.rangeBand){
+        range = _scale.range()
+        range = [range[0], range[range.length-1] + _scale.rangeBand()]
       }else{
         range = _scale.range();
-      }
-
-      if(_reversed){
-        return range.slice().reverse();
       }
       return range;
     };

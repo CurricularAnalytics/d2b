@@ -129,11 +129,7 @@ d2b.CHARTS.axisChart = function(){
 			$$.selection.types[plane].type.graph.enter()
 				.append('g')
 					.attr('class', 'd2b-axis-chart-'+plane+'-graph')
-					.each(function(graph){
-						graph.p[plane] = this;
-						//add this graph to the type's foregroundGraphs and backgroundGraphs
-						// graph.type.p[plane+'Graphs'].push(this);
-					})
+					.each(function(graph){ graph.p[plane] = this; })
 					.style('opacity', 0);
 
 			$$.selection.types[plane].type.graph
@@ -142,10 +138,6 @@ d2b.CHARTS.axisChart = function(){
 					.style('opacity',1);
 
 			$$.selection.types[plane].type.graph.exit()
-				.each(function(graph){
-					//remove this graph from the type's foregroundGraphs and backgroundGraphs
-					// graph.type.p[plane+'Graphs'].splice(graph.type.p[plane+'Graphs'].indexOf(this), 1);
-			  })
 				.transition()
 					.duration($$.animationDuration)
 					.style('opacity',0)
@@ -182,13 +174,19 @@ d2b.CHARTS.axisChart = function(){
 				.data(graphs);
 		});
 	};
+	$$.types.filterVisible = function(type){
+		return type.graphs.filter($$.graphs.filterVisible).length > 0;
+	};
 	$$.types.init = function(){
 		var newPlanes = {};
 		this.planes.forEach(function(plane){
 			//set type data
 			$$.selection.types[plane].type = $$.selection.types[plane]
 				.selectAll('g.d2b-axis-type-'+plane)
-					.data($$.currentChartData.types, function(d){return d.type;});
+					.data(
+						$$.currentChartData.types.filter($$.types.filterVisible),
+						function(d){return d.type;}
+					);
 			//enter new types and add reference to the persistent type data
 			newPlanes[plane] = $$.selection.types[plane].type.enter()
 				.append('g')
@@ -285,13 +283,13 @@ d2b.CHARTS.axisChart = function(){
 		if($$.controlsData.lockXAxis.enabled){
 			xScale.domain($$.controlsData.lockXAxis.domain);
 		}else{
-			xScale.domain(d2b.UTILS.domain(xValues, xScale));
+			xScale.domain(d2b.UTILS.domain(xValues, xScale, $$.xPadding));
 		}
 
 		if($$.controlsData.lockYAxis.enabled){
 			yScale.domain($$.controlsData.lockYAxis.domain);
 		}else{
-			yScale.domain(d2b.UTILS.domain(yValues, yScale));
+			yScale.domain(d2b.UTILS.domain(yValues, yScale, $$.yPadding));
 		}
 	};
 	$$.axes.setLabels = function(){
@@ -422,6 +420,19 @@ d2b.CHARTS.axisChart = function(){
 		}
 	};
 
+	$$.initMargin = function(){
+		if($$.padding){
+			$$.forcedMargin = {
+				top: d2b.UTILS.visualLength($$.padding.top, $$.height),
+				bottom: d2b.UTILS.visualLength($$.padding.bottom, $$.height),
+				left: d2b.UTILS.visualLength($$.padding.left, $$.width),
+				right: d2b.UTILS.visualLength($$.padding.right, $$.width)
+			}
+		}else{
+			$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		}
+	};
+
 	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
@@ -434,18 +445,19 @@ d2b.CHARTS.axisChart = function(){
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
 		$$.legend.animationDuration($$.animationDuration);
 		$$.controls.animationDuration($$.animationDuration);
-		// if background d2b types have been created, update their animation duration as well
-		if(d2b.UTILS.checkNested($$, 'selection', 'types', 'background', 'type')){
-			$$.selection.types.background.type.each(function(d){
-				this.d2bType.animationDuration($$.animationDuration);
-			});
+		// if d2b types have been instantiated, update their animation duration as well
+		for(type in $$.pTypeData){
+			if($$.pTypeData[type].d2bType) $$.pTypeData[type].d2bType.animationDuration($$.animationDuration);
 		}
 	});
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
 	chart.axis = 								d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axis');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
 	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
-	chart.pGraphData = 			d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'persistentChartData');
+	chart.pGraphData = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'persistentChartData');
+	chart.padding = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'padding');
+	chart.xPadding = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'xPadding');
+	chart.yPadding = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'yPadding');
 	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
 	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
 	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
@@ -481,7 +493,7 @@ d2b.CHARTS.axisChart = function(){
 				pKey = graph.type.type + "-" + graph.key;
 				graph.p = $$.pGraphData[pKey] = $$.pGraphData[pKey] || {key: pKey, visible: true};
 
-				// allow users to force the visibility based on the "visible" attr
+				// allow users to force the visibility state based on the "visible" attr
 				if(typeof(graph.visible) === "boolean"){
 				 	graph.p.visible = graph.visible;
 					graph.visible = null;
@@ -565,12 +577,17 @@ d2b.CHARTS.axisChart = function(){
 		if($$.generateRequired) return chart.generate(callback);
 
 		//init forcedMargin
-		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.initMargin();
 		$$.outerWidth = $$.width;
 		$$.outerHeight = $$.height;
 
 		//init svg dimensions
 		$$.selection.svg.attr('width',$$.width).attr('height',$$.height);
+
+	  $$.selection.group
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform','translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
 		//update dimensions to the conform to the padded SVG:G
 		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
@@ -588,14 +605,14 @@ d2b.CHARTS.axisChart = function(){
 
 		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		$$.transformTypesContainers();
-
 		//reset Tooltip
 		$$.tooltip.reset();
 		$$.types.init();
 		$$.axes.update();
 		$$.types.update();
 		$$.tooltip.update();
+
+		$$.transformTypesContainers();
 
 		d3.timer.flush();
 
