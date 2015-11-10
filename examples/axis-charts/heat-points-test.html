@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<style>
+	body{background:black;}
+	text{fill:#aaa !important;}
+</style>
+<script>
+	$(document).ready(function(){
+		var grades = ["A", "B", "C", "D", "F"];
+
+		var makePoints = function(){
+			var points = [];
+
+			var i, cap;
+
+
+			grades.forEach(function(grade, i){
+				cap = Math.random()*(50 - i * 2);
+				for( i = 0; i < cap; i += 1 ){
+					points.push({name: grade});
+				}
+			});
+
+			return points;
+		};
+
+		var makeValues = function(program){
+			var values = [];
+			var courses;
+			var terms = d3.range(1, 10);
+
+			if(program === 'ee'){
+				courses = ["ENGL 110", "MATH 162", "ECE 101", "ECE 131", "PHYC 160", "ENGL 120", "Math 163", "PHYC 161", "PHYC 161L", "ECON 105",
+							 	   "ECE 203", "MATH 264", "ECE 238L", "PHYC 262", "ENGL 219", "ECE 206L", "ECE 213", "ECE 300", "ECE 321L", "ECE 314",
+									 "ECE 340", "ECE 371", "ECE 360", "ECE 381", "ECE 322L", "ECE 344L", "ECE 419", "ECE 345", "ECE 341", "ECE 420"];
+			}else if(program === 'cpe'){
+				courses = ["ENGL 110", "MATH 162", "ECE 101", "ECE 131", "PHYC 160", "ENGL 120", "Math 163", "PHYC 161", "PHYC 161L", "ECE 231",
+			    				 "ECE 203", "ECE 238L", "ENGL 219", "ECON 105", "ECE 206L", "ECE 213", "ECE 300", "MATH 264", "ECE 330", "ECE 321L",
+									 "MATH 327", "ECE 314", "ECE 340", "ECE 331", "ECE 344L", "ECE 419", "ECE 437", "ECE 420", "ECE 440"];
+			}
+
+			courses.forEach(function(course){
+				terms.forEach(function(term){
+					values.push({
+						y: course,
+						x: term,
+						key: course,
+						points: makePoints()
+					})
+				});
+			});
+
+			return values;
+		};
+
+    var data =
+    {
+      data:{
+        labels:{
+          // define the optional x and y chart labels
+          y:'Course',
+          x:'Term Taken'
+        },
+        types:[
+          // this is where the various types of axis-charts will be defined
+          // all of the chart types are optional and can be used in conjunction with one another
+          {
+						properties:{
+							layout: 'circle',
+							sortBy: '!name'
+						},
+            // line-chart-type
+            type:'heatPoints',
+            graphs:[
+              // this is where each of the line graphs will be defined
+              {
+                label:'Computer Engineering',
+                values: makeValues('cpe')
+              },
+              {
+                label:'Electrical Engineering',
+                values: makeValues('ee')
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+		console.log(data)
+
+		var axisChart = new d2b.CHARTS.axisChart();
+		var axis = d2b.SVG.axis()
+			.x({scale: d3.scale.ordinal()})
+			.y({scale: d3.scale.ordinal()});
+		var color = d3.scale.ordinal()
+		  .range(["#009933", "#407333", "#FF851B", "#BF2633", "#FF0033"])
+		  .domain(["A", "B", "C", "D", "F"]);
+
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+			.color(color)
+			.legendOrientation('right')
+			// .controls({hideLegend:{enabled:true}})
+			.axis(axis)
+			.tooltipLayout(1)
+      .width($(window).width())
+      .height(4000)
+      .update();
+
+
+		$(window).on('resize', function(){
+			axisChart.width($(window).width()).update();
+		});
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

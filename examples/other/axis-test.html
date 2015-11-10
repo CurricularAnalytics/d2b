@@ -38,7 +38,7 @@
     var scale_x2 = d3.scale.linear().domain([0,800]);
     var scale_y2 = d3.scale.linear().domain([0,800]);
 
-    // var axis_x = d3.svg.axis().scale(scale_x);
+//     var axis_x = d3.svg.axis().scale(scale_x);
     // var axis_y = d3.svg.axis().scale(scale_y);
     // var axis_x2 = d3.svg.axis().scale(scale_x2);
     // var axis_y2 = d3.svg.axis().scale(scale_y2);
@@ -47,7 +47,7 @@
       .width(width)
       .height(height)
 			// .customPadding(50)
-      .x({scale:scale_x, orientation:'bottom-outside', labelOutside:'X-axis', labelInside: 'Thousands of Dollars'})
+      .x({scale:scale_x, orientation:'top-outside', labelOutside:'X-axis', labelInside: 'Thousands of Dollars'})
       .y({scale:scale_y, orientation:'left-outside', labelOutside:'Y-axis', labelInside: 'Thousands of Dollars'})
       // .x2({axis:axis_x2, orientation:'top-outside', hidden:false, labelOutside:'X2-axis', labelInside:'inside'})
       // .y2({axis:axis_y2, orientation:'right-outside', hidden:false, labelOutside:'Y2-axis', labelInside:'inside'});

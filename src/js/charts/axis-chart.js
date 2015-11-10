@@ -6,10 +6,9 @@ d2b.CHARTS.axisChart = function(){
 	//private store
 	var $$ = {};
 
-	//user set width
 	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
-	//user set height
 	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+
 	//inner/outer height/width and margin are modified as sections of the chart are drawn
 	$$.innerHeight = $$.height; $$.innerWidth = $$.width;
 	$$.outerHeight = $$.height; $$.outerWidth = $$.width;
@@ -28,10 +27,10 @@ d2b.CHARTS.axisChart = function(){
 		labels:{}
 	};
 	//formatting x values
-	$$.xFormat = function(value){return d3.round(value, 2);};
+	$$.xFormat = function(value){return value;};
 
 	//formatting y values
-	$$.yFormat = function(value){return d3.round(value, 2);};
+	$$.yFormat = function(value){return value;};
 
 	$$.events = d2b.UTILS.chartEvents();
 
@@ -471,7 +470,7 @@ d2b.CHARTS.axisChart = function(){
 	};
 
 	//data setter
-	chart.data = function(chartData, reset){
+	chart.data = function(chartData){
 		if(!arguments.length) return $$.currentChartData;
 
 		$$.currentChartData.types = chartData.data.types || $$.currentChartData.types;
@@ -562,12 +561,11 @@ d2b.CHARTS.axisChart = function(){
 
 		//auto update chart
 		var temp = $$.animationDuration;
-		chart
+		return chart
 				.animationDuration(0)
 				.update(callback)
 				.animationDuration(temp);
 
-		return chart;
 	};
 
 	//chart update

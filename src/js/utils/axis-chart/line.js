@@ -78,7 +78,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 		$$.background.each(function(graphData,i){
 			var graph = d3.select(this);
 			var path = graph.select('path');
-			if(path.size() == 0){
+			if(path.size() === 0){
 				path = graph.append('path')
 					.call($$.events.addElementDispatcher, 'main', 'd2b-line');
 			}
@@ -136,7 +136,6 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 				.transition()
 					.duration($$.animationDuration)
 					.style('opacity',0)
-					.attr('r',0)
 					.remove();
 		});
 

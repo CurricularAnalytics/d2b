@@ -345,6 +345,11 @@ html, body, .d2b-container {
 					}
 				}
 			}
+			.d2b-heatPoints{
+				path{
+					fill-opacity: 0.8;
+				}
+			}
 		}
 		.d2b-axis-types-foreground{
 			circle{
@@ -353,6 +358,11 @@ html, body, .d2b-container {
 			path.d2b-symbol{
 				stroke-width:1px;
 				fill:white;
+			}
+			.d2b-scatter{
+				path{
+					fill-opacity: 0.8;
+				}
 			}
 		}
 
@@ -1199,6 +1209,9 @@ html, body, .d2b-container {
 	padding: 5px 5px;
 	max-width:250px;
   &:after{
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box; 
     background:rgba(0,0,0,0);
     border-color:inherit;
     border-style:solid;
@@ -1214,6 +1227,9 @@ html, body, .d2b-container {
     transform: translate(-50%, -50%);
   }
   &:before{
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
     border-color:inherit;
     border-style:solid;
     border-width:2px;

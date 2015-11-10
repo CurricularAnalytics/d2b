@@ -139,6 +139,11 @@
 					}
 				}
 			}
+			.d2b-heatPoints{
+				path{
+					fill-opacity: 0.8;
+				}
+			}
 		}
 		.d2b-axis-types-foreground{
 			circle{
@@ -147,6 +152,11 @@
 			path.d2b-symbol{
 				stroke-width:1px;
 				fill:white;
+			}
+			.d2b-scatter{
+				path{
+					fill-opacity: 0.8;
+				}
 			}
 		}
 

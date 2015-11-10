@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<style>
+	body{background:black;}
+	text{
+		fill:#eee !important;
+		font-family: "Open Sans" !important;
+		font-weight: 300;
+		font-size: 21px !important;
+	}
+	/**{color: #333 !important;}*/
+	.d2b-axis-chart-foreground-graph g, .d2b-heat-point-set{
+		cursor:pointer;
+	}
+	.d2b-axis-chart-foreground-graph path{
+		fill-opacity: 0.3 !important;
+		stroke-width: 2px !important;
+	}
+	.tick line{
+		opacity:0;
+	}
+	.d2b-axis line{
+		opacity:0;
+	}
+	.axis-chart{
+		margin-top: 50px;
+	}
+	.domain{
+		display:none;
+	}
+	.header{
+		/*background: #333;*/
+		background: black;
+		position:fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		box-shadow: 0 4px 6px -2px #222;
+		border-bottom: 2px solid #222;
+	}
+	.header svg{
+		/*background: black;*/
+		width: 100%;
+		height: 50px;
+	}
+</style>
+<script>
+
+
+	var terms = d3.range(1, 10);
+	var hScale = d3.scale.ordinal().domain(terms.map(function(d){return 'Term '+d;}));
+	var hAxis = d3.svg.axis().scale(hScale).orient('top');
+	var map = { '0': 'F','1': 'D','2': 'C','3': 'B','4': 'A','F': '0','D': '1','C': '2','B': '3','A': '4' }
+	var grades = ["A", "B", "C", "D", "F"];
+	var courses = d3.set(
+		[
+			"ENGL 110", "MATH 162", "ECE 101", "ECE 131", "PHYC 160", "ENGL 120", "Math 163", "PHYC 161", "PHYC 161L", "ECON 105",
+			"ECE 203", "MATH 264", "ECE 238L", "PHYC 262", "ENGL 219", "ECE 206L", "ECE 213", "ECE 300", "ECE 321L", "ECE 314",
+			"ECE 340", "ECE 371", "ECE 360", "ECE 381", "ECE 322L", "ECE 344L", "ECE 419", "ECE 345", "ECE 341", "ECE 420",
+			"ENGL 110", "MATH 162", "ECE 101", "ECE 131", "PHYC 160", "ENGL 120", "Math 163", "PHYC 161", "PHYC 161L", "ECE 231",
+			"ECE 203", "ECE 238L", "ENGL 219", "ECON 105", "ECE 206L", "ECE 213", "ECE 300", "MATH 264", "ECE 330", "ECE 321L",
+			"MATH 327", "ECE 314", "ECE 340", "ECE 331", "ECE 344L", "ECE 419", "ECE 437", "ECE 420", "ECE 440"
+		]
+	).values();
+
+	var axisChart = new d2b.CHARTS.axisChart();
+	var axis = d2b.SVG.axis()
+		.customPadding(0)
+		.x({scale: d3.scale.ordinal(), hidden: true})
+		.y({scale: d3.scale.ordinal(), orientation: 'left-inside'});
+	var color = d3.scale.linear()
+		.range(["#009933", "#FF851B", "#FF0033"])
+		// .range(["rgb(110, 151, 150)", "rgb(255, 184, 80)", "rgb(189, 60, 56)"])
+		.domain([4, 2, 0]);
+
+
+	var makePoints = function(){
+		var points = [];
+		var i, cap;
+		grades.forEach(function(grade, i){
+			cap = Math.random()*(30 - i * 5);
+			for( i = 0; i < cap; i += 1 ){
+				points.push({name: grade, colorKey: +map[grade]});
+			}
+		});
+
+		return points;
+	};
+
+	var getColorKey = function(points){
+		var total = d3.sum(points, function(d){ return d.colorKey; })
+		return total / points.length;
+	};
+
+	var makeValues = function(program){
+		var values = [];
+
+		courses.forEach(function(course){
+			terms.forEach(function(term){
+				var newValue = {
+					y: course,
+					x: term,
+					points: makePoints()
+				};
+				newValue.colorKey = getColorKey(newValue.points);
+				newValue.size = newValue.points.length * 25;
+				values.push(newValue)
+			});
+		});
+
+		return values;
+	};
+
+	var values = makeValues('all');
+
+	$(document).ready(function(){
+
+		hScale.rangeBands([0, $(window).width()]);
+		var headerScale = d3.select('.header')
+			.append('svg')
+			.append('g')
+				.attr('transform', 'translate(0, 90)')
+				.call(hAxis);
+
+		var updateData = function(){
+			axisChart.data({
+	      data:{
+	        labels:{
+	          // define the optional x and y chart labels
+	          // y:'Degree Requirements',
+	          // x:'Term Taken'
+	        },
+	        types:[
+	          // this is where the various types of axis-charts will be defined
+	          // all of the chart types are optional and can be used in conjunction with one another
+	          {
+							properties:{
+								layout: 'circle',
+								sortBy: '!name',
+								size: 20
+							},
+	            // line-chart-type
+	            type:'heatPoints',
+	            graphs:[
+	              // this is where each of the line graphs will be defined
+	              {
+	                label:'All',
+	                values: values.filter(function(d){ return !!d.heat; })
+	              }
+	            ]
+	          },
+						{
+	            // line-chart-type
+	            type:'scatter',
+	            graphs:[
+	              // this is where each of the line graphs will be defined
+	              {
+	                label:'All',
+	                values: values.filter(function(d){ return !d.heat; })
+	              }
+	            ]
+	          }
+	        ]
+	      }
+	    });
+		};
+
+		var onUpdate = function(){
+			this.selectAll('.d2b-axis-chart-foreground-graph g, .d2b-heat-point-set')
+					.on('click.toggle-heat', function(d){
+						d.heat = !d.heat;
+						updateData();
+						axisChart.update();
+					});
+			d3.selectAll('.tick text')
+					.attr('y', -55)
+				.transition()
+					.duration(0)
+					.attr('y', -55);
+		};
+
+		updateData();
+
+    axisChart
+			.padding({top: 50, left: 0, right: 0, bottom: 0})
+      .select('.axis-chart')
+			.color(color)
+			// .legendOrientation('right')
+			.controls({
+				hideLegend:{enabled:true},
+				lockYAxis:{enabled:true, domain:courses},
+				lockXAxis:{enabled:true, domain:terms}
+			})
+			.axis(axis)
+			.animationDuration(500)
+			.tooltipLayout(0)
+      .width($(window).width())
+      .height(4000)
+			.on('update', onUpdate)
+      .update();
+
+
+		$(window).on('resize', function(){
+			axisChart.width($(window).width()).update();
+			hScale.rangeBands([0, $(window).width()]);
+			headerScale.call(hAxis);
+		});
+
+	});
+
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'header'></div>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

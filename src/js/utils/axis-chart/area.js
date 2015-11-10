@@ -109,7 +109,6 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 			.transition()
 				.duration($$.animationDuration)
 				.style('opacity',0)
-				.attr('r',0)
 				.remove();
 
 	};
@@ -162,8 +161,6 @@ d2b.UTILS.AXISCHART.TYPES.area = function(){
 
 	//chart update
 	chart.update = function(callback){
-		$$.clonedChartData = JSON.parse(JSON.stringify($$.currentChartData));
-
 		$$.stack($$.currentChartData);
 
 		$$.background.each(function(graphData){
