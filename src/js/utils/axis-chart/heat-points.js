@@ -44,9 +44,15 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 		var offset = Math.sqrt($$.symbolSize) + padding;
 
 		points.forEach(function(point, i){
-			var transition = d3.transition(point.elem);
+			var elem = point.elem;
 
-			if(i === 0) return transition.attr('transform', 'translate(0,0)');
+			elem
+				.transition()
+					.duration($$.animationDuration / 2)
+					.delay(i * 10)
+					.attr("d", $$.symbol);
+
+			if(i === 0) return elem.attr('transform', 'translate(0,0)');
 
 			switch(direction){
 					case 'right':
@@ -88,9 +94,77 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 						break;
 			}
 
-			transition.attr('transform', function(d,i){
-				return 'translate('+current.x+','+current.y+')';
-			});
+			elem
+					.attr('transform', function(d,i){
+						return 'translate('+current.x+','+current.y+')';
+					});
+		});
+
+	};
+
+	$$.renderLayout.hexagon = function(points){
+
+		var sides = 6;
+		var current = {x:0, y:0, side: 0, move: 0, moves: 1};
+		var padding = 1.5;
+
+		var l = Math.sqrt($$.symbolSize * 2 / (3 * Math.sqrt(3))) + padding;
+		var h = 2 * Math.sin(Math.PI/6) * l + l;
+		var w = 2 * Math.cos(Math.PI/6) * l;
+
+		points.forEach(function(point, i){
+			var elem = point.elem;
+
+			elem
+				.transition()
+					.duration($$.animationDuration / 2)
+					.delay(i * 10)
+					.attr("d", $$.symbol);
+
+			if(i === 0) return elem.attr('transform', 'translate(0,0)');
+
+			if(current.move === 0 && current.side === 0) current.x += w;
+
+			switch(current.side){
+					case 0:
+						current.x -= w / 2;
+						current.y += l + (h - l) / 2;
+						break;
+					case 1:
+						current.x -= w;
+						break;
+					case 2:
+						current.x -= w / 2;
+						current.y -= l + (h - l) / 2;
+						break;
+					case 3:
+						current.x += w / 2;
+						current.y -= l + (h - l) / 2;
+						break;
+					case 4:
+						current.x += w;
+						break;
+					case 5:
+						current.x += w / 2;
+						current.y += l + (h - l) / 2;
+						break;
+			}
+
+			current.move += 1;
+
+			if(current.move === current.moves){
+				current.move = 0;
+				current.side += 1;
+				if(current.side === sides){
+					current.side = 0;
+					current.moves += 1;
+				}
+			}
+
+			elem
+					.attr('transform', function(d,i){
+						return 'translate('+current.x+','+current.y+')';
+					});
 		});
 
 	};
@@ -107,9 +181,15 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 		var move = 0;
 
 		points.forEach(function(point, i){
-			var transition = d3.transition(point.elem);
+			var elem = point.elem;
 
-			if(i === 0) return transition.attr('transform', 'translate(0,0)');
+			elem
+				.transition()
+					.duration($$.animationDuration / 2)
+					.delay(i * 10)
+					.attr("d", $$.symbol);
+
+			if(i === 0) return elem.attr('transform', 'translate(0,0)');
 
 			if(current.moves <= current.move) {
 				current.r += d;
@@ -122,9 +202,10 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			current.x = Math.cos(current.move * current.theta) * current.r;
 			current.y = Math.sin(current.move * current.theta) * current.r;
 
-			transition.attr('transform', function(d,i){
-				return 'translate('+current.x+','+current.y+')';
-			});
+			elem
+					.attr('transform', function(d,i){
+						return 'translate('+current.x+','+current.y+')';
+					});
 
 			current.move += 1;
 		});
@@ -283,10 +364,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 
 		$$.background.selectAll(".d2b-heat-point")
 				.style('fill', fill)
-				.style('stroke', fill)
-			.transition()
-				.duration($$.animationDuration)
-				.attr("d", $$.symbol);
+				.style('stroke', fill);
 
 		d3.timer.flush();
 

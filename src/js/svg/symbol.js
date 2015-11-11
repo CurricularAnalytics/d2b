@@ -152,6 +152,20 @@ d2b.SVG.symbols = {
           +" " + 0 +","+ -r3 +"Z";
 
   },
+  hexagon: function(size){
+    var s = Math.sqrt(size * 2 / (3 * Math.sqrt(3)));
+    var moveX = Math.cos(d2b.MATH.toRadians(30)) * s;
+    var moveY = Math.sin(d2b.MATH.toRadians(30)) * s;
+
+
+    return "M"+ 0 +","+ -s
+          +"L"+ moveX +","+ -moveY
+          +" "+ moveX +","+ moveY
+          +" "+ 0 +","+ s
+          +" "+ -moveX +","+ moveY
+          +" "+ -moveX +","+ -moveY +"Z";
+
+  },
   "rect-horizontal": function(size){
     var sideRatio = 3; // 3 to 1
     var r = Math.sqrt(size/sideRatio);
@@ -232,7 +246,8 @@ d2b.SVG.symbolTypes = d3.svg.symbolTypes.concat(
     "star", "close", //"asterisk",
     "rect-horizontal", "rect-vertical",
     "arrow-right", "arrow-left", "arrow-up", "arrow-down",
-    "venus", "mars"
+    "venus", "mars",
+    "hexagon"
   ]
 );
 

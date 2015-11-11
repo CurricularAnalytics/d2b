@@ -95,6 +95,15 @@
       .height($(window).height())
       .update();
 
+		$(window).resize(function(){
+			axisChart
+					.width($(window).width())
+					.height($(window).height())
+					.animationDuration(0)
+					.update()
+					.animationDuration(500);
+		});
+
 	});
 
 </script>
