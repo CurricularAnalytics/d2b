@@ -275,13 +275,13 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 
 		$$.symbol.type($$.layout);
 
-		var fill = function(d){
-			if(d.colorKey !== null && d.colorKey !== undefined){
-				return $$.color(d.colorKey);
-			} else {
-				return $$.color(d.name);
-			}
-		};
+		// var fill = function(d){
+		// 	if(d.colorKey !== null && d.colorKey !== undefined){
+		// 		return $$.color(d.colorKey);
+		// 	} else {
+		// 		return $$.color(d.name);
+		// 	}
+		// };
 
 		$$.background.each(function(graphData, i){
 
@@ -363,8 +363,8 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 		}
 
 		$$.background.selectAll(".d2b-heat-point")
-				.style('fill', fill)
-				.style('stroke', fill);
+				.style('fill', d2b.UTILS.getColor($$.color, 'name'))
+				.style('stroke', d2b.UTILS.getColor($$.color, 'name'));
 
 		d3.timer.flush();
 

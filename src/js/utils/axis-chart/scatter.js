@@ -86,7 +86,7 @@ d2b.UTILS.AXISCHART.TYPES.scatter = function(){
 					return 'translate('+$$.x(d.x)+','+$$.y(d.y)+')';
 				});
 
-			var fill = d2b.UTILS.getColor($$.color, 'label', [graphData])
+			var fill = d2b.UTILS.getColor($$.color, 'label', [graphData]);
 			$$.point
 				.size(function(d){ return d.size || 40; })
 				.type(function(d,i){ return d.symbol || graphData.symbol || 'circle'; })

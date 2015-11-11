@@ -83,8 +83,9 @@ d2b.UTILS.getColor = function(color, defaultAttribute, data, reverse){
 			allData = allData.reverse();
 
 		for(var i = 0;i < allData.length; i++){
-			if(allData[i].colorKey){
-				return color(allData[i].colorKey);}
+			if(allData[i].colorKey !== null && allData[i].colorKey !== undefined){
+				return color(allData[i].colorKey);
+			}
 		}
 
 		return color(allData[allData.length-1][defaultAttribute]);

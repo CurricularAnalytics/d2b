@@ -9672,13 +9672,13 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 
 		$$.symbol.type($$.layout);
 
-		var fill = function(d){
-			if(d.colorKey !== null && d.colorKey !== undefined){
-				return $$.color(d.colorKey);
-			} else {
-				return $$.color(d.name);
-			}
-		};
+		// var fill = function(d){
+		// 	if(d.colorKey !== null && d.colorKey !== undefined){
+		// 		return $$.color(d.colorKey);
+		// 	} else {
+		// 		return $$.color(d.name);
+		// 	}
+		// };
 
 		$$.background.each(function(graphData, i){
 
@@ -9760,8 +9760,8 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 		}
 
 		$$.background.selectAll(".d2b-heat-point")
-				.style('fill', fill)
-				.style('stroke', fill);
+				.style('fill', d2b.UTILS.getColor($$.color, 'name'))
+				.style('stroke', d2b.UTILS.getColor($$.color, 'name'));
 
 		d3.timer.flush();
 
@@ -10181,7 +10181,7 @@ d2b.UTILS.AXISCHART.TYPES.scatter = function(){
 					return 'translate('+$$.x(d.x)+','+$$.y(d.y)+')';
 				});
 
-			var fill = d2b.UTILS.getColor($$.color, 'label', [graphData])
+			var fill = d2b.UTILS.getColor($$.color, 'label', [graphData]);
 			$$.point
 				.size(function(d){ return d.size || 40; })
 				.type(function(d,i){ return d.symbol || graphData.symbol || 'circle'; })
@@ -12544,8 +12544,9 @@ d2b.UTILS.getColor = function(color, defaultAttribute, data, reverse){
 			allData = allData.reverse();
 
 		for(var i = 0;i < allData.length; i++){
-			if(allData[i].colorKey){
-				return color(allData[i].colorKey);}
+			if(allData[i].colorKey !== null && allData[i].colorKey !== undefined){
+				return color(allData[i].colorKey);
+			}
 		}
 
 		return color(allData[allData.length-1][defaultAttribute]);
