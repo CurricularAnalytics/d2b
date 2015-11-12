@@ -7267,9 +7267,9 @@ d2b.SVG.point = function(){
 
   //mouseover: enlarge background
   $$.mouseover = function(d, i){
-    var size = $$.size.call(this, d, i) || 150,
-        type = $$.type.call(this, d, i) || 'circle',
-        strokeWidth = $$.strokeWidth.call(this, d, i) || '1px';
+    var size = $$.size.call(this, d, i),
+        type = $$.type.call(this, d, i),
+        strokeWidth = $$.strokeWidth.call(this, d, i);
 
     size = 15*Math.pow(size,0.5) + size * Math.pow(parseFloat(strokeWidth),0.2);
 
@@ -7282,8 +7282,8 @@ d2b.SVG.point = function(){
 
   //mouseout: shrink back to original size
   $$.mouseout = function(d, i){
-    var size = $$.size.call(this, d, i) || 150,
-        type = $$.type.call(this, d, i) || 'circle';
+    var size = $$.size.call(this, d, i),
+        type = $$.type.call(this, d, i);
 
     $$.symbol.size(size).type(type);
 
@@ -7297,11 +7297,11 @@ d2b.SVG.point = function(){
       var g = d3.select(this);
 
       //size, type, fill, stroke, active for this point
-      var size = $$.size.call(this, d, i) || 150,
-          type = $$.type.call(this, d, i) || 'circle',
+      var size = $$.size.call(this, d, i),
+          type = $$.type.call(this, d, i),
           fill = $$.fill.call(this, d, i),
           stroke = $$.stroke.call(this, d, i),
-          strokeWidth = $$.strokeWidth.call(this, d, i) || "1px",
+          strokeWidth = $$.strokeWidth.call(this, d, i),
           active = $$.active.call(this, d, i);
 
       //set symbol properties
@@ -7423,18 +7423,13 @@ d2b.SVG.symbol = function(){
 
   symbol.size = function(size){
     if (!arguments.length) return $$.size;
-
     $$.size = d3.functor(size);
-    // $$.d3Symbol.size($$.size);
-
     return symbol;
   };
 
   symbol.type = function(type){
     if (!arguments.length) return $$.type;
-
     $$.type = d3.functor(type);
-
     return symbol;
   };
 
@@ -9446,7 +9441,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(i * 10)
+					.delay(($$.animationDuration)? i * 10 : 0)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -9515,7 +9510,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(i * 10)
+					.delay(($$.animationDuration)? i * 10 : 0)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -9583,7 +9578,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(i * 10)
+					.delay(($$.animationDuration)? i * 10 : 0)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -9699,6 +9694,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 					.attr('transform', function(d){
 						return 'translate('+$$.x(d.x)+','+$$.y(d.y)+')';
 					})
+					.style('opacity',0)
 					.each(function(d){
 						var key = $$.key(d);
 						if(mergedPoints[key]){
@@ -9726,6 +9722,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 					.attr('class', 'd2b-heat-point');
 
 			heatPoint
+					.style('opacity',0)
 					.each(function(d){ d.elem = d3.select( this ); });
 
 			heatPoint.exit()

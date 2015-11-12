@@ -26,18 +26,13 @@ d2b.SVG.symbol = function(){
 
   symbol.size = function(size){
     if (!arguments.length) return $$.size;
-
     $$.size = d3.functor(size);
-    // $$.d3Symbol.size($$.size);
-
     return symbol;
   };
 
   symbol.type = function(type){
     if (!arguments.length) return $$.type;
-
     $$.type = d3.functor(type);
-
     return symbol;
   };
 

@@ -49,7 +49,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(i * 10)
+					.delay(($$.animationDuration)? i * 10 : 0)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -118,7 +118,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(i * 10)
+					.delay(($$.animationDuration)? i * 10 : 0)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -186,7 +186,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(i * 10)
+					.delay(($$.animationDuration)? i * 10 : 0)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -302,6 +302,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 					.attr('transform', function(d){
 						return 'translate('+$$.x(d.x)+','+$$.y(d.y)+')';
 					})
+					.style('opacity',0)
 					.each(function(d){
 						var key = $$.key(d);
 						if(mergedPoints[key]){
@@ -329,6 +330,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 					.attr('class', 'd2b-heat-point');
 
 			heatPoint
+					.style('opacity',0)
 					.each(function(d){ d.elem = d3.select( this ); });
 
 			heatPoint.exit()

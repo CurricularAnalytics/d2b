@@ -14,9 +14,9 @@ d2b.SVG.point = function(){
 
   //mouseover: enlarge background
   $$.mouseover = function(d, i){
-    var size = $$.size.call(this, d, i) || 150,
-        type = $$.type.call(this, d, i) || 'circle',
-        strokeWidth = $$.strokeWidth.call(this, d, i) || '1px';
+    var size = $$.size.call(this, d, i),
+        type = $$.type.call(this, d, i),
+        strokeWidth = $$.strokeWidth.call(this, d, i);
 
     size = 15*Math.pow(size,0.5) + size * Math.pow(parseFloat(strokeWidth),0.2);
 
@@ -29,8 +29,8 @@ d2b.SVG.point = function(){
 
   //mouseout: shrink back to original size
   $$.mouseout = function(d, i){
-    var size = $$.size.call(this, d, i) || 150,
-        type = $$.type.call(this, d, i) || 'circle';
+    var size = $$.size.call(this, d, i),
+        type = $$.type.call(this, d, i);
 
     $$.symbol.size(size).type(type);
 
@@ -44,11 +44,11 @@ d2b.SVG.point = function(){
       var g = d3.select(this);
 
       //size, type, fill, stroke, active for this point
-      var size = $$.size.call(this, d, i) || 150,
-          type = $$.type.call(this, d, i) || 'circle',
+      var size = $$.size.call(this, d, i),
+          type = $$.type.call(this, d, i),
           fill = $$.fill.call(this, d, i),
           stroke = $$.stroke.call(this, d, i),
-          strokeWidth = $$.strokeWidth.call(this, d, i) || "1px",
+          strokeWidth = $$.strokeWidth.call(this, d, i),
           active = $$.active.call(this, d, i);
 
       //set symbol properties
