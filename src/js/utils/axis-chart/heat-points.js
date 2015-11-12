@@ -302,7 +302,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 					.attr('transform', function(d){
 						return 'translate('+$$.x(d.x)+','+$$.y(d.y)+')';
 					})
-					.style('opacity',0)
+					.style('opacity',1)
 					.each(function(d){
 						var key = $$.key(d);
 						if(mergedPoints[key]){
@@ -330,7 +330,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 					.attr('class', 'd2b-heat-point');
 
 			heatPoint
-					.style('opacity',0)
+					.style('opacity',1)
 					.each(function(d){ d.elem = d3.select( this ); });
 
 			heatPoint.exit()
