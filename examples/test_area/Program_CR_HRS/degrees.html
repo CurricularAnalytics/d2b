@@ -33,7 +33,7 @@
 								.key(function(d){return d["UNM College Code"];})
 								.key(function(d){return d["change"];});
 
-	var nestBy = function(nest, data){
+	var nestBy = function(nest, data, domain){
 		var colleges = nest.entries(data);
 		colleges.forEach(function(college){
 			college.label = college.key;
@@ -116,11 +116,11 @@
 	$(document).ready(function(){
 
 		//init histogram multiChart
-		var histogram = new d2b.CHARTS.multiChart()
-			.on('update', histogramUpdated);
+		var histogram = d2b.CHARTS.multiChart().on('update', histogramUpdated);
+		// var histogram = d2b.CHARTS.axisChart().on('update', histogramUpdated);
 
 		//init chart layout
-		var chartLayout = new d2b.UTILS.CHARTPAGE.chartLayout()
+		var chartLayout = d2b.UTILS.CHARTPAGE.chartLayout()
 			.select('.histogram')
 			.chart(histogram)
 			.data({
@@ -163,8 +163,31 @@
 			totalDomain = d3.set(totalDomain).values().sort(function(a,b){return d3.ascending(parseInt(a),parseInt(b));});
 
 			//nest the data by total and change
-			var collegesTotal = nestBy(nestTotal, d);
-			var collegesChange = nestBy(nestChange, d);
+			var collegesTotal = nestBy(nestTotal, d, totalDomain);
+			var collegesChange = nestBy(nestChange, d, changeDomain);
+
+			collegesTotal.forEach(function(college){
+				totalDomain.forEach(function(d){
+					d = parseInt(d);
+					if(!college.values.filter(function(val){ return val.x === d }).length){
+						college.values.push({x:d, y:0})
+					}
+				});
+				college.values.sort(function(a,b){
+					return d3.ascending(a.x,b.x);
+				})
+			});
+			collegesChange.forEach(function(college){
+				changeDomain.forEach(function(d){
+					d = parseInt(d);
+					if(!college.values.filter(function(val){ return val.x === d }).length){
+						college.values.push({x:d, y:0})
+					}
+				});
+				college.values.sort(function(a,b){
+					return d3.ascending(a.x,b.x);
+				})
+			});
 
 			//data for total axisChart
 			var totalData = {
@@ -184,6 +207,10 @@
 				}
 			};
 
+			// console.log(totalDomain)
+			// console.log(collegesTotal)
+			// console.log
+
 			//data for change axisChart
 			var changeData = {
 				data:{
@@ -202,7 +229,7 @@
 				}
 			};
 
-			//set multichart data
+			// //set multichart data
 			histogram
 				.data({
 					data:{
@@ -212,8 +239,9 @@
 								type:"axisChart",
 								properties:{
 									legendOrientation:"top",
-									controls:{stackBars:{visible:true,enabled:true},lockXAxis:{enabled:true}},
-									x:{type:"ordinal", domain:totalDomain},
+									controls: {stackBars: {visible: true, enabled: true}},
+									xPadding: [0.5, 0.5],
+									// axis: d2b.SVG.axis().x({scale: d3.scale.ordinal()}),
 									data:totalData
 								}
 
@@ -223,8 +251,9 @@
 								type:"axisChart",
 								properties:{
 									legendOrientation:"top",
-									controls:{stackBars:{visible:true,enabled:true},lockXAxis:{enabled:true}},
-									x:{type:"ordinal", domain:changeDomain},
+									controls: {stackBars: {visible: true, enabled: true}},
+									xPadding: [0.5, 0.5],
+									// axis: d2b.SVG.axis().x({scale: d3.scale.ordinal()}),
 									data:changeData
 								}
 							}

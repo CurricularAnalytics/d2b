@@ -79,6 +79,12 @@ d2b.UTILS.AXISCHART.TYPES.scatter = function(){
 						function(d){ return d.key || d.x+'-'+d.y; }
 					);
 
+			var fill = d2b.UTILS.getColor($$.color, 'label', [graphData]);
+			$$.point
+				.stroke(fill)
+				.fill(fill)
+				.type(function(d,i){ return d.symbol || graphData.symbol || 'circle'; });
+
 			newPoint = point.enter()
 				.append('g')
 				.call($$.point.size(0))
@@ -86,12 +92,7 @@ d2b.UTILS.AXISCHART.TYPES.scatter = function(){
 					return 'translate('+$$.x(d.x)+','+$$.y(d.y)+')';
 				});
 
-			var fill = d2b.UTILS.getColor($$.color, 'label', [graphData]);
-			$$.point
-				.size(function(d){ return d.size || 40; })
-				.type(function(d,i){ return d.symbol || graphData.symbol || 'circle'; })
-        .stroke(fill)
-				.fill(fill);
+			$$.point.size(function(d){ return d.size || 40; });
 
 			point
 				.call($$.events.addElementDispatcher, 'main', 'd2b-scatter-point')

@@ -137,7 +137,7 @@ d2b.UTILS.AXISCHART.TYPES.bar = function(){
 
     var stackedValues = {};
     var values = [0];
-
+// console.log($$.currentChartData)
 		$$.currentChartData.forEach(function(d){
 	    values = values.concat(d.values.map(function(v){return v.y + v.y0;}));
 		});

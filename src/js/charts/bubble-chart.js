@@ -1,785 +1,504 @@
 /* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-///////TODO - Change circle packing to custom algorithm that uses cluster packing rather than d3.force layout, force layout runs slowly for large number of nodes
-
 /*bubble chart*/
 d2b.CHARTS.bubbleChart = function(){
 
+	//private store
 	var $$ = {};
 
-	//define chart variables
+	//user set width
 	$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+	//user set height
 	$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
-	$$.svgHeight = $$.height-55;
-
-	$$.innerHeight = $$.height
+	//inner/outer height/width and margin are modified as sections of the chart are drawn
+	$$.innerHeight = $$.height;
 	$$.innerWidth = $$.width;
-
-	$$.generateRequired = true; //using some methods may require the chart to be redrawn
-
-	$$.selection = d3.select('body'); //default selection of the HTML body
-
-	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	$$.outerHeight = $$.height;
+	$$.outerWidth = $$.width;
 	$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
-
-	$$.legend = new d2b.UTILS.LEGENDS.legend();
-
-	$$.controls = new d2b.UTILS.CONTROLS.controls();
-
-	$$.legendOrientation = 'right';
-
+	//force chart regeneration on next update()
+	$$.generateRequired = true;
+	//d3.selection for chart container
+	$$.selection = d3.select('body');
+	//default animation duration
+	$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+	//color hash to be used
 	$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
-
-	$$.currentChartData = {};
-
+	//carries current data set
+	$$.data = {};
+	//formatting x values
 	$$.xFormat = function(value){return value};
+	//dispatcher
+  $$.dispatch = d3.dispatch('update', 'zoomIn', 'zoomOut');
 
-	$$.current = {grouping:null,colorGrouping:null};
-
-	$$.changeLegendWidth = 250;
-
-	//scales for bubble radius, change color, change legend, change axis, change group axis
-	$$.bubbleRadius = d3.scale.linear();
-	$$.colorChange = d3.scale.threshold()
-		.domain([-0.25, -0.05, -0.001, 0.001, 0.05, 0.25])
-		.range(['#d84b2a', '#ee9586', '#e4b7b2', '#888', '#beccae', '#9caf84', '#7aa25c']);
-
-	$$.changeScaleLegend = d3.scale.ordinal()
-				.domain([-1, -0.25, -0.05, 0.0, 0.05, 0.25, 1])
-				.rangeBands([0,$$.changeLegendWidth]);
-
-	$$.changeScaleAxis = d3.scale.linear()
-				.domain([-0.25, 0.25]);
-
-	$$.changeGroupsScale = d3.scale.ordinal();
-
-	//define scales for bubble group placement and font-size
-	$$.groupsScales = {
-		x:d3.scale.ordinal(),
-		y:d3.scale.ordinal(),
-		fontSize:d3.scale.linear().range([10, 30]).domain([0, 500])
+  //default tooltip content function
+	$$.tooltipContent = function(d){
+    var tt = "<b>"+d.label+":</b> "+$$.xFormat(d.value)+" ";
+    if(d.change === null || d.change === undefined) return tt;
+    if(d.change > 0) tt += "+";
+    tt += $$.format.percent(d.change);
+		return tt;
 	};
 
-	$$.formatPercent = d3.format("%");
-	$$.bubbleChange = function(d){
-		var changeHTML = '';
-
-		if(isNaN(d.change)){}
-		else if(d.change >= 0)
-			changeHTML = '(+'+$$.formatPercent(d.change)+')';
-		else if(d.change < 0)
-			changeHTML = '('+$$.formatPercent(d.change)+')';
-
-		return $$.xFormat(d.value)+' '+changeHTML;
-	};
-	$$.tooltip = function(d){
-		return "<b>"+d.label+":</b> "+$$.bubbleChange(d);
-	};
-
-	$$.longestGroupsTick = 0;
-
-
-	//change axis init and tick formatting
-	changeAxis = d3.svg.axis().orient("top")
-		.tickFormat(function(d){
-			if(d>0.25 || d<-0.25)
-				return '';
-
-			if($$.controlsData.sortByChange.enabled){
-				if(d==0.25)
-				  return $$.formatPercent(d)+' or higher';
-				else if(d==-0.25)
-				  return $$.formatPercent(d)+' or lower';
-			}
-
-			return $$.formatPercent(d);
-		});
-
-	$$.groupsAxis = d3.svg.axis().scale($$.changeGroupsScale).orient("left");
-
-	//init controls to all invisible and disabled
-	$$.controlsData = {
-				hideLegend: {
-					label: "Hide Legend",
-					type: "checkbox",
-					visible: false,
-					enabled: false
-				},
-				sortByChange: {
-					label: "Sort By Change",
-					type: "checkbox",
-					visible: false,
-					enabled: false
-				},
-				colorByChange: {
-					label: "Color By Change",
-					type: "checkbox",
-					visible: false,
-					enabled: false
-				}
-			};
-
-
-	//init event object
-	$$.events = d2b.UTILS.chartEvents();
-
-	//on force Tick, compute new node positions
-	$$.forceTick = function(e){
-	  var k = e.alpha * 0.095;
-		this.nodeElements.each(function(d, i) {
-			if(d.group){
-				d.y += (d.group.focus.y - d.y) * k;
-				d.x += (d.group.focus.x - d.x) * k;
-			}
-    });
-	};
-
-	// update the grouping for all nodes
-	$$.updateNodeGrouping = function(grouping, type){
-		if(!type)
-			type = "grouping";
-		$$.currentChartData.nodes.forEach(function(d,i){
-			d[type] = grouping;
-		});
-	};
-
-	// update the visual group that each node resides in
-	$$.updateNodeGroup = function(grouping){
-		$$.currentChartData.nodes.forEach(function(d,i){
-			d.group = $$.current.grouping.groups[d.enrollments[d.grouping.index]];
-		});
-	}
-
-	// update the bubble radius based on total value of the grouping and the chart dimensions
-	$$.updateRadiusScale = function(grouping){
-		$$.bubbleRadius
-			.range([0,Math.min($$.innerHeight,$$.innerWidth)/4])
-			.domain([0,Math.sqrt(grouping.total/Math.PI)]);
-	};
-
-	// special radius function to calculate the radius from the area-value input
-	$$.radius = function(value){
-		return Math.max(3,$$.bubbleRadius(Math.sqrt(value/Math.PI)));
-	};
-
-	//update the top buttons
-	$$.updateGroupingButtons = function(){
-		/*Make grouping buttons*/
-		$$.selection.buttonsWrapper.buttons.button = $$.selection.buttonsWrapper.buttons.selectAll('ul').data($$.currentChartData.groupings, function(d,i){
-			if(d.key == 'unique')
-				return Math.floor((1 + Math.random()) * 0x10000)
-			else if(d.key && d.key != 'auto')
-				return d.key;
-			else
-				return d.label;
-		});
-		var newButton = $$.selection.buttonsWrapper.buttons.button.enter()
-			.append('ul');
-
-		newButton.append('li')
-			.attr('class','d2b-button')
-			.on('click.d2b-click',function(d,i){
-				$$.current.grouping = d;
-				$$.updateNodeGrouping(d);
-				$$.updateNodeGroup();
-				chart.update();
-			})
-			.call($$.events.addElementDispatcher, 'main', 'd2b-bubble-grouping-button');
-		newButton.append('li')
-			.attr('class','d2b-color-button')
-			.on('click.d2b-click',function(d,i){
-				$$.current.colorGrouping = d;
-				$$.updateNodeGrouping(d, "colorGrouping");
-				chart.update();
-			})
-			.call($$.events.addElementDispatcher, 'main', 'd2b-color-by-grouping-button');
-
-		$$.selection.buttonsWrapper.buttons.button.exit()
-			.transition()
-				.duration($$.animationDuration)
-				.style('opacity',0)
-				.remove();
-
-		$$.selection.buttonsWrapper.buttons.button.grouping = $$.selection.buttonsWrapper.buttons.button.select('li.d2b-button')
-				.text(function(d){return d.label;})
-				.classed('d2b-selected',function(d,i){return d == $$.current.grouping;});
-
-		$$.selection.buttonsWrapper.buttons.button.color = $$.selection.buttonsWrapper.buttons.button.select('li.d2b-color-button')
-				.html('<i class="fa fa-paint-brush"></i>')
-				.classed('d2b-selected',function(d,i){return d == $$.current.colorGrouping;});
-	};
-
-
-	// update controls
-	$$.updateControls = function(){
-		//update controls
-		var controlsData = d2b.UTILS.getValues($$.controlsData).filter(function(d){return d.visible;});
-		controlsData.map(function(d){
-			d.data = {state:d.enabled, label:d.label, key:d.key};
-		});
-		$$.controls.data(controlsData).width($$.innerWidth).update();
-
-		//reposition the controls
-		$$.selection.controls
-			.transition()
-				.duration($$.animationDuration)
-				.attr('transform','translate('+($$.forcedMargin.left + $$.innerWidth - $$.controls.computedWidth())+','+($$.forcedMargin.top)+')');
-	};
-
-	//update main legend
-	$$.updateLegend = function(){
-		//main legend
-		var legendData;
-		if($$.controlsData.hideLegend.enabled){
-			legendData = {data:{items:[]}};
-		}else if($$.controlsData.colorByChange.enabled){
-			legendData = {
-				data:{
-					items:	[]
-				}
-			};
-		}else if($$.current.colorGrouping.hideLegend){
-			legendData = {data:{items:[]}};
-		}else{
-			legendData = {
-				data:{
-					items:	d3
-										.set($$.current.grouping.nodes.map(function(d){return d.enrollments[d.colorGrouping.index];}))
-										.values()
-										.map(function(d){
-											if(d == 'null')
-												return {label:'Non-'+$$.current.colorGrouping.label};
-											else
-												return {label:d};
-											})
-				}
-			};
-		}
-
-		$$.innerHeight = $$.svgHeight - $$.forcedMargin.top - $$.forcedMargin.bottom;
-
-		if($$.legendOrientation == 'right' || $$.legendOrientation == 'left'){
-			$$.legend.orientation('vertical').data(legendData).height($$.innerHeight).update();
-		}
-		else{
-			$$.legend.orientation('horizontal').data(legendData).width($$.innerWidth).update();
-		}
-
-		var legendTranslation;
-		if($$.legendOrientation == 'right')
-			legendTranslation = 'translate('+($$.forcedMargin.left+$$.innerWidth-$$.legend.computedWidth())+','+(($$.innerHeight-$$.legend.computedHeight())/2+$$.forcedMargin.top)+')';
-		else if($$.legendOrientation == 'left')
-			legendTranslation = 'translate('+($$.forcedMargin.left)+','+(($$.innerHeight-$$.legend.computedHeight())/2+$$.forcedMargin.top)+')';
-		else if($$.legendOrientation == 'top')
-			legendTranslation = 'translate('+($$.forcedMargin.left+($$.innerWidth-$$.legend.computedWidth())/2)+','+$$.forcedMargin.top+')';
-		else
-			legendTranslation = 'translate('+($$.forcedMargin.left+($$.innerWidth-$$.legend.computedWidth())/2)+','+($$.innerHeight+$$.forcedMargin.top-$$.legend.computedHeight())+')';
-
-		$$.selection.legend
-			.transition()
-				.duration($$.animationDuration)
-				.attr('transform',legendTranslation);
-
-	};
-
-	//update views, sort by change / sort by grouping
-	$$.updateViews = function(){
-
-		if($$.controlsData.sortByChange.enabled || $$.controlsData.colorByChange.enabled){
-				$$.selection.changeAxis
-					.transition()
-						.duration($$.animationDuration)
-						.style('opacity',1);
-		}
-
-		if($$.controlsData.sortByChange.enabled || !$$.controlsData.colorByChange.enabled){
-				$$.selection.changeAxis.legend
-					.transition()
-						.duration($$.animationDuration)
-						.style('opacity',0);
-		}
-		if($$.controlsData.sortByChange.enabled){
-			$$.selection.group.groups
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0);
-		}else{
-				updateGroups();
-				$$.selection.group.groups
-					.transition()
-						.duration($$.animationDuration)
-						.style('opacity',1);
-		}
-
-		if($$.controlsData.colorByChange.enabled){
-			$$.selection.buttonsWrapper.buttons.button.color.style('display','none');
-		}else{
-			$$.selection.buttonsWrapper.buttons.button.color.style('display','block');
-		}
-
-		$$.longestGroupsTick = 0;
-		if($$.controlsData.sortByChange.enabled){
-			$$.changeGroupsScale.domain(Object.keys($$.current.grouping.groups)).rangeBands([0,$$.innerHeight-60]);
-
-			$$.selection.groupsAxis
-					.call($$.groupsAxis);
-
-
-			$$.selection.groupsAxis.selectAll('.tick text').each(function(d){
-				if($$.longestGroupsTick < this.getComputedTextLength())
-					$$.longestGroupsTick = this.getComputedTextLength();
-			})
-
-			$$.groupsAxis.tickSize(-$$.innerWidth+$$.forcedMargin.left + $$.longestGroupsTick);
-
-			$$.selection.groupsAxis
-				.transition()
-					.duration($$.animationDuration)
-					.call($$.groupsAxis)
-					.style('opacity',1)
-					.attr('transform','translate('+($$.forcedMargin.left + $$.longestGroupsTick -20)+','+($$.forcedMargin.top+60)+')');
-
-
-			$$.changeScaleAxis
-				.range([0,$$.innerWidth-80-$$.longestGroupsTick]);
-			changeAxis
-					.tickSize(-$$.innerHeight+30)
-					.scale($$.changeScaleAxis);
-			$$.selection.changeAxis
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',1)
-					.attr('transform','translate('+($$.forcedMargin.left+30+$$.longestGroupsTick)+','+(20+$$.forcedMargin.top + $$.controls.computedHeight())+')')
-			$$.selection.changeAxis.axis
-				.transition()
-					.duration($$.animationDuration)
-					.call(changeAxis);
-
-
-		}else if($$.controlsData.colorByChange.enabled){
-			$$.selection.groupsAxis
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0);
-			$$.selection.changeAxis.legend
-				.transition()
-					.delay($$.animationDuration/4)
-					.duration($$.animationDuration)
-					.style('opacity',1);
-			changeAxis
-					.tickSize(15)
-					.scale($$.changeScaleLegend);
-
-			$$.selection.changeAxis
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',1)
-					.attr('transform','translate('+($$.width -$$.changeLegendWidth- 20)+','+(20+$$.forcedMargin.top + $$.controls.computedHeight())+')')
-
-			$$.selection.changeAxis.axis
-				.transition()
-					.duration($$.animationDuration)
-					.call(changeAxis);
-		}else{
-			$$.selection.changeAxis
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0);
-			$$.selection.groupsAxis
-				.transition()
-					.duration($$.animationDuration)
-					.style('opacity',0);
-		}
-	};
-
-
-	//GP async loop
-	$$.asyncLoop = function(iterations, process, exit){
-	    var index = 0,
-	        done = false,
-	        shouldExit = false;
-	    var loop = {
-	        next:function(){
-	            if(done){
-	                if(shouldExit && exit){
-	                    return exit();
-	                }
-	            }
-	            if(index < iterations){
-	                index++;
-	                process(loop);
-	            } else {
-	                done = true;
-	                if(exit) exit();
-	            }
-	        },
-	        iteration:function(){
-	            return index - 1;
-	        },
-	        break:function(end){
-	            done = true;
-	            shouldExit = end;
-	        }
-	    };
-	    loop.next();
-	    return loop;
-	}
-
-	//update bubble positioning
-	$$.updateBubbles = function(){
-
-		$$.selection.group.bubbles.bubble = $$.selection.group.bubbles.selectAll('g.d2b-bubble')
-				.data($$.current.grouping.nodes.sort(function(a,b){return d3.ascending(b.value, a.value);}),function(d,i){
-					if(d.key == 'unique')
-						return Math.floor((1 + Math.random()) * 0x10000)
-					else if(d.key && d.key != 'auto')
-						return d.key;
-					else
-						return d.label;
-				});
-
-		var newBubble = $$.selection.group.bubbles.bubble.enter()
-			.append('g')
-				.attr('class','d2b-bubble')
-				.call(d2b.UTILS.bindTooltip, $$.tooltip, function(d){return d;})
-				// .call(d2b.UTILS.tooltip, function(d){return '<b>'+d.label+'</b>';},$$.bubbleChange)
-				.call($$.events.addElementDispatcher, 'main', 'd2b-bubble');
-
-		newBubble.append('circle')
-				.style('fill', function(d){return d2b.UTILS.getColor($$.color, 'label', [{label:d.enrollments[d.colorGrouping.index]}])(d)})
-				// .style('fill',function(d){return $$.color(d.enrollments[d.colorGrouping.index]);})
-				.style('stroke',function(d){return $$.color(d.enrollments[d.colorGrouping.index]);})
-				.attr('r',0);
-
-		$$.selection.group.bubbles.bubble.circle = $$.selection.group.bubbles.bubble.select('circle')
-
-		var circleTransition = $$.selection.group.bubbles.bubble.circle
-			.transition()
-				.duration($$.animationDuration)
-				.attr('r',function(d){return $$.radius(d.value);});
-
-		if($$.current.groups){
-			$$.current.groups.forEach(function(d){
-				// d.force.stop();
-				d.nodeElements = $$.selection.group.bubbles.bubble.filter(function(b){
-					return b.group == d && b.enrollments[$$.current.grouping.index];
-				})
-			});
-		}
-
-		if($$.controlsData.colorByChange.enabled){
-			circleTransition
-				.style('fill',function(d){return $$.colorChange(d.change);})
-				.style('stroke',function(d){return d3.rgb($$.colorChange(d.change)).darker(1);});
-		}else{
-			circleTransition
-				.style('fill',function(d){
-						if(d.enrollments[d.colorGrouping.index]){
-							// console.log(d2b.UTILS.getColor($$.color, 'label', [d.enrollments[d.colorGrouping.index]])(d))
-							return d2b.UTILS.getColor($$.color, 'label', [{label:d.enrollments[d.colorGrouping.index]}])(d);
-							// return $$.color(d.enrollments[d.colorGrouping.index]);
-							}
-						else{
-							return d2b.UTILS.getColor($$.color, 'label', [{label:'Non-'+$$.current.colorGrouping.label}])(d);
-							// return $$.color('Non-'+$$.current.colorGrouping.label);
-							}
-					})
-				.style('stroke',function(d){
-						if(d.enrollments[d.colorGrouping.index])
-							return d3.rgb($$.color(d.enrollments[d.colorGrouping.index])).darker(1);
-						else
-							return d3.rgb($$.color('Non-'+$$.current.colorGrouping.label)).darker(1);
-					})
-		}
-
-		//place bubbles either in groups or on change axis
-		if($$.controlsData.sortByChange.enabled){
-			var changeRange = $$.changeScaleAxis.range();
-
-			$$.selection.group.bubbles.bubble
-				.transition()
-					.duration($$.animationDuration*1.5)
-					.each(function(d){
-						d.x = (20+Math.min(changeRange[1],Math.max(changeRange[0], $$.changeScaleAxis(d.change)))) + ($$.longestGroupsTick + 10) + $$.forcedMargin.left;
-						d.y = ($$.changeGroupsScale(d.enrollments[d.grouping.index])+$$.changeGroupsScale.rangeBand()/2+ 60 + $$.forcedMargin.top);
-					})
-					.attr('transform',function(d,i){return 'translate('+d.x+','+d.y+')';});
-
-		}else{
-
-
-			$$.current.groups.forEach(function(d){
-				//set force parameters and start it
-				d.force
-						.size([$$.innerWidth, $$.innerHeight])
-						.start();
-				//auto-advance the force.tick until the alpha parameter is less than 0.025, then transition the bubbles
-				$$.asyncLoop(300, function(loop){
-					if(d.force.alpha() < 0.025)
-						loop.break(true);
-	        var i = loop.iteration();
-					d.force.tick();
-	        loop.next();
-				}, function(){
-					d.force.stop();
-					d.nodeElements
-						.transition()
-							.duration($$.animationDuration*1.5)
-							.attr('transform',function(d){return 'translate('+d.x+','+d.y+')'});
-				});
-			});
-
-		}
-
-		//if new bubbles added to old bubbles, sort visual space largest to smallest
-		if(newBubble.size() && $$.selection.group.bubbles.bubble.size() > newBubble.size()){
-			$$.selection.group.bubbles.bubble.each(function(d){
-				$$.selection.group.bubbles.node().appendChild(this);
-			});
-		}
-
-		$$.selection.group.bubbles.bubble.exit()
-			.transition()
-				.duration($$.animationDuration)
-				.style('opacity',0)
-				.attr('transform',function(d){return 'translate(0,0)'})
-				.remove()
-			.select('circle')
-				.attr('r',0);
-	};
-
-	// update bubble groups positioning
-	var updateGroups = function(){
-		$$.current.groups = [];
-		for(key in $$.current.grouping.groups)
-			$$.current.groups.push($$.current.grouping.groups[key]);
-
-		var ratio = $$.innerWidth/$$.innerHeight;
-
-		var groupsPerRow = Math.min($$.current.groups.length,Math.max(1, Math.round(Math.sqrt($$.current.groups.length) * (ratio))));
-		var groupsPerColumn = Math.ceil($$.current.groups.length/groupsPerRow);
-
-		$$.selection.group.groups.group = $$.selection.group.groups.selectAll('g').data($$.current.groups);
-
-		$$.groupsScales.x.domain(d3.range(0, groupsPerRow)).rangeBands([0,$$.innerWidth]);
-		$$.groupsScales.y.domain(d3.range(0, groupsPerColumn)).rangeBands([0,$$.innerHeight-100]);
-
-		var newGroup = $$.selection.group.groups.group.enter()
-			.append('g')
-				.style('opacity',0);
-
-		newGroup.append('text').attr('class','d2b-group-title');
-		newGroup.append('text').attr('class','d2b-group-total');
-		$$.selection.group.groups.group
-			.each(function(d,i){
-				d.total = d3.sum(d.nodes.map(function(d){return d.value;}));
-				d.focus = {x:$$.groupsScales.x(i%groupsPerRow)+$$.groupsScales.x.rangeBand()/2, y:$$.groupsScales.y(Math.floor(i/groupsPerRow))+100+$$.groupsScales.y.rangeBand()/2};
-
-				//if the d3 force layout has not been initialized for this bubble-group yet, initialize it
-				if(!d.force){
-					d.force = d3.layout.force()
-		          .links([])
-		          .gravity(0)
-							.friction(0.9)
-		          .charge(function(d){return -Math.pow( $$.radius(d.value), 2.0) / 9;})
-		          .nodes(d.nodes)
-		          .on('tick', $$.forceTick.bind(d));
-				}
-				d.force.stop();
-
-			})
-			.transition()
-				.duration($$.animationDuration)
-				.attr('transform',function(d,i){
-					return 'translate('+($$.groupsScales.x(i%groupsPerRow)+$$.groupsScales.x.rangeBand()/2)+','+($$.groupsScales.y(Math.floor(i/groupsPerRow))+100)+')'
-				})
-				.style('opacity',1);
-
-		$$.selection.group.groups.selectAll('.focus').remove();
-
-		var fontSize = Math.min(30,Math.max(8,$$.groupsScales.fontSize(($$.innerWidth + $$.innerHeight)/($$.current.groups.length))))
-
-		$$.selection.group.groups.group.total = $$.selection.group.groups.group.select('text.d2b-group-total')
-			// .attr('y', $$.groupsScales.y.rangeBand()/2)
-			.text(function(d){return $$.xFormat(d.total);})
-			.style('font-size', fontSize+'px')
-
-		$$.selection.group.groups.group.title = $$.selection.group.groups.group.select('text.d2b-group-title')
-				.text(function(d){return d.label;})
-				.attr('dy',0)
-				.attr('y',fontSize)
-				// .attr('y',0)
-				.style('font-size', fontSize+'px')
-				.call(d2b.UTILS.textWrap, $$.groupsScales.x.rangeBand()-10);
-
-		$$.selection.group.groups.group.exit()
-			.transition()
-				.duration($$.animationDuration)
-				.style('opacity',0)
-				.remove();
-
-	};
-
-	/*DEFINE CHART OBJECT AND MEMBERS*/
+  //view type (packs or change)
+  $$.view = 'packs';
+
+  //defined formats
+  $$.format = {
+    general: d3.format(),
+    percent: d3.format(".0%")
+  };
+
+  //d3 pack layout
+  $$.pack = d3.layout.pack();
+
+  // set axes and scales
+  $$.xTickFormat = function(d){
+    var bounds = $$.axis._x.domain();
+    var newD = $$.format.percent(d);
+    if(+d === bounds[0]) return $$.format.percent(bounds[0])+" or lower";
+    if(+d === bounds[1]) return $$.format.percent(bounds[1])+" or higher";
+    return newD;
+  };
+
+  $$.axis = d2b.SVG.axis();
+  $$.axis._x = d3.scale.linear().domain([-0.25, 0.25]);
+  $$.axis.x().axis.tickFormat($$.xTickFormat);
+  $$.axis._y = d3.scale.ordinal();
+  $$.axis
+    .x({scale: $$.axis._x, orientation: 'top-outside'})
+    .y({scale: $$.axis._y, orientation: 'left-inside'});
+
+  $$.r = d3.scale.linear().domain([0, 1]);
+
+  $$.gridX = d3.scale.ordinal();
+  $$.gridY = d3.scale.ordinal();
+
+  // track the current center and zoom rati
+  // $$.center = {};
+
+  /*BACKGROUND METHODS*/
+  $$.background = {
+    // update background for packs view (pack labels)
+    packs: function(){
+      var textSize;
+      var packLabel = this.selectAll('.d2b-pack-label')
+        .data($$.data.categories, function(d){ return d.key || d.label; });
+      var newPackLabel;
+
+      // compute dynamic text size
+  		var textSize = Math.min(30,Math.max(16,Math.min($$.innerWidth, $$.innerHeight)/(10 * $$.data.categories.length)));
+
+      $$.grid = d2b.UTILS.grid($$.outerWidth, $$.outerHeight, $$.data.categories.length);
+
+      newPackLabel = packLabel.enter()
+        .append('text')
+          .style('opacity', 0)
+          .attr('class', 'd2b-pack-label');
+
+      newPackLabel
+        .append('tspan')
+          .attr('class', 'd2b-pack-label-name');
+      newPackLabel
+        .append('tspan')
+          .attr('x', 0)
+          .attr('class', 'd2b-pack-label-value');
+
+      $$.gridX.rangeBands([0, $$.outerWidth]).domain(d3.range(0, $$.grid.columns));
+      $$.gridY.rangeBands([0, $$.outerHeight]).domain(d3.range(0, $$.grid.rows));
+
+      packLabel
+          .each(function(d, i){
+            d.center = {
+              x: $$.gridX(i % $$.grid.columns) + $$.gridX.rangeBand() / 2,
+              y: $$.gridY(Math.floor(i / $$.grid.columns)) + $$.gridY.rangeBand() / 2
+            };
+          })
+        .transition()
+          .duration($$.animationDuration)
+          .style('opacity', 1)
+          .attr('transform', function(d){
+            var y = d.center.y - $$.gridY.rangeBand()/3;
+            return 'translate('+d.center.x+','+y+')';
+          });
+      packLabel
+        .select('tspan.d2b-pack-label-name')
+          .style('font-size', textSize+'px')
+          .text(function(d){ return d.label; });
+      packLabel
+        .select('tspan.d2b-pack-label-value')
+          .style('font-size', textSize+'px')
+          .attr('dy', textSize + 5)
+          .text(function(d){ return $$.xFormat(d.value); });
+
+      packLabel.exit().remove();
+    },
+    // update background for change view (change axes)
+    change: function(){
+
+      var axisSvg;
+
+      var catLabels = $$.data.categories.map(function(d){ return d.label; });
+      catLabels = d3.set(catLabels);
+
+      $$.axis
+        .width($$.outerWidth)
+        .height($$.outerHeight);
+      $$.axis._y.domain(catLabels.values().reverse())
+
+      axisSvg = this.selectAll('.d2b-bubble-axes').data([$$.data]);
+
+      axisSvg.enter().append('g').attr('class','d2b-bubble-axes');
+
+      axisSvg
+        .transition()
+          .duration($$.animationDuration)
+          .call($$.axis);
+
+    }
+  };
+
+  /*ZOOM METHODS*/
+  $$.zoom = {
+    // zoom coefficient (can be modified by the user)
+    coefficient: 1,
+    // store currently zoomed node (null of zoomed out)
+    elem: null,
+    // toggle zoom on a node
+    toggle: function(){
+      if($$.zoom.elem === this) $$.zoom.out();
+      else $$.zoom.in.call(this);
+    },
+    // zoom in on a node
+    in: function(){
+      var self = this;
+      var elem = d3.select(self);
+      var d = elem.datum();
+      var bubble = $$.selection.bubbles.selectAll('.bubble');
+      var offsetX = $$.outerWidth/2 - d.attrs.x;
+      var offsetY = $$.outerHeight/2 - d.attrs.y;
+      var scale = Math.min($$.outerWidth, $$.outerHeight) / (2 * d.attrs.r);
+
+      if(!d.children || !d.children.length) return $$.zoom.out();
+
+      $$.dispatch.zoomIn.call(this, d);
+
+      $$.zoom.elem = self;
+
+      elem.each(function(){ this.parentNode.appendChild(this); });
+
+      scale *= $$.zoom.coefficient;
+
+      $$.selection.background
+        .transition()
+          .duration($$.animationDuration)
+          .style('opacity', 0);
+
+      $$.selection.bubbles
+        .select('.d2b-bubbles-wrap')
+        .transition()
+          .duration($$.animationDuration)
+          .attr('transform', 'translate(0,0)');
+
+      // update sub-bubbles at the smaller size
+      // elem.each($$.bubbles.updateSubPack);
+
+      $$.selection.bubbles
+        .selectAll('.d2b-bubble')
+          .each(function(d){
+            d.zoom = {
+              x: (d.attrs.x - $$.outerWidth/2 + offsetX) * scale + $$.outerWidth/2,
+              y: (d.attrs.y - $$.outerHeight/2 + offsetY) * scale + $$.outerHeight/2,
+              r: d.attrs.r * scale
+            };
+          })
+          .classed('d2b-background-bubble', true)
+        .transition()
+          .duration($$.animationDuration)
+          .call($$.bubbles.transition, true);
+
+      // update sub-bubbles again after zoom attrs have been changed
+      elem
+        .classed('d2b-background-bubble', false)
+        .each($$.bubbles.updateSubPack);
+
+    },
+    // zoom out
+    out: function(){
+      if(!$$.zoom.elem) return;
+
+      var elem = d3.select($$.zoom.elem);
+      var data = elem.datum();
+      var size;
+
+      $$.dispatch.zoomOut.call($$.zoom.elem, data);
+
+      $$.zoom.elem = null;
+      chart.update();
+
+      size = data.attrs.r * 2;
+
+      $$.pack.size([size, size])({children: data.children});
+
+      elem.selectAll('.d2b-sub-bubble')
+          // .each(function(d){
+          //   d.attrs = {
+          //     r: d.r,
+          //     x: d.x - size/2,
+          //     y: d.y - size/2,
+          //     color: d.attrs.color
+          //   };
+          // })
+        .transition()
+          .duration($$.animationDuration)
+          .style('opacity', 0)
+          .call($$.bubbles.transition)
+          .remove();
+
+
+      $$.selection.bubbles
+        .selectAll('.d2b-bubble')
+          .classed('d2b-background-bubble', false);
+
+    }
+  }
+
+  /*BUBBLE METHODS*/
+  $$.bubbles = {
+    // get color for bubbles
+    getColor: function(d){
+      var elem = d, key;
+      while(elem.parent.parent) {
+        if(elem.colorKey !== null && elem.colorKey !== undefined) {
+          key = elem.colorKey;
+          break;
+        }
+        elem = elem.parent;
+      }
+      return $$.color(key || elem.label);
+    },
+    // get color for subpack bubbles
+    getSubColor: function(d, parentColor){
+      if(d.colorKey !== null && d.colorKey !== undefined) return $$.color(d.colorKey);
+      else if(d.children && d.children.length) return d3.rgb(parentColor).brighter(d.depth / 2);
+      else return 'white';
+    },
+    // update the subpack for the zoomed in node
+    updateSubPack: function(d){
+      var subBubble, newSubBubble, newCircle, bubble = d3.select(this);
+      var size = d.attrs.r * 2;
+      var sizeZoom = d.zoom.r * 2;
+      var color = d.attrs.color;
+      var pack = $$.pack.size([size, size])({children: d.children});
+      pack.shift(); // remove the parent node, as it is already drawn
+
+      subBubble = d3.select(bubble.node()).selectAll('.d2b-sub-bubble')
+        .data(pack, function(d){ return d.key || d.label; });
+
+      newSubBubble = subBubble.enter()
+        .append('g')
+          .attr('class', 'd2b-sub-bubble')
+          .style('opacity', 0);
+
+      newCircle = newSubBubble
+        .append('circle')
+          .call(
+            d2b.UTILS.bindTooltip,
+            $$.tooltipContent,
+            function(d){return d;},
+            function(d){return d.attrs.color;}
+          );
+
+      // set standard attributes
+      subBubble.each(function(d){
+        d.attrs = {
+          r: d.r,
+          x: d.x - size/2,
+          y: d.y - size/2,
+          color: $$.bubbles.getSubColor(d, color)
+        };
+      });
+
+      // initialize new circle colors
+      newCircle
+          .style('fill', function(d){ return d.attrs.color; })
+          .style('stroke', function(d){ return d3.rgb(d.attrs.color).darker(1); });
+
+      // set zoomed attributes
+      pack = $$.pack.size([sizeZoom, sizeZoom])({children: d.children});
+      pack.shift(); // remove the parent node, as it is already drawn
+      subBubble.each(function(d){
+        d.zoom = {
+          r: d.r,
+          x: d.x - sizeZoom/2,
+          y: d.y - sizeZoom/2
+        };
+      });
+
+      newSubBubble.call($$.bubbles.transition);
+
+      subBubble
+        .transition()
+          .duration($$.animationDuration)
+          .style('opacity', 1)
+          .call($$.bubbles.transition, true);
+    },
+    // transition a set of bubbles (radius, translation, fill, stroke)
+    transition: function(bubble, zoom){
+      bubble
+          .attr('transform', function(d){
+            var end = (zoom)? d.zoom : d.attrs;
+            return 'translate('+end.x+', '+end.y+')';
+          })
+        .select('circle')
+          .style('fill', function(d){ return d.attrs.color; })
+          .style('stroke', function(d){ return d3.rgb(d.attrs.color).darker(1); })
+          .attr('r', function(d){
+            var end = (zoom)? d.zoom : d.attrs;
+            return Math.max(0, end.r);
+          });
+    },
+    // update packs view for bubbles
+    packs: function(){
+
+      var bubblesWrap = this.select('.d2b-bubbles-wrap');
+      var bubble = this.selectAll('.d2b-bubble');
+
+      var rangeBand = 0.9 * Math.sqrt($$.data.categories.length) * Math.min($$.gridX.rangeBand(), $$.gridY.rangeBand());
+
+      bubblesWrap
+        .transition()
+          .duration($$.animationDuration)
+          .attr('transform', 'translate(0,0)');
+
+      $$.r.range([0, rangeBand]);
+
+      bubble
+          .each(function(d){
+            d.attrs = {
+              x: d.parent.center.x + rangeBand * (d.x - d.parent.x),
+              y: d.parent.center.y + rangeBand * (d.y - d.parent.y),
+              color: $$.bubbles.getColor(d),
+              r: $$.r(d.r)
+            };
+          });
+    },
+    // update change view for bubbles
+    change: function(){
+
+      var box = $$.axis.box();
+      var x = $$.axis.scale('x');
+      var y = $$.axis.scale('y');
+      var getX = function(d){ return Math.min(Math.max(x(d), 0), box.innerWidth); };
+      var bubblesWrap = this.select('.d2b-bubbles-wrap');
+      var bubble = this.selectAll('.d2b-bubble');
+
+      bubblesWrap
+        .transition()
+          .duration($$.animationDuration)
+          .attr('transform', 'translate('+box.padding.left+', '+box.padding.top+')');
+
+      $$.r.range([0, Math.min(box.innerWidth, box.innerHeight)/2]);
+
+      bubble
+          .each(function(d){
+            d.attrs = {
+              x: getX(d.change),
+              y: y(d.parent.label),
+              color: $$.bubbles.getColor(d),
+              r: $$.r(d.r)
+            };
+          });
+
+    }
+  };
+
+
+	/*DEFINE CHART OBJECT AND CHART MEMBERS*/
 	var chart = {};
 
-	//chart setters
+	//chart setters and getters
 	chart.select = 							d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function(){ $$.generateRequired = true; });
 	chart.selection = 					d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function(){ $$.generateRequired = true; });
 	chart.width = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
-	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height', function(){$$.svgHeight = $$.height - 55;});
+	chart.height = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
 	chart.animationDuration = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function(){
-		$$.legend.animationDuration($$.animationDuration);
-		$$.controls.animationDuration($$.animationDuration);
+		// $$.legend.animationDuration($$.animationDuration);
+		// $$.controls.animationDuration($$.animationDuration);
 	});
 	chart.legendOrientation = 	d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
-	chart.tooltip = 						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'tooltip');
 	chart.xFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
-	chart.yFormat = 						d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'yFormat');
-	chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
-	chart.on = 									d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
-	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function(){
-		$$.legend.color($$.color)
-	});
+	// chart.controls = 						d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+	chart.view =     						d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'view');
+	chart.zoomCoefficient = function(coefficient){
+    if(!arguments.lenght) return $$.zoom.coefficient;
+    $$.zoom.coefficient = coefficient;
+    return chart;
+  };
 
-	chart.data = function(chartData, reset){
-		if(!arguments.length) return $$.currentChartData;
-		if(reset){
-			$$.currentChartData = {};
-			$$.generateRequired = true;
-		}
+  // zoom in by data object / .d2b-bubble node / label / key
+  // or argument null to zoom out
+	chart.zoom = function(elem){
+    var zoomed = false;
+    $$.selection.bubbles.selectAll('.d2b-bubble').each(function(d){
+      if( !zoomed &&
+          (
+            elem === d ||
+            elem === this ||
+            elem === d.label ||
+            elem === d.key
+          ) ) {
+            zoomed = true;
+            $$.zoom.in.call(this);
+          }
+    });
+    if(!zoomed) $$.zoom.out();
+    return chart;
+  };
+  chart.on = function(key, func){
+		if(arguments.length === 1) return $$.dispatch.on(key);
+    $$.dispatch.on(key, func);
+    return chart;
+  };
+	chart.color = 							d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color');
+  chart.axis =                d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'axis', function(){
+    $$.axis._x = $$.axis.x().axis.scale();
+    $$.axis._y = d3.scale.ordinal();
+    $$.axis.y({scale: $$.axis._y});
+    $$.axis.x().axis.tickFormat($$.xTickFormat);
+  });
 
-		$$.currentChartData = chartData.data;
-
-		$$.currentChartData.nodes = $$.currentChartData.nodes.filter(function(d){return d.value > 0;})
-
-		//link groupings by enrollments
-		$$.currentChartData.groupings.forEach(function(d, i){
-			d.index = i;
-			d.nodes = $$.currentChartData.nodes.filter(function(node){ return node.enrollments[i];	});
-			d.groups = {};
-			d.total = 0;
-			d.nodes.forEach(function(node){
-				d.total += node.value;
-				if(!d.groups[node.enrollments[i]])
-					d.groups[node.enrollments[i]] = {nodes:[], label:node.enrollments[i]};
-				d.groups[node.enrollments[i]].nodes.push(node);
-			});
-		});
-
-		//update grouping
-		var tempGrouping = $$.current.grouping;
-		$$.current.grouping = $$.currentChartData.groupings[0];
-		if(tempGrouping){
-			$$.currentChartData.groupings.forEach(function(d){
-				if(tempGrouping.label == d.label)
-					$$.current.grouping = d;
-			});
-		}
-		$$.updateNodeGrouping($$.current.grouping);
-		$$.updateNodeGroup();
-
-		//update color grouping
-		tempGrouping = $$.current.colorGrouping;
-		$$.current.colorGrouping = $$.currentChartData.groupings.filter(function(d){return d.default_color_grouping;})[0];
-		if(tempGrouping){
-			$$.currentChartData.groupings.forEach(function(d){
-				if(tempGrouping.label == d.label)
-					$$.current.colorGrouping = d;
-			});
-		}else if(!$$.current.colorGrouping){
-			$$.current.colorGrouping = $$.currentChartData.groupings[0];
-		}
-		$$.updateNodeGrouping($$.current.colorGrouping, "colorGrouping");
+	chart.data = function(chartData){
+		if(!arguments.length) return $$.data;
+		$$.data = chartData.data;
+    $$.pack.size([1, 1])({children: $$.data.categories});
 
 		return chart;
 	};
 
-	//generate chart
+	//chart generate
 	chart.generate = function(callback) {
 		$$.generateRequired = false;
 
-		//clean container
-		$$.selection.selectAll('*').remove();
+		//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
+		d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
 
-		//create button container
-		$$.selection.buttonsWrapper = $$.selection
-			.append('div')
-				.attr('class','d2b-bubble-chart-buttons-wrapper');
-
-		$$.selection.buttonsWrapper.buttons = $$.selection.buttonsWrapper
-			.append('ul')
-				.attr('class','d2b-buttons');
-
-		//create svg
-		$$.selection.svg = $$.selection
-			.append('svg')
-				.attr('class','d2b-bubble-chart d2b-svg d2b-container');
-
-		//create group container
-		$$.selection.group = $$.selection.svg.append('g');
-
-		$$.selection.group.bubbles = $$.selection.group
+		//init main chart container
+		$$.selection.main = $$.selection.group
 			.append('g')
-				.attr('class','d2b-bubbles');
+				.attr('class','d2b-bubble-chart');
 
-		//create change axis/legend
-		$$.selection.changeAxis = $$.selection.group
-			.append('g')
-				.attr('class','d2b-change-axis-legend');
+    $$.selection.bubbles = $$.selection.main
+      .append('g')
+        .attr('class','d2b-bubbles');
 
-		$$.selection.changeAxis.legend = $$.selection.changeAxis
-			.append('g');
+    $$.selection.bubbles
+      .append('g')
+        .attr('class','d2b-bubbles-wrap');
 
-		$$.selection.changeAxis.axis = $$.selection.changeAxis
-			.append('g');
-
-		$$.selection.group.groups = $$.selection.group
-			.append('g')
-				.attr('class','d2b-groups');
-
-		//create groups axis
-		$$.selection.groupsAxis = $$.selection.group
-			.append('g')
-				.attr('class','d2b-groups-axis');
-
-		//init change legend rects
-		$$.selection.changeAxis.legend.rect = $$.selection.changeAxis.legend.selectAll('rect').data([-0.25, -0.05, 0.0, 0.05, 0.25, 1]);
-		$$.selection.changeAxis.legend.rect.enter()
-			.append('rect')
-			.style('fill', function(d){return $$.colorChange(d-0.01);})
-			.attr('x',function(d){return $$.changeScaleLegend(d)-$$.changeScaleLegend.rangeBand()/2;})
-			.attr('width',$$.changeScaleLegend.rangeBand())
-			.attr('height',10)
-			.attr('y',-15);
-
-
-
-		//create legend container
-		$$.selection.legend = $$.selection.group
-			.append('g')
-				.attr('class','d2b-legend');
-
-		//create controls container
-		$$.selection.controls = $$.selection.group
-			.append('g')
-				.attr('class','d2b-controls');
-
-
-		$$.controls
-				.selection($$.selection.controls)
-				.on('change',function(d,i){
-					$$.controlsData[d.key].enabled = d.state;
-					if(d.key == 'sort' || d.key == 'hideLegend'){
-						newData = true;
-					}
-					chart.update();
-				});
-
-		// //intialize new legend
-		$$.legend
-				.color($$.color)
-				.selection($$.selection.legend);
+    $$.selection.background = $$.selection.main
+      .append('g')
+        .attr('class','d2b-bubble-background');
 
 		//auto update chart
 		var temp = $$.animationDuration;
@@ -791,49 +510,108 @@ d2b.CHARTS.bubbleChart = function(){
 		return chart;
 	};
 
-	//update chart
+	//chart update
 	chart.update = function(callback){
+    var background, bubbleData, bubble;
 
 		//if generate required call the generate method
-		if($$.generateRequired){
-			return chart.generate(callback);
-		}
+		if($$.generateRequired) return chart.generate(callback);
 
+		//init forcedMargin
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.outerWidth = $$.width;
+		$$.outerHeight = $$.height;
+
+		//init svg dimensions
 		$$.selection.svg
 				.attr('width',$$.width)
-				.attr('height',$$.svgHeight);
+				.attr('height',$$.height);
 
-		$$.updateGroupingButtons();
+		//update dimensions to the conform to the padded SVG:G
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		$$.selection.main
+			.transition()
+				.duration($$.animationDuration)
+				.attr('transform', 'translate('+$$.forcedMargin.left+','+$$.forcedMargin.top+')');
 
-		$$.innerWidth = $$.width - $$.forcedMargin.right - $$.forcedMargin.left;
+		d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
 
-		$$.updateControls();
+    // enter update exit background wrapper
+    $$.selection.background
+      .transition()
+        .duration($$.animationDuration)
+        .style('opacity', 1)
+    background = $$.selection.background
+      .selectAll('.d2b-bubble-background-wrap')
+        .data([$$.view], function(d){return d;});
 
+    background.enter().append('g').attr('class', 'd2b-bubble-background-wrap');
+    background.exit().remove();
 
-		$$.forcedMargin.top += $$.controls.computedHeight() + 10;
+    // enter update exit bubbles
+    bubbleData = $$.data.categories.map(function(d){ return d.children; })
+    bubbleData = [].concat.apply([], bubbleData)
+        .sort(function(a, b){ return d3.descending(a.r, b.r); });
 
-		$$.updateLegend();
+    bubble = $$.selection.bubbles.select('.d2b-bubbles-wrap')
+      .selectAll('.d2b-bubble')
+        .data(bubbleData, function(d){ return d.key || d.label; });
 
-		if($$.legendOrientation == 'right' || $$.legendOrientation == 'left')
-			$$.forcedMargin[$$.legendOrientation] += $$.legend.computedWidth();
-		else
-			$$.forcedMargin[$$.legendOrientation] += $$.legend.computedHeight();
+    var newBubble = bubble.enter()
+      .append('g')
+        .attr('class', 'd2b-bubble');
 
-		$$.innerHeight = $$.svgHeight - $$.forcedMargin.top - $$.forcedMargin.bottom;
-		$$.innerWidth = $$.width - $$.forcedMargin.left - $$.forcedMargin.right;
+    newBubble
+      .append('circle')
+				.call(
+          d2b.UTILS.bindTooltip,
+					$$.tooltipContent,
+					function(d){return d;},
+          function(d){return d.attrs.color;}
+				);
 
-		$$.updateViews();
-		$$.updateRadiusScale($$.current.grouping);
-		$$.updateBubbles();
+    bubble
+        .classed('d2b-zoomable', false)
+        .on('click.d2b-bubble-zoom', null)
+        .each(function(){ this.parentNode.appendChild(this); })
+        .filter(function(d){ return d.children && d.children.length; })
+        .classed('d2b-zoomable', true)
+        .on('click.d2b-bubble-zoom', $$.zoom.toggle);
+
+    // remove exited bubbles
+    bubble.exit()
+      .transition()
+        .duration($$.animationDuration)
+        .remove()
+      .select('circle')
+        .attr('r', 0);
+
+    // refresh views
+    background.call($$.background[$$.view]);
+    $$.selection.bubbles.call($$.bubbles[$$.view]);
+
+    // init new bubble
+    newBubble
+        .call($$.bubbles.transition)
+      .select('circle')
+        .attr('r', 0);
+
+    // transition bubbles after attributes have been set
+    bubble
+      .transition()
+        .duration($$.animationDuration)
+        .call($$.bubbles.transition);
+
+    // if page is zoomed, rezoom
+    if($$.zoom.elem) $$.zoom.in.call($$.zoom.elem);
 
 		d3.timer.flush();
 
-		$$.events.dispatch("update", $$.selection)
+		//dispatch the on 'update' event, and pass it the selection object
+		$$.dispatch.update.call($$.selection);
 
-		if(callback)
-			callback();
+		if(callback) callback();
 
 		return chart;
 	};

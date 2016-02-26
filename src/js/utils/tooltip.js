@@ -32,6 +32,9 @@ d2b.UTILS.createTooltip = function(elem, html, fill){
 	var tooltip = body.append('div')
 			.attr('class','d2b-general-tooltip')
 			.html(html)
+			.style('color', function(d){
+				return (d3.hsl(fill).l > 0.75)? 'black' : 'white';
+			})
 			.style('background', fill)
 			.style('border-color', d3.rgb(fill).darker(1))
 			.style('opacity',0);

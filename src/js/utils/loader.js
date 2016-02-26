@@ -27,11 +27,14 @@ d2b.UTILS.loader = function(){
     var item = $$.stack.shift();
 
     var my = {};
-    item.paths.forEach(function(path){
-      my[path.key] = $$.files[path.key];
-    });
-    if(item.callback)
-      item.callback(my);
+    if(item.paths === 'all') my = $$.files;
+    else{
+      item.paths.forEach(function(path){
+        my[path.key] = $$.files[path.key];
+      });
+    }
+    
+    if(item.callback) item.callback(my);
 
     $$.flushStack();
   };
@@ -82,8 +85,7 @@ d2b.UTILS.loader = function(){
           $$.files[path.key] = data;
 
           //if no more files are in progress, flush the call stack
-          if(!$$.inProgress)
-            $$.flushStack();
+          if(!$$.inProgress) $$.flushStack();
         });
       }
     });
@@ -93,6 +95,11 @@ d2b.UTILS.loader = function(){
       $$.flushStack();
 
     return loader;
+  };
+
+  loader.loadAll = function(_){
+    $$.stack.push({callback:_, paths: 'all'});
+    if(!$$.inProgress) $$.flushStack();
   };
 
   return loader;

@@ -42,6 +42,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 		var move = 0;
 		var padding = 1.5;
 		var offset = Math.sqrt($$.symbolSize) + padding;
+		var delay = $$.animationDuration / (2*points.length);
 
 		points.forEach(function(point, i){
 			var elem = point.elem;
@@ -49,7 +50,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(($$.animationDuration)? i * 10 : 0)
+					.delay(delay * i)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -111,6 +112,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 		var l = Math.sqrt($$.symbolSize * 2 / (3 * Math.sqrt(3))) + padding;
 		var h = 2 * Math.sin(Math.PI/6) * l + l;
 		var w = 2 * Math.cos(Math.PI/6) * l;
+		var delay = $$.animationDuration / (2*points.length);
 
 		points.forEach(function(point, i){
 			var elem = point.elem;
@@ -118,7 +120,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(($$.animationDuration)? i * 10 : 0)
+					.delay(delay * i)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');
@@ -179,6 +181,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 		var current = {moves: 0, move: 0, r: 0};
 		var moves = 1;
 		var move = 0;
+		var delay = $$.animationDuration / (2*points.length);
 
 		points.forEach(function(point, i){
 			var elem = point.elem;
@@ -186,7 +189,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 			elem
 				.transition()
 					.duration($$.animationDuration / 2)
-					.delay(($$.animationDuration)? i * 10 : 0)
+					.delay(delay * i)
 					.attr("d", $$.symbol);
 
 			if(i === 0) return elem.attr('transform', 'translate(0,0)');

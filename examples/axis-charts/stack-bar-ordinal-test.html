@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<!-- /*<style>.tick text{font-size:40pt !important;}</style>*/ -->
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<script>
+	$(document).ready(function(){
+
+    var data =
+    {
+      data:{
+        labels:{
+          x:'X-Label',
+          y:'Y-Label'
+        },
+        types:[
+          {
+            type:'bar',
+            graphs:[
+              {
+                label:'Graph 1',
+                values:[
+									{x: 120, y: 1},
+									{x: 121, y: 1},
+									{x: 122, y: 0},
+									{x: 123, y: 0},
+									{x: 124, y: 0},
+									{x: 127, y: 0},
+									{x: 128, y: 0},
+									{x: 129, y: 0},
+									{x: 130, y: 0},
+									{x: 132, y: 0},
+									{x: 134, y: 0},
+									{x: 135, y: 0},
+									{x: 137, y: 0}
+                ]
+              },
+							{
+                label:'Graph 2',
+                values:[
+									{x: 120, y: 50},
+									{x: 132, y: 2},
+									{x: 121, y: 0},
+									{x: 122, y: 0},
+									{x: 123, y: 0},
+									{x: 124, y: 0},
+									{x: 127, y: 0},
+									{x: 128, y: 2},
+								  {x: 129, y: 0},
+									{x: 130, y: 0},
+									{x: 134, y: 0},
+									{x: 135, y: 0},
+									{x: 137, y: 0}
+                ]
+							},
+							{
+                label:'Graph 3',
+                values:[
+									{x: 120, y: 50},
+									{x: 132, y: 2},
+									{x: 121, y: 0},
+									{x: 122, y: 0},
+									{x: 123, y: 0},
+									{x: 124, y: 0},
+									{x: 127, y: 0},
+									{x: 128, y: 2},
+								  {x: 129, y: 0},
+									{x: 130, y: 0},
+									{x: 134, y: 0},
+									{x: 135, y: 1},
+									{x: 137, y: 0}
+                ]
+							},
+							// {
+              //   label:'Graph 3',
+              //   values:[
+              //     {x:0, y:20},
+              //     {x:1, y:19},
+              //     {x:2, y:0},
+              //     {x:3, y:30}
+              //   ]
+              // },
+							// {
+              //   label:'Graph 4',
+              //   values:[
+              //     {x:0, y:20},
+              //     {x:1, y:19},
+              //     // {x:2, y:0},
+              //     {x:3, y:30}
+              //   ]
+              // },
+              // {
+              //   label:'Graph 5',
+              //   values:[
+              //     {x:0, y:20},
+              //     {x:1, y:19},
+              //     {x:2, y:18},
+              //     {x:3, y:30}
+              //   ]
+              // }
+            ]
+          }
+        ]
+      }
+    }
+
+		var axisChart = d2b.CHARTS.axisChart();
+		var axis = d2b.SVG.axis().x({scale:d3.scale.ordinal()})
+		// axis.x({orientation:'top-inside'}).y({orientation:'right-outside'})
+		// axis.x({labelInside:"Years Out"})
+		// axis.y({labelInside:"Average Salary"})
+    axisChart
+      .select('.axis-chart')
+      .data(data)
+			.controls({
+				stackBars:{enabled:true},
+				// lockXAxis:{enabled:true, domain: [0, 1, 2, 3]},
+			})
+			.axis(axis)
+			.tooltipLayout(1)
+      .width($(window).width())
+      .height($(window).height())
+      .update()
+	});
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'axis-chart'></div>
+</body>
+</html>

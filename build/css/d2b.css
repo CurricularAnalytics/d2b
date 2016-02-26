@@ -277,82 +277,37 @@ html, body, .d2b-container {
 .d2b-axis-chart .d2b-axis-types .d2b-bubblePack .d2b-hidden {
   pointer-events: none; }
 
-.d2b-bubble-chart-buttons-wrapper {
-  height: 55px;
-  text-align: center;
-  font-family: "Droid Sans", Arial;
-  padding-top: 10px; }
-  .d2b-bubble-chart-buttons-wrapper ul {
-    list-style-type: none;
-    margin-left: 0px;
-    padding: 0px; }
-  .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons {
-    margin-left: 5px;
-    margin-right: 5px;
-    background: #f8f8f8;
-    display: inline-block;
-    white-space: nowrap;
-    border-radius: 2px;
-    border: 1px solid #333; }
-    .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul {
-      margin: 0px;
-      display: inline-block;
-      border-right: 1px solid #333;
-      cursor: pointer; }
-      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul:last-child {
-        border-right: 0px; }
-      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li {
-        color: #777; }
-        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-selected {
-          background: #eee;
-          color: #333; }
-        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li:hover {
-          background: #eee; }
-      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-button {
-        padding: 7px 10px; }
-        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-button.d2b-selected {
-          box-shadow: inset 0px 2px 4px #bbb; }
-      .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-color-button {
-        padding: 1px 10px;
-        border-top: 1px solid #333; }
-        .d2b-bubble-chart-buttons-wrapper ul.d2b-buttons ul li.d2b-color-button.d2b-selected {
-          box-shadow: inset 0px -1px 4px #bbb; }
-
-.d2b-bubble-chart .d2b-bubbles .d2b-bubble circle {
-  stroke-width: 1px;
-  stroke: #333;
-  fill-opacity: 0.85; }
-  .d2b-bubble-chart .d2b-bubbles .d2b-bubble circle:hover {
-    stroke-width: 2px;
-    stroke: black !important;
-    fill-opacity: 1; }
-.d2b-bubble-chart .tick text {
-  font-size: 9pt;
-  fill: #333; }
-.d2b-bubble-chart .d2b-groups-axis {
+.d2b-bubble-chart .d2b-bubble {
+  -webkit-transition: all 0.25s;
+  -moz-transition: all 0.25s;
+  -o-transition: all 0.25s;
+  transition: all 0.25s;
+  stroke: #000;
+  stroke-width: 1px; }
+  .d2b-bubble-chart .d2b-bubble circle {
+    -webkit-transition: opacity 0.25s, stroke-width 0.25s;
+    -moz-transition: opacity 0.25s, stroke-width 0.25s;
+    -o-transition: opacity 0.25s, stroke-width 0.25s;
+    transition: opacity 0.25s, stroke-width 0.25s;
+    opacity: 0.6; }
+  .d2b-bubble-chart .d2b-bubble.d2b-background-bubble circle {
+    opacity: 0.2; }
+  .d2b-bubble-chart .d2b-bubble circle:hover {
+    stroke-width: 3px;
+    opacity: 0.8; }
+  .d2b-bubble-chart .d2b-bubble.d2b-zoomable {
+    cursor: pointer; }
+.d2b-bubble-chart .d2b-pack-label tspan {
+  text-anchor: middle; }
+.d2b-bubble-chart .d2b-pack-label tspan.d2b-pack-label-value {
+  font-weight: bold; }
+.d2b-bubble-chart .d2b-bubble-background {
   pointer-events: none; }
-  .d2b-bubble-chart .d2b-groups-axis path {
-    fill: none; }
-  .d2b-bubble-chart .d2b-groups-axis .tick line {
-    pointer-events: none;
-    stroke-dasharray: 6,4;
-    stroke-width: 0.5px;
-    stroke: #bbb; }
-.d2b-bubble-chart .d2b-change-axis-legend {
-  pointer-events: none; }
-  .d2b-bubble-chart .d2b-change-axis-legend path {
-    fill: none; }
-  .d2b-bubble-chart .d2b-change-axis-legend .tick line {
-    stroke-dasharray: 6,4;
-    stroke-width: 1px;
-    stroke: #bbb; }
-.d2b-bubble-chart .d2b-groups {
-  pointer-events: none; }
-  .d2b-bubble-chart .d2b-groups .d2b-group-title {
-    text-anchor: middle; }
-  .d2b-bubble-chart .d2b-groups .d2b-group-total {
-    font-weight: bold;
-    text-anchor: middle; }
+.d2b-bubble-chart .d2b-bubble-axes path {
+  display: none; }
+.d2b-bubble-chart .d2b-bubble-axes line {
+  stroke-dasharray: 6, 4;
+  opacity: 0.8; }
 
 .d2b-fact-chart .d2b-fact text {
   fill: #333;

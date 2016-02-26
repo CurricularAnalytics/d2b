@@ -425,120 +425,171 @@ html, body, .d2b-container {
 	}
 }
 
-.d2b-bubble-chart-buttons-wrapper{
-  height:55px;
-  text-align:center;
-  font-family:$main;
-  padding-top:10px;
-  ul{
-    list-style-type: none;
-    margin-left:0px;
-    padding:0px;
-  }
-  ul.d2b-buttons{
-    margin-left:5px;
-    margin-right:5px;
-    background:#f8f8f8;
-    display:inline-block;
-    white-space:nowrap;
-    ul{
-      margin:0px;
-      display: inline-block;
-      border-right:1px solid $dark_main;
-      cursor:pointer;
-      &:last-child{
-        border-right:0px;
-      }
-      li{
-        color:#777;
-        &.d2b-selected{
-          background:$lightest;
-          color:$dark_main;
-        }
-        &:hover{
-          background:$lightest;
-        }
-      }
-      li.d2b-button{
-        padding:7px 10px;
-        &.d2b-selected{
-          box-shadow: inset 0px 2px 4px $light;
-        }
-      }
-      li.d2b-color-button{
-        padding:1px 10px;
-        border-top:1px solid $dark_main;
-        &.d2b-selected{
-          box-shadow: inset 0px -1px 4px $light;
-        }
-      };
-
-    }
-    border-radius:2px;
-    border:1px solid $dark_main;
-  }
-
-}
 .d2b-bubble-chart{
-  .d2b-bubbles{
-    .d2b-bubble{
-      circle{
-        stroke-width:1px;
-        stroke:$dark_main;
-        fill-opacity:0.85;
-      	// -webkit-transition: fill-opacity 0.25s, stroke 0.25s;
-        //   transition: fill-opacity 0.25s, stroke 0.25s;
-        &:hover{
-          stroke-width:2px;
-          stroke:black !important;
-          fill-opacity:1;
-        }
-      }
+  .d2b-bubble{
+    -webkit-transition: all 0.25s;
+    -moz-transition: all 0.25s;
+    -o-transition: all 0.25s;
+    transition: all 0.25s;
+    stroke: #000;
+    stroke-width: 1px;
+    & circle{
+      -webkit-transition: opacity 0.25s, stroke-width 0.25s;
+      -moz-transition: opacity 0.25s, stroke-width 0.25s;
+      -o-transition: opacity 0.25s, stroke-width 0.25s;
+      transition: opacity 0.25s, stroke-width 0.25s;
+      opacity: 0.6;
+    }
+    &.d2b-background-bubble circle{
+      opacity: 0.2;
+    }
+    & circle:hover{
+      stroke-width: 3px;
+      opacity: 0.8;
+    }
+    &.d2b-zoomable{
+      cursor: pointer;
+    }
+  }
+  .d2b-pack-label{
+    tspan{
+      text-anchor: middle;
+    }
+    tspan.d2b-pack-label-name{
 
     }
+    tspan.d2b-pack-label-value{
+      font-weight: bold;
+    }
   }
-  .tick text{
-    font-size:9pt;
-    fill:$dark_main;
+  .d2b-bubble-background{
+    pointer-events: none;
   }
-  .d2b-groups-axis{
-    pointer-events:none;
+  .d2b-bubble-axes{
     path{
-      fill:none;
+      display: none;
     }
-    .tick{
-      line{
-          pointer-events:none;
-          stroke-dasharray: 6,4;
-          stroke-width:0.5px;
-          stroke:$light;
-      }
-    }
-  }
-  .d2b-change-axis-legend{
-    pointer-events:none;
-    path{
-      fill:none;
-    }
-    .tick{
-      line{
-          stroke-dasharray: 6,4;
-        stroke-width:1px;
-        stroke:$light;
-      }
-    }
-  }
-  .d2b-groups{
-    pointer-events:none;
-    .d2b-group-title{
-      text-anchor:middle;
-    }
-    .d2b-group-total{
-      font-weight:bold;
-      text-anchor:middle;
+    line{
+      stroke-dasharray: 6, 4;
+      opacity: 0.8;
     }
   }
 }
+//
+// .d2b-bubble-chart-buttons-wrapper{
+//   height:55px;
+//   text-align:center;
+//   font-family:$main;
+//   padding-top:10px;
+//   ul{
+//     list-style-type: none;
+//     margin-left:0px;
+//     padding:0px;
+//   }
+//   ul.d2b-buttons{
+//     margin-left:5px;
+//     margin-right:5px;
+//     background:#f8f8f8;
+//     display:inline-block;
+//     white-space:nowrap;
+//     ul{
+//       margin:0px;
+//       display: inline-block;
+//       border-right:1px solid $dark_main;
+//       cursor:pointer;
+//       &:last-child{
+//         border-right:0px;
+//       }
+//       li{
+//         color:#777;
+//         &.d2b-selected{
+//           background:$lightest;
+//           color:$dark_main;
+//         }
+//         &:hover{
+//           background:$lightest;
+//         }
+//       }
+//       li.d2b-button{
+//         padding:7px 10px;
+//         &.d2b-selected{
+//           box-shadow: inset 0px 2px 4px $light;
+//         }
+//       }
+//       li.d2b-color-button{
+//         padding:1px 10px;
+//         border-top:1px solid $dark_main;
+//         &.d2b-selected{
+//           box-shadow: inset 0px -1px 4px $light;
+//         }
+//       };
+//
+//     }
+//     border-radius:2px;
+//     border:1px solid $dark_main;
+//   }
+//
+// }
+// .d2b-bubble-chart{
+//   .d2b-bubbles{
+//     .d2b-bubble{
+//       circle{
+//         stroke-width:1px;
+//         stroke:$dark_main;
+//         fill-opacity:0.85;
+//       	// -webkit-transition: fill-opacity 0.25s, stroke 0.25s;
+//         //   transition: fill-opacity 0.25s, stroke 0.25s;
+//         &:hover{
+//           stroke-width:2px;
+//           stroke:black !important;
+//           fill-opacity:1;
+//         }
+//       }
+//
+//     }
+//   }
+//   .tick text{
+//     font-size:9pt;
+//     fill:$dark_main;
+//   }
+//   .d2b-groups-axis{
+//     pointer-events:none;
+//     path{
+//       fill:none;
+//     }
+//     .tick{
+//       line{
+//           pointer-events:none;
+//           stroke-dasharray: 6,4;
+//           stroke-width:0.5px;
+//           stroke:$light;
+//       }
+//     }
+//   }
+//   .d2b-change-axis-legend{
+//     pointer-events:none;
+//     path{
+//       fill:none;
+//     }
+//     .tick{
+//       line{
+//           stroke-dasharray: 6,4;
+//         stroke-width:1px;
+//         stroke:$light;
+//       }
+//     }
+//   }
+//   .d2b-groups{
+//     pointer-events:none;
+//     .d2b-group-title{
+//       text-anchor:middle;
+//     }
+//     .d2b-group-total{
+//       font-weight:bold;
+//       text-anchor:middle;
+//     }
+//   }
+// }
 
 .d2b-fact-chart{
   .d2b-fact{

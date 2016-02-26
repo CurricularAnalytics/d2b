@@ -313,7 +313,7 @@ d2b.CHARTS.axisChart = function(){
 		//update legend
 		d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
 
-		//add 10px padding if legend is on left or right and he contents
+		//add 10px padding if legend is on left or right and has contents
 		if(($$.legend.computedHeight() && ($$.legendOrientation == 'left'||$$.legendOrientation == 'right'))){
 			$$.forcedMargin[$$.legendOrientation] += 10;
 		}

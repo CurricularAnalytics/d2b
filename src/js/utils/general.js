@@ -79,8 +79,7 @@ d2b.UTILS.getColor = function(color, defaultAttribute, data, reverse){
 	return function(d){
 		var allData = data.slice(0);
 		allData.push(d);
-		if(!reverse)
-			allData = allData.reverse();
+		if(!reverse) allData = allData.reverse();
 
 		for(var i = 0;i < allData.length; i++){
 			if(allData[i].colorKey !== null && allData[i].colorKey !== undefined){
@@ -253,7 +252,7 @@ d2b.UTILS.TWEENS.arcTween = function(transition, arc){
 
 /*grid positioning*/
 d2b.UTILS.grid = function(width, height, count){
-	var ratio = width/ height;
+	var ratio = width / height;
 	var obj = {};
 	obj.columns = Math.min(count,Math.max(1, Math.round(Math.sqrt(count) * (ratio))));
 	obj.rows = Math.ceil(count/obj.columns);

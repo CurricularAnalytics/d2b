@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html>
 <link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
-<link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:300,600' rel='stylesheet' type='text/css'>
 <script src="../../vendor/js/vendor.js"></script>
 <script src="../../build/js/d2b.js"></script>
 <style>
 	body{background:black;}
+	rect{ pointer-events:none; }
 	text{
-		fill:#eee !important;
+		fill:#eee ;
 		font-family: "Open Sans" !important;
 		font-weight: 300;
-		font-size: 21px !important;
+		font-size: 17px !important;
 	}
+	.d2b-y text{font-weight: bold;}
+	text.heat-on{text-decoration: underline;}
 	/**{color: #333 !important;}*/
-	.d2b-axis-chart-foreground-graph g, .d2b-heat-point-set{
+	.d2b-y text, .d2b-axis-chart-foreground-graph g, .d2b-heat-point-set{
 		cursor:pointer;
 	}
 	.d2b-axis-chart-foreground-graph path{
@@ -51,7 +54,7 @@
 <script>
 
 
-	var terms = d3.range(1, 10);
+	var terms = d3.range(1, 12);
 	var hScale = d3.scale.ordinal().domain(terms.map(function(d){return 'Term '+d;}));
 	var hAxis = d3.svg.axis().scale(hScale).orient('top');
 	var map = { '0': 'F','1': 'D','2': 'C','3': 'B','4': 'A','F': '0','D': '1','C': '2','B': '3','A': '4' }
@@ -142,7 +145,7 @@
 								// layout: 'circle',
 								layout: 'circle',
 								sortBy: '!name',
-								size: 20
+								size: 13
 							},
 	            // line-chart-type
 	            type:'heatPoints',
@@ -150,7 +153,7 @@
 	              // this is where each of the line graphs will be defined
 	              {
 	                label:'All',
-	                values: values.filter(function(d){ return !!d.heat; })
+	                values: values.filter(function(d){ return !!d.heat || !!d.heatTemp; })
 	              }
 	            ]
 	          },
@@ -161,7 +164,7 @@
 	              // this is where each of the line graphs will be defined
 	              {
 	                label:'All',
-	                values: values.filter(function(d){ return !d.heat; })
+	                values: values.filter(function(d){ return !d.heat && !d.heatTemp; })
 	              }
 	            ]
 	          }
@@ -177,6 +180,34 @@
 						updateData();
 						axisChart.update();
 					});
+			this.selectAll('.d2b-y .tick text')
+					.each(function(d){
+						var allPoints;
+						this.values = values.filter(function(value){ return value.y === d; });
+
+						allPoints = [].concat.apply([],
+							this.values.map(function(value){ return value.points; })
+						);
+
+						d3.select(this)
+							.style('fill', color(getColorKey(allPoints)));
+					})
+					.on('click.toggle-heat', function(d){
+						var tick = d3.select(this);
+						this.values.forEach(function(value){ value.heat = !value.heat; });
+						tick.classed('heat-on', !tick.classed('heat-on'));
+					})
+					.on('mouseover.toggle-heat', function(d){
+						this.values.forEach(function(value){ value.heatTemp = true; });
+						updateData();
+						axisChart.update();
+					})
+					.on('mouseout.toggle-heat', function(d){
+						this.values.forEach(function(value){ value.heatTemp = false; });
+						updateData();
+						axisChart.update();
+					});
+
 			d3.selectAll('.tick text')
 					.attr('y', -55)
 				.transition()

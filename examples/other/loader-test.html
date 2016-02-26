@@ -13,12 +13,16 @@
 			{key:'zip_codes2',file:'zip_codes.csv',type:'csv'}
 		]
 		d2b.UTILS.load(paths, function(data){
-			console.log(data["countries.topo.json"])
-			console.log(data.counties);
+			// console.log(data["countries.topo.json"])
+			// console.log(data.counties);
 			// console.log(data.zip_codes);
-			console.log(data.zip_codes2);
+			// console.log(data.zip_codes2);
+
+			console.log(data)
 		});
 
+
+		setTimeout(function(){ d2b.UTILS.load.loadAll(function(d){console.log(d)}) }, 2000)
 
 	})
 </script>

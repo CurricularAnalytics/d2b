@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script>
+	$(document).ready(function(){
+
+		var chart = new d2b.CHARTS.sunburstChart();
+
+		chart
+			.select('.sunburst-chart')
+			.width($(window).width())
+			.height($(window).height())
+			.legendOrientation('left');
+
+		d3.json("data.json", function(json){
+
+			chart
+				.on('elementMouseout', function(d,i,type){console.log(type)})
+				.data(json)
+				.update();
+
+			$(window).resize(function(){
+				chart.height($(window).height()).width($(window).width()).update();
+			});
+		});
+	});
+</script>
+
+<body style='margin:0px;'>
+	<div class = 'sunburst-chart'></div>
+</body>
+</html>
