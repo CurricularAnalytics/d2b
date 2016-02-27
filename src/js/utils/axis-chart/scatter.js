@@ -85,7 +85,7 @@ d2b.UTILS.AXISCHART.TYPES.scatter = function(){
 				.fill(fill)
 				.type(function(d,i){ return d.symbol || graphData.symbol || 'circle'; });
 
-			newPoint = point.enter()
+			var newPoint = point.enter()
 				.append('g')
 				.call($$.point.size(0))
 				.attr('transform',function(d){

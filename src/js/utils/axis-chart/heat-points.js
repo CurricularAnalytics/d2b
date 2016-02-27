@@ -361,7 +361,7 @@ d2b.UTILS.AXISCHART.TYPES.heatPoints = function(){
 
 		var key;
 
-		for( key in mergedPoints ){
+		for( var key in mergedPoints ){
 			if(mergedPoints.hasOwnProperty(key)){
 				$$.eachPointSet(mergedPoints[key]);
 			}

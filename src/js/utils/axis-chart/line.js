@@ -100,7 +100,7 @@ d2b.UTILS.AXISCHART.TYPES.line = function(){
 			var graph = d3.select(this);
 			var point = graph.selectAll('g').data(function(d){return d.values;});
 
-			newPoint = point.enter()
+			var newPoint = point.enter()
 				.append('g')
 				.attr('transform',function(d){
 					return 'translate('+$$.x(d.x)+','+$$.y(d.y)+')';

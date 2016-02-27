@@ -113,7 +113,7 @@ d2b.UTILS.niceFormat = function(value, precision){
 	if(!precision)
 		precision = 0;
 	var format = d3.format("."+precision+"f");
-	absValue = Math.abs(value);
+	var absValue = Math.abs(value);
 	if(isNaN(value)){
 		return value;
 	}else{

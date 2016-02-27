@@ -57,9 +57,9 @@ d2b.SVG.point = function(){
       //background
       var background = g.selectAll('path.d2b-point-background').data([d]);
 
-      backgroundEnter   = background.enter().append('path').attr('class', 'd2b-point-background');
-      backgroundUpdate  = d3.transition(background);
-      backgroundExit    = d3.transition(background.exit());
+      var backgroundEnter   = background.enter().append('path').attr('class', 'd2b-point-background');
+      var backgroundUpdate  = d3.transition(background);
+      var backgroundExit    = d3.transition(background.exit());
 
       backgroundEnter
         .attr('d', $$.symbol)
@@ -76,9 +76,9 @@ d2b.SVG.point = function(){
       //foreground
       var foreground = g.selectAll('path.d2b-point-foreground').data([d]);
 
-      foregroundEnter   = foreground.enter().append('path').attr('class', 'd2b-point-foreground');
-      foregroundUpdate  = d3.transition(foreground);
-      foregroundExit    = d3.transition(foreground.exit());
+      var foregroundEnter   = foreground.enter().append('path').attr('class', 'd2b-point-foreground');
+      var foregroundUpdate  = d3.transition(foreground);
+      var foregroundExit    = d3.transition(foreground.exit());
 
       foregroundEnter
         .attr('d', $$.symbol)

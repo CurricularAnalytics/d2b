@@ -42,7 +42,7 @@ d2b.UTILS.LAYOUTS.partition = function(){
     //   child.allChildren.push(row);
     // });
     //
-    // for(key in childrenHash){
+    // for(var key in childrenHash){
     //   child = childrenHash[key];
     //   child.name = key;
     //   child.top = column.top;

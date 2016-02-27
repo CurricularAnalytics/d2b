@@ -7,19 +7,19 @@
 <script>
 	$(document).ready(function(){
 
-		var templateChart = new d2b.CHARTS.templateChart();
+		var template = d2b.chart.template();
 
-		templateChart
+		template
 			.select('.template-chart')
 			.width($(window).width())
 			.height($(window).height())
-			.legendOrientation('top')
-			.controls({'hideLegend':{'enabled':false,'visible':true}})
+			// .legendOrientation('top')
+			// .controls({'hideLegend':{'enabled':false,'visible':true}})
 			.update();
 
-		$(window).resize(function(){
-			templateChart.height($(window).height()).width($(window).width()).update();
-		});
+		// $(window).resize(function(){
+		// 	templateChart.height($(window).height()).width($(window).width()).update();
+		// });
 
 	})
 </script>

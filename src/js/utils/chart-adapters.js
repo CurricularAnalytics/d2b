@@ -3,7 +3,7 @@
 d2b.UTILS.chartAdapter = function(type, chartData){
 	chartData.chart = new d2b.CHARTS[type];
 	if(chartData.properties){
-		for(key in chartData.properties){
+		for(var key in chartData.properties){
 			if(chartData.properties[key].args)
 				chartData.chart[key].apply(this, chartData.properties[key].args)
 			else
@@ -22,7 +22,7 @@ d2b.UTILS.chartLayoutAdapter = function(type, chartData){
 			.data(chartData.chartLayoutData);
 
 	if(chartData.properties){
-		for(key in chartData.properties){
+		for(var key in chartData.properties){
 			if(chartData.properties[key].args)
 				chartData.chart[key].apply(this, chartData.properties[key].args)
 			else

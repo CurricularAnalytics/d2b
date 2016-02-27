@@ -78,8 +78,8 @@ d2b.UTILS.moveTooltip = function(tooltip){
 	var y = scroll.top + d3.event.clientY - tooltipBox.height/2
 
 	tooltip.each(function(d){
-		elem = d3.select(this);
-		elemUpdate = d3.transition(elem);
+		var elem = d3.select(this);
+		var elemUpdate = d3.transition(elem);
 
 		elem
 			.classed('d2b-general-tooltip-left', !positionRight)

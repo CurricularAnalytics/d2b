@@ -15,7 +15,7 @@ d2b.SVG.tooltip = function(){
   /*LAYOUT 0*/
 
   $$.refreshLayout['0'] = function(){
-    for(key in $$.graph){
+    for(var key in $$.graph){
       $$.graph[key].call(
         d2b.UTILS.bindTooltip,
         $$.graph[key].config.content,
@@ -94,7 +94,7 @@ d2b.SVG.tooltip = function(){
       this.closest = closestNode;
 
       //select tooltip components
-      elem = d3.select(this);
+      var elem = d3.select(this);
       elem.update = elem.transition().duration($$.animationDuration).ease('linear');
       text = elem.select('text');
       text.update = text.transition().duration($$.animationDuration).ease('linear');
@@ -275,7 +275,7 @@ d2b.SVG.tooltip = function(){
       $$.tracker.on('mousemove.d2b-tooltip', null);
       $$.tracker.on('mouseout.d2b-tooltip', null);
     }
-    for(key in $$.graph) $$.graph[key].call(d2b.UTILS.unbindTooltip);
+    for(var key in $$.graph) $$.graph[key].call(d2b.UTILS.unbindTooltip);
 
     d2b.UTILS.removeTooltip();
 

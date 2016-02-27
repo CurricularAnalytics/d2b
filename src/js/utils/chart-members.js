@@ -72,8 +72,8 @@ d2b.UTILS.CHARTS.MEMBERS.format = function(chart, $$, property, callback){
 d2b.UTILS.CHARTS.MEMBERS.controls = function(chart, $$, callback){
   return function(value){
     if(!arguments.length) return $$.controlsData;
-    for(control in value){
-      for(controlProp in value[control]){
+    for(var control in value){
+      for(var controlProp in value[control]){
         $$.controlsData[control][controlProp] = value[control][controlProp];
       }
     }
