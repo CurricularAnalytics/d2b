@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+
+<style>
+	body{
+		font-family:"Droid Sans";
+		margin: 0;
+	}
+	svg{
+		display:block;
+		background:rgba(100,100,100,0.3);
+	}
+</style>
+
+<body>
+
+Legend:
+<svg class = 'legend'></svg>
+<script>
+	var maxSize = function () {
+		return {
+			width: d3.select('body').node().getBoundingClientRect().width,
+			height: d3.select('body').node().getBoundingClientRect().height,
+		}
+	};
+
+  var data = [
+    {label: 'Item 1 Long One', empty: false, active: true, clickable: true, dblclickable: true},
+    {label: 'Item 2', empty: true, active: true, clickable: true, dblclickable: true},
+    {label: 'Item 3 Here is a Longer One', empty: false, active: true, clickable: true, dblclickable: true},
+    {label: 'Item 4 Another', empty: true, active: true, clickable: true, dblclickable: true},
+    {label: 'Item 5', empty: true},
+    {label: 'Item 6 More', empty: false},
+    {label: 'Item 7', empty: false},
+  ];
+
+	var size = maxSize();
+
+	var legend = d2b.svg.legend()
+		.size(16)
+		.maxSize(size)
+		// .fill(d => d.fill)
+		.empty(d => d.empty)
+		.active(true)
+		.clickable(d => d.clickable)
+		.dblclickable(d => d.dblclickable)
+		.allowEmptied(false)
+		.maxTextLength(100)
+		// .duration(500)
+		.orient('horizontal')
+    .on('click', function(d, i) {
+      console.log(this, d, i);
+    })
+    .on('dblclick', function(d, i) {
+      console.log(this, d, i);
+    })
+		.on('mouseover', function(d, i) {
+			console.log(this, d, i);
+		})
+		.on('mouseout', function(d, i) {
+			console.log(this, d, i);
+		});
+
+	var legendSvg = d3.select('.legend').datum(data);
+
+	var legendUpdate = function () {
+		var size = maxSize();
+		var transition = legendSvg
+			.transition()
+				.call(legend.maxSize(size));
+		var computedSize = legend.computedSize();
+
+		transition
+			.attr('width', computedSize.width)
+			.attr('height', computedSize.height);
+
+	};
+
+	legendUpdate();
+
+	window.onresize = legendUpdate;
+
+</script>
+
+
+</body>
+</html>

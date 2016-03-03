@@ -1,46 +1,61 @@
-d2b.svg.symbol = function () {
-  const $$ = {};
 
-  const symbol = function (d, i) {
-    const type = $$.type.call(this, d, i);
-    const size = $$.size;
-    let symbol;
 
-    if (d3.svg.symbolTypes.indexOf(type) > -1) {
-      symbol = d3Symbol.type(type).size(size);
-    } else if (d2b.SVG.symbolTypes.indexOf(type) > -1) {
-      symbol = d2b.SVG.symbols[type];
-    } else {
-      symbol = d3Symbol.type('circle').size(size);
-    }
+/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
-    return symbol($$.size.call(this, d, i));
+
+// Add symbols to the default d3 svg support
+
+d2b.SVG.symbol = function(){
+  var $$ = {};
+
+  $$.size = d3.functor(150);
+  $$.type = d3.functor('circle');
+  $$.d3Symbol = d3.svg.symbol().type($$.type);
+  $$.symbol = $$.d3Symbol;
+
+  var symbol = function(d, i){
+    var type = $$.type.call(this, d, i);
+    var size = $$.size;
+
+    if(d3.svg.symbolTypes.indexOf(type) > -1)
+      $$.symbol = $$.d3Symbol.type(type).size(size);
+    else if(d2b.SVG.symbolTypes.indexOf(type) > -1)
+      $$.symbol = d2b.SVG.symbols[type];
+    else
+      $$.symbol = $$.d3Symbol.type('circle').size(size);
+// console.log($$.symbol($$.size.call(this, d, i)))
+    return $$.symbol($$.size.call(this, d, i));
   };
 
-  /* Inherit from base model */
-  const model = d2b.model.base(symbol, $$)
-    .addPropFunctor('size', 150)
-    .addPropFunctor('type', 'circle');
+  symbol.size = function(size){
+    if (!arguments.length) return $$.size;
+    $$.size = d3.functor(size);
+    return symbol;
+  };
 
-  const d3Symbol = d3.svg.symbol().type($$.type);
+  symbol.type = function(type){
+    if (!arguments.length) return $$.type;
+    $$.type = d3.functor(type);
+    return symbol;
+  };
 
   return symbol;
 };
 
 d2b.SVG.symbols = {
   star: function(size){
-    const sin36 = Math.sin(d2b.MATH.toRadians(36));
-    const cos36 = Math.cos(d2b.MATH.toRadians(36));
+    var sin36 = Math.sin(d2b.MATH.toRadians(36));
+    var cos36 = Math.cos(d2b.MATH.toRadians(36));
 
-    const sin54 = Math.sin(d2b.MATH.toRadians(54));
-    const cos54 = Math.cos(d2b.MATH.toRadians(54));
+    var sin54 = Math.sin(d2b.MATH.toRadians(54));
+    var cos54 = Math.cos(d2b.MATH.toRadians(54));
 
-    const sin18 = Math.sin(d2b.MATH.toRadians(18));
-    const cos18 = Math.cos(d2b.MATH.toRadians(18));
-    const tan18 = Math.tan(d2b.MATH.toRadians(18));
+    var sin18 = Math.sin(d2b.MATH.toRadians(18));
+    var cos18 = Math.cos(d2b.MATH.toRadians(18));
+    var tan18 = Math.tan(d2b.MATH.toRadians(18));
 
-    const r = Math.sqrt(size/(5*cos36*(sin36+cos36/tan18)));
-    const r2 = r*sin36 + r*cos36/tan18;
+    var r = Math.sqrt(size/(5*cos36*(sin36+cos36/tan18)));
+    var r2 = r*sin36 + r*cos36/tan18;
 
     return "M" + 0 +","+ -r2
           +"L" + r*cos54 +","+ -r*sin54
@@ -55,10 +70,10 @@ d2b.SVG.symbols = {
           +" " + 0 +","+ -r2 +"Z";
   },
   mars: function(size){
-    const r = Math.sqrt(size/(Math.PI+5/4));
-    const sqrt8 = Math.sqrt(8);
-    const sqrt2 = Math.sqrt(2);
-    const s = 0.3125 * r;
+    var r = Math.sqrt(size/(Math.PI+5/4));
+    var sqrt8 = Math.sqrt(8);
+    var sqrt2 = Math.sqrt(2);
+    var s = 0.3125 * r;
 
     return "M" + r/sqrt8 + ","+ 0
           +"A" + r +","+ r +" 0 1,1 "+ 0 + ","+ -r/sqrt8
@@ -73,7 +88,7 @@ d2b.SVG.symbols = {
 
   },
   venus: function(size){
-    const r = Math.sqrt(size/(Math.PI+5/4));
+    var r = Math.sqrt(size/(Math.PI+5/4));
 
     //center point is at ~ 3/4*r down from the center of the circle
 
@@ -93,12 +108,12 @@ d2b.SVG.symbols = {
   },
   // asterisk: function(size){
   //   //TODO
-  //   const l = Math.sqrt(size/11.7043);
-  //   const sqrt_3 = Math.sqrt(3);
-  //   const s = l*sqrt_3/2;
-  //   const sqrt_8 = Math.sqrt(8);
+  //   var l = Math.sqrt(size/11.7043);
+  //   var sqrt_3 = Math.sqrt(3);
+  //   var s = l*sqrt_3/2;
+  //   var sqrt_8 = Math.sqrt(8);
   //
-  //   const current = {x:0,y:0}
+  //   var current = {x:0,y:0}
   //
   //   return "M" + (current.x -= l/2) +","+ (current.y -= s)
   //         +"L" + current.x +","+ (current.y -= l)
@@ -115,10 +130,10 @@ d2b.SVG.symbols = {
   //         +"Z";
   // },
   close: function(size){
-    const r = Math.sqrt(size/5); // border length of each side
-    const r2 = Math.sqrt(r*r/2); // small side of intersecting triangle for each far point
-    const r3 = Math.sqrt(1/2)*r; // from center to the close intersection point
-    const r4 = r2 + r3;          // long side of intersecting triangle for each far point
+    var r = Math.sqrt(size/5); // border length of each side
+    var r2 = Math.sqrt(r*r/2); // small side of intersecting triangle for each far point
+    var r3 = Math.sqrt(1/2)*r; // from center to the close intersection point
+    var r4 = r2 + r3;          // long side of intersecting triangle for each far point
 
     return "M" + 0 +","+ -r3
           +"L" + r2 +","+ -r4
@@ -136,9 +151,9 @@ d2b.SVG.symbols = {
 
   },
   hexagon: function(size){
-    const s = Math.sqrt(size * 2 / (3 * Math.sqrt(3)));
-    const moveX = Math.cos(d2b.MATH.toRadians(30)) * s;
-    const moveY = Math.sin(d2b.MATH.toRadians(30)) * s;
+    var s = Math.sqrt(size * 2 / (3 * Math.sqrt(3)));
+    var moveX = Math.cos(d2b.MATH.toRadians(30)) * s;
+    var moveY = Math.sin(d2b.MATH.toRadians(30)) * s;
 
 
     return "M"+ 0 +","+ -s
@@ -150,9 +165,9 @@ d2b.SVG.symbols = {
 
   },
   "rect-horizontal": function(size){
-    const sideRatio = 3; // 3 to 1
-    const r = Math.sqrt(size/sideRatio);
-    const r2 = r*sideRatio;
+    var sideRatio = 3; // 3 to 1
+    var r = Math.sqrt(size/sideRatio);
+    var r2 = r*sideRatio;
 
     return "M" + -r2/2 +","+ -r/2
           +"L" + r2/2 +","+ -r/2
@@ -160,9 +175,9 @@ d2b.SVG.symbols = {
           +" " + -r2/2 +","+ r/2 +"Z";
   },
   "rect-vertical": function(size){
-    const sideRatio = 1/3; // 1 to 3
-    const r = Math.sqrt(size/sideRatio);
-    const r2 = r*sideRatio;
+    var sideRatio = 1/3; // 1 to 3
+    var r = Math.sqrt(size/sideRatio);
+    var r2 = r*sideRatio;
 
     return "M" + -r2/2 +","+ -r/2
           +"L" + r2/2 +","+ -r/2
@@ -170,7 +185,7 @@ d2b.SVG.symbols = {
           +" " + -r2/2 +","+ r/2 +"Z";
   },
   "arrow-right": function(size){
-    const r = Math.sqrt(4/5 * size);
+    var r = Math.sqrt(4/5 * size);
 
     return "M" + -r +","+ -r/4
           +"L" + 0 +","+ -r/4
@@ -182,7 +197,7 @@ d2b.SVG.symbols = {
 
   },
   "arrow-left": function(size){
-    const r = Math.sqrt(4/5 * size);
+    var r = Math.sqrt(4/5 * size);
 
     return "M" + r +","+ -r/4
           +"L" + 0 +","+ -r/4
@@ -194,7 +209,7 @@ d2b.SVG.symbols = {
 
   },
   "arrow-up": function(size){
-    const r = Math.sqrt(4/5 * size);
+    var r = Math.sqrt(4/5 * size);
 
     return "M" + -r/4 +","+ r
           +"L" + -r/4 +","+ 0
@@ -206,7 +221,7 @@ d2b.SVG.symbols = {
 
   },
   "arrow-down": function(size){
-    const r = Math.sqrt(4/5 * size);
+    var r = Math.sqrt(4/5 * size);
 
     return "M" + -r/4 +","+ -r
           +"L" + -r/4 +","+ 0
@@ -220,7 +235,11 @@ d2b.SVG.symbols = {
 
 };
 
-d2b.svg.symbolTypes = d3.svg.symbolTypes.concat(
+//more keys for the close symbol
+d2b.SVG.symbols["cross-diagonal"] = d2b.SVG.symbols.close;
+d2b.SVG.symbols["x"] = d2b.SVG.symbols.close;
+
+d2b.SVG.symbolTypes = d3.svg.symbolTypes.concat(
   [
     "star", "close", //"asterisk",
     "rect-horizontal", "rect-vertical",
@@ -229,3 +248,7 @@ d2b.svg.symbolTypes = d3.svg.symbolTypes.concat(
     "hexagon"
   ]
 );
+
+//copy symbol to old location for old version support
+d2b.UTILS.symbol = d2b.SVG.symbol;
+d2b.UTILS.symbolTypes = d2b.SVG.symbolTypes;

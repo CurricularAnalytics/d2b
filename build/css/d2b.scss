@@ -1213,6 +1213,17 @@ html, body, .d2b-container {
   fill:rgba(255,255,255,0);
 }
 
+.d2b-checkbox {
+	cursor:pointer;
+	rect, path {
+		stroke:black;
+		fill-opacity:0;
+	}
+	path {
+		stroke-linejoin: miter;
+	}
+}
+
 .d2b-tooltip-layout-1{
   pointer-events:none;
   text{

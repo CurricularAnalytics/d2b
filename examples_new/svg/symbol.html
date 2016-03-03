@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<style>
+  .symbol{
+    background: rgba(200, 200, 200, 0.5);
+  }
+  .symbol path{
+    fill: steelblue;
+    stroke: black;
+    stroke-width: 2px;
+  }
+</style>
+
+<body>
+
+<svg class = 'symbol'></svg>
+
+<script>
+
+  var width = 960, height = 500;
+  var types = d2b.svg.symbolTypes;
+  var symbol = d2b.svg.symbol().size(6000);
+
+  var index = 0;
+
+  var path = d3.select('.symbol')
+      .attr('width', width)
+      .attr('height', height)
+    .append('path')
+      .attr('transform', 'translate('+width / 2+', '+height / 2+')');
+
+  setInterval( function() {
+    if (index === types.length) index = 0;
+
+    symbol.type(types[index])
+
+    path.attr('d', symbol);
+
+    index += 1;
+  },1000);
+
+</script>
+
+</body>
+</html>

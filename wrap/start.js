@@ -43,7 +43,7 @@ d2b.createNameSpace("d2b.chart");
 /*d2b UTILITIES*/
 d2b.createNameSpace("d2b.UTILS");
 d2b.createNameSpace("d2b.UTILS.CHARTPAGE");
-d2b.createNameSpace("d2b.utils");
+d2b.createNameSpace("d2b.util");
 
 d2b.createNameSpace("d2b.UTILS.AXISCHART.TYPES");
 

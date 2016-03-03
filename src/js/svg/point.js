@@ -1,143 +1,119 @@
-/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+d2b.svg.point = function () {
 
-d2b.SVG.point = function(){
-  var $$ = {};
+  const $$ = {};
 
-  $$.size = d3.functor(150);
-  $$.type = d3.functor('circle');
-  $$.active = d3.functor(false);
-  $$.stroke = d3.functor(null);
-  $$.strokeWidth = d3.functor('1px');
-  $$.fill = d3.functor(null);
-
-  $$.symbol = d2b.SVG.symbol().type($$.type);
-
-  //mouseover: enlarge background
-  $$.mouseover = function(d, i){
-    var size = $$.size.call(this, d, i),
-        type = $$.type.call(this, d, i),
-        strokeWidth = $$.strokeWidth.call(this, d, i);
-
-    size = 15*Math.pow(size,0.5) + size * Math.pow(parseFloat(strokeWidth),0.2);
-
-    $$.symbol.size(size).type(type);
-
-    d3.select(this).select('path.d2b-point-background')
-      .transition().duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-      .attr("d", $$.symbol);
-  };
-
-  //mouseout: shrink back to original size
-  $$.mouseout = function(d, i){
-    var size = $$.size.call(this, d, i),
-        type = $$.type.call(this, d, i);
-
-    $$.symbol.size(size).type(type);
-
-    d3.select(this).select('path.d2b-point-background')
-      .transition().duration(d2b.CONSTANTS.ANIMATIONLENGTHS().short)
-      .attr("d", $$.symbol);
-  };
-
-  var point = function(g){
-    g.each(function(d, i){
-      var g = d3.select(this);
+  /* Update Function */
+  const point = function (g) {
+    g.each( function (d, i) {
+      const gg = d3.select(this);
 
       //size, type, fill, stroke, active for this point
-      var size = $$.size.call(this, d, i),
-          type = $$.type.call(this, d, i),
-          fill = $$.fill.call(this, d, i),
-          stroke = $$.stroke.call(this, d, i),
-          strokeWidth = $$.strokeWidth.call(this, d, i),
-          active = $$.active.call(this, d, i);
+      const size = $$.size.call(this, d, i),
+            type = $$.type.call(this, d, i),
+            fill = $$.fill.call(this, d, i),
+            empty = $$.empty.call(this, d, i),
+            stroke = $$.stroke.call(this, d, i),
+            strokeWidth = $$.strokeWidth.call(this, d, i),
+            active = $$.active.call(this, d, i);
 
       //set symbol properties
-      $$.symbol.size(size).type(type);
+      symbol.size(size).type(type);
 
       //background
-      var background = g.selectAll('path.d2b-point-background').data([d]);
+      const background = gg.selectAll('path.d2b-point-background').data([d]);
 
-      var backgroundEnter   = background.enter().append('path').attr('class', 'd2b-point-background');
-      var backgroundUpdate  = d3.transition(background);
-      var backgroundExit    = d3.transition(background.exit());
+      const backgroundEnter   = background.enter()
+        .append('path')
+          .attr('class', 'd2b-point-background')
+          .attr('d', symbol)
+          .style('fill', 'rgba(255, 255, 255, 0)')
+          .style('stroke', stroke)
+          .style('stroke-width', strokeWidth);
 
-      backgroundEnter
-        .attr('d', $$.symbol)
-        .style('fill', 'rgba(255,255,255,0)')
-        .style('stroke-width', strokeWidth)
-        .style('stroke', stroke);
-
-      backgroundUpdate
-        .attr('d', $$.symbol)
-        .style('stroke', stroke);
-
-      backgroundExit.style('opacity', 0).remove();
+      const backgroundUpdate  = d3.transition(background)
+          .attr('d', symbol)
+          .style('stroke', stroke)
+          .style('stroke-width', strokeWidth);
 
       //foreground
-      var foreground = g.selectAll('path.d2b-point-foreground').data([d]);
+      const foreground = gg.selectAll('path.d2b-point-foreground').data([d]);
 
-      var foregroundEnter   = foreground.enter().append('path').attr('class', 'd2b-point-foreground');
-      var foregroundUpdate  = d3.transition(foreground);
-      var foregroundExit    = d3.transition(foreground.exit());
+      if (empty) symbol.size(size / 3);
 
-      foregroundEnter
-        .attr('d', $$.symbol)
-        .style('stroke-width', strokeWidth)
-        .style('stroke', stroke)
-        .style('fill', fill);
+      const foregroundEnter   = foreground.enter()
+        .append('path')
+          .attr('class', 'd2b-point-foreground')
+          .attr('d', symbol)
+          .style('fill', fill)
+          .style('stroke', stroke)
+          .style('stroke-width', strokeWidth);
 
-      foregroundUpdate
-        .attr('d', $$.symbol)
-        .style('fill', fill)
-        .style('stroke', stroke);
+      const foregroundUpdate  = d3.transition(foreground)
+          .attr('d', symbol)
+          .style('opacity', (empty)? 0 : 1)
+          .style('fill', fill)
+          .style('stroke', stroke)
+          .style('stroke-width', strokeWidth);
 
-      foregroundExit.style('opacity', 0).remove();
+      //if active set hover events otherwise unbind them
+      gg
+        .on('mouseover.d2b-point', (active)? mouseover : null )
+        .on('mouseout.d2b-point', (active)? mouseout : null );
 
-      //if active set hover events
-      if(active){
-        g
-          .on('mouseover.d2b-mouseover', $$.mouseover)
-          .on('mouseout.d2b-mouseout', $$.mouseout)
-      }else{
-        g
-          .on('mouseover.d2b-mouseover', null)
-          .on('mouseout.d2b-mouseout', null)
-      }
-
+      return point;
     });
   };
 
-  point.type = function(type){
-    if (!arguments.length) return $$.type;
-    $$.type = d3.functor(type);
-    $$.symbol.type($$.type);
-    return point;
+  /* Inherit from base model */
+  const model = d2b.model.base(point, $$)
+    .addPropFunctor('size', 150)
+    .addPropFunctor('type', 'circle')
+    .addPropFunctor('active', false)
+    .addPropFunctor('empty', false)
+    .addPropFunctor('fill', 'steelblue')
+    .addPropFunctor('stroke', d3.rgb('steelblue').darker(1))
+    .addPropFunctor('strokeWidth', '1px');
+
+  /* Private variables and method */
+  const symbol = d2b.svg.symbol().type($$.type);
+
+  const mouseover = function (d, i) {
+    const size = $$.size.call(this, d, i),
+          empty = $$.empty.call(this, d, i),
+          type = $$.type.call(this, d, i);
+
+    symbol.type(type);
+
+    d3.select(this).select('path.d2b-point-foreground')
+      .transition()
+        .duration(100)
+        .attr('d', symbol.size((empty)? size / 3 : size))
+        .style('opacity', (empty)? 0.5 : 1);
+
+    d3.select(this).select('path.d2b-point-background')
+      .transition()
+        .duration(100)
+        .attr('d', symbol.size((empty)? size : 2.5 * size));
   };
-  point.size = function(size){
-    if (!arguments.length) return $$.size;
-    $$.size = d3.functor(size);
-    $$.symbol.size($$.size);
-    return point;
+
+  const mouseout = function (d, i) {
+    const size = $$.size.call(this, d, i),
+          empty = $$.empty.call(this, d, i),
+          type = $$.type.call(this, d, i);
+
+    symbol.type(type);
+
+    d3.select(this).select('path.d2b-point-background')
+      .transition()
+        .duration(100)
+        .attr('d', symbol.size(size));
+
+    d3.select(this).select('path.d2b-point-foreground')
+      .transition()
+        .duration(100)
+        .attr('d', symbol.size((empty)? size / 3 : size))
+        .style('opacity', (empty)? 0 : 1);
   };
-  point.fill = function(fill){
-    if (!arguments.length) return $$.fill;
-    $$.fill = d3.functor(fill);
-    return point;
-  };
-  point.stroke = function(stroke){
-    if (!arguments.length) return $$.stroke;
-    $$.stroke = d3.functor(stroke);
-    return point;
-  };
-  point.strokeWidth = function(strokeWidth){
-    if (!arguments.length) return $$.strokeWidth;
-    $$.strokeWidth = d3.functor(strokeWidth);
-    return point;
-  };
-  point.active = function(active){
-    if (!arguments.length) return $$.active;
-    $$.active = d3.functor(active);
-    return point;
-  };
+
   return point;
 };

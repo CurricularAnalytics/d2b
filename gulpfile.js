@@ -1,11 +1,12 @@
 const gulp = require('gulp');
 const concat = require('gulp-concat');
 const uglify = require('gulp-uglify');
-const sass = require('gulp-sass');
 const babel = require('gulp-babel');
 const order = require('gulp-order');
 const rename = require('gulp-rename');
 const connect = require('gulp-connect');
+const sass = require('gulp-sass');
+const cleanCSS = require('gulp-clean-css');
 
 gulp.task('scripts', () => {
   gulp
@@ -32,6 +33,28 @@ gulp.task('scripts', () => {
     .pipe(gulp.dest('build/js'));
 });
 
+gulp.task('styles', () => {
+  gulp
+    // source files
+    .src([
+      'src/css/init.scss',
+      'src/css/**/*.scss'
+    ])
+    // concat source files
+    .pipe(concat('d2b.scss'))
+    .pipe(gulp.dest('build/css'))
+    // sass compile
+    .pipe(sass().on('error', sass.logError))
+    .pipe(gulp.dest('build/css'))
+    .pipe(cleanCSS({compatibility: 'ie8'}))
+    .pipe(gulp.dest('build/css'))
+    // write to d2b.css.js
+    .pipe(rename({
+      suffix: '.min'
+    }))
+    .pipe(gulp.dest('build/css'));
+});
+
 gulp.task('vendor', () => {
   gulp
     .src([
@@ -51,10 +74,12 @@ gulp.task('connect', () => {
 
 gulp.task('watch', () => {
   gulp.watch([
-    'wrap/start.js',
-    'src/js/**/*.js',
-    'wrap/end.js'
+    'wrap/$$.js',
+    'src/js/**/*.js'
   ], ['scripts']);
+  gulp.watch([
+    'src/css/**/*.js'
+  ], ['styles']);
 });
 
-gulp.task('default', ['watch', 'scripts', 'connect']);
+gulp.task('default', ['watch', 'scripts', 'styles', 'connect']);

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<body style='padding:30px;'>
+	<div class = 'template-chart'></div>
+
+	<script>
+		// $(document).ready(function(){
+
+			var template = d2b.chart.template();
+
+			template
+				.size({height: '400'})
+				.data('test')
+				.select('.template-chart')
+				.control('hideLegend', {state: true, visible: true})
+				// .legendOrient('top')
+				.generate();
+
+			// d3.select('.template-chart').datum('test').call(template)
+
+			// $(window).resize(function(){
+			// 	templateChart.height($(window).height()).width($(window).width()).update();
+			// });
+
+		// })
+		window.onresize = function () { template.update(); };
+	</script>
+</body>
+</html>
