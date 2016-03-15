@@ -22,8 +22,8 @@ d2b.svg.checkbox = function () {
 		const sWidth = strokeWidth(size);
 		rect
 			.style('stroke-width', `${sWidth}px`)
-			.attr('width', size * 0.9)
-			.attr('height', size * 0.9)
+			.attr('width', size * 0.8)
+			.attr('height', size * 0.8)
 			.attr('rx', sWidth)
 			.attr('ry', sWidth)
 			.call(pad, size);
@@ -34,14 +34,14 @@ d2b.svg.checkbox = function () {
 			.style('font-size', `${size}px`)
 			.text(label)
 			.attr('x', size * 1.2)
-			.attr('y', size * 0.8)
+			.attr('y', size * 0.775)
 			.call(pad, size);
 	};
 
 	const  updatePath = (path, size, state) => {
-		const d = `M${0.14 * size},${0.45 * size}`+
-							`l${0.25 * size},${0.27* size}`+
-							`l${0.33 * size},${-0.55 * size}`;
+		const d = `M${0.13 * size},${0.40 * size}`+
+							`l${0.22 * size},${0.24* size}`+
+							`l${0.29 * size},${-0.49 * size}`;
 		const length = 1.1 * size;
 		path
 			.attr('d', d)
@@ -84,7 +84,7 @@ d2b.svg.checkbox = function () {
 
   /* Inherit from base model */
   const model = d2b.model.base(checkbox, $$)
-    .addPropFunctor('size', 16)
+    .addPropFunctor('size', 12)
     .addPropFunctor('label', (d => d.label))
 		.addDispatcher(['change']);
 

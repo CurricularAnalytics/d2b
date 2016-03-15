@@ -8,7 +8,7 @@ const connect = require('gulp-connect');
 const sass = require('gulp-sass');
 const cleanCSS = require('gulp-clean-css');
 
-gulp.task('scripts', () => {
+gulp.task('scripts', function () {
   gulp
     // source files
     .src([
@@ -33,7 +33,7 @@ gulp.task('scripts', () => {
     .pipe(gulp.dest('build/js'));
 });
 
-gulp.task('styles', () => {
+gulp.task('styles', function () {
   gulp
     // source files
     .src([
@@ -55,7 +55,7 @@ gulp.task('styles', () => {
     .pipe(gulp.dest('build/css'));
 });
 
-gulp.task('vendor', () => {
+gulp.task('vendor', function () {
   gulp
     .src([
       'bower_components/d3/d3.min.js',
@@ -66,13 +66,13 @@ gulp.task('vendor', () => {
     .pipe(gulp.dest('vendor/js'));
 });
 
-gulp.task('connect', () => {
+gulp.task('connect', function () {
   connect.server({
     port: 9000
   });
 });
 
-gulp.task('watch', () => {
+gulp.task('watch', function () {
   gulp.watch([
     'wrap/$$.js',
     'src/js/**/*.js'

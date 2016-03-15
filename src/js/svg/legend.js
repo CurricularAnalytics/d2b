@@ -2,14 +2,19 @@ d2b.svg.legend = function () {
   const $$ = {};
 
   const legend = function (g) {
-    if(g.duration) legend.duration(g.duration());
+    legend.duration((g.duration)? g.duration() : 0);
     g.each( function (d) {
-      var el = d3.select(this);
-      legend
-        .selection(el)
-        .data(el.datum())
-        .update();
+      const el = d3.select(this);
+      legend.selection(el).data(el.datum()).update();
     });
+  };
+
+  const quickUpdate = () => {
+    const duration = $$.duration;
+    legend
+      .duration(100)
+      .update()
+      .duration(duration);
   };
 
   const click = function (d, i) {
@@ -20,9 +25,7 @@ d2b.svg.legend = function () {
 
     d.empty = !d.empty;
 
-    d3.select(this)
-      .transition()
-        .call(point);
+    d3.select(this).transition().duration(100).call(point);
 
     if (allowEmptied) return;
 
@@ -31,7 +34,7 @@ d2b.svg.legend = function () {
 
     if (allEmpty) {
       $$.data.forEach( d => d.empty = false );
-      legend.update();
+      quickUpdate();
     }
 
     $$.dispatch.click.call(this, d, i);
@@ -45,26 +48,39 @@ d2b.svg.legend = function () {
     $$.data.forEach(d => d.empty = true);
     d.empty = false;
 
-    legend.update();
+    quickUpdate();
 
     $$.dispatch.dblclick.call(this, d, i);
   };
 
-  const point = d2b.svg.point();
+  const point = d2b.svg.point()
+    .fill( function (d, i) {
+      const colorKey = $$.colorKey.call(this, d, i),
+            color = $$.color.call(this, d, i);
+      if (color) return color;
+      return $$.colorScale(colorKey);
+    })
+    .stroke( function (d, i) {
+      const colorKey = $$.colorKey.call(this, d, i),
+            color = $$.color.call(this, d, i);
+      if (color) return d3.rgb(color).darker(0.5);
+      return d3.rgb($$.colorScale(colorKey)).darker(0.5);
+    });
 
   const update = function () {
 
     $$.svg = $$.selection.selectAll('.d2b-legend').data([$$.data]);
 
-    $$.svg.enter()
-      .append('g')
-        .attr('class', 'd2b-legend');
+    $$.svg.enter().append('g').attr('class', 'd2b-legend');
 
     $$.svg.item = $$.svg.selectAll('.d2b-legend-item').data(d => d);
 
     const newItem = $$.svg.item.enter()
       .append('g')
-        .attr('class', 'd2b-legend-item')
+        .style('opacity', 0)
+        .attr('class', 'd2b-legend-item');
+
+    newItem
       .append('g')
         .on('click.d2b-legend', click)
         .on('dblclick.d2b-legend', dblclick)
@@ -97,18 +113,21 @@ d2b.svg.legend = function () {
 
     const pad = {x: $$.size, y: 5};
 
-    $$.computedSize = {width: 0, height: 0};
+    newItem.call(position[$$.orient], pad, maxWidth);
 
     const transition = $$.svg.item
       .transition()
         .duration($$.duration)
+        .style('opacity', 1)
         .call(position[$$.orient], pad, maxWidth);
 
+    return legend;
   };
 
   const position = {
     horizontal: (transition, pad, maxWidth) => {
       let x = 0, y = 0, maxHeight = 0;
+      $$.computedSize = {width: 0, height: 0};
       transition
         .attr('transform', function () {
           const box = this.getBBox();
@@ -127,6 +146,7 @@ d2b.svg.legend = function () {
     },
     vertical: (transition, pad) => {
       let x = 0, y = 0, maxWidth = 0;
+      $$.computedSize = {width: 0, height: 0};
       transition
         .attr('transform', function () {
           const box = this.getBBox();
@@ -147,14 +167,15 @@ d2b.svg.legend = function () {
 
   /* Inherit from base model */
   const model = d2b.model.base(legend, $$)
-    .addProp('size', 16, null, _ => point.size(1.5 * Math.pow(_ / 2, 2)) )
+    .addProp('size', 12, null, _ => point.size(1.5 * Math.pow(_ / 2, 2)) )
     .addProp('strokeWidth', '1px', null, _ => point.strokeWidth(_) )
     .addProp('maxSize', {width: 960, height: 500})
     .addProp('orient', 'vertical')
     .addProp('duration', 500)
-    .addProp('maxTextLength', null)
+    .addProp('colorScale', d3.scale.category20())
+    .addProp('maxTextLength', Infinity)
     .addProp('selection', null)
-    .addProp('data', function (_) {
+    .addProp('data', [], function (_) {
       if(!arguments.length) return $$.data;
       $$.data = _.data || _;
       return legend;
@@ -165,18 +186,25 @@ d2b.svg.legend = function () {
     .addPropFunctor('dblclickable', false)
     .addPropFunctor('label', (d => d.label))
     .addPropFunctor('symbol', 'circle', null, _ => point.type(_) )
-    .addPropFunctor('fill', 'steelblue', null, _ => point.fill(_) )
-    .addPropFunctor('stroke', d3.rgb('steelblue').darker(1), null, _ => point.stroke(_) )
-    .addPropFunctor('empty', false, null, _ => point.empty(_) )
+    .addPropFunctor('colorKey', (d => d.label))
+    .addPropFunctor('color', (d => d.color))
+    // .addPropFunctor('stroke', d3.rgb('steelblue').darker(1), null, _ => point.stroke(_) )
+    .addPropFunctor('empty', (d => d.empty), null, _ => point.empty(_) )
     .addMethod('select', (_) => d3.select(_))
     .addMethod('update', update)
     .addMethod('computedSize', () => $$.computedSize)
     .addMethod('generate', (callback) => {
       const duration = $$.duration;
-      legend
-        .duration(0)
-        .update()
-        .duration(duration);
+      legend.duration(0).update().duration(duration);
+    })
+    .addMethod('clear', () => {
+      if ($$.svg && $$.svg.item) {
+        $$.svg.item
+          .transition()
+            .duration($$.duration)
+            .style('opacity', 0)
+            .remove();
+      }
     })
 		.addDispatcher(['dblclick', 'click', 'mouseover', 'mouseout']);
 

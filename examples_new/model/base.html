@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script>
+
+// Define class for creating dots.
+var Dot = function () {
+  // Base interface 'vis' to be used as the dot api. This is also where the
+  // main update code will go.
+  var vis = function (g) {
+    g.each( function (d, i) {
+      var el = d3.select(this);
+      var filled = $$.filled.call(this, d, i); // retrieve functor value
+
+      // update attributes on the element transition
+      d3.transition(el)
+        .attr('cx', $$.cx)
+        .attr('cy', $$.cy)
+        .attr('r', $$.radius)
+        .style('fill', $$.color)
+        .style('stroke', $$.color)
+        .style('stroke-width', '1px')
+        .style('fill-opacity', (filled)? 1 : 0 )
+
+      el.on('click', function (d) {
+        $$.dispatch.clicked.call(this, d, i);
+      });
+    });
+  };
+
+  // Define value store '$$'.
+  var $$ = {};
+
+  // define and setup the base model
+  var model = d2b.model.base(vis, $$)
+    // add properties, functors and dispatcher
+    .addPropFunctor('radius', function (d) {return d.radius;})
+    .addPropFunctor('cx', function (d) {return d.cx;})
+    .addPropFunctor('cy', function (d) {return d.cy;})
+    .addPropFunctor('filled', true)
+    .addProp('color', 'red')
+    .addDispatcher(['clicked']);
+
+  return vis;
+};
+
+</script>
+
+<body>
+  <svg width = '500' height = '300'> </svg>
+
+  <script>
+
+    var dot = Dot()
+      .cy(25)
+      .cx( function (d) { return d.x; })
+      .radius( function (d) { return d.r; })
+      .filled( function (d) { return d.filled; })
+      .color('steelblue')
+      .on('clicked', function (d) { console.log(d); });
+
+    var svg = d3.select('svg');
+
+    updateDots([
+      { x: 25, filled: false, r: 10 },
+      { x: 57, filled: true, r: 8.5 },
+      { x: 120, filled: true, r: 5 },
+      { x: 180, filled: false, r: 12 }
+    ]);
+
+    setTimeout( function () {
+
+      dot.color('purple');
+
+      updateDots([
+        { x: 27, filled: true, r: 10 },
+        { x: 52, filled: true, r: 10.5 },
+        { x: 91, filled: false, r: 8 },
+        { x: 150, filled: false, r: 19 }
+      ]);
+
+    }, 2000);
+
+    function updateDots (data) {
+      var dotSvg = svg.selectAll('.dot').data(data);
+
+      dotSvg.enter()
+        .append('circle')
+          .attr('class', 'dot')
+          .call(dot)
+          .style('opacity', 0);
+
+      dotSvg
+        .transition()
+          .call(dot)
+          .style('opacity', 1);
+
+      dotSvg.exit()
+        .transition()
+          .style('opacity', 0)
+          .remove();
+    };
+
+  </script>
+</body>
+</html>

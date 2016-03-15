@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script>
+//
+// var Dot = function () {
+//
+//   var vis = function (g) {
+//     $$.data.forEach( function (d) {
+//       console.log($$.radius(d));
+//     });
+//   };
+//
+//   var $$ = {};
+//
+//   // define and setup the base model
+//   var model = d2b.model.base(vis, $$)
+//     .addProp('data')
+//     .addPropFunctor('radius', d => d.radius);
+//
+//   return vis;
+// };
+
+</script>
+
+<body>
+  <svg> </svg>
+
+  <script>
+    //
+    // var dot = Dot();
+    //
+    // dot
+    //   .radius(5)
+    //   .data([
+    //     {x: 20, y: 100},
+    //     {x: 55, y: 130}
+    //   ]);
+    //
+    // dot();
+
+    var checkbox = d2b.svg.checkbox()
+      .label(d => d.name)
+      .size(10)
+      .on('change', function (d) {
+        console.log(d);
+      });
+
+    d3.select('svg')
+        .datum({state: false, name: 'checkbox-1'})
+        .call(checkbox);
+
+  </script>
+</body>
+</html>

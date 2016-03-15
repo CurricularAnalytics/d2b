@@ -20,6 +20,12 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
     }
   };
 
+  const propFnGet = (prop) => {
+    return function (_) {
+      return $$[prop];
+    }
+  };
+
   const propFnFunctor = (prop, cb) => {
     return function (_) {
       if (!arguments.length) return $$[prop];
@@ -54,6 +60,7 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
       * @param {Number} prop    - property key
       * @param {Number} value   - default value to set
       * @param {Number} fn      - function as new prop getter/setter
+      * @param {Number} cb      - callback function after prop is set
       * @return {Object} model  - returns model to allow for method chaining
       */
     addProp: (prop, value = null, fn = propFn(prop), cb) => {
@@ -63,7 +70,27 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
       }
       // allow for null:default 'fn' in order to access callback
       fn = fn || propFn(prop, cb);
+
+      $$[prop] = value;
+      base[prop] = fn;
+
       if (cb) cb(value);
+
+      return model;
+    },
+    /**
+      * model.addPropGet is similar to addProp except it doesn't allow for the
+      * property to be reset through the API.
+      * @param {Number} prop    - property key
+      * @param {Number} value   - default value to set
+      * @param {Number} fn      - function as new prop getter
+      * @return {Object} model  - returns model to allow for method chaining
+      */
+    addPropGet: (prop, value = null, fn = propFnGet(prop)) => {
+      if ($$[prop] || base[prop]) {
+        console.error(`${prop} property is already defined.`)
+        return model;
+      }
 
       $$[prop] = value;
       base[prop] = fn;
@@ -104,7 +131,7 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
       fn = fn || propFnFunctor(prop, cb);
       value = d3.functor(value);
       if (cb) cb(value);
-      
+
       $$[prop] = value;
       base[prop] = fn;
 

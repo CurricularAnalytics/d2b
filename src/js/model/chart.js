@@ -25,12 +25,19 @@ d2b.model.chart = function (update, events = [], $$ = {}) {
   /* Inherit from base model */
   const model = d2b.model.base(chart, $$)
     .addProp('selection', d3.select('body'))
-    .addProp('width', 960)
-    .addProp('height', 500)
     .addProp('size', null)
     .addProp('duration', 500)
-    .addProp('legendOrient', 'bottom')
-    .addProp('padding', {top: 0, left: 0, right: 0, bottom: 0})
+    .addProp('legendOrient', 'bottom-center')
+    .addProp('padding', {top: 0, left: 0, right: 0, bottom: 0}, function (_) {
+      if(!arguments.length) return $$.padding;
+      if (typeof(_) === 'number') {
+        $$.padding = {top: _, left: _, right: _, bottom: _}
+      };
+      ['top', 'bottm', 'right', 'left'].forEach( d => {
+        if (_[d]) $$.padding[d] == _[d];
+      });
+      return chart;
+    })
     .addProp('color', d3.scale.category10())
     .addProp('data', null, function (data) {
       if (!arguments.length) return $$.data;
@@ -38,6 +45,10 @@ d2b.model.chart = function (update, events = [], $$ = {}) {
 
       return chart;
     })
+    .addPropGet('checkbox',
+      d2b.svg.checkbox().on('change.d2b-chart-checkbox', () => chart.update())
+    )
+    .addPropGet('legend', d2b.svg.legend())
     .addMethod('select', (_) => {
       $$.selection = d3.select(_);
       return chart;
@@ -67,25 +78,32 @@ d2b.model.chart = function (update, events = [], $$ = {}) {
     .addMethod('control', function (key, data) {
       if (arguments.length === 0) return $$.controlsData;
       const control = $$.controlsData.filter(d => d.key === key)[0];
+      if (!control) {
+        console.error(`Control ${key} not found.`);
+        return chart;
+      }
       if (arguments.length === 1) return control;
-      for (let key in data) control[key] = data[key];
+      for (let key in data) if(key !== 'key') control[key] = data[key];
 
       return chart;
     })
     .addDispatcher(['beforeUpdate', 'afterUpdate'].concat(events));
 
-
-
   /* Controls */
-  const checkbox = d2b.svg.checkbox().size(14);
-
   $$.controlsData = [];
+
   model.addControl = (_) => {
     $$.controlsData.push(_);
     return model;
   };
 
+  model
+    .addControl({
+      key: 'hideLegend', label: 'Hide Legend', visible: false, state: false
+    });
+
   const updateControls = (transition, margin = {}) => {
+
     $$.svg.controls = $$.svg.group.selectAll('.d2b-controls')
         .data([$$.controlsData.filter(d => d.visible)]);
 
@@ -93,19 +111,26 @@ d2b.model.chart = function (update, events = [], $$ = {}) {
       .append('g')
         .attr('class', 'd2b-controls');
 
-    const control = $$.svg.controls.selectAll('.d2b-control').data(d => d);
+    const control = $$.svg.controls.selectAll('.d2b-control')
+        .data(d => d, d => d.key);
 
-    control.enter()
+    const newControl = control.enter()
       .append('g')
+        .style('opacity', 0)
         .attr('class', 'd2b-control');
 
+    control.exit()
+      .transition()
+        .duration($$.duration)
+        .style('opacity', 0)
+        .remove();
+
     let x = 0, y = 0, boxHeight = 0;
-    const pad = {x: 14, y: 5};
+    const pad = {x: 12, y: 5};
 
-    control.call(checkbox);
-
-    transition.selectAll('.d2b-control')
-        .attr('transform', function (d, i) {
+    control
+        .call($$.checkbox)
+        .each( function (d) {
           const box = this.getBBox();
           boxHeight = box.height;
 
@@ -114,29 +139,110 @@ d2b.model.chart = function (update, events = [], $$ = {}) {
             y += box.height + pad.y;
           }
 
-          const translate = `translate(${x}, ${y})`;
+          this.translate = `translate(${x}, ${y})`;
+
           x += box.width + pad.x;
-          return translate;
         });
 
-    margin.top += y + boxHeight + pad.y;
-    $$.height -= margin.top;
+    newControl.attr('transform', function () { return this.translate; })
+
+    transition.selectAll('.d2b-control')
+        .style('opacity', 1)
+        .attr('transform', function () { return this.translate; });
+
+    let marginTop = y + boxHeight;
+    if(boxHeight) marginTop += pad.y;
+    margin.top += marginTop;
+    $$.height -= marginTop;
   };
 
   /* Legend */
-  const updateLegend = () => {
-    $$.svg.legend = $$.svg.selectAll('.d2b-legend').data([model.legend]);
+  const updateLegend = (transition, margin = {}) => {
+
+    $$.svg.legend = $$.svg.group.selectAll('.d2b-legend').data([$$.legend]);
     $$.svg.legend.enter()
       .append('g')
         .attr('class', 'd2b-legend');
+
+    let size, x, y;
+    const [orient1, orient2] = $$.legendOrient.split("-");
+    const legendTransition = $$.svg.legend.transition().duration($$.duration);
+
+    $$.legend
+      .selection($$.svg.legend)
+      .duration($$.duration)
+      .maxSize({width: $$.width, height: $$.height});
+
+    if (chart.control('hideLegend').state) return $$.legend.clear();
+
+    switch (orient1) {
+      case 'right':
+        $$.legend.orient('vertical').update();
+
+        size = $$.legend.computedSize();
+        x = margin.left + $$.width - size.width;
+
+        if(orient2 === 'top') y = margin.top;
+        else if(orient2 === 'bottom') y = margin.top + $$.height - size.height;
+        else y = margin.top + $$.height / 2 - size.height / 2;
+
+        margin.right += size.width;
+        $$.width -= size.width;
+        break;
+      case 'left':
+        $$.legend.orient('vertical').update();
+
+        size = $$.legend.computedSize();
+        x = margin.left;
+
+        if(orient2 === 'top') y = margin.top;
+        else if(orient2 === 'bottom') y = margin.top + $$.height - size.height;
+        else y = margin.top + $$.height / 2 - size.height / 2;
+
+        margin.left += size.width;
+        $$.width -= size.width;
+        break;
+      case 'top':
+        $$.legend.orient('horizontal').update();
+
+        size = $$.legend.computedSize();
+        y = margin.top;
+
+        if(orient2 === 'left') x = margin.left;
+        else if(orient2 === 'right') x = margin.left + $$.width - size.width;
+        else x = margin.left + $$.width / 2 - size.width / 2;
+
+        margin.top += size.height;
+        $$.height -= size.height;
+        break;
+      default: // bottom
+        $$.legend.orient('horizontal').update();
+
+        size = $$.legend.computedSize();
+        y = margin.top + $$.height - size.height;
+
+        if(orient2 === 'left') x = margin.left;
+        else if(orient2 === 'right') x = margin.left + $$.width - size.width;
+        else x = margin.left + $$.width / 2 - size.width / 2;
+
+        margin.bottom += size.height;
+        $$.height -= size.height;
+        break;
+    }
+
+    legendTransition.attr('transform', `translate(${x}, ${y})`);
   };
 
   /* Main Container */
-  const updateContainer = () => {
-    $$.svg.main = $$.svg.selectAll('.d2b-main').data([$$.data]);
+  const updateContainer = (transition, margin = {}) => {
+    $$.svg.main = $$.svg.group.selectAll('.d2b-main').data([$$.data]);
     $$.svg.main.enter()
       .append('g')
         .attr('class', 'd2b-main');
+
+    transition
+      .select('.d2b-main')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`);
   };
 
   /* Chart Build Method */

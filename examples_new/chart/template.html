@@ -13,13 +13,24 @@
 
 			var template = d2b.chart.template();
 
+			template.legend()
+				// .maxTextLength(70)
+				// .size(16);
+
+			template.checkbox()
+				// .size(16);
+
 			template
 				.size({height: '400'})
 				.data('test')
 				.select('.template-chart')
 				.control('hideLegend', {state: true, visible: true})
-				// .legendOrient('top')
+				.legendOrient('left-top')
 				.generate();
+
+		// setTimeout(function () {
+		// 	template.control('hideLegend', {state: true, visible: false}).update();
+		// }, 4000)
 
 			// d3.select('.template-chart').datum('test').call(template)
 
