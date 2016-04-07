@@ -1,3 +1,4 @@
+// point svg generator
 d2b.svg.point = function () {
 
   const $$ = {};

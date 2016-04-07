@@ -1,10 +1,10 @@
-d2b.MATH = {};
+d2b.math = d2b.MATH = {};
 
 //  mean, median, mode, midpoint, and range are usefull in hierarchical positioning
 //  where the position of the parent nodes are relative to their leaf nodes
 //  by the chosen statistical metric
 
-d2b.MATH.mean = function(arr, value, weight){
+d2b.math.mean = function(arr, value, weight){
   var totalWeight = 0, contribution = 0;
   weight = d3.functor(weight || 1);
   value = d3.functor(value || function(d){return d;});
@@ -19,7 +19,7 @@ d2b.MATH.mean = function(arr, value, weight){
     });
   if(arr.length && totalWeight) return contribution / totalWeight;
 };
-d2b.MATH.median = function(arr, value, weight){
+d2b.math.median = function(arr, value, weight){
   weight = d3.functor(weight || 1);
   value = d3.functor(value || function(d){return d;});
 
@@ -57,7 +57,7 @@ d2b.MATH.median = function(arr, value, weight){
 
   if(arr.length) return d2b.MATH.mean(medians);
 };
-d2b.MATH.mode = function(arr, value, weight){
+d2b.math.mode = function(arr, value, weight){
   weight = d3.functor(weight || 1);
   value = d3.functor(value || function(d){return d;});
 
@@ -79,11 +79,11 @@ d2b.MATH.mode = function(arr, value, weight){
 
   if(arr.length) return d2b.MATH.mean(modes);
 };
-d2b.MATH.midpoint = function(arr, value){
+d2b.math.midpoint = function(arr, value){
   value = d3.functor(value || function(d){return d;});
   if(arr.length) return d3.mean(d3.extent(arr, value));
 };
-d2b.MATH.range = function(arr, value){
+d2b.math.range = function(arr, value){
   value = d3.functor(value || function(d){return d;});
   var extent = d3.extent(arr, value);
   if(arr.length) return extent[1] - extent[0];
@@ -91,9 +91,9 @@ d2b.MATH.range = function(arr, value){
 
 //----
 
-d2b.MATH.toRadians = function(angle) {
+d2b.math.toRadians = function(angle) {
   return angle * (Math.PI / 180);
 };
-d2b.MATH.toDegrees = function(angle) {
+d2b.math.toDegrees = function(angle) {
   return angle * (180 / Math.PI);
 };

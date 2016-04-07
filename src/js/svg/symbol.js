@@ -1,3 +1,4 @@
+// symbol svg generator
 d2b.svg.symbol = function () {
   const $$ = {};
 

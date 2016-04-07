@@ -361,120 +361,6 @@ var d2b = d2b || {};
 		return chart;
 	};
 
-	d2b.MATH = {};
-
-	//  mean, median, mode, midpoint, and range are usefull in hierarchical positioning
-	//  where the position of the parent nodes are relative to their leaf nodes
-	//  by the chosen statistical metric
-
-	d2b.MATH.mean = function (arr, value, weight) {
-		var totalWeight = 0,
-		    contribution = 0;
-		weight = d3.functor(weight || 1);
-		value = d3.functor(value || function (d) {
-			return d;
-		});
-		arr.filter(function (a) {
-			return !isNaN(d2b.number(weight(a))) && !isNaN(d2b.number(value(a)));
-		}).forEach(function (item) {
-			var w = weight(item),
-			    v = value(item);
-			totalWeight += w;
-			contribution += v * w;
-		});
-		if (arr.length && totalWeight) return contribution / totalWeight;
-	};
-	d2b.MATH.median = function (arr, value, weight) {
-		weight = d3.functor(weight || 1);
-		value = d3.functor(value || function (d) {
-			return d;
-		});
-
-		var medians = [],
-		    midWeight;
-
-		var newArray = arr.filter(function (a) {
-			return weight(a) !== 0 && !isNaN(d2b.number(weight(a))) && !isNaN(d2b.number(value(a)));
-		}).sort(function (a, b) {
-			return d3.ascending(value(a), value(b));
-		});
-
-		midWeight = Math.round(d3.sum(newArray, function (item) {
-			return weight(item);
-		}) / 2 * 1e12) / 1e12;
-
-		var currentPosition = 0;
-		var getNext = false;
-
-		newArray.forEach(function (item) {
-			if (getNext) {
-				medians.push(value(item));
-				getNext = false;
-			}
-
-			currentPosition += weight(item);
-
-			if (currentPosition === midWeight) {
-				medians.push(value(item));
-				getNext = true;
-			}
-
-			if (currentPosition > midWeight && medians.length === 0) {
-				medians.push(value(item));
-			}
-		});
-
-		if (arr.length) return d2b.MATH.mean(medians);
-	};
-	d2b.MATH.mode = function (arr, value, weight) {
-		weight = d3.functor(weight || 1);
-		value = d3.functor(value || function (d) {
-			return d;
-		});
-
-		var modes = [],
-		    maxFrequency = 0,
-		    frequencies = {};
-
-		arr.forEach(function (item) {
-			var val = d2b.number(value(item));
-			if (isNaN(value(item))) return;
-			frequencies[val] = frequencies[val] || 0;
-			frequencies[val] += weight(item);
-
-			if (frequencies[val] > maxFrequency) {
-				maxFrequency = frequencies[value(item)];
-				modes = [value(item)];
-			} else if (frequencies[value(item)] == maxFrequency) {
-				modes.push(value(item));
-			}
-		});
-
-		if (arr.length) return d2b.MATH.mean(modes);
-	};
-	d2b.MATH.midpoint = function (arr, value) {
-		value = d3.functor(value || function (d) {
-			return d;
-		});
-		if (arr.length) return d3.mean(d3.extent(arr, value));
-	};
-	d2b.MATH.range = function (arr, value) {
-		value = d3.functor(value || function (d) {
-			return d;
-		});
-		var extent = d3.extent(arr, value);
-		if (arr.length) return extent[1] - extent[0];
-	};
-
-	//----
-
-	d2b.MATH.toRadians = function (angle) {
-		return angle * (Math.PI / 180);
-	};
-	d2b.MATH.toDegrees = function (angle) {
-		return angle * (180 / Math.PI);
-	};
-
 	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 	/*axis chart*/
@@ -4455,6 +4341,170 @@ var d2b = d2b || {};
 		return chart;
 	};
 
+	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
+
+	/*template chart*/
+	d2b.CHARTS.templateChart = function () {
+
+		//private store
+		var $$ = {};
+
+		//user set width
+		$$.width = d2b.CONSTANTS.DEFAULTWIDTH();
+		//user set height
+		$$.height = d2b.CONSTANTS.DEFAULTHEIGHT();
+		//inner/outer height/width and margin are modified as sections of the chart are drawn
+		$$.innerHeight = $$.height;
+		$$.innerWidth = $$.width;
+		$$.outerHeight = $$.height;
+		$$.outerWidth = $$.width;
+		$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+		//force chart regeneration on next update()
+		$$.generateRequired = true;
+		//d3.selection for chart container
+		$$.selection = d3.select('body');
+		//default animation duration
+		$$.animationDuration = d2b.CONSTANTS.ANIMATIONLENGTHS().normal;
+		//color hash to be used
+		$$.color = d2b.CONSTANTS.DEFAULTCOLOR();
+		//carries current data set
+		$$.currentChartData = {};
+		//formatting x values
+		$$.xFormat = function (value) {
+			return value;
+		};
+		//event object
+		$$.events = d2b.UTILS.chartEvents();
+		//legend OBJ
+		$$.legend = d2b.UTILS.LEGENDS.legend();
+		//legend orientation 'top', 'bottom', 'left', or 'right'
+		$$.legendOrientation = 'bottom';
+		//legend data
+		$$.legendData = { data: { items: [] } };
+		//controls OBJ
+		$$.controls = d2b.UTILS.CONTROLS.controls();
+		//controls data
+		$$.controlsData = {
+			hideLegend: {
+				label: "Hide Legend",
+				type: "checkbox",
+				visible: false,
+				enabled: false
+			}
+		};
+
+		/*DEFINE CHART OBJECT AND CHART MEMBERS*/
+		var chart = {};
+
+		//chart setters
+		chart.select = d2b.UTILS.CHARTS.MEMBERS.select(chart, $$, function () {
+			$$.generateRequired = true;
+		});
+		chart.selection = d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'selection', function () {
+			$$.generateRequired = true;
+		});
+		chart.width = d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'width');
+		chart.height = d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'height');
+		chart.animationDuration = d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'animationDuration', function () {
+			$$.legend.animationDuration($$.animationDuration);
+			$$.controls.animationDuration($$.animationDuration);
+		});
+		chart.legendOrientation = d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'legendOrientation');
+		chart.xFormat = d2b.UTILS.CHARTS.MEMBERS.format(chart, $$, 'xFormat');
+		chart.controls = d2b.UTILS.CHARTS.MEMBERS.controls(chart, $$);
+		chart.on = d2b.UTILS.CHARTS.MEMBERS.events(chart, $$);
+		chart.color = d2b.UTILS.CHARTS.MEMBERS.prop(chart, $$, 'color', function () {
+			$$.legend.color($$.color);
+		});
+
+		chart.data = function (chartData, reset) {
+			if (!arguments.length) return $$.currentChartData;
+			if (reset) {
+				$$.currentChartData = {};
+			}
+
+			$$.currentChartData = chartData.data;
+
+			return chart;
+		};
+
+		//chart generate
+		chart.generate = function (callback) {
+			$$.generateRequired = false;
+
+			//empties $$.selection and appends ($$.selection.svg, $$.selection.group, $$.selection.legend, $$.selection.controls)
+			d2b.UTILS.CHARTS.HELPERS.generateDefaultSVG($$);
+
+			//init legend properties
+			$$.legend.color($$.color).selection($$.selection.legend);
+
+			//init control properties
+			$$.controls.selection($$.selection.controls).on('change', function (d, i) {
+				$$.controlsData[d.key].enabled = d.state;
+				chart.update();
+			});
+
+			//init main chart container
+			$$.selection.main = $$.selection.group.append('g').attr('class', 'd2b-main-chart');
+
+			//auto update chart
+			var temp = $$.animationDuration;
+			chart.animationDuration(0).update(callback).animationDuration(temp);
+
+			return chart;
+		};
+
+		//chart update
+		chart.update = function (callback) {
+
+			//if generate required call the generate method
+			if ($$.generateRequired) {
+				return chart.generate(callback);
+			}
+
+			//init forcedMargin
+			$$.forcedMargin = d2b.CONSTANTS.DEFAULTFORCEDMARGIN();
+			$$.outerWidth = $$.width;
+			$$.outerHeight = $$.height;
+
+			//init svg dimensions
+			$$.selection.svg.attr('width', $$.width).attr('height', $$.height);
+
+			//update dimensions to the conform to the padded SVG:G
+			d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+			//update controls viz
+			d2b.UTILS.CHARTS.HELPERS.updateControls($$);
+
+			//set legend data and update legend viz
+			if ($$.controlsData.hideLegend.enabled) {
+				$$.legendData = { data: { items: [] } };
+			} else {
+				//----replace array with a custom legend builder
+				$$.legendData.data.items = [{ 'label': 'item 1' }, { 'label': 'item 2' }, { 'label': 'item 3' }, { 'label': 'item 4' }, { 'label': 'item 5' }, { 'label': 'item 6' }];
+			}
+			d2b.UTILS.CHARTS.HELPERS.updateLegend($$);
+
+			$$.selection.main.transition().duration($$.animationDuration).attr('transform', 'translate(' + $$.forcedMargin.left + ',' + $$.forcedMargin.top + ')');
+
+			d2b.UTILS.CHARTS.HELPERS.updateDimensions($$);
+
+			//----chart code goes here!
+			//----use innerHeight/innerWidth as the context dimensions and use forcedMargin.|left, right, top, or bottom| as the current positioning margin
+
+			d3.timer.flush();
+
+			//dispatch the on 'update' event, and pass it the selection object
+			$$.events.dispatch("update", $$.selection);
+
+			if (callback) callback();
+
+			return chart;
+		};
+
+		return chart;
+	};
+
 	// This product includes color specifications and designs developed by Cynthia Brewer (http://colorbrewer.org/).
 	var colorbrewer = { YlGn: {
 			3: ["#f7fcb9", "#addd8e", "#31a354"],
@@ -5052,6 +5102,120 @@ var d2b = d2b || {};
 		return sankey;
 	};
 
+	d2b.math = d2b.MATH = {};
+
+	//  mean, median, mode, midpoint, and range are usefull in hierarchical positioning
+	//  where the position of the parent nodes are relative to their leaf nodes
+	//  by the chosen statistical metric
+
+	d2b.math.mean = function (arr, value, weight) {
+		var totalWeight = 0,
+		    contribution = 0;
+		weight = d3.functor(weight || 1);
+		value = d3.functor(value || function (d) {
+			return d;
+		});
+		arr.filter(function (a) {
+			return !isNaN(d2b.number(weight(a))) && !isNaN(d2b.number(value(a)));
+		}).forEach(function (item) {
+			var w = weight(item),
+			    v = value(item);
+			totalWeight += w;
+			contribution += v * w;
+		});
+		if (arr.length && totalWeight) return contribution / totalWeight;
+	};
+	d2b.math.median = function (arr, value, weight) {
+		weight = d3.functor(weight || 1);
+		value = d3.functor(value || function (d) {
+			return d;
+		});
+
+		var medians = [],
+		    midWeight;
+
+		var newArray = arr.filter(function (a) {
+			return weight(a) !== 0 && !isNaN(d2b.number(weight(a))) && !isNaN(d2b.number(value(a)));
+		}).sort(function (a, b) {
+			return d3.ascending(value(a), value(b));
+		});
+
+		midWeight = Math.round(d3.sum(newArray, function (item) {
+			return weight(item);
+		}) / 2 * 1e12) / 1e12;
+
+		var currentPosition = 0;
+		var getNext = false;
+
+		newArray.forEach(function (item) {
+			if (getNext) {
+				medians.push(value(item));
+				getNext = false;
+			}
+
+			currentPosition += weight(item);
+
+			if (currentPosition === midWeight) {
+				medians.push(value(item));
+				getNext = true;
+			}
+
+			if (currentPosition > midWeight && medians.length === 0) {
+				medians.push(value(item));
+			}
+		});
+
+		if (arr.length) return d2b.MATH.mean(medians);
+	};
+	d2b.math.mode = function (arr, value, weight) {
+		weight = d3.functor(weight || 1);
+		value = d3.functor(value || function (d) {
+			return d;
+		});
+
+		var modes = [],
+		    maxFrequency = 0,
+		    frequencies = {};
+
+		arr.forEach(function (item) {
+			var val = d2b.number(value(item));
+			if (isNaN(value(item))) return;
+			frequencies[val] = frequencies[val] || 0;
+			frequencies[val] += weight(item);
+
+			if (frequencies[val] > maxFrequency) {
+				maxFrequency = frequencies[value(item)];
+				modes = [value(item)];
+			} else if (frequencies[value(item)] == maxFrequency) {
+				modes.push(value(item));
+			}
+		});
+
+		if (arr.length) return d2b.MATH.mean(modes);
+	};
+	d2b.math.midpoint = function (arr, value) {
+		value = d3.functor(value || function (d) {
+			return d;
+		});
+		if (arr.length) return d3.mean(d3.extent(arr, value));
+	};
+	d2b.math.range = function (arr, value) {
+		value = d3.functor(value || function (d) {
+			return d;
+		});
+		var extent = d3.extent(arr, value);
+		if (arr.length) return extent[1] - extent[0];
+	};
+
+	//----
+
+	d2b.math.toRadians = function (angle) {
+		return angle * (Math.PI / 180);
+	};
+	d2b.math.toDegrees = function (angle) {
+		return angle * (180 / Math.PI);
+	};
+
 	/**
    * d2b.model.base() returns a d2b base model.
    *
@@ -5507,6 +5671,576 @@ var d2b = d2b || {};
 
 		return model;
 	};
+
+	// checkbox svg generator
+	d2b.svg.checkbox = function () {
+		var $$ = {};
+
+		var stateChange = function stateChange(d, i) {
+			d.state = !d.state;
+			d3.select(this.parentNode).transition().duration(100).call(checkbox);
+
+			$$.dispatch.change.call(this, d, i);
+		};
+
+		var pad = function pad(elem, size) {
+			var sWidth = strokeWidth(size);
+			elem.attr('transform', "translate(" + sWidth + ", " + sWidth + ")");
+		};
+
+		var strokeWidth = function strokeWidth(size) {
+			return size / 10;
+		};
+
+		var updateRect = function updateRect(rect, size) {
+			var sWidth = strokeWidth(size);
+			rect.style('stroke-width', sWidth + "px").attr('width', size * 0.8).attr('height', size * 0.8).attr('rx', sWidth).attr('ry', sWidth).call(pad, size);
+		};
+
+		var updateText = function updateText(text, size, label) {
+			text.style('font-size', size + "px").text(label).attr('x', size * 1.2).attr('y', size * 0.775).call(pad, size);
+		};
+
+		var updatePath = function updatePath(path, size, state) {
+			var d = "M" + 0.13 * size + "," + 0.40 * size + ("l" + 0.22 * size + "," + 0.24 * size) + ("l" + 0.29 * size + "," + -0.49 * size);
+			var length = 1.1 * size;
+			path.attr('d', d).style('stroke-width', strokeWidth(size) + "px").attr('stroke-dasharray', length).attr('stroke-dashoffset', state ? 0 : length).call(pad, size);
+		};
+
+		var checkbox = function checkbox(g) {
+
+			g.each(function (d, i) {
+				var gg = d3.select(this);
+				var size = $$.size.call(this, d, i),
+				    label = $$.label.call(this, d, i),
+				    state = d.state;
+
+				var container = gg.selectAll('g.d2b-checkbox').data([d]);
+
+				var newContainer = container.enter().append('g').attr('class', 'd2b-checkbox').on('click.d2b-click', stateChange);
+
+				// enter components
+				newContainer.append('rect').call(updateRect, size);
+				newContainer.append('path').call(updatePath, size, state);
+				newContainer.append('text').call(updateText, size, label);
+
+				// update components
+				var update = d3.transition(container);
+				update.select('rect').call(updateRect, size);
+				update.select('path').call(updatePath, size, state);
+				update.select('text').call(updateText, size, label);
+			});
+
+			return checkbox;
+		};
+
+		/* Inherit from base model */
+		var model = d2b.model.base(checkbox, $$).addPropFunctor('size', 12).addPropFunctor('label', function (d) {
+			return d.label;
+		}).addDispatcher(['change']);
+
+		return checkbox;
+	};
+
+	// legend svg generator
+	d2b.svg.legend = function () {
+		var $$ = {};
+
+		var legend = function legend(g) {
+			legend.duration(g.duration ? g.duration() : 0);
+			g.each(function (d) {
+				var el = d3.select(this);
+				legend.selection(el).data(el.datum()).update();
+			});
+		};
+
+		var click = function click(d, i) {
+			var clickable = $$.clickable.call(this, d, i),
+			    allowEmptied = $$.allowEmptied.call(this, d, i);
+
+			if (!clickable) return $$.dispatch.click.call(this, d, i);
+
+			d.empty = !d.empty;
+
+			d3.select(this).transition().duration(100).call(point);
+
+			if (allowEmptied) return $$.dispatch.click.call(this, d, i);
+
+			var allEmpty = true;
+			$$.data.forEach(function (d) {
+				return allEmpty = d.empty ? allEmpty : false;
+			});
+
+			if (allEmpty) {
+				$$.data.forEach(function (d) {
+					return d.empty = false;
+				});
+				legend.generate();
+			}
+
+			$$.dispatch.click.call(this, d, i);
+		};
+
+		var dblclick = function dblclick(d, i) {
+			var dblclickable = $$.dblclickable.call(this, d, i);
+
+			if (!dblclickable) return $$.dispatch.dblclick.call(this, d, i);
+
+			$$.data.forEach(function (d) {
+				return d.empty = true;
+			});
+			d.empty = false;
+
+			legend.generate();
+
+			$$.dispatch.dblclick.call(this, d, i);
+		};
+
+		var point = d2b.svg.point().stroke(function (d, i) {
+			return d3.rgb($$.color.call(this, d, i)).darker(0.3);
+		});
+
+		var update = function update() {
+
+			$$.svg = $$.selection.selectAll('.d2b-legend').data([$$.data]);
+
+			$$.svg.enter().append('g').attr('class', 'd2b-legend');
+
+			$$.svg.item = $$.svg.selectAll('.d2b-legend-item').data(function (d) {
+				return d;
+			}, $$.key);
+
+			var newItem = $$.svg.item.enter().append('g').style('opacity', 0).attr('class', 'd2b-legend-item');
+
+			newItem.append('g').on('click.d2b-legend', click).on('dblclick.d2b-legend', dblclick).on('mouseover.d2b-legend', function (d, i) {
+				$$.dispatch.mouseover.call(this, d, i);
+			}).on('mouseout.d2b-legend', function (d, i) {
+				$$.dispatch.mouseout.call(this, d, i);
+			}).append('text');
+
+			$$.svg.item.style('cursor', function (d, i) {
+				var clickable = $$.clickable.call(this, d, i),
+				    dblclickable = $$.dblclickable.call(this, d, i);
+				return clickable || dblclickable ? 'pointer' : 'auto';
+			}).select('g').attr('transform', "translate(" + $$.size / 2 + ", " + $$.size / 2 + ")").transition().call(point);
+
+			$$.svg.item.select('text').style('font-size', $$.size + "px").attr('transform', "translate(" + $$.size / 1.5 + ", " + $$.size / 3 + ")").call(d2b.textWrap, $$.label, $$.maxTextLength);
+
+			var maxWidth = $$.size + d3.max($$.svg.item[0], function (node) {
+				return itemBox(node).width;
+			});
+
+			var pad = { x: $$.size, y: 5 };
+
+			newItem.call(position[$$.orient], pad, maxWidth);
+
+			var transition = $$.svg.item.transition().duration($$.duration).style('opacity', 1).call(position[$$.orient], pad, maxWidth);
+
+			$$.svg.item.exit().transition().duration($$.duration).style('opacity', 0).remove();
+
+			return legend;
+		};
+
+		var itemBox = function itemBox(node) {
+			var box = d3.select(node).select('text').node().getBBox();
+			box.width += $$.size;
+			return box;
+		};
+
+		var position = {
+			horizontal: function horizontal(transition, pad, maxWidth) {
+				var x = 0,
+				    y = 0,
+				    maxHeight = 0;
+				$$.computedSize = { width: 0, height: 0 };
+				transition.attr('transform', function () {
+					var box = itemBox(this);
+					if (x + maxWidth > $$.maxSize.width) {
+						x = 0;
+						y += maxHeight + pad.y;
+						maxHeight = 0;
+					}
+					var translate = "translate(" + x + ", " + y + ")";
+					maxHeight = Math.max(maxHeight, box.height);
+					$$.computedSize.width = Math.max($$.computedSize.width, x + box.width + 5);
+					x += maxWidth + pad.x;
+					return translate;
+				});
+				$$.computedSize.height = y + maxHeight;
+			},
+			vertical: function vertical(transition, pad) {
+				var x = 0,
+				    y = 0,
+				    maxWidth = 0;
+				$$.computedSize = { width: 0, height: 0 };
+				transition.attr('transform', function () {
+					var box = itemBox(this);
+					if (y + box.height > $$.maxSize.height) {
+						x += maxWidth + pad.x;
+						y = 0;
+						maxWidth = 0;
+					}
+					var translate = "translate(" + x + ", " + y + ")";
+					maxWidth = Math.max(maxWidth, box.width);
+					$$.computedSize.height = Math.max($$.computedSize.height, y + box.height);
+					y += box.height + pad.y;
+					return translate;
+				});
+				$$.computedSize.width = x + maxWidth + 5;
+			}
+		};
+
+		/* Inherit from base model */
+		var model = d2b.model.base(legend, $$).addProp('size', 12, null, function (_) {
+			return point.size(1.5 * Math.pow(_ / 2, 2));
+		}).addProp('strokeWidth', '1px', null, function (_) {
+			return point.strokeWidth(_);
+		}).addProp('maxSize', { width: 960, height: 500 }).addProp('orient', 'vertical').addProp('duration', 500).addProp('maxTextLength', Infinity).addProp('selection', null).addProp('data', [], function (_) {
+			if (!arguments.length) return $$.data;
+			$$.data = _.data || _;
+			return legend;
+		}).addPropFunctor('key', function (d, i) {
+			return i;
+		}).addPropFunctor('active', false, null, function (_) {
+			return point.active(_);
+		}).addPropFunctor('allowEmptied', false).addPropFunctor('clickable', false).addPropFunctor('dblclickable', false).addPropFunctor('label', function (d) {
+			return d.label;
+		}).addPropFunctor('symbol', 'circle', null, function (_) {
+			return point.type(_);
+		}).addPropFunctor('color', function (d) {
+			return d2b.defaultColor(d.label);
+		}, null, function (d) {
+			return point.fill(d);
+		}).addPropFunctor('empty', function (d) {
+			return d.empty;
+		}, null, function (_) {
+			return point.empty(_);
+		}).addMethod('select', function (_) {
+			return d3.select(_);
+		}).addMethod('update', update).addMethod('computedSize', function () {
+			return $$.computedSize;
+		}).addMethod('generate', function (callback) {
+			var duration = $$.duration;
+			legend.duration(0).update(callback).duration(duration);
+		}).addMethod('clear', function () {
+			if ($$.svg && $$.svg.item) {
+				$$.svg.item.transition().duration($$.duration).style('opacity', 0).remove();
+			}
+		}).addDispatcher(['dblclick', 'click', 'mouseover', 'mouseout']);
+
+		return legend;
+	};
+
+	// pie svg generator
+	d2b.svg.pie = function () {
+
+		var $$ = {};
+
+		/* Update Function */
+		var pie = function pie(g) {
+			g.each(function (d, i) {
+				var el = d3.select(this);
+
+				// select arc group and get their old data
+				var arc = el.selectAll('.d2b-pie-arc');
+				var oldData = arc.data();
+
+				arc = arc.data(el.datum(), function (d, i) {
+					return $$.key(d.data, i);
+				});
+
+				var arcEnter = arc.enter().append('g').attr('class', 'd2b-pie-arc'),
+				    arcExit = d3.transition(arc.exit()).remove(),
+				    arcUpdate = d3.transition(arc.order());
+
+				// create path within entered arcs
+				arcEnter.append('path').attr('class', 'd2b-pie-arc-path').attr('fill', function (d, i) {
+					return $$.color.call(this, d.data, i);
+				});
+
+				// retrieve new data
+				var newData = arc.data();
+
+				// for new arcs, find and set the neighboring insertion point
+				arcEnter.each(function (d, i) {
+					var neighbor = findNeighborArc(i, oldData, newData);
+					var arc = d3.select(this);
+					arc.select('.d2b-pie-arc-path').node().current = neighbor;
+				});
+
+				// transition arc path
+				arcUpdate.select('.d2b-pie-arc-path').call(d2b.arcTween, $$.arc).attr('fill', function (d, i) {
+					return $$.color.call(this, d.data, i);
+				});
+
+				// exit arcs through their proper exit position
+				arc.exit().datum(function (d, i) {
+					var data = findNeighborArc(i, newData, oldData);
+					data.data = d.data;
+					return data;
+				});
+				arcExit.select('.d2b-pie-arc-path').call(d2b.arcTween, $$.arc);
+			});
+			return pie;
+		};
+
+		/* Inherit from base model */
+		var model = d2b.model.base(pie, $$).addProp('key', function (d) {
+			return d.label;
+		}).addProp('arc', d3.svg.arc().innerRadius(100).outerRadius(200)).addPropFunctor('color', function (d) {
+			return d2b.defaultColor(d.label);
+		});
+
+		function findNeighborArc(i, data0, data1) {
+			var d = undefined;
+			if (d = findPreceding(i, data0, data1)) {
+				return { startAngle: d.endAngle, endAngle: d.endAngle };
+			} else if (d = findFollowing(i, data0, data1)) {
+				return { startAngle: d.startAngle, endAngle: d.startAngle };
+			}
+			return { startAngle: 0, endAngle: 0 };
+		}
+
+		// Find the element in data0 that joins the highest preceding element in data1.
+		function findPreceding(i, data0, data1) {
+			var m = data0.length;
+			while (--i >= 0) {
+				var k = $$.key(data1[i].data, i);
+				for (var j = 0; j < m; ++j) {
+					if ($$.key(data0[j].data, j) === k) return data0[j];
+				}
+			}
+		}
+
+		// Find the element in data0 that joins the lowest following element in data1.
+		function findFollowing(i, data0, data1) {
+			var n = data1.length,
+			    m = data0.length;
+			while (++i < n) {
+				var k = $$.key(data1[i].data, i);
+				for (var j = 0; j < m; ++j) {
+					if ($$.key(data0[j].data, j) === k) return data0[j];
+				}
+			}
+		}
+
+		return pie;
+	};
+
+	// point svg generator
+	d2b.svg.point = function () {
+
+		var $$ = {};
+
+		/* Update Function */
+		var point = function point(g) {
+			g.each(function (d, i) {
+				var gg = d3.select(this);
+
+				//size, type, fill, stroke, active for this point
+				var size = $$.size.call(this, d, i),
+				    type = $$.type.call(this, d, i),
+				    fill = $$.fill.call(this, d, i),
+				    empty = $$.empty.call(this, d, i),
+				    stroke = $$.stroke.call(this, d, i),
+				    strokeWidth = $$.strokeWidth.call(this, d, i),
+				    active = $$.active.call(this, d, i);
+
+				//set symbol properties
+				symbol.size(size).type(type);
+
+				//background
+				var background = gg.selectAll('path.d2b-point-background').data([d]);
+
+				var backgroundEnter = background.enter().append('path').attr('class', 'd2b-point-background').attr('d', symbol).style('fill', 'rgba(255, 255, 255, 0)').style('stroke', stroke).style('stroke-width', strokeWidth);
+
+				var backgroundUpdate = d3.transition(background).attr('d', symbol).style('stroke', stroke).style('stroke-width', strokeWidth);
+
+				//foreground
+				var foreground = gg.selectAll('path.d2b-point-foreground').data([d]);
+
+				if (empty) symbol.size(size / 3);
+
+				var foregroundEnter = foreground.enter().append('path').attr('class', 'd2b-point-foreground').attr('d', symbol).style('fill', fill).style('stroke', stroke).style('stroke-width', strokeWidth);
+
+				var foregroundUpdate = d3.transition(foreground).attr('d', symbol).style('opacity', empty ? 0 : 1).style('fill', fill).style('stroke', stroke).style('stroke-width', strokeWidth);
+
+				//if active set hover events otherwise unbind them
+				gg.on('mouseover.d2b-point', active ? mouseover : null).on('mouseout.d2b-point', active ? mouseout : null);
+			});
+			return point;
+		};
+
+		/* Inherit from base model */
+		var model = d2b.model.base(point, $$).addPropFunctor('size', 150).addPropFunctor('type', 'circle').addPropFunctor('active', false).addPropFunctor('empty', false).addPropFunctor('fill', 'steelblue').addPropFunctor('stroke', d3.rgb('steelblue').darker(1)).addPropFunctor('strokeWidth', '1px');
+
+		/* Private variables and method */
+		var symbol = d2b.svg.symbol().type($$.type);
+
+		var mouseover = function mouseover(d, i) {
+			var size = $$.size.call(this, d, i),
+			    empty = $$.empty.call(this, d, i),
+			    type = $$.type.call(this, d, i);
+
+			symbol.type(type);
+
+			d3.select(this).select('path.d2b-point-foreground').transition().duration(100).attr('d', symbol.size(empty ? size / 3 : size)).style('opacity', empty ? 0.5 : 1);
+
+			d3.select(this).select('path.d2b-point-background').transition().duration(100).attr('d', symbol.size(empty ? size : 2.5 * size));
+		};
+
+		var mouseout = function mouseout(d, i) {
+			var size = $$.size.call(this, d, i),
+			    empty = $$.empty.call(this, d, i),
+			    type = $$.type.call(this, d, i);
+
+			symbol.type(type);
+
+			d3.select(this).select('path.d2b-point-background').transition().duration(100).attr('d', symbol.size(size));
+
+			d3.select(this).select('path.d2b-point-foreground').transition().duration(100).attr('d', symbol.size(empty ? size / 3 : size)).style('opacity', empty ? 0 : 1);
+		};
+
+		return point;
+	};
+
+	// symbol svg generator
+	d2b.svg.symbol = function () {
+		var $$ = {};
+
+		var symbol = function symbol(d, i) {
+			var type = $$.type.call(this, d, i);
+			var size = $$.size;
+			var symbol = undefined;
+
+			if (d3.svg.symbolTypes.indexOf(type) > -1) {
+				symbol = d3Symbol.type(type).size(size);
+			} else if (d2b.SVG.symbolTypes.indexOf(type) > -1) {
+				symbol = d2b.SVG.symbols[type];
+			} else {
+				symbol = d3Symbol.type('circle').size(size);
+			}
+
+			return symbol($$.size.call(this, d, i));
+		};
+
+		/* Inherit from base model */
+		var model = d2b.model.base(symbol, $$).addPropFunctor('size', 150).addPropFunctor('type', 'circle');
+
+		var d3Symbol = d3.svg.symbol().type($$.type);
+
+		return symbol;
+	};
+
+	d2b.SVG.symbols = {
+		star: function star(size) {
+			var sin36 = Math.sin(d2b.MATH.toRadians(36));
+			var cos36 = Math.cos(d2b.MATH.toRadians(36));
+
+			var sin54 = Math.sin(d2b.MATH.toRadians(54));
+			var cos54 = Math.cos(d2b.MATH.toRadians(54));
+
+			var sin18 = Math.sin(d2b.MATH.toRadians(18));
+			var cos18 = Math.cos(d2b.MATH.toRadians(18));
+			var tan18 = Math.tan(d2b.MATH.toRadians(18));
+
+			var r = Math.sqrt(size / (5 * cos36 * (sin36 + cos36 / tan18)));
+			var r2 = r * sin36 + r * cos36 / tan18;
+
+			return "M" + 0 + "," + -r2 + "L" + r * cos54 + "," + -r * sin54 + " " + r2 * cos18 + "," + -r2 * sin18 + " " + r * cos18 + "," + r * sin18 + " " + r2 * sin36 + "," + r2 * cos36 + " " + 0 + "," + r + " " + -r2 * sin36 + "," + r2 * cos36 + " " + -r * cos18 + "," + r * sin18 + " " + -r2 * cos18 + "," + -r2 * sin18 + " " + -r * cos54 + "," + -r * sin54 + " " + 0 + "," + -r2 + "Z";
+		},
+		mars: function mars(size) {
+			var r = Math.sqrt(size / (Math.PI + 5 / 4));
+			var sqrt8 = Math.sqrt(8);
+			var sqrt2 = Math.sqrt(2);
+			var s = 0.3125 * r;
+
+			return "M" + r / sqrt8 + "," + 0 + "A" + r + "," + r + " 0 1,1 " + 0 + "," + -r / sqrt8 + "L" + r * (5 / 4 - 1 / sqrt2) + "," + -r * (1 / sqrt8 + 5 / 4 - 1 / sqrt2) + " " + (r * (5 / 4 - 1 / sqrt2) - s) + "," + -r * (1 / sqrt8 + 5 / 4 - 1 / sqrt2) + " " + (r * (5 / 4 - 1 / sqrt2) - s) + "," + -r * (1 / sqrt8 + 7 / 4 - 1 / sqrt2) + " " + r * (7 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + -r * (1 / sqrt8 + 7 / 4 - 1 / sqrt2) + " " + r * (7 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + (-r * (5 / 4 - 1 / sqrt2) + s) + " " + r * (5 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + (-r * (5 / 4 - 1 / sqrt2) + s) + " " + r * (5 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + -r * (5 / 4 - 1 / sqrt2) + "Z";
+		},
+		venus: function venus(size) {
+			var r = Math.sqrt(size / (Math.PI + 5 / 4));
+
+			//center point is at ~ 3/4*r down from the center of the circle
+
+			return "M" + -r / 4 + "," + r / 4 + "A" + r + "," + r + " 0 1,1 " + r / 4 + "," + r / 4 + "L" + r / 4 + "," + 3 * r / 4 + " " + r * 3 / 4 + "," + 3 * r / 4 + " " + r * 3 / 4 + "," + 5 * r / 4 + " " + r / 4 + "," + 5 * r / 4 + " " + r / 4 + "," + 7 * r / 4 + " " + -r / 4 + "," + 7 * r / 4 + " " + -r / 4 + "," + 5 * r / 4 + " " + -r * 3 / 4 + "," + 5 * r / 4 + " " + -r * 3 / 4 + "," + 3 * r / 4 + " " + -r / 4 + "," + 3 * r / 4 + "Z";
+		},
+		// asterisk: function(size){
+		//   //TODO
+		//   const l = Math.sqrt(size/11.7043);
+		//   const sqrt_3 = Math.sqrt(3);
+		//   const s = l*sqrt_3/2;
+		//   const sqrt_8 = Math.sqrt(8);
+		//
+		//   const current = {x:0,y:0}
+		//
+		//   return "M" + (current.x -= l/2) +","+ (current.y -= s)
+		//         +"L" + current.x +","+ (current.y -= l)
+		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += 1/4) +","+ (current.y -= l/4)
+		//         +"L" + (current.x += l/2) +","+ current.y
+		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += 1/4) +","+ (current.y += l/4)
+		//         +"L" + current.x +","+ (current.y += l)
+		//         +" " + (current.x += l*sqrt_3/2) +","+ (current.y -= l/2)
+		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += l*sqrt_3/(2*sqrt_8)) +","+ (current.y += l/(2*sqrt_8))
+		//         +"L" + (current.x += l/4) +","+ (current.y += l*sqrt_3/4)
+		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x -= l/(2*sqrt_8)) +","+ (current.y += l*sqrt_3/(2*sqrt_8))
+		//
+		//         +"L" + 0 +","+ 100
+		//         +"Z";
+		// },
+		close: function close(size) {
+			var r = Math.sqrt(size / 5); // border length of each side
+			var r2 = Math.sqrt(r * r / 2); // small side of intersecting triangle for each far point
+			var r3 = Math.sqrt(1 / 2) * r; // from center to the close intersection point
+			var r4 = r2 + r3; // long side of intersecting triangle for each far point
+
+			return "M" + 0 + "," + -r3 + "L" + r2 + "," + -r4 + " " + r4 + "," + -r2 + " " + r3 + "," + 0 + " " + r4 + "," + r2 + " " + r2 + "," + r4 + " " + 0 + "," + r3 + " " + -r2 + "," + r4 + " " + -r4 + "," + r2 + " " + -r3 + "," + 0 + " " + -r4 + "," + -r2 + " " + -r2 + "," + -r4 + " " + 0 + "," + -r3 + "Z";
+		},
+		hexagon: function hexagon(size) {
+			var s = Math.sqrt(size * 2 / (3 * Math.sqrt(3)));
+			var moveX = Math.cos(d2b.MATH.toRadians(30)) * s;
+			var moveY = Math.sin(d2b.MATH.toRadians(30)) * s;
+
+			return "M" + 0 + "," + -s + "L" + moveX + "," + -moveY + " " + moveX + "," + moveY + " " + 0 + "," + s + " " + -moveX + "," + moveY + " " + -moveX + "," + -moveY + "Z";
+		},
+		"rect-horizontal": function rectHorizontal(size) {
+			var sideRatio = 3; // 3 to 1
+			var r = Math.sqrt(size / sideRatio);
+			var r2 = r * sideRatio;
+
+			return "M" + -r2 / 2 + "," + -r / 2 + "L" + r2 / 2 + "," + -r / 2 + " " + r2 / 2 + "," + r / 2 + " " + -r2 / 2 + "," + r / 2 + "Z";
+		},
+		"rect-vertical": function rectVertical(size) {
+			var sideRatio = 1 / 3; // 1 to 3
+			var r = Math.sqrt(size / sideRatio);
+			var r2 = r * sideRatio;
+
+			return "M" + -r2 / 2 + "," + -r / 2 + "L" + r2 / 2 + "," + -r / 2 + " " + r2 / 2 + "," + r / 2 + " " + -r2 / 2 + "," + r / 2 + "Z";
+		},
+		"arrow-right": function arrowRight(size) {
+			var r = Math.sqrt(4 / 5 * size);
+
+			return "M" + -r + "," + -r / 4 + "L" + 0 + "," + -r / 4 + " " + 0 + "," + -3 * r / 4 + " " + r + "," + 0 + " " + 0 + "," + 3 * r / 4 + " " + 0 + "," + r / 4 + " " + -r + "," + r / 4 + "Z";
+		},
+		"arrow-left": function arrowLeft(size) {
+			var r = Math.sqrt(4 / 5 * size);
+
+			return "M" + r + "," + -r / 4 + "L" + 0 + "," + -r / 4 + " " + 0 + "," + -3 * r / 4 + " " + -r + "," + 0 + " " + 0 + "," + 3 * r / 4 + " " + 0 + "," + r / 4 + " " + r + "," + r / 4 + "Z";
+		},
+		"arrow-up": function arrowUp(size) {
+			var r = Math.sqrt(4 / 5 * size);
+
+			return "M" + -r / 4 + "," + r + "L" + -r / 4 + "," + 0 + " " + -3 * r / 4 + "," + 0 + " " + 0 + "," + -r + " " + 3 * r / 4 + "," + 0 + " " + r / 4 + "," + 0 + " " + r / 4 + "," + r + "Z";
+		},
+		"arrow-down": function arrowDown(size) {
+			var r = Math.sqrt(4 / 5 * size);
+
+			return "M" + -r / 4 + "," + -r + "L" + -r / 4 + "," + 0 + " " + -3 * r / 4 + "," + 0 + " " + 0 + "," + r + " " + 3 * r / 4 + "," + 0 + " " + r / 4 + "," + 0 + " " + r / 4 + "," + -r + "Z";
+		}
+
+	};
+
+	d2b.svg.symbolTypes = d3.svg.symbolTypes.concat(["star", "close", //"asterisk",
+	"rect-horizontal", "rect-vertical", "arrow-right", "arrow-left", "arrow-up", "arrow-down", "venus", "mars", "hexagon"]);
 
 	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -6005,434 +6739,6 @@ var d2b = d2b || {};
 		return axis;
 	};
 
-	d2b.svg.checkbox = function () {
-		var $$ = {};
-
-		var stateChange = function stateChange(d, i) {
-			d.state = !d.state;
-			d3.select(this.parentNode).transition().duration(100).call(checkbox);
-
-			$$.dispatch.change.call(this, d, i);
-		};
-
-		var pad = function pad(elem, size) {
-			var sWidth = strokeWidth(size);
-			elem.attr('transform', "translate(" + sWidth + ", " + sWidth + ")");
-		};
-
-		var strokeWidth = function strokeWidth(size) {
-			return size / 10;
-		};
-
-		var updateRect = function updateRect(rect, size) {
-			var sWidth = strokeWidth(size);
-			rect.style('stroke-width', sWidth + "px").attr('width', size * 0.8).attr('height', size * 0.8).attr('rx', sWidth).attr('ry', sWidth).call(pad, size);
-		};
-
-		var updateText = function updateText(text, size, label) {
-			text.style('font-size', size + "px").text(label).attr('x', size * 1.2).attr('y', size * 0.775).call(pad, size);
-		};
-
-		var updatePath = function updatePath(path, size, state) {
-			var d = "M" + 0.13 * size + "," + 0.40 * size + ("l" + 0.22 * size + "," + 0.24 * size) + ("l" + 0.29 * size + "," + -0.49 * size);
-			var length = 1.1 * size;
-			path.attr('d', d).style('stroke-width', strokeWidth(size) + "px").attr('stroke-dasharray', length).attr('stroke-dashoffset', state ? 0 : length).call(pad, size);
-		};
-
-		var checkbox = function checkbox(g) {
-
-			g.each(function (d, i) {
-				var gg = d3.select(this);
-				var size = $$.size.call(this, d, i),
-				    label = $$.label.call(this, d, i),
-				    state = d.state;
-
-				var container = gg.selectAll('g.d2b-checkbox').data([d]);
-
-				var newContainer = container.enter().append('g').attr('class', 'd2b-checkbox').on('click.d2b-click', stateChange);
-
-				// enter components
-				newContainer.append('rect').call(updateRect, size);
-				newContainer.append('path').call(updatePath, size, state);
-				newContainer.append('text').call(updateText, size, label);
-
-				// update components
-				var update = d3.transition(container);
-				update.select('rect').call(updateRect, size);
-				update.select('path').call(updatePath, size, state);
-				update.select('text').call(updateText, size, label);
-			});
-
-			return checkbox;
-		};
-
-		/* Inherit from base model */
-		var model = d2b.model.base(checkbox, $$).addPropFunctor('size', 12).addPropFunctor('label', function (d) {
-			return d.label;
-		}).addDispatcher(['change']);
-
-		return checkbox;
-	};
-
-	d2b.svg.legend = function () {
-		var $$ = {};
-
-		var legend = function legend(g) {
-			legend.duration(g.duration ? g.duration() : 0);
-			g.each(function (d) {
-				var el = d3.select(this);
-				legend.selection(el).data(el.datum()).update();
-			});
-		};
-
-		var click = function click(d, i) {
-			var clickable = $$.clickable.call(this, d, i),
-			    allowEmptied = $$.allowEmptied.call(this, d, i);
-
-			if (!clickable) return $$.dispatch.click.call(this, d, i);
-
-			d.empty = !d.empty;
-
-			d3.select(this).transition().duration(100).call(point);
-
-			if (allowEmptied) return $$.dispatch.click.call(this, d, i);
-
-			var allEmpty = true;
-			$$.data.forEach(function (d) {
-				return allEmpty = d.empty ? allEmpty : false;
-			});
-
-			if (allEmpty) {
-				$$.data.forEach(function (d) {
-					return d.empty = false;
-				});
-				legend.generate();
-			}
-
-			$$.dispatch.click.call(this, d, i);
-		};
-
-		var dblclick = function dblclick(d, i) {
-			var dblclickable = $$.dblclickable.call(this, d, i);
-
-			if (!dblclickable) return $$.dispatch.dblclick.call(this, d, i);
-
-			$$.data.forEach(function (d) {
-				return d.empty = true;
-			});
-			d.empty = false;
-
-			legend.generate();
-
-			$$.dispatch.dblclick.call(this, d, i);
-		};
-
-		var point = d2b.svg.point().stroke(function (d, i) {
-			return d3.rgb($$.color.call(this, d, i)).darker(0.3);
-		});
-
-		var update = function update() {
-
-			$$.svg = $$.selection.selectAll('.d2b-legend').data([$$.data]);
-
-			$$.svg.enter().append('g').attr('class', 'd2b-legend');
-
-			$$.svg.item = $$.svg.selectAll('.d2b-legend-item').data(function (d) {
-				return d;
-			}, $$.key);
-
-			var newItem = $$.svg.item.enter().append('g').style('opacity', 0).attr('class', 'd2b-legend-item');
-
-			newItem.append('g').on('click.d2b-legend', click).on('dblclick.d2b-legend', dblclick).on('mouseover.d2b-legend', function (d, i) {
-				$$.dispatch.mouseover.call(this, d, i);
-			}).on('mouseout.d2b-legend', function (d, i) {
-				$$.dispatch.mouseout.call(this, d, i);
-			}).append('text');
-
-			$$.svg.item.style('cursor', function (d, i) {
-				var clickable = $$.clickable.call(this, d, i),
-				    dblclickable = $$.dblclickable.call(this, d, i);
-				return clickable || dblclickable ? 'pointer' : 'auto';
-			}).select('g').attr('transform', "translate(" + $$.size / 2 + ", " + $$.size / 2 + ")").transition().call(point);
-
-			$$.svg.item.select('text').style('font-size', $$.size + "px").attr('transform', "translate(" + $$.size / 1.5 + ", " + $$.size / 3 + ")").call(d2b.textWrap, $$.label, $$.maxTextLength);
-
-			var maxWidth = $$.size + d3.max($$.svg.item[0], function (node) {
-				return itemBox(node).width;
-			});
-
-			var pad = { x: $$.size, y: 5 };
-
-			newItem.call(position[$$.orient], pad, maxWidth);
-
-			var transition = $$.svg.item.transition().duration($$.duration).style('opacity', 1).call(position[$$.orient], pad, maxWidth);
-
-			$$.svg.item.exit().transition().duration($$.duration).style('opacity', 0).remove();
-
-			return legend;
-		};
-
-		var itemBox = function itemBox(node) {
-			var box = d3.select(node).select('text').node().getBBox();
-			box.width += $$.size;
-			return box;
-		};
-
-		var position = {
-			horizontal: function horizontal(transition, pad, maxWidth) {
-				var x = 0,
-				    y = 0,
-				    maxHeight = 0;
-				$$.computedSize = { width: 0, height: 0 };
-				transition.attr('transform', function () {
-					var box = itemBox(this);
-					if (x + maxWidth > $$.maxSize.width) {
-						x = 0;
-						y += maxHeight + pad.y;
-						maxHeight = 0;
-					}
-					var translate = "translate(" + x + ", " + y + ")";
-					maxHeight = Math.max(maxHeight, box.height);
-					$$.computedSize.width = Math.max($$.computedSize.width, x + box.width + 5);
-					x += maxWidth + pad.x;
-					return translate;
-				});
-				$$.computedSize.height = y + maxHeight;
-			},
-			vertical: function vertical(transition, pad) {
-				var x = 0,
-				    y = 0,
-				    maxWidth = 0;
-				$$.computedSize = { width: 0, height: 0 };
-				transition.attr('transform', function () {
-					var box = itemBox(this);
-					if (y + box.height > $$.maxSize.height) {
-						x += maxWidth + pad.x;
-						y = 0;
-						maxWidth = 0;
-					}
-					var translate = "translate(" + x + ", " + y + ")";
-					maxWidth = Math.max(maxWidth, box.width);
-					$$.computedSize.height = Math.max($$.computedSize.height, y + box.height);
-					y += box.height + pad.y;
-					return translate;
-				});
-				$$.computedSize.width = x + maxWidth + 5;
-			}
-		};
-
-		/* Inherit from base model */
-		var model = d2b.model.base(legend, $$).addProp('size', 12, null, function (_) {
-			return point.size(1.5 * Math.pow(_ / 2, 2));
-		}).addProp('strokeWidth', '1px', null, function (_) {
-			return point.strokeWidth(_);
-		}).addProp('maxSize', { width: 960, height: 500 }).addProp('orient', 'vertical').addProp('duration', 500).addProp('maxTextLength', Infinity).addProp('selection', null).addProp('data', [], function (_) {
-			if (!arguments.length) return $$.data;
-			$$.data = _.data || _;
-			return legend;
-		}).addPropFunctor('key', function (d, i) {
-			return i;
-		}).addPropFunctor('active', false, null, function (_) {
-			return point.active(_);
-		}).addPropFunctor('allowEmptied', false).addPropFunctor('clickable', false).addPropFunctor('dblclickable', false).addPropFunctor('label', function (d) {
-			return d.label;
-		}).addPropFunctor('symbol', 'circle', null, function (_) {
-			return point.type(_);
-		}).addPropFunctor('color', function (d) {
-			return d2b.defaultColor(d.label);
-		}, null, function (d) {
-			return point.fill(d);
-		}).addPropFunctor('empty', function (d) {
-			return d.empty;
-		}, null, function (_) {
-			return point.empty(_);
-		}).addMethod('select', function (_) {
-			return d3.select(_);
-		}).addMethod('update', update).addMethod('computedSize', function () {
-			return $$.computedSize;
-		}).addMethod('generate', function (callback) {
-			var duration = $$.duration;
-			legend.duration(0).update(callback).duration(duration);
-		}).addMethod('clear', function () {
-			if ($$.svg && $$.svg.item) {
-				$$.svg.item.transition().duration($$.duration).style('opacity', 0).remove();
-			}
-		}).addDispatcher(['dblclick', 'click', 'mouseover', 'mouseout']);
-
-		return legend;
-	};
-
-	d2b.svg.pie = function () {
-
-		var $$ = {};
-
-		/* Update Function */
-		var pie = function pie(g) {
-			g.each(function (d, i) {
-				var el = d3.select(this);
-
-				// select arc group and get their old data
-				var arc = el.selectAll('.d2b-pie-arc');
-				var oldData = arc.data();
-
-				arc = arc.data(el.datum(), function (d, i) {
-					return $$.key(d.data, i);
-				});
-
-				var arcEnter = arc.enter().append('g').attr('class', 'd2b-pie-arc'),
-				    arcExit = d3.transition(arc.exit()).remove(),
-				    arcUpdate = d3.transition(arc.order());
-
-				// create path within entered arcs
-				arcEnter.append('path').attr('class', 'd2b-pie-arc-path').attr('fill', function (d, i) {
-					return $$.color.call(this, d.data, i);
-				});
-
-				// retrieve new data
-				var newData = arc.data();
-
-				// for new arcs, find and set the neighboring insertion point
-				arcEnter.each(function (d, i) {
-					var neighbor = findNeighborArc(i, oldData, newData);
-					var arc = d3.select(this);
-					arc.select('.d2b-pie-arc-path').node().current = neighbor;
-				});
-
-				// transition arc path
-				arcUpdate.select('.d2b-pie-arc-path').call(d2b.arcTween, $$.arc).attr('fill', function (d, i) {
-					return $$.color.call(this, d.data, i);
-				});
-
-				// exit arcs through their proper exit position
-				arc.exit().datum(function (d, i) {
-					var data = findNeighborArc(i, newData, oldData);
-					data.data = d.data;
-					return data;
-				});
-				arcExit.select('.d2b-pie-arc-path').call(d2b.arcTween, $$.arc);
-			});
-			return pie;
-		};
-
-		/* Inherit from base model */
-		var model = d2b.model.base(pie, $$).addProp('key', function (d) {
-			return d.label;
-		}).addProp('arc', d3.svg.arc().innerRadius(100).outerRadius(200)).addPropFunctor('color', function (d) {
-			return d2b.defaultColor(d.label);
-		});
-
-		function findNeighborArc(i, data0, data1) {
-			var d = undefined;
-			if (d = findPreceding(i, data0, data1)) {
-				return { startAngle: d.endAngle, endAngle: d.endAngle };
-			} else if (d = findFollowing(i, data0, data1)) {
-				return { startAngle: d.startAngle, endAngle: d.startAngle };
-			}
-			return { startAngle: 0, endAngle: 0 };
-		}
-
-		// Find the element in data0 that joins the highest preceding element in data1.
-		function findPreceding(i, data0, data1) {
-			var m = data0.length;
-			while (--i >= 0) {
-				var k = $$.key(data1[i].data, i);
-				for (var j = 0; j < m; ++j) {
-					if ($$.key(data0[j].data, j) === k) return data0[j];
-				}
-			}
-		}
-
-		// Find the element in data0 that joins the lowest following element in data1.
-		function findFollowing(i, data0, data1) {
-			var n = data1.length,
-			    m = data0.length;
-			while (++i < n) {
-				var k = $$.key(data1[i].data, i);
-				for (var j = 0; j < m; ++j) {
-					if ($$.key(data0[j].data, j) === k) return data0[j];
-				}
-			}
-		}
-
-		return pie;
-	};
-
-	d2b.svg.point = function () {
-
-		var $$ = {};
-
-		/* Update Function */
-		var point = function point(g) {
-			g.each(function (d, i) {
-				var gg = d3.select(this);
-
-				//size, type, fill, stroke, active for this point
-				var size = $$.size.call(this, d, i),
-				    type = $$.type.call(this, d, i),
-				    fill = $$.fill.call(this, d, i),
-				    empty = $$.empty.call(this, d, i),
-				    stroke = $$.stroke.call(this, d, i),
-				    strokeWidth = $$.strokeWidth.call(this, d, i),
-				    active = $$.active.call(this, d, i);
-
-				//set symbol properties
-				symbol.size(size).type(type);
-
-				//background
-				var background = gg.selectAll('path.d2b-point-background').data([d]);
-
-				var backgroundEnter = background.enter().append('path').attr('class', 'd2b-point-background').attr('d', symbol).style('fill', 'rgba(255, 255, 255, 0)').style('stroke', stroke).style('stroke-width', strokeWidth);
-
-				var backgroundUpdate = d3.transition(background).attr('d', symbol).style('stroke', stroke).style('stroke-width', strokeWidth);
-
-				//foreground
-				var foreground = gg.selectAll('path.d2b-point-foreground').data([d]);
-
-				if (empty) symbol.size(size / 3);
-
-				var foregroundEnter = foreground.enter().append('path').attr('class', 'd2b-point-foreground').attr('d', symbol).style('fill', fill).style('stroke', stroke).style('stroke-width', strokeWidth);
-
-				var foregroundUpdate = d3.transition(foreground).attr('d', symbol).style('opacity', empty ? 0 : 1).style('fill', fill).style('stroke', stroke).style('stroke-width', strokeWidth);
-
-				//if active set hover events otherwise unbind them
-				gg.on('mouseover.d2b-point', active ? mouseover : null).on('mouseout.d2b-point', active ? mouseout : null);
-			});
-			return point;
-		};
-
-		/* Inherit from base model */
-		var model = d2b.model.base(point, $$).addPropFunctor('size', 150).addPropFunctor('type', 'circle').addPropFunctor('active', false).addPropFunctor('empty', false).addPropFunctor('fill', 'steelblue').addPropFunctor('stroke', d3.rgb('steelblue').darker(1)).addPropFunctor('strokeWidth', '1px');
-
-		/* Private variables and method */
-		var symbol = d2b.svg.symbol().type($$.type);
-
-		var mouseover = function mouseover(d, i) {
-			var size = $$.size.call(this, d, i),
-			    empty = $$.empty.call(this, d, i),
-			    type = $$.type.call(this, d, i);
-
-			symbol.type(type);
-
-			d3.select(this).select('path.d2b-point-foreground').transition().duration(100).attr('d', symbol.size(empty ? size / 3 : size)).style('opacity', empty ? 0.5 : 1);
-
-			d3.select(this).select('path.d2b-point-background').transition().duration(100).attr('d', symbol.size(empty ? size : 2.5 * size));
-		};
-
-		var mouseout = function mouseout(d, i) {
-			var size = $$.size.call(this, d, i),
-			    empty = $$.empty.call(this, d, i),
-			    type = $$.type.call(this, d, i);
-
-			symbol.type(type);
-
-			d3.select(this).select('path.d2b-point-background').transition().duration(100).attr('d', symbol.size(size));
-
-			d3.select(this).select('path.d2b-point-foreground').transition().duration(100).attr('d', symbol.size(empty ? size / 3 : size)).style('opacity', empty ? 0 : 1);
-		};
-
-		return point;
-	};
-
 	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
 	d2b.SVG.point = function () {
@@ -6554,143 +6860,6 @@ var d2b = d2b || {};
 		};
 		return point;
 	};
-
-	d2b.svg.symbol = function () {
-		var $$ = {};
-
-		var symbol = function symbol(d, i) {
-			var type = $$.type.call(this, d, i);
-			var size = $$.size;
-			var symbol = undefined;
-
-			if (d3.svg.symbolTypes.indexOf(type) > -1) {
-				symbol = d3Symbol.type(type).size(size);
-			} else if (d2b.SVG.symbolTypes.indexOf(type) > -1) {
-				symbol = d2b.SVG.symbols[type];
-			} else {
-				symbol = d3Symbol.type('circle').size(size);
-			}
-
-			return symbol($$.size.call(this, d, i));
-		};
-
-		/* Inherit from base model */
-		var model = d2b.model.base(symbol, $$).addPropFunctor('size', 150).addPropFunctor('type', 'circle');
-
-		var d3Symbol = d3.svg.symbol().type($$.type);
-
-		return symbol;
-	};
-
-	d2b.SVG.symbols = {
-		star: function star(size) {
-			var sin36 = Math.sin(d2b.MATH.toRadians(36));
-			var cos36 = Math.cos(d2b.MATH.toRadians(36));
-
-			var sin54 = Math.sin(d2b.MATH.toRadians(54));
-			var cos54 = Math.cos(d2b.MATH.toRadians(54));
-
-			var sin18 = Math.sin(d2b.MATH.toRadians(18));
-			var cos18 = Math.cos(d2b.MATH.toRadians(18));
-			var tan18 = Math.tan(d2b.MATH.toRadians(18));
-
-			var r = Math.sqrt(size / (5 * cos36 * (sin36 + cos36 / tan18)));
-			var r2 = r * sin36 + r * cos36 / tan18;
-
-			return "M" + 0 + "," + -r2 + "L" + r * cos54 + "," + -r * sin54 + " " + r2 * cos18 + "," + -r2 * sin18 + " " + r * cos18 + "," + r * sin18 + " " + r2 * sin36 + "," + r2 * cos36 + " " + 0 + "," + r + " " + -r2 * sin36 + "," + r2 * cos36 + " " + -r * cos18 + "," + r * sin18 + " " + -r2 * cos18 + "," + -r2 * sin18 + " " + -r * cos54 + "," + -r * sin54 + " " + 0 + "," + -r2 + "Z";
-		},
-		mars: function mars(size) {
-			var r = Math.sqrt(size / (Math.PI + 5 / 4));
-			var sqrt8 = Math.sqrt(8);
-			var sqrt2 = Math.sqrt(2);
-			var s = 0.3125 * r;
-
-			return "M" + r / sqrt8 + "," + 0 + "A" + r + "," + r + " 0 1,1 " + 0 + "," + -r / sqrt8 + "L" + r * (5 / 4 - 1 / sqrt2) + "," + -r * (1 / sqrt8 + 5 / 4 - 1 / sqrt2) + " " + (r * (5 / 4 - 1 / sqrt2) - s) + "," + -r * (1 / sqrt8 + 5 / 4 - 1 / sqrt2) + " " + (r * (5 / 4 - 1 / sqrt2) - s) + "," + -r * (1 / sqrt8 + 7 / 4 - 1 / sqrt2) + " " + r * (7 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + -r * (1 / sqrt8 + 7 / 4 - 1 / sqrt2) + " " + r * (7 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + (-r * (5 / 4 - 1 / sqrt2) + s) + " " + r * (5 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + (-r * (5 / 4 - 1 / sqrt2) + s) + " " + r * (5 / 4 - 1 / sqrt2 + 1 / sqrt8) + "," + -r * (5 / 4 - 1 / sqrt2) + "Z";
-		},
-		venus: function venus(size) {
-			var r = Math.sqrt(size / (Math.PI + 5 / 4));
-
-			//center point is at ~ 3/4*r down from the center of the circle
-
-			return "M" + -r / 4 + "," + r / 4 + "A" + r + "," + r + " 0 1,1 " + r / 4 + "," + r / 4 + "L" + r / 4 + "," + 3 * r / 4 + " " + r * 3 / 4 + "," + 3 * r / 4 + " " + r * 3 / 4 + "," + 5 * r / 4 + " " + r / 4 + "," + 5 * r / 4 + " " + r / 4 + "," + 7 * r / 4 + " " + -r / 4 + "," + 7 * r / 4 + " " + -r / 4 + "," + 5 * r / 4 + " " + -r * 3 / 4 + "," + 5 * r / 4 + " " + -r * 3 / 4 + "," + 3 * r / 4 + " " + -r / 4 + "," + 3 * r / 4 + "Z";
-		},
-		// asterisk: function(size){
-		//   //TODO
-		//   const l = Math.sqrt(size/11.7043);
-		//   const sqrt_3 = Math.sqrt(3);
-		//   const s = l*sqrt_3/2;
-		//   const sqrt_8 = Math.sqrt(8);
-		//
-		//   const current = {x:0,y:0}
-		//
-		//   return "M" + (current.x -= l/2) +","+ (current.y -= s)
-		//         +"L" + current.x +","+ (current.y -= l)
-		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += 1/4) +","+ (current.y -= l/4)
-		//         +"L" + (current.x += l/2) +","+ current.y
-		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += 1/4) +","+ (current.y += l/4)
-		//         +"L" + current.x +","+ (current.y += l)
-		//         +" " + (current.x += l*sqrt_3/2) +","+ (current.y -= l/2)
-		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x += l*sqrt_3/(2*sqrt_8)) +","+ (current.y += l/(2*sqrt_8))
-		//         +"L" + (current.x += l/4) +","+ (current.y += l*sqrt_3/4)
-		//         +"A" + l/4 +","+ l/4 +" 0 0,1 "+ (current.x -= l/(2*sqrt_8)) +","+ (current.y += l*sqrt_3/(2*sqrt_8))
-		//
-		//         +"L" + 0 +","+ 100
-		//         +"Z";
-		// },
-		close: function close(size) {
-			var r = Math.sqrt(size / 5); // border length of each side
-			var r2 = Math.sqrt(r * r / 2); // small side of intersecting triangle for each far point
-			var r3 = Math.sqrt(1 / 2) * r; // from center to the close intersection point
-			var r4 = r2 + r3; // long side of intersecting triangle for each far point
-
-			return "M" + 0 + "," + -r3 + "L" + r2 + "," + -r4 + " " + r4 + "," + -r2 + " " + r3 + "," + 0 + " " + r4 + "," + r2 + " " + r2 + "," + r4 + " " + 0 + "," + r3 + " " + -r2 + "," + r4 + " " + -r4 + "," + r2 + " " + -r3 + "," + 0 + " " + -r4 + "," + -r2 + " " + -r2 + "," + -r4 + " " + 0 + "," + -r3 + "Z";
-		},
-		hexagon: function hexagon(size) {
-			var s = Math.sqrt(size * 2 / (3 * Math.sqrt(3)));
-			var moveX = Math.cos(d2b.MATH.toRadians(30)) * s;
-			var moveY = Math.sin(d2b.MATH.toRadians(30)) * s;
-
-			return "M" + 0 + "," + -s + "L" + moveX + "," + -moveY + " " + moveX + "," + moveY + " " + 0 + "," + s + " " + -moveX + "," + moveY + " " + -moveX + "," + -moveY + "Z";
-		},
-		"rect-horizontal": function rectHorizontal(size) {
-			var sideRatio = 3; // 3 to 1
-			var r = Math.sqrt(size / sideRatio);
-			var r2 = r * sideRatio;
-
-			return "M" + -r2 / 2 + "," + -r / 2 + "L" + r2 / 2 + "," + -r / 2 + " " + r2 / 2 + "," + r / 2 + " " + -r2 / 2 + "," + r / 2 + "Z";
-		},
-		"rect-vertical": function rectVertical(size) {
-			var sideRatio = 1 / 3; // 1 to 3
-			var r = Math.sqrt(size / sideRatio);
-			var r2 = r * sideRatio;
-
-			return "M" + -r2 / 2 + "," + -r / 2 + "L" + r2 / 2 + "," + -r / 2 + " " + r2 / 2 + "," + r / 2 + " " + -r2 / 2 + "," + r / 2 + "Z";
-		},
-		"arrow-right": function arrowRight(size) {
-			var r = Math.sqrt(4 / 5 * size);
-
-			return "M" + -r + "," + -r / 4 + "L" + 0 + "," + -r / 4 + " " + 0 + "," + -3 * r / 4 + " " + r + "," + 0 + " " + 0 + "," + 3 * r / 4 + " " + 0 + "," + r / 4 + " " + -r + "," + r / 4 + "Z";
-		},
-		"arrow-left": function arrowLeft(size) {
-			var r = Math.sqrt(4 / 5 * size);
-
-			return "M" + r + "," + -r / 4 + "L" + 0 + "," + -r / 4 + " " + 0 + "," + -3 * r / 4 + " " + -r + "," + 0 + " " + 0 + "," + 3 * r / 4 + " " + 0 + "," + r / 4 + " " + r + "," + r / 4 + "Z";
-		},
-		"arrow-up": function arrowUp(size) {
-			var r = Math.sqrt(4 / 5 * size);
-
-			return "M" + -r / 4 + "," + r + "L" + -r / 4 + "," + 0 + " " + -3 * r / 4 + "," + 0 + " " + 0 + "," + -r + " " + 3 * r / 4 + "," + 0 + " " + r / 4 + "," + 0 + " " + r / 4 + "," + r + "Z";
-		},
-		"arrow-down": function arrowDown(size) {
-			var r = Math.sqrt(4 / 5 * size);
-
-			return "M" + -r / 4 + "," + -r + "L" + -r / 4 + "," + 0 + " " + -3 * r / 4 + "," + 0 + " " + 0 + "," + r + " " + 3 * r / 4 + "," + 0 + " " + r / 4 + "," + 0 + " " + r / 4 + "," + -r + "Z";
-		}
-
-	};
-
-	d2b.svg.symbolTypes = d3.svg.symbolTypes.concat(["star", "close", //"asterisk",
-	"rect-horizontal", "rect-vertical", "arrow-right", "arrow-left", "arrow-up", "arrow-down", "venus", "mars", "hexagon"]);
 
 	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -7178,6 +7347,501 @@ var d2b = d2b || {};
 		};
 
 		return tooltip;
+	};
+
+	d2b.defaultColor = d3.scale.category10();
+
+	d2b.id = function () {
+		return Math.random().toString(36).substr(2, 9);
+	};
+
+	/**
+  *   This 'loader' will instantiate a multi-file loader. It is used to avoid
+  *   duplicate (redundant) file requests and process multiple file requests
+  *   asynchronously.
+ */
+	d2b.UTILS.loader = function () {
+
+		var $$ = {};
+
+		// keep track of how many file loads are in progress
+		$$.inProgress = 0;
+
+		// all files that have been loaded for this loader, identified by their key
+		$$.files = {};
+
+		// callback stack
+		$$.stack = [];
+
+		/**
+   * Flush the callback stack.
+   */
+		$$.flushStack = function () {
+
+			if ($$.stack.length == 0) return;
+
+			var item = $$.stack.shift();
+
+			var my = {};
+			if (item.paths === 'all') my = $$.files;else {
+				item.paths.forEach(function (path) {
+					my[path.key] = $$.files[path.key];
+				});
+			}
+
+			if (item.callback) item.callback(my);
+
+			$$.flushStack();
+		};
+
+		/**
+   * The main loader function that will resemble this instance of the multi-file
+   * loader.
+   * @param paths -- Array of paths for which to fetch data files.
+   *        [
+   *          {
+   *            key:  'file1',                 // defaults to the file name
+   *            file: 'file.csv',              // file name
+   *            path: 'http://filestore.com/', // default: 'http://d2b.academicdashboards.com/'
+   *            type: 'csv'                    // default: 'json'
+   *          }//,{},{}
+   *        ]
+   * @param callback -- function
+   *        function(files){
+   *          // do something with the files when they have loaded..
+   *        }
+   */
+		var loader = function loader(paths, callback) {
+			$$.stack.push({ callback: callback, paths: paths });
+
+			// loop through file paths
+			paths.forEach(function (path) {
+				var file = path.file.split('.');
+
+				// set path config defaults
+				path.key = path.key || path.file;
+				path.path = path.path || "http://d2b.s3-website-us-west-2.amazonaws.com/";
+				path.type = path.type || file[file.length - 1];
+
+				// check if file with key has already been loaded
+				if (!$$.files[path.key]) {
+
+					// set this specific file to be in the process of being loaded
+					$$.files[path.key] = true;
+					// increment the amount of files in progress
+					$$.inProgress++;
+
+					// request file with path, file, and type
+					d3[path.type](path.path + path.file, function (data) {
+
+						// once this file has been loaded decrement the file in progress counter
+						$$.inProgress--;
+						// save the loaded data
+						$$.files[path.key] = data;
+
+						//if no more files are in progress, flush the call stack
+						if (!$$.inProgress) $$.flushStack();
+					});
+				}
+			});
+
+			//if no files were queued, flush the call stack
+			if (!$$.inProgress) $$.flushStack();
+
+			return loader;
+		};
+
+		loader.loadAll = function (_) {
+			$$.stack.push({ callback: _, paths: 'all' });
+			if (!$$.inProgress) $$.flushStack();
+		};
+
+		return loader;
+	};
+
+	// default loader instance
+	d2b.UTILS.load = new d2b.UTILS.loader();
+
+	d2b.numberize = function (x) {
+		var def = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+
+		if (isNaN(x) || x === null) return def;
+		return x;
+	};
+
+	// Returns the specified object, omit the properties with keys matching
+	// those in the specified keys array.
+
+	d2b.omit = function (obj, keys) {
+		var newObj = {};
+		for (var k in obj) {
+			if (typeof obj[k] !== 'function') {
+				if (keys.indexOf(k) < 0) newObj[k] = obj[k];
+			}
+		}
+		return newObj;
+	};
+
+	// Wrap text based on pixel length.
+	// This isn't used very frequently because it causes problems with event
+	// rebinding namely double click events.
+	d2b.textWrapWidth = function (text) {
+		var width = arguments.length <= 1 || arguments[1] === undefined ? Infinity : arguments[1];
+
+		text.each(function () {
+			var text = d3.select(this),
+			    words = text.text().split(/\s+/).reverse(),
+			    word = undefined,
+			    line = [],
+			    lineNumber = 0,
+			    lineHeight = 1.1,
+			    // ems
+			y = parseFloat(text.attr('y')) || 0,
+			    dy = parseFloat(text.attr('dy')) || 0,
+			    tspan = text.text(null).append('tspan').attr('x', 0).attr('y', y).attr('dy', dy + 'em');
+
+			while (word = words.pop()) {
+				line.push(word);
+				tspan.text(line.join(' '));
+				if (tspan.node().getComputedTextLength() > width) {
+					line.pop();
+					tspan.text(line.join(' '));
+					line = [word];
+					tspan = text.append('tspan').attr('x', 0).attr('y', y).attr('dy', ++lineNumber * lineHeight + dy + 'em').text(word);
+				}
+			}
+		});
+	};
+
+	// Wraps text based on character count and text accessor. This method uses
+	// d3's enter/update/exit strategy as to be less destructive on the text content.
+	d2b.textWrap = function (text) {
+		var getText = arguments.length <= 1 || arguments[1] === undefined ? function (d) {
+			return d.label;
+		} : arguments[1];
+		var count = arguments.length <= 2 || arguments[2] === undefined ? Infinity : arguments[2];
+
+
+		text.each(function (d, i) {
+			var text = d3.select(this),
+			    words = getText.call(this, d, i).split(/\s+/).reverse(),
+			    word = undefined,
+			    lines = [],
+			    line = [words.pop()],
+			    lineHeight = 1.1;
+
+			while (word = words.pop()) {
+				// console.log(line.length)
+				if (line.join(' ').length + word.length > count) {
+					lines.push(line);
+					line = [];
+				}
+
+				line.push(word);
+			}
+			lines.push(line);
+
+			var tspan = text.selectAll('tspan').data(lines);
+			tspan.enter().append('tspan');
+
+			tspan.text(function (d) {
+				return d.join(' ');
+			}).attr('x', 0).attr('y', 0).attr('dy', function (d, i) {
+				return i * lineHeight + "em";
+			});
+		});
+	};
+
+	/* TODO: FINISH */
+
+	// // tooltip with id in case of duplicate d2b.tooltip generators
+	//
+	// d2b.tooltipAxis = function (id = d2b.id()) {
+	//   const $$ = { graph: {} };
+	//
+	//   const tooltip = function (key) {
+	//     if(!arguments.length) return $$.graph;
+	//     return function (graph) {
+	//       if(!arguments.length) return $$.graph[key];
+	//       const old = $$.graph[key];
+	//       updateGraph($$.graph[key] = graph, old);
+	//       return tooltip;
+	//     };
+	//   };
+	//
+	//   const getCoords = function (d, i) {
+	//     let coords = {}, at = $$.at.call(this, d, i).split(' ');
+	//     const box = this.getBoundingClientRect();
+	//     at = {x: at[1], y: at[0]};
+	//
+	//     switch (at.x) {
+	//       case 'left':
+	//         coords.x = box.left;
+	//         break;
+	//       case 'center':
+	//         coords.x = box.left + box.width / 2;
+	//         break;
+	//       default: // right
+	//         coords.x = box.left + box.width;
+	//     }
+	//
+	//     switch (at.y) {
+	//       case 'bottom':
+	//         coords.y = box.top + box.height;
+	//         break;
+	//       case 'center':
+	//         coords.y = box.top + box.height / 2;
+	//         break;
+	//       default: // top
+	//         coords.y = box.top;
+	//     }
+	//     return coords;
+	//   };
+	//
+	//   const nodeMouseover = function (d, i) {
+	//     const box = this.getBoundingClientRect(),
+	//           coords = ($$.followMouse)?
+	//                         {x: d3.event.clientX, y: d3.event.clientY} :
+	//                         getCoords.call(this, d, i);
+	//
+	//     let my = ($$.my.call(this, d, i) || '').split(' ');
+	//     my = `${my[0] || 'top'}-${my[1] || 'center'}`
+	//
+	//     console.log(coords)
+	//     // updateTooltips([[this, d, i, x, y]]);
+	//     $$.selection.append('div')
+	//       .attr('class', `d2b-tooltip `+
+	//                      `d2b-tooltip-at-${my} `+
+	//                      `d2b-tooltip-style-${$$.style}`)
+	//       .text('hello')
+	//       .style('position', 'fixed')
+	//       // .style('background', 'red')
+	//       .style('top', coords.y+'px')
+	//       // .style('transform', 'translateX(-100%)')
+	//       .style('left', coords.x+'px');
+	//     console.log(this.getBoundingClientRect(), d3.event.clientY)
+	//   };
+	//   const nodeMousemove = function (d, i) {
+	//     if ($$.followMouse) nodeMouseover.call(this, d, i);
+	//   };
+	//   const nodeMouseout = function () {
+	//     // $$.selection.select('div').remove();
+	//   };
+	//
+	//   const event = (listener, type) => {
+	//     return `${listener}.d2b-tooltip-${id}-${type}`;
+	//   };
+	//
+	//   const updateGraph = (newGraph, oldGraph) => {
+	//     if (oldGraph) {
+	//       oldGraph
+	//         .on(event('mouseover', 'node'), null)
+	//         .on(event('mouseout', 'node'), null)
+	//         .on(event('mousemove', 'node'), null);
+	//     }
+	//     if (newGraph) {
+	//       newGraph
+	//         .on(event('mouseover', 'node'), nodeMouseover)
+	//         .on(event('mouseout', 'node'), nodeMouseout)
+	//         .on(event('mousemove', 'node'), nodeMousemove);
+	//     }
+	//   };
+	//
+	//   const updateTracker = (newTracker, oldTracker) => {
+	//     if (oldTracker) {
+	//       oldTracker
+	//         .on(event('mouseover', 'tracker'), null)
+	//         .on(event('mouseout', 'tracker'), null)
+	//         .on(event('mousemove', 'tracker'), null);
+	//     }
+	//     if (newTracker) {
+	//       newTracker
+	//         .on(event('mouseover', 'tracker'), trackerMouseover)
+	//         .on(event('mouseout', 'tracker'), trackerMouseout)
+	//         .on(event('mousemove', 'tracker'), trackerMousemove);
+	//     }
+	//   };
+	//
+	//   const updateContainer = (newContainer, oldContainer) => {
+	//     if (oldContainer) oldContainer.select(`.d2b-tooltip-area-${id}`).remove();
+	//     if (!newContainer) return;
+	//     $$.selection = newContainer.selectAll(`.d2b-tooltip-area-${id}`).data([1]);
+	//     $$.selection.enter().append('div').attr('class', `d2b-tooltip-area-${id} d2b-tooltip-area`);
+	//   };
+	//
+	//   /* Inherit from base model */
+	//   const model = d2b.model.base(tooltip, $$)
+	//     .addProp('tracker', null, null, (n, o) => {
+	//       updateTracker(n, o);
+	//     })
+	//     .addProp('container', d3.select('body'), null, (n, o) => {
+	//       updateContainer(n, o);
+	//     })
+	//     .addProp('layout', 0)
+	//     .addProp('style', 0)
+	//     .addProp('followMouse', true)
+	//     .addProp('trackX', true)
+	//     .addProp('trackY', true)
+	//     .addProp('equalOverride', true)
+	//     .addProp('perGraph', true)
+	//     .addPropFunctor('my', null)
+	//     .addPropFunctor('at', 'center-center')
+	//     .addPropFunctor('html', null);
+	//
+	//   return tooltip;
+	// };
+
+	// tooltip with id in case of duplicate d2b.tooltip generators
+
+	d2b.tooltip = function () {
+		var id = arguments.length <= 0 || arguments[0] === undefined ? d2b.id() : arguments[0];
+
+		var $$ = {};
+
+		var tooltip = function tooltip(selection) {
+			selection.on(event('mouseover', 'node'), mouseover).on(event('mouseout', 'node'), mouseout).on(event('mousemove', 'node'), mousemove);
+
+			return tooltip;
+		};
+
+		var getCoords = function getCoords(d, i) {
+			var box = this.getBoundingClientRect();
+			var coords = {};
+
+			// construct at object, if null automatically set it based on cursor event position
+			var at = ($$.at.call(this, d, i) || (d3.event.clientX > window.innerWidth / 2 ? 'center left' : 'center right')).split(' ');
+			at = { x: at[1], y: at[0] };
+
+			// switch for horizontal coordinate
+			switch (at.x) {
+				case 'left':
+					coords.x = box.left;
+					break;
+				case 'center':
+					coords.x = box.left + box.width / 2;
+					break;
+				default:
+					// right
+					coords.x = box.left + box.width;
+			}
+
+			// switch for vertical coordinate
+			switch (at.y) {
+				case 'bottom':
+					coords.y = box.top + box.height;
+					break;
+				case 'center':
+					coords.y = box.top + box.height / 2;
+					break;
+				default:
+					// top
+					coords.y = box.top;
+			}
+			return coords;
+		};
+
+		var mouseover = function mouseover(d, i) {
+			$$.tooltip = $$.selection.selectAll('.d2b-tooltip').data([1]);
+
+			var newTooltip = $$.tooltip.enter().append('div').style('opacity', 0).attr('class', 'd2b-tooltip');
+
+			newTooltip.append('div').attr('class', 'd2b-tooltip-content');
+
+			$$.tooltip.transition().duration(100).style('opacity', 1);
+
+			$$.dispatch.insert.call($$.tooltip, this, d, i);
+		};
+
+		var mousemove = function mousemove(d, i) {
+			var html = $$.html.call(this, d, i),
+			    target = $$.target.call(this, d, i),
+			    color = $$.color.call(this, d, i),
+			    targetNode = target ? target.node() : this,
+			    coords = $$.followMouse.call(this, d, i) ? { x: d3.event.clientX, y: d3.event.clientY } : getCoords.call(targetNode, d, i);
+
+			var my = $$.my.call(this, d, i) || (d3.event.clientX > window.innerWidth / 2 ? 'left' : 'right');
+
+			$$.tooltip.attr('class', "d2b-tooltip d2b-tooltip-" + my).style('top', coords.y + 'px').style('left', coords.x + 'px').style('border-color', color).select('.d2b-tooltip-content').html(html);
+
+			$$.dispatch.move.call($$.tooltip, this, d, i);
+		};
+
+		var mouseout = function mouseout(d, i) {
+			$$.tooltip.transition().duration(100).style('opacity', 0).remove();
+
+			$$.dispatch.remove.call($$.tooltip, this, d, i);
+		};
+
+		var event = function event(listener) {
+			return listener + ".d2b-tooltip"; //-${id}`;
+		};
+
+		var updateContainer = function updateContainer(newContainer, oldContainer) {
+			if (oldContainer) oldContainer.select(".d2b-tooltip-area-" + id).remove();
+			if (!newContainer) return;
+			$$.selection = newContainer.selectAll(".d2b-tooltip-area-" + id).data([1]);
+			$$.selection.enter().append('div').attr('class', "d2b-tooltip-area-" + id + " d2b-tooltip-area");
+		};
+
+		/* Inherit from base model */
+		var model = d2b.model.base(tooltip, $$).addProp('container', d3.select('body'), null, function (n, o) {
+			updateContainer(n, o);
+		}).addMethod('clear', function (selection) {
+			oldGraph.on(event('mouseover'), null).on(event('mouseout'), null).on(event('mousemove'), null);
+		}).addPropFunctor('followMouse', false).addPropFunctor('color', null).addPropFunctor('my', null).addPropFunctor('at', null).addPropFunctor('target', null).addPropFunctor('html', null).addDispatcher(['insert', 'move', 'remove']);
+
+		return tooltip;
+	};
+
+	d2b.arcTween = function (transition, arc) {
+		transition.attrTween('d', function (d) {
+			var _this3 = this;
+
+			// omit data attribute incase of a pie chart with nested associations
+			d = d2b.omit(d, ['data']);
+			this.current = this.current || d;
+			var i = d3.interpolate(this.current, d);
+			return function (t) {
+				_this3.current = i(t);
+				return arc(_this3.current);
+			};
+		});
+	};
+
+	d2b.centroidTween = function (transition, arc) {
+		transition.attrTween('transform', function (d) {
+			var _this4 = this;
+
+			// omit data attribute incase of a pie chart with nested associations
+			d = d2b.omit(d, ['data']);
+			this.current = this.current || d;
+			var i = d3.interpolate(this.current, d);
+			return function (t) {
+				_this4.current = i(t);
+				return "translate(" + arc.centroid(_this4.current) + ")";
+			};
+		});
+	};
+
+	d2b.numberTween = function (transition) {
+		var number = arguments.length <= 1 || arguments[1] === undefined ? function (d) {
+			return d;
+		} : arguments[1];
+		var format = arguments.length <= 2 || arguments[2] === undefined ? function (d) {
+			return d;
+		} : arguments[2];
+
+		number = d3.functor(number);
+		transition.tween('text', function (d) {
+			var _this5 = this;
+
+			var val = d2b.numberize(number.call(this, d, i));
+			this.current = d2b.numberize(this.current, val);
+			var i = d3.interpolate(this.current, val);
+			return function (t) {
+				_this5.textContent = format(_this5.current = i(t));
+			};
+		});
 	};
 
 	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
@@ -7717,8 +8381,6 @@ var d2b = d2b || {};
 			return chart;
 		};
 	};
-
-	d2b.defaultColor = d3.scale.category10();
 
 	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */
 
@@ -8729,10 +9391,6 @@ var d2b = d2b || {};
 		return domain;
 	};
 
-	d2b.id = function () {
-		return Math.random().toString(36).substr(2, 9);
-	};
-
 	d2b.createNameSpace("d2b.UTILS.LAYOUTS");
 
 	d2b.UTILS.LAYOUTS.partition = function () {
@@ -9014,416 +9672,6 @@ var d2b = d2b || {};
 		return legend;
 	};
 
-	/**
-  *   This 'loader' will instantiate a multi-file loader. It is used to avoid
-  *   duplicate (redundant) file requests and process multiple file requests
-  *   asynchronously.
- */
-	d2b.UTILS.loader = function () {
-
-		var $$ = {};
-
-		// keep track of how many file loads are in progress
-		$$.inProgress = 0;
-
-		// all files that have been loaded for this loader, identified by their key
-		$$.files = {};
-
-		// callback stack
-		$$.stack = [];
-
-		/**
-   * Flush the callback stack.
-   */
-		$$.flushStack = function () {
-
-			if ($$.stack.length == 0) return;
-
-			var item = $$.stack.shift();
-
-			var my = {};
-			if (item.paths === 'all') my = $$.files;else {
-				item.paths.forEach(function (path) {
-					my[path.key] = $$.files[path.key];
-				});
-			}
-
-			if (item.callback) item.callback(my);
-
-			$$.flushStack();
-		};
-
-		/**
-   * The main loader function that will resemble this instance of the multi-file
-   * loader.
-   * @param paths -- Array of paths for which to fetch data files.
-   *        [
-   *          {
-   *            key:  'file1',                 // defaults to the file name
-   *            file: 'file.csv',              // file name
-   *            path: 'http://filestore.com/', // default: 'http://d2b.academicdashboards.com/'
-   *            type: 'csv'                    // default: 'json'
-   *          }//,{},{}
-   *        ]
-   * @param callback -- function
-   *        function(files){
-   *          // do something with the files when they have loaded..
-   *        }
-   */
-		var loader = function loader(paths, callback) {
-			$$.stack.push({ callback: callback, paths: paths });
-
-			// loop through file paths
-			paths.forEach(function (path) {
-				var file = path.file.split('.');
-
-				// set path config defaults
-				path.key = path.key || path.file;
-				path.path = path.path || "http://d2b.s3-website-us-west-2.amazonaws.com/";
-				path.type = path.type || file[file.length - 1];
-
-				// check if file with key has already been loaded
-				if (!$$.files[path.key]) {
-
-					// set this specific file to be in the process of being loaded
-					$$.files[path.key] = true;
-					// increment the amount of files in progress
-					$$.inProgress++;
-
-					// request file with path, file, and type
-					d3[path.type](path.path + path.file, function (data) {
-
-						// once this file has been loaded decrement the file in progress counter
-						$$.inProgress--;
-						// save the loaded data
-						$$.files[path.key] = data;
-
-						//if no more files are in progress, flush the call stack
-						if (!$$.inProgress) $$.flushStack();
-					});
-				}
-			});
-
-			//if no files were queued, flush the call stack
-			if (!$$.inProgress) $$.flushStack();
-
-			return loader;
-		};
-
-		loader.loadAll = function (_) {
-			$$.stack.push({ callback: _, paths: 'all' });
-			if (!$$.inProgress) $$.flushStack();
-		};
-
-		return loader;
-	};
-
-	// default loader instance
-	d2b.UTILS.load = new d2b.UTILS.loader();
-
-	d2b.numberize = function (x) {
-		var def = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
-
-		if (isNaN(x) || x === null) return def;
-		return x;
-	};
-
-	// Returns the specified object, omit the properties with keys matching
-	// those in the specified keys array.
-
-	d2b.omit = function (obj, keys) {
-		var newObj = {};
-		for (var k in obj) {
-			if (typeof obj[k] !== 'function') {
-				if (keys.indexOf(k) < 0) newObj[k] = obj[k];
-			}
-		}
-		return newObj;
-	};
-
-	// Wrap text based on pixel length.
-	// This isn't used very frequently because it causes problems with event
-	// rebinding namely double click events.
-	d2b.textWrapWidth = function (text) {
-		var width = arguments.length <= 1 || arguments[1] === undefined ? Infinity : arguments[1];
-
-		text.each(function () {
-			var text = d3.select(this),
-			    words = text.text().split(/\s+/).reverse(),
-			    word = undefined,
-			    line = [],
-			    lineNumber = 0,
-			    lineHeight = 1.1,
-			    // ems
-			y = parseFloat(text.attr('y')) || 0,
-			    dy = parseFloat(text.attr('dy')) || 0,
-			    tspan = text.text(null).append('tspan').attr('x', 0).attr('y', y).attr('dy', dy + 'em');
-
-			while (word = words.pop()) {
-				line.push(word);
-				tspan.text(line.join(' '));
-				if (tspan.node().getComputedTextLength() > width) {
-					line.pop();
-					tspan.text(line.join(' '));
-					line = [word];
-					tspan = text.append('tspan').attr('x', 0).attr('y', y).attr('dy', ++lineNumber * lineHeight + dy + 'em').text(word);
-				}
-			}
-		});
-	};
-
-	// Wraps text based on character count and text accessor. This method uses
-	// d3's enter/update/exit strategy as to be less destructive on the text content.
-	d2b.textWrap = function (text) {
-		var getText = arguments.length <= 1 || arguments[1] === undefined ? function (d) {
-			return d.label;
-		} : arguments[1];
-		var count = arguments.length <= 2 || arguments[2] === undefined ? Infinity : arguments[2];
-
-
-		text.each(function (d, i) {
-			var text = d3.select(this),
-			    words = getText.call(this, d, i).split(/\s+/).reverse(),
-			    word = undefined,
-			    lines = [],
-			    line = [words.pop()],
-			    lineHeight = 1.1;
-
-			while (word = words.pop()) {
-				// console.log(line.length)
-				if (line.join(' ').length + word.length > count) {
-					lines.push(line);
-					line = [];
-				}
-
-				line.push(word);
-			}
-			lines.push(line);
-
-			var tspan = text.selectAll('tspan').data(lines);
-			tspan.enter().append('tspan');
-
-			tspan.text(function (d) {
-				return d.join(' ');
-			}).attr('x', 0).attr('y', 0).attr('dy', function (d, i) {
-				return i * lineHeight + "em";
-			});
-		});
-	};
-
-	// tooltip with id in case of duplicate d2b.tooltip generators
-
-	d2b.tooltipAxis = function () {
-		var id = arguments.length <= 0 || arguments[0] === undefined ? d2b.id() : arguments[0];
-
-		var $$ = { graph: {} };
-
-		var tooltip = function tooltip(key) {
-			if (!arguments.length) return $$.graph;
-			return function (graph) {
-				if (!arguments.length) return $$.graph[key];
-				var old = $$.graph[key];
-				updateGraph($$.graph[key] = graph, old);
-				return tooltip;
-			};
-		};
-
-		var getCoords = function getCoords(d, i) {
-			var coords = {},
-			    at = $$.at.call(this, d, i).split(' ');
-			var box = this.getBoundingClientRect();
-			at = { x: at[1], y: at[0] };
-
-			switch (at.x) {
-				case 'left':
-					coords.x = box.left;
-					break;
-				case 'center':
-					coords.x = box.left + box.width / 2;
-					break;
-				default:
-					// right
-					coords.x = box.left + box.width;
-			}
-
-			switch (at.y) {
-				case 'bottom':
-					coords.y = box.top + box.height;
-					break;
-				case 'center':
-					coords.y = box.top + box.height / 2;
-					break;
-				default:
-					// top
-					coords.y = box.top;
-			}
-			return coords;
-		};
-
-		var nodeMouseover = function nodeMouseover(d, i) {
-			var box = this.getBoundingClientRect(),
-			    coords = $$.followMouse ? { x: d3.event.clientX, y: d3.event.clientY } : getCoords.call(this, d, i);
-
-			var my = ($$.my.call(this, d, i) || '').split(' ');
-			my = (my[0] || 'top') + "-" + (my[1] || 'center');
-
-			console.log(coords);
-			// updateTooltips([[this, d, i, x, y]]);
-			$$.selection.append('div').attr('class', "d2b-tooltip " + ("d2b-tooltip-at-" + my + " ") + ("d2b-tooltip-style-" + $$.style)).text('hello').style('position', 'fixed')
-			// .style('background', 'red')
-			.style('top', coords.y + 'px')
-			// .style('transform', 'translateX(-100%)')
-			.style('left', coords.x + 'px');
-			console.log(this.getBoundingClientRect(), d3.event.clientY);
-		};
-		var nodeMousemove = function nodeMousemove(d, i) {
-			if ($$.followMouse) nodeMouseover.call(this, d, i);
-		};
-		var nodeMouseout = function nodeMouseout() {
-			// $$.selection.select('div').remove();
-		};
-
-		var event = function event(listener, type) {
-			return listener + ".d2b-tooltip-" + id + "-" + type;
-		};
-
-		var updateGraph = function updateGraph(newGraph, oldGraph) {
-			if (oldGraph) {
-				oldGraph.on(event('mouseover', 'node'), null).on(event('mouseout', 'node'), null).on(event('mousemove', 'node'), null);
-			}
-			if (newGraph) {
-				newGraph.on(event('mouseover', 'node'), nodeMouseover).on(event('mouseout', 'node'), nodeMouseout).on(event('mousemove', 'node'), nodeMousemove);
-			}
-		};
-
-		var updateTracker = function updateTracker(newTracker, oldTracker) {
-			if (oldTracker) {
-				oldTracker.on(event('mouseover', 'tracker'), null).on(event('mouseout', 'tracker'), null).on(event('mousemove', 'tracker'), null);
-			}
-			if (newTracker) {
-				newTracker.on(event('mouseover', 'tracker'), trackerMouseover).on(event('mouseout', 'tracker'), trackerMouseout).on(event('mousemove', 'tracker'), trackerMousemove);
-			}
-		};
-
-		var updateContainer = function updateContainer(newContainer, oldContainer) {
-			if (oldContainer) oldContainer.select(".d2b-tooltip-area-" + id).remove();
-			if (!newContainer) return;
-			$$.selection = newContainer.selectAll(".d2b-tooltip-area-" + id).data([1]);
-			$$.selection.enter().append('div').attr('class', "d2b-tooltip-area-" + id + " d2b-tooltip-area");
-		};
-
-		/* Inherit from base model */
-		var model = d2b.model.base(tooltip, $$).addProp('tracker', null, null, function (n, o) {
-			updateTracker(n, o);
-		}).addProp('container', d3.select('body'), null, function (n, o) {
-			updateContainer(n, o);
-		}).addProp('layout', 0).addProp('style', 0).addProp('followMouse', true).addProp('trackX', true).addProp('trackY', true).addProp('equalOverride', true).addProp('perGraph', true).addPropFunctor('my', null).addPropFunctor('at', 'center-center').addPropFunctor('html', null);
-
-		return tooltip;
-	};
-
-	// tooltip with id in case of duplicate d2b.tooltip generators
-
-	d2b.tooltip = function () {
-		var id = arguments.length <= 0 || arguments[0] === undefined ? d2b.id() : arguments[0];
-
-		var $$ = {};
-
-		var tooltip = function tooltip(selection) {
-			selection.on(event('mouseover', 'node'), mouseover).on(event('mouseout', 'node'), mouseout).on(event('mousemove', 'node'), mousemove);
-
-			return tooltip;
-		};
-
-		var getCoords = function getCoords(d, i) {
-			var box = this.getBoundingClientRect();
-			var coords = {};
-
-			// construct at object, if null automatically set it based on cursor event position
-			var at = ($$.at.call(this, d, i) || (d3.event.clientX > window.innerWidth / 2 ? 'center left' : 'center right')).split(' ');
-			at = { x: at[1], y: at[0] };
-
-			// switch for horizontal coordinate
-			switch (at.x) {
-				case 'left':
-					coords.x = box.left;
-					break;
-				case 'center':
-					coords.x = box.left + box.width / 2;
-					break;
-				default:
-					// right
-					coords.x = box.left + box.width;
-			}
-
-			// switch for vertical coordinate
-			switch (at.y) {
-				case 'bottom':
-					coords.y = box.top + box.height;
-					break;
-				case 'center':
-					coords.y = box.top + box.height / 2;
-					break;
-				default:
-					// top
-					coords.y = box.top;
-			}
-			return coords;
-		};
-
-		var mouseover = function mouseover(d, i) {
-			$$.tooltip = $$.selection.selectAll('.d2b-tooltip').data([1]);
-
-			var newTooltip = $$.tooltip.enter().append('div').style('opacity', 0).attr('class', 'd2b-tooltip');
-
-			newTooltip.append('div').attr('class', 'd2b-tooltip-content');
-
-			$$.tooltip.transition().duration(100).style('opacity', 1);
-
-			$$.dispatch.insert.call($$.tooltip, this, d, i);
-		};
-
-		var mousemove = function mousemove(d, i) {
-			var html = $$.html.call(this, d, i),
-			    target = $$.target.call(this, d, i),
-			    color = $$.color.call(this, d, i),
-			    targetNode = target ? target.node() : this,
-			    coords = $$.followMouse.call(this, d, i) ? { x: d3.event.clientX, y: d3.event.clientY } : getCoords.call(targetNode, d, i);
-
-			var my = $$.my.call(this, d, i) || (d3.event.clientX > window.innerWidth / 2 ? 'left' : 'right');
-
-			$$.tooltip.attr('class', "d2b-tooltip d2b-tooltip-" + my).style('top', coords.y + 'px').style('left', coords.x + 'px').style('border-color', color).select('.d2b-tooltip-content').html(html);
-
-			$$.dispatch.move.call($$.tooltip, this, d, i);
-		};
-
-		var mouseout = function mouseout(d, i) {
-			$$.tooltip.transition().duration(100).style('opacity', 0).remove();
-
-			$$.dispatch.remove.call($$.tooltip, this, d, i);
-		};
-
-		var event = function event(listener) {
-			return listener + ".d2b-tooltip"; //-${id}`;
-		};
-
-		var updateContainer = function updateContainer(newContainer, oldContainer) {
-			if (oldContainer) oldContainer.select(".d2b-tooltip-area-" + id).remove();
-			if (!newContainer) return;
-			$$.selection = newContainer.selectAll(".d2b-tooltip-area-" + id).data([1]);
-			$$.selection.enter().append('div').attr('class', "d2b-tooltip-area-" + id + " d2b-tooltip-area");
-		};
-
-		/* Inherit from base model */
-		var model = d2b.model.base(tooltip, $$).addProp('container', d3.select('body'), null, function (n, o) {
-			updateContainer(n, o);
-		}).addMethod('clear', function (selection) {
-			oldGraph.on(event('mouseover'), null).on(event('mouseout'), null).on(event('mousemove'), null);
-		}).addPropFunctor('followMouse', false).addPropFunctor('color', null).addPropFunctor('my', null).addPropFunctor('at', null).addPropFunctor('target', null).addPropFunctor('html', null).addDispatcher(['insert', 'move', 'remove']);
-
-		return tooltip;
-	};
-
 	/*tooltip utilities*/
 	d2b.UTILS.bindTooltip = function (element, html, data, fill) {
 		if (html) {
@@ -9491,57 +9739,6 @@ var d2b = d2b || {};
 		});
 
 		d3.timer.flush();
-	};
-
-	d2b.arcTween = function (transition, arc) {
-		transition.attrTween('d', function (d) {
-			var _this3 = this;
-
-			// omit data attribute incase of a pie chart with nested associations
-			d = d2b.omit(d, ['data']);
-			this.current = this.current || d;
-			var i = d3.interpolate(this.current, d);
-			return function (t) {
-				_this3.current = i(t);
-				return arc(_this3.current);
-			};
-		});
-	};
-
-	d2b.centroidTween = function (transition, arc) {
-		transition.attrTween('transform', function (d) {
-			var _this4 = this;
-
-			// omit data attribute incase of a pie chart with nested associations
-			d = d2b.omit(d, ['data']);
-			this.current = this.current || d;
-			var i = d3.interpolate(this.current, d);
-			return function (t) {
-				_this4.current = i(t);
-				return "translate(" + arc.centroid(_this4.current) + ")";
-			};
-		});
-	};
-
-	d2b.numberTween = function (transition) {
-		var number = arguments.length <= 1 || arguments[1] === undefined ? function (d) {
-			return d;
-		} : arguments[1];
-		var format = arguments.length <= 2 || arguments[2] === undefined ? function (d) {
-			return d;
-		} : arguments[2];
-
-		number = d3.functor(number);
-		transition.tween('text', function (d) {
-			var _this5 = this;
-
-			var val = d2b.numberize(number.call(this, d, i));
-			this.current = d2b.numberize(this.current, val);
-			var i = d3.interpolate(this.current, val);
-			return function (t) {
-				_this5.textContent = format(_this5.current = i(t));
-			};
-		});
 	};
 
 	/* Copyright © 2013-2015 Academic Dashboards, All Rights Reserved. */

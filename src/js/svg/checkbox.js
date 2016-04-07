@@ -1,3 +1,4 @@
+// checkbox svg generator
 d2b.svg.checkbox = function () {
   const $$ = {};
 

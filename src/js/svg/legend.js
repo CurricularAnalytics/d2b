@@ -1,3 +1,4 @@
+// legend svg generator
 d2b.svg.legend = function () {
   const $$ = {};
 
