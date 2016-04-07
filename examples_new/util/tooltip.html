@@ -7,11 +7,61 @@
 
 <style>
 	body{
-		font-family:"Droid Sans";
+		font-family: "Droid Sans";
 	}
+
+	.main {
+		position: relative;
+	}
+
+	.rect {
+		width: 20px;
+		height: 20px;
+		position: absolute;
+	}
+
+	svg {
+		margin-top: 500px;
+		width: 500px;
+		height: 500px;
+	}
+
 </style>
 
 <body>
+
+	<div class = 'main'></div>
+	<svg class = 'main'></svg>
+
+	<script>
+		var color = d3.scale.category20();
+
+		var tooltip = d2b.tooltip()
+			.color(function (d, i) { return color(d); })
+			.html(function (d, i) { return d; })
+			// .at('top center')
+			// .my('top')
+			// .followMouse(false)
+			// .container(d3.select('body'));
+
+		d3.select('div.main').selectAll('.rect').data([1, 2, 3, 4]).enter()
+			.append('div')
+				.attr('class', 'rect')
+				.style('background', function (d) { return color(d); })
+				.style('left', function (d) { return d * 100 + 'px'; })
+				.style('top', function (d) { return d * 100 + 'px'; })
+				.call(tooltip);
+
+		d3.select('svg.main').selectAll('circle').data([1, 2, 3, 4]).enter()
+			.append('circle')
+				.style('fill', function (d) { return color(d); })
+				.attr('r', 15)
+				.attr('cx', function (d) { return d * 100; })
+				.attr('cy', function (d) { return d * 100; })
+				.call(tooltip);
+
+
+	</script>
 
 </body>
 </html>

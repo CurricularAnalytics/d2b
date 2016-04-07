@@ -20,6 +20,7 @@ gulp.task('scripts', function () {
     .pipe(concat('d2b.js'))
     // babelify concatenation
     .pipe(babel({
+      compact: false,
 			presets: ['es2015']
 		}))
     // write to d2b.js
@@ -78,7 +79,7 @@ gulp.task('watch', function () {
     'src/js/**/*.js'
   ], ['scripts']);
   gulp.watch([
-    'src/css/**/*.js'
+    'src/css/**/*.scss'
   ], ['styles']);
 });
 

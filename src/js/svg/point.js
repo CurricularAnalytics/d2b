@@ -60,8 +60,8 @@ d2b.svg.point = function () {
         .on('mouseover.d2b-point', (active)? mouseover : null )
         .on('mouseout.d2b-point', (active)? mouseout : null );
 
-      return point;
     });
+    return point;
   };
 
   /* Inherit from base model */

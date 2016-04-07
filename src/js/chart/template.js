@@ -50,7 +50,8 @@ d2b.chart.template = () => {
 	$$.legend
 		.active(true)
 		.clickable(true)
-		.dblclickable(true).on('click', function () {console.log($$.legend.data())});
+		.dblclickable(true)
+		.on('click', () => { console.log($$.legend.data()) });
 
 	// main chart update function
 	function update() {

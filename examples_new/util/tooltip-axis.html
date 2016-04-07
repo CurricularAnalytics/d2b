@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+
+<script src="../../vendor/js/vendor.js"></script>
+<script src="../../build/js/d2b.js"></script>
+
+<style>
+	body{
+		margin-left: 20px;
+		margin-top: 50px;
+		padding: 10px;
+		/*margin: 0;
+		padding: 0;*/
+
+		border: 5px solid black;
+
+    /*border-collapse: collapse;*/
+		/*width: 100%;*/
+	}
+
+	.main {
+		position: relative;
+	}
+
+	.rect {
+		width: 20px;
+		height: 20px;
+		position: absolute;
+		background: red;
+	}
+
+	circle {
+		fill: steelblue;
+	}
+
+	svg {
+		width: 500px;
+		height: 500px;
+	}
+</style>
+
+<body>
+
+		<div class = 'area'></div>
+
+	<div class = 'main'></div>
+	<svg class = 'main'></svg>
+
+	<script>
+
+		var body = d3.select('body');
+		var div = d3.select('div.main');
+		var svg = d3.select('svg.main');
+
+		var tooltip = d2b.tooltip()
+		// 	.layout(0)
+		// 	.style(1)
+			.my('top left')
+			.at('top left')
+			.followMouse(false)
+		// 	.trackX(true)
+		// 	.trackY(true)
+		// 	.equalOverride(true)
+		// 	.perGraph(true)
+		// 	.tracker(body)
+		// 	.container(body);
+
+		// tooltip.tracker('this').tracker('that');
+
+		var rect = div.selectAll('.rect').data([1, 2, 3, 4]);
+
+		rect.enter()
+			.append('div')
+				.attr('class', 'rect')
+				.style('left', function (d) { return d * 50 + 'px'; })
+				.style('top', function (d) { return d * 100 + 'px'; })
+
+		rect.call(tooltip('rectangles'));
+
+		var circle = svg.selectAll('circle').data([1, 2, 3, 4]);
+
+		circle.enter()
+			.append('circle')
+				.attr('r', 15)
+				.attr('cx', function (d) { return d * 100; })
+				.attr('cy', function (d) { return d * 100; })
+
+		circle.call(tooltip('circles'));
+
+
+	</script>
+
+</body>
+</html>

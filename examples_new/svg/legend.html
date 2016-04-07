@@ -52,16 +52,18 @@ Legend:
 		// .duration(500)
 		.orient('horizontal')
     .on('click', function(d, i) {
-      console.log(this, d, i);
+      // console.log(this, d, i);
+			legend.update();
     })
     .on('dblclick', function(d, i) {
-      console.log(this, d, i);
+      // console.log(this, d, i);
+			legend.update();
     })
 		.on('mouseover', function(d, i) {
-			console.log(this, d, i);
+			// console.log(this, d, i);
 		})
 		.on('mouseout', function(d, i) {
-			console.log(this, d, i);
+			// console.log(this, d, i);
 		});
 
 	var legendSvg = d3.select('.legend').datum(data);

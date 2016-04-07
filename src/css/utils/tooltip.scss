@@ -1,0 +1,97 @@
+.d2b-tooltip-area {
+  font-family: 'Droid Sans';
+  
+  .d2b-tooltip {
+    pointer-events: none;
+    background: white;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    position: fixed;
+    box-shadow: 0px 0px 2px #ccc;
+  }
+
+  .d2b-tooltip-content {
+    padding: 6px 10px;
+  }
+
+  /// Returns the opposite direction of each direction in a list
+  @function opposite-direction($direction) {
+    $direction-map: (
+      'top':    'bottom',
+      'right':  'left',
+      'bottom': 'top',
+      'left':   'right',
+      'center': 'center',
+      'ltr':    'rtl',
+      'rtl':    'ltr'
+    );
+
+    @return map-get($direction-map, $direction);
+  }
+
+
+  /// Triangle helper mixin
+  /// @param {Direction} $direction - Triangle direction, either `top`, `right`, `bottom` or `left`
+  /// @param {Length} $size [1em] - Triangle size
+  @mixin triangle($direction, $size: 1em) {
+    @if not index(top right bottom left, $direction) {
+      @error "Direction must be either `top`, `right`, `bottom` or `left`.";
+    }
+
+    width: 0;
+    height: 0;
+    content: '';
+    position: absolute;
+    z-index: 2;
+    border-#{opposite-direction($direction)}: ($size) solid;
+    border-#{opposite-direction($direction)}-color: inherit;
+
+    $perpendicular-borders: $size solid transparent;
+
+    @if $direction == top or $direction == bottom {
+      border-left:   $perpendicular-borders;
+      border-right:  $perpendicular-borders;
+    } @else if $direction == right or $direction == left {
+      border-bottom: $perpendicular-borders;
+      border-top:    $perpendicular-borders;
+    }
+  }
+
+  $pad: 15px;
+  $arrowSize: 7px;
+
+  $collection: (
+    (top, -50%, -100%, 0, -$pad, 50%, 100%, -$arrowSize, 0),
+    (bottom, -50%, 0, 0, $pad, 50%, -$arrowSize, -$arrowSize, 0),
+    (right, 0, -50%, $pad, 0, -$arrowSize, 50%, 0, -$arrowSize),
+    (left, -100%, -50%, -$pad, 0, 100%, 50%, 0, -$arrowSize),
+  );
+
+  @each $set in $collection {
+    $orient: nth($set, 1);
+    $x: nth($set, 2);
+    $y: nth($set, 3);
+    $offsetX: nth($set, 4);
+    $offsetY: nth($set, 5);
+    $arrowX: nth($set, 6);
+    $arrowY: nth($set, 7);
+    $arrowOffsetX: nth($set, 8);
+    $arrowOffsetY: nth($set, 9);
+
+    .d2b-tooltip-#{$orient} {
+      transform: translate($x, $y);
+      margin-left: $offsetX;
+      margin-top: $offsetY;
+
+      &:before {
+        @include triangle(opposite-direction($orient), $arrowSize);
+        left: $arrowX;
+        top: $arrowY;
+        margin-left: $arrowOffsetX;
+        margin-top: $arrowOffsetY;
+      }
+    }
+
+  }
+
+}

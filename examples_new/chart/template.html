@@ -14,7 +14,8 @@
 			var template = d2b.chart.template();
 
 			template.legend()
-				// .maxTextLength(70)
+				// .orient('horizontal')
+				.maxTextLength(70)
 				// .size(16);
 
 			template.checkbox()
@@ -25,7 +26,8 @@
 				.data('test')
 				.select('.template-chart')
 				.control('hideLegend', {state: true, visible: true})
-				.legendOrient('left-top')
+				// .legendAt('top left')
+				.legendAt('center center')
 				.generate();
 
 		// setTimeout(function () {
@@ -39,7 +41,7 @@
 			// });
 
 		// })
-		window.onresize = function () { template.update(); };
+		window.onresize = template.update;
 	</script>
 </body>
 </html>

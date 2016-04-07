@@ -14,8 +14,9 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
   const propFn = (prop, cb) => {
     return function (_) {
       if (!arguments.length) return $$[prop];
+      const old = $$[prop];
       $$[prop] = _;
-      if (cb) cb(_);
+      if (cb) cb(_, old);
       return base;
     }
   };
@@ -29,8 +30,9 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
   const propFnFunctor = (prop, cb) => {
     return function (_) {
       if (!arguments.length) return $$[prop];
+      const old = $$[prop];
       $$[prop] = d3.functor(_);
-      if (cb) cb(_);
+      if (cb) cb(_, old);
       return base;
     }
   };
@@ -154,6 +156,7 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
         console.error(`${store} value is already defined.`);
         return model;
       }
+      
       base[prop] = function (key, fn) {
         if(arguments.length === 0) return $$[store];
         if(arguments.length === 1) return $$[store].on(key);
@@ -161,6 +164,7 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
 
         return base;
       };
+
       $$[store] = d3.dispatch.apply(this, events);
 
       return model;

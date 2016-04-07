@@ -9,14 +9,6 @@ d2b.svg.legend = function () {
     });
   };
 
-  const quickUpdate = () => {
-    const duration = $$.duration;
-    legend
-      .duration(100)
-      .update()
-      .duration(duration);
-  };
-
   const click = function (d, i) {
     const clickable = $$.clickable.call(this, d, i),
           allowEmptied = $$.allowEmptied.call(this, d, i);
@@ -27,14 +19,14 @@ d2b.svg.legend = function () {
 
     d3.select(this).transition().duration(100).call(point);
 
-    if (allowEmptied) return;
+    if (allowEmptied) return $$.dispatch.click.call(this, d, i);
 
     let allEmpty = true;
     $$.data.forEach( d => allEmpty = (d.empty)? allEmpty : false );
 
     if (allEmpty) {
       $$.data.forEach( d => d.empty = false );
-      quickUpdate();
+      legend.generate();
     }
 
     $$.dispatch.click.call(this, d, i);
@@ -48,23 +40,14 @@ d2b.svg.legend = function () {
     $$.data.forEach(d => d.empty = true);
     d.empty = false;
 
-    quickUpdate();
+    legend.generate();
 
     $$.dispatch.dblclick.call(this, d, i);
   };
 
   const point = d2b.svg.point()
-    .fill( function (d, i) {
-      const colorKey = $$.colorKey.call(this, d, i),
-            color = $$.color.call(this, d, i);
-      if (color) return color;
-      return $$.colorScale(colorKey);
-    })
     .stroke( function (d, i) {
-      const colorKey = $$.colorKey.call(this, d, i),
-            color = $$.color.call(this, d, i);
-      if (color) return d3.rgb(color).darker(0.5);
-      return d3.rgb($$.colorScale(colorKey)).darker(0.5);
+      return d3.rgb($$.color.call(this, d, i)).darker(0.3);
     });
 
   const update = function () {
@@ -73,7 +56,7 @@ d2b.svg.legend = function () {
 
     $$.svg.enter().append('g').attr('class', 'd2b-legend');
 
-    $$.svg.item = $$.svg.selectAll('.d2b-legend-item').data(d => d);
+    $$.svg.item = $$.svg.selectAll('.d2b-legend-item').data(d => d, $$.key);
 
     const newItem = $$.svg.item.enter()
       .append('g')
@@ -106,10 +89,9 @@ d2b.svg.legend = function () {
     $$.svg.item.select('text')
       .style('font-size', `${$$.size}px`)
       .attr('transform', `translate(${$$.size / 1.5}, ${$$.size / 3})`)
-      .text($$.label)
-      .call(d2b.util.textWrap, $$.maxTextLength);
+      .call(d2b.textWrap, $$.label, $$.maxTextLength);
 
-    const maxWidth = d3.max($$.svg.item[0], (node) => node.getBBox().width) + 5;
+    const maxWidth = $$.size + d3.max($$.svg.item[0], node => itemBox(node).width);
 
     const pad = {x: $$.size, y: 5};
 
@@ -121,7 +103,19 @@ d2b.svg.legend = function () {
         .style('opacity', 1)
         .call(position[$$.orient], pad, maxWidth);
 
+    $$.svg.item.exit()
+      .transition()
+        .duration($$.duration)
+        .style('opacity', 0)
+        .remove();
+
     return legend;
+  };
+
+  const itemBox = (node) => {
+    const box = d3.select(node).select('text').node().getBBox();
+    box.width += $$.size;
+    return box;
   };
 
   const position = {
@@ -130,7 +124,7 @@ d2b.svg.legend = function () {
       $$.computedSize = {width: 0, height: 0};
       transition
         .attr('transform', function () {
-          const box = this.getBBox();
+          const box = itemBox(this);
           if (x + maxWidth > $$.maxSize.width){
             x = 0;
             y += maxHeight + pad.y;
@@ -149,7 +143,7 @@ d2b.svg.legend = function () {
       $$.computedSize = {width: 0, height: 0};
       transition
         .attr('transform', function () {
-          const box = this.getBBox();
+          const box = itemBox(this);
           if (y + box.height > $$.maxSize.height){
             x += maxWidth + pad.x;
             y = 0;
@@ -172,7 +166,6 @@ d2b.svg.legend = function () {
     .addProp('maxSize', {width: 960, height: 500})
     .addProp('orient', 'vertical')
     .addProp('duration', 500)
-    .addProp('colorScale', d3.scale.category20())
     .addProp('maxTextLength', Infinity)
     .addProp('selection', null)
     .addProp('data', [], function (_) {
@@ -180,22 +173,21 @@ d2b.svg.legend = function () {
       $$.data = _.data || _;
       return legend;
     })
+    .addPropFunctor('key', (d, i) => i)
     .addPropFunctor('active', false, null, _ => point.active(_) )
     .addPropFunctor('allowEmptied', false)
     .addPropFunctor('clickable', false)
     .addPropFunctor('dblclickable', false)
     .addPropFunctor('label', (d => d.label))
     .addPropFunctor('symbol', 'circle', null, _ => point.type(_) )
-    .addPropFunctor('colorKey', (d => d.label))
-    .addPropFunctor('color', (d => d.color))
-    // .addPropFunctor('stroke', d3.rgb('steelblue').darker(1), null, _ => point.stroke(_) )
+    .addPropFunctor('color', d => d2b.defaultColor(d.label), null, d => point.fill(d))
     .addPropFunctor('empty', (d => d.empty), null, _ => point.empty(_) )
     .addMethod('select', (_) => d3.select(_))
     .addMethod('update', update)
     .addMethod('computedSize', () => $$.computedSize)
     .addMethod('generate', (callback) => {
       const duration = $$.duration;
-      legend.duration(0).update().duration(duration);
+      legend.duration(0).update(callback).duration(duration);
     })
     .addMethod('clear', () => {
       if ($$.svg && $$.svg.item) {

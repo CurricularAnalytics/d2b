@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<script src="../../../vendor/js/vendor.js"></script>
+<script src="../../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../build/css/d2b.css" />
+
+<body>
+	<div class = 'pie-chart'></div>
+
+	<script>
+			var pie = d2b.chart.pie();
+			var lastRadius;
+			var percent = d3.format('%');
+			var color = d3.scale.linear().range(['FireBrick', 'LimeGreen']);
+
+			pie
+				.padding(10)
+		// half circle gauge
+				.startAngle(-Math.PI / 2)
+				.endAngle(Math.PI / 2)
+				.radius( function (w, h) { return lastRadius = Math.min(h, w / 2); })
+				.center( function (w, h, r) { return {x: w / 2, y: h}; })
+		// or full circle gauge
+				// .endAngle(- Math.PI * 2)
+				// .radius( function (w, h) { return lastRadius = Math.min(h, w) / 2; })
+				.color( function (d, i) { return color(d.value); })
+				.control('hideLegend', {state: true})
+				.size({height: 400})
+				.donutRatio(0.5)
+				.select('.pie-chart')
+				.on('afterUpdate.gagueify', gaugeify);
+
+		function gaugeify () {
+			var arc = this.selectAll('.d2b-pie-arc').style('pointer-events', 'none');
+			arc.each( function (d) {
+				var arc = d3.select(this);
+				if (d.data.label === 'value') {
+					arc.select('.d2b-pie-arc-percent')
+						.transition()
+							.duration(0)
+							.attr('transform', 'translate(0, -6)')
+					arc.select('text')
+						.transition()
+							.duration(pie.duration())
+							.style('font-weight', 'normal')
+							.style('fill', color(d.data.value))
+							.style('opacity', 1)
+							.call(d2b.numberTween, function (d) {return d.value}, percent)
+							.style('font-size', lastRadius / 6 + 'px');
+				} else {
+					arc.select('.d2b-pie-arc-percent').style('display', 'none');
+					arc.select('path').style('fill', '#eee');
+				}
+			});
+		}
+
+		function update () {
+			var value = Math.random();
+			pie.data([ {label: 'value', value: value}, {label: 'empty', value: 1 - value} ]).update();
+		}
+
+		update();
+		setInterval(update , 1000);
+		window.onresize = pie.update;
+	</script>
+</body>
+</html>
