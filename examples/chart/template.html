@@ -1,47 +1,51 @@
 <!DOCTYPE html>
 <html>
 
-<script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d2b.js"></script>
-<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../build/d2b.css" />
+<script src="../../build/d2b.js"></script>
 
 <body style='padding:30px;'>
+	<input type = 'checkbox'></input>
 	<div class = 'template-chart'></div>
 
 	<script>
-		// $(document).ready(function(){
+		var template = d2b.chartTemplate();
 
-			var template = d2b.chart.template();
+		template.legend()
+			.orient('horizontal')
+			.maxTextLength(20)
+			// .size(16);
 
-			template.legend()
-				// .orient('horizontal')
-				.maxTextLength(70)
-				// .size(16);
+		template
+			.padding(0)
+			.legendAt('top center')
+			.legendHidden(true)
+			// .size({height: '400'})
+			// .data('test')
+			// .select('.template-chart')
+			// .control('hideLegend', {state: true, visible: true})
+			// .legendAt('center center')
+			// .generate();
 
-			template.checkbox()
-				// .size(16);
+		var chart = d3.select('.template-chart')
+			.datum([
+				{label: 'Item 1 Long One'},
+				{label: 'Item 2'},
+				{label: 'Item 3 Here is a Longer One'},
+				{label: 'Item 4 Another'},
+				{label: 'Item 5'},
+				{label: 'Item 6 More'},
+				{label: 'Item 7'}
+			])
+			.call(template);
 
-			template
-				.size({height: '400'})
-				.data('test')
-				.select('.template-chart')
-				.control('hideLegend', {state: true, visible: true})
-				// .legendAt('top left')
-				.legendAt('center center')
-				.generate();
+			d3.select('input').on('change', function (){
+				chart.transition().call(template.legendHidden(!template.legendHidden()));
+			});
 
-		// setTimeout(function () {
-		// 	template.control('hideLegend', {state: true, visible: false}).update();
-		// }, 4000)
-
-			// d3.select('.template-chart').datum('test').call(template)
-
-			// $(window).resize(function(){
-			// 	templateChart.height($(window).height()).width($(window).width()).update();
-			// });
-
-		// })
-		window.onresize = template.update;
+		window.onresize = function () {chart.call(template)};
 	</script>
 </body>
 </html>

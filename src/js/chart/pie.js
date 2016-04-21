@@ -1,10 +1,16 @@
+import {default as modelChart} from '../model/chart.js';
+import {default as tooltip} from '../util/tooltip.js';
+import {default as tweenArc} from '../util/tweenArc.js';
+import {default as tweenCentroid} from '../util/tweenCentroid.js';
+import {default as tweenNumber} from '../util/tweenNumber.js';
+
 /**
- * d2b.chart.pie() returns a d2b
+ * d2b.chartPie() returns a d2b
  * pie chart generator
  */
-d2b.chart.pie = () => {
+export default function () {
 
-	const model = d2b.model.chart(update);
+	const model = modelChart(update);
 	const $$ = model.values();
 	const chart = model.base();
 
@@ -13,22 +19,23 @@ d2b.chart.pie = () => {
 		.active(true)
 		.clickable(true)
 		.dblclickable(true)
-		.on('mouseover.d2b-pie', d => d3.select(d.elem).each(arcMouseover))
-		.on('mouseout.d2b-pie', d => d3.select(d.elem).each(arcMouseout))
-		.on('click.d2b-pie', chart.update)
-		.on('dblclick.d2b-pie', chart.update);
+		.on('change', (legend, d) => legend.datum().__update__())
+		.on('mouseover.d2b-pie', (legend, d) => d3.select(d.__elem__).each(arcGrow))
+		.on('mouseout.d2b-pie', (legend, d) => d3.select(d.__elem__).each(arcShrink));
 
 	// pie data layout
-	const layout = d3.layout.pie().sort(null);
+	const layout = d3.pie().sort(null);
 
 	// arc generator
-	const arc = d3.svg.arc().outerRadius(d => d.outerRadius).innerRadius(d => d.innerRadius);
+	const arc = d3.arc()
+			.outerRadius(d => d.outerRadius)
+			.innerRadius(d => d.innerRadius);
 
 	// d2b pie generator
-	const pie = d2b.svg.pie().arc(arc);
+	const pie = d2b.svgPie().arc(arc);
 
 	// percent formater
-	const percent = d3.format('%');
+	const percent = d3.format('.0%');
 
 	// configure model properties
 	model
@@ -40,9 +47,14 @@ d2b.chart.pie = () => {
 			$$.legend.key(d);
 			pie.key(d);
 		})
-		.addProp('tooltip', d2b.tooltip().followMouse(true).html(d => `<b>${$$.label(d.data)}:</b> ${$$.value(d.data)}`))
+		.addProp('tooltip',
+			tooltip()
+					.followMouse(true)
+					.html(d => `<b>${$$.label(d.data)}:</b> ${$$.value(d.data)}`)
+		)
+		.addPropFunctor('showPercent', (d, i, p) => p > 0.03)
 		.addPropFunctor('center', null)
-		.addPropFunctor('radius', null)
+		.addPropFunctor('radius', (w, h) => Math.min(w, h) / 2)
 		.addPropFunctor('sort', null)
 		.addPropFunctor('color', d => d2b.defaultColor(d.label), null, (d) => {
 			$$.tooltip.color(dd => d3.rgb(d(dd.data)).darker(0.3));
@@ -53,102 +65,95 @@ d2b.chart.pie = () => {
 		.addPropFunctor('label', d => d.label, null, d => $$.legend.label(d));
 
 	// update chart
-	function update () {
-		// Sort and set legend data.
-		$$.legend.data($$.data.sort($$.sort));
+	function update (context, width, height, tools) {
+		const selection = (context.selection)? context.selection() : context,
+					node = selection.node(),
+					radius = $$.radius.call(node, width, height);
 
-		// Build the chart template.
-		model.build();
+		// Retrieve pie datum, save refresh method, filter out emptied items.
+		let datum = selection.datum();
+		datum.__update__ = tools.update;
+		datum = datum.filter(d => !d.empty);
 
 		// Filter and sort for current data.
-		const data = $$.data.filter(d => !d.empty);
-		const total = d3.sum(data, (d, i) => $$.value.call(chart, d, i) );
+		const total = d3.sum(datum, (d, i) => $$.value.call(chart, d, i));
 
 		// Select and enter pie chart 'g' element.
-		const chartGroup = $$.svg.main.selectAll('.d2b-pie-chart').data([data]);
-		const newChartGroup = chartGroup.enter()
+		let chartGroup = selection.selectAll('.d2b-pie-chart').data([datum]);
+		const chartGroupEnter = chartGroup.enter()
 			.append('g')
 				.attr('class', 'd2b-pie-chart');
 
-		// Compute radius.
-		const radius = getRadius();
-
-		// Transition the d2b pie chart.
-		const transition = chartGroup
+		chartGroup = chartGroup.merge(chartGroupEnter)
 				.datum(d => {
-					d = layout(d)
+					d = layout(d);
 					d.forEach(dd => {
 						dd.outerRadius = radius;
 						dd.innerRadius = radius * $$.donutRatio;
 					});
 					return d;
-				})
-			.transition()
-				.duration($$.duration)
-				.call(pie);
+				});
+
+		if (selection !== context) chartGroup = chartGroup.transition(context);
+
+		chartGroup.call(pie);
 
 		// For each arc in the pie chart assert the transitioning flag and store
 		// the element node in data. Also setup hover and tooltip events;
-		const arcGroup = chartGroup
+		let arcGroup = selection
 			.selectAll('.d2b-pie-arc')
 				.each(function (d) {
-					this.transitioning = true;
-					d.data.elem = this;
+					this.outerRadius = d.outerRadius;
+					d.data.__elem__ = this;
 				})
-				.on('mouseover.d2b-pie', arcMouseover)
-				.on('mouseout.d2b-pie', arcMouseout)
+				.on('mouseover', arcGrow)
+				.on('mouseout', arcShrink)
 				.call($$.tooltip);
 
-		// Enter arc percent label if it doesn't already exist.
-		const arcPercent = arcGroup.selectAll('.d2b-pie-arc-percent').data(d => [d]);
+		let arcPercent = arcGroup.selectAll('.d2b-pie-arc-percent').data(d => [d]);
+
 		arcPercent.enter()
 			.append('g')
 				.attr('class', 'd2b-pie-arc-percent')
 			.append('text')
-				.attr('y', 6)
-				.text('test');
+				.attr('y', 6);
 
-		// For each arc 'g' element translate teh current path state to the percent
-		// label. Also, make sure the text current value is initalized at 0.
 		arcGroup
 				.each(function (d) {
-					const elem = d3.select(this);
-					const current = elem.select('.d2b-pie-arc-path').node().current;
-					const percentGroup = elem.select('.d2b-pie-arc-percent')
+					const elem = d3.select(this),
+								current = elem.select('.d2b-pie-arc path').node().current,
+								percentGroup = elem.select('.d2b-pie-arc-percent'),
+								percentText = percentGroup.select('text').node();
 					percentGroup.node().current = current;
-					const percentText = percentGroup.select('text');
-					const percentTextNode = percentText.node();
-					percentText.node().current = percentText.node().current || 0;
+					percentText.current = percentText.current || 0;
+				})
+
+		if (selection !== context) {
+			arcGroup = arcGroup
+					.each(function (d) {this.transitioning = true;})
+				.transition(context)
+					.on('end', function (d) {this.transitioning = false;});
+		}
+
+		arcGroup
+			.select('.d2b-pie-arc-percent')
+				.call(d2b.tweenCentroid, arc)
+			.select('text')
+				.call(tweenNumber, d => d.value / total, percent)
+				.style('opacity', function (d, i) {
+					return $$.showPercent.call(this, d.data, i, d.value / total)? 1 : 0;
 				});
 
-		// Grab the d2b pie arc transition. When it finishes clear the transition
-		// state. Also tween the percent label position and value.
-		const arcUpdate = transition
-			.selectAll('.d2b-pie-arc')
-				.each('end', function (d) {
-					this.transitioning = false
-				})
-			.select('.d2b-pie-arc-percent')
-				.call(d2b.centroidTween, arc)
-			.select('text')
-				.styleTween('opacity', function (d) {
-					return t => (this.current > 0.03)? 1 : 0;
-				})
-				.call(d2b.numberTween, d => d.value / total, percent);
-
-		// Position the pie chart.
-		const coords = chartCoords(radius);
-		newChartGroup.attr('transform', `translate(${coords.x}, ${coords.y})`);
-		chartGroup.transition()
-			.duration($$.duration)
-				.attr('transform', `translate(${coords.x}, ${coords.y})`);
+		const coords = chartCoords(node, radius, width, height);
+		chartGroupEnter.attr('transform', `translate(${coords.x}, ${coords.y})`);
+		chartGroup.attr('transform', `translate(${coords.x}, ${coords.y})`);
 	}
 
 	// Position the pie chart according to the 'at' string (e.g. 'center left',
 	// 'top center', ..). Unless a `$$.center` function is specified by the user
 	// to return the {x: , y:} coordinates of the pie chart center.
-	function chartCoords (radius) {
-		let coords = $$.center.call(chart, $$.width, $$.height, radius);
+	function chartCoords (node, radius, width, height) {
+		let coords = $$.center.call(node, width, height, radius);
 
 		if (!coords) {
 			let at = $$.at.split(' ');
@@ -159,18 +164,18 @@ d2b.chart.pie = () => {
 					coords.x = radius;
 					break;
 				case 'center':
-					coords.x = $$.width / 2
+					coords.x = width / 2
 					break;
 				default: // right
-					coords.x = $$.width - radius;
+					coords.x = width - radius;
 			}
 
 			switch (at.y) {
 				case 'bottom':
-					coords.y = $$.height - radius;
+					coords.y = height - radius;
 					break;
 				case 'center':
-					coords.y = $$.height / 2;
+					coords.y = height / 2;
 					break;
 				default: // top
 					coords.y = radius;
@@ -179,29 +184,18 @@ d2b.chart.pie = () => {
 		return coords;
 	}
 
-	// Shrink arc on mouseout.
-	function arcMouseout(d) {
+	function arcGrow (d) {
 		if (this.transitioning) return;
 		const path = d3.select(this).select('path');
-		const radius = getRadius();
-		d.outerRadius = radius;
-		d3.select(this).transition().select('path').call(d2b.arcTween, arc);
+		d.outerRadius = this.outerRadius * 1.03;
+		path.transition('d2b-chart').call(tweenArc, arc);
 	}
 
-	// Grow arc on mouseover.
-	function arcMouseover(d) {
+	function arcShrink (d) {
 		if (this.transitioning) return;
 		const path = d3.select(this).select('path');
-		const radius = getRadius();
-		d.outerRadius = radius * 1.03;
-		d3.select(this).transition().select('path').call(d2b.arcTween, arc);
-	}
-
-	// Get radius from the minimum of the width and height. Unless a `$$.radius`
-	// function is specified by the user to dynamically set the radius value.
-	function getRadius() {
-		return $$.radius.call(chart, $$.width, $$.height) ||
-		 			 Math.min($$.width, $$.height) / 2;
+		d.outerRadius = this.outerRadius;
+		path.transition('d2b-chart').call(tweenArc, arc);
 	}
 
 	return chart;

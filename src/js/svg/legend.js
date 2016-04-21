@@ -1,205 +1,247 @@
-// legend svg generator
-d2b.svg.legend = function () {
+import {default as base} from '../model/base.js';
+import {default as color} from '../core/color.js';
+import {default as textWrap} from '../util/textWrap.js';
+import {default as svgPoint} from '../svg/point.js';
+
+export default function () {
   const $$ = {};
 
-  const legend = function (g) {
-    legend.duration((g.duration)? g.duration() : 0);
-    g.each( function (d) {
-      const el = d3.select(this);
-      legend.selection(el).data(el.datum()).update();
+  const legend = function (context) {
+    context.each(function (data, index) {
+      const selection = d3.select(this),
+            size = $$.size.call(this, data, index),
+            maxSize = $$.maxSize.call(this, data, index),
+            orient = $$.orient.call(this, data, index),
+            maxTextLength = $$.maxTextLength.call(this, data, index),
+            items = $$.items.call(this, data, index);
+
+      // Set point size and stroke width.
+      point
+          .size(1.5 * Math.pow(size / 2, 2))
+          .strokeWidth(size * 0.1);
+
+      // enter d2b-legend container
+      let g = selection.selectAll('.d2b-legend').data([items]);
+      g = g.merge(g.enter().append('g').attr('class', 'd2b-legend'));
+
+      // enter d2b-legend-items
+      let item = g.selectAll('.d2b-legend-item').data(d => d, $$.key);
+      let itemEnter = item.enter()
+        .append('g')
+          .attr('class', 'd2b-legend-item')
+          .style('opacity', 0);
+      itemEnter.append('g').append('text');
+
+      // exit d2b-legend-items
+      let itemExit = item.exit();
+
+      // merge enter and update items
+      item = item.merge(itemEnter)
+          .style('cursor', function (d, i) {
+            const clickable = $$.clickable.call(this, d, i),
+                  dblclickable = $$.dblclickable.call(this, d, i);
+            return (clickable || dblclickable)? 'pointer' : 'auto';
+          })
+
+      // bind item events for each selection
+      selection.call(bindEvents, index);
+
+      // select item wrapper
+      let wrap = item.select('g')
+          .attr('transform', `translate(${size / 2}, ${size / 2})`);
+
+      // select item text
+      let text = item.select('text')
+          .attr('transform', `translate(${size / 1.5}, ${size / 3})`)
+          .style('font-size', `${size}px`)
+          .call(textWrap, $$.label, maxTextLength);
+
+      // init transitions if context is a transition
+      if (context.selection) {
+        itemExit = itemExit.transition(context).style('opacity', 0);
+        item = item.transition(context);
+        wrap = wrap.transition(context);
+        text = text.transition(context);
+      }
+
+      // remove exiting items
+      itemExit.remove();
+
+      // wrap update
+      wrap.call(point);
+
+      // find max item width
+      let maxWidth = 0;
+      text.each(function () {
+        maxWidth = Math.max(maxWidth, this.getBBox().width);
+      });
+      maxWidth += size;
+
+      // inital item padding
+      const pad = {x: size, y: 5};
+
+      // entering items will be positioned immediately
+      itemEnter.call(position[orient], this, pad, size, maxSize, maxWidth);
+
+      // Initialize computed dimensions of the legend to 0. These are attached
+      // as attributes to the legend selection node. They can be used to
+      // reposition the legend accordingly.
+      this.computedWidth = 0;
+      this.computedHeight = 0;
+
+      // update item position and opacity
+      item
+          .style('opacity', 1)
+          .call(position[orient], this, pad, size, maxSize, maxWidth);
     });
-  };
-
-  const click = function (d, i) {
-    const clickable = $$.clickable.call(this, d, i),
-          allowEmptied = $$.allowEmptied.call(this, d, i);
-
-    if (!clickable) return $$.dispatch.click.call(this, d, i);
-
-    d.empty = !d.empty;
-
-    d3.select(this).transition().duration(100).call(point);
-
-    if (allowEmptied) return $$.dispatch.click.call(this, d, i);
-
-    let allEmpty = true;
-    $$.data.forEach( d => allEmpty = (d.empty)? allEmpty : false );
-
-    if (allEmpty) {
-      $$.data.forEach( d => d.empty = false );
-      legend.generate();
-    }
-
-    $$.dispatch.click.call(this, d, i);
-  };
-
-  const dblclick = function (d, i) {
-    const dblclickable = $$.dblclickable.call(this, d, i);
-
-    if (!dblclickable) return $$.dispatch.dblclick.call(this, d, i);
-
-    $$.data.forEach(d => d.empty = true);
-    d.empty = false;
-
-    legend.generate();
-
-    $$.dispatch.dblclick.call(this, d, i);
-  };
-
-  const point = d2b.svg.point()
-    .stroke( function (d, i) {
-      return d3.rgb($$.color.call(this, d, i)).darker(0.3);
-    });
-
-  const update = function () {
-
-    $$.svg = $$.selection.selectAll('.d2b-legend').data([$$.data]);
-
-    $$.svg.enter().append('g').attr('class', 'd2b-legend');
-
-    $$.svg.item = $$.svg.selectAll('.d2b-legend-item').data(d => d, $$.key);
-
-    const newItem = $$.svg.item.enter()
-      .append('g')
-        .style('opacity', 0)
-        .attr('class', 'd2b-legend-item');
-
-    newItem
-      .append('g')
-        .on('click.d2b-legend', click)
-        .on('dblclick.d2b-legend', dblclick)
-        .on('mouseover.d2b-legend', function (d, i) {
-          $$.dispatch.mouseover.call(this, d, i);
-        })
-        .on('mouseout.d2b-legend', function (d, i) {
-          $$.dispatch.mouseout.call(this, d, i);
-        })
-      .append('text');
-
-    $$.svg.item
-        .style('cursor', function (d, i) {
-          const clickable = $$.clickable.call(this, d, i),
-                dblclickable = $$.dblclickable.call(this, d, i);
-          return (clickable || dblclickable)? 'pointer' : 'auto';
-        })
-      .select('g')
-        .attr('transform', `translate(${$$.size / 2}, ${$$.size / 2})`)
-      .transition()
-        .call(point);
-
-    $$.svg.item.select('text')
-      .style('font-size', `${$$.size}px`)
-      .attr('transform', `translate(${$$.size / 1.5}, ${$$.size / 3})`)
-      .call(d2b.textWrap, $$.label, $$.maxTextLength);
-
-    const maxWidth = $$.size + d3.max($$.svg.item[0], node => itemBox(node).width);
-
-    const pad = {x: $$.size, y: 5};
-
-    newItem.call(position[$$.orient], pad, maxWidth);
-
-    const transition = $$.svg.item
-      .transition()
-        .duration($$.duration)
-        .style('opacity', 1)
-        .call(position[$$.orient], pad, maxWidth);
-
-    $$.svg.item.exit()
-      .transition()
-        .duration($$.duration)
-        .style('opacity', 0)
-        .remove();
 
     return legend;
   };
 
-  const itemBox = (node) => {
-    const box = d3.select(node).select('text').node().getBBox();
-    box.width += $$.size;
-    return box;
+  // Bind events and dispatchers to all legend items within selection. Use the
+  // 'd2b-legend' namespace.
+  function bindEvents (selection, index) {
+    selection.selectAll('.d2b-legend-item')
+        .on('click.d2b-legend', function (d, i) {
+          click.call(this, d, i, selection, index);
+          $$.dispatch.call("click", this, selection, d, i);
+        })
+        .on('dblclick.d2b-legend', function (d, i) {
+          dblclick.call(this, d, i, selection, index);
+          $$.dispatch.call("dblclick", this, selection, d, i);
+        })
+        .on('mouseover.d2b-legend', function (d, i) {
+          $$.dispatch.call("mouseover", this, selection, d, i);
+        })
+        .on('mouseout.d2b-legend', function (d, i) {
+          $$.dispatch.call("mouseout", this, selection, d, i);
+        });
+  }
+
+  // On legend item click decide and perform any necessary actions.
+  function click (d, i, selection, index) {
+    const clickable = $$.clickable.call(this, d, i),
+          allowEmptied = $$.allowEmptied.call(selection.node(), selection.datum(), index),
+          data = selection.datum();
+
+    if (!clickable) return;
+
+    d.empty = !d.empty;
+
+    d3.select(this).transition('d2b-legend-change').duration(100).call(point);
+
+    if (allowEmptied) return $$.dispatch.call("change", this, selection, d, i);
+
+    let allEmpty = true;
+    data.forEach( d => allEmpty = (d.empty)? allEmpty : false );
+
+    if (allEmpty) {
+      data.forEach( d => d.empty = false );
+      selection.transition('d2b-legend-change').duration(100).call(legend);
+    }
+
+     $$.dispatch.call("change", this, selection, d, i);
   };
 
+  // On legend item dblclick decide and perform any necessary actions.
+  function dblclick (d, i, selection, index) {
+    const dblclickable = $$.dblclickable.call(this, d, i),
+          data = selection.datum();
+
+    if (!dblclickable) return;
+
+    data.forEach(d => d.empty = true);
+    d.empty = false;
+
+    selection.transition('d2b-legend-change').duration(100).call(legend);
+
+    $$.dispatch.call("change", this, selection, d, i);
+  };
+
+  // Initialize new d2b point.
+  const point = svgPoint().empty(d => d.empty);
+
+  // Position legend items either horizontally or vertically.
   const position = {
-    horizontal: (transition, pad, maxWidth) => {
+    // transition - d3 transition for legend items that need to be positioned
+    // legendNode - svg node for the current legend (to set compute dimensions)
+    // pad - item padding
+    // size - legend 'size', usually the height of each legend item
+    // maxSize - object with 'width' and 'height' attributes to bound either the vertical or horizontal legend
+    // maxWidth - maximum width of all legend items
+    horizontal: (transition, legendNode, pad, size, maxSize, maxWidth) => {
       let x = 0, y = 0, maxHeight = 0;
-      $$.computedSize = {width: 0, height: 0};
       transition
         .attr('transform', function () {
-          const box = itemBox(this);
-          if (x + maxWidth > $$.maxSize.width){
+          const el = d3.select(this),
+                boxHeight = size * el.selectAll('tspan').size(),
+                boxWidth = el.select('text').node().getBBox().width;
+
+          if (x + maxWidth > maxSize.width) {
             x = 0;
             y += maxHeight + pad.y;
             maxHeight = 0;
           }
           const translate = `translate(${x}, ${y})`;
-          maxHeight = Math.max(maxHeight, box.height);
-          $$.computedSize.width = Math.max($$.computedSize.width, x + box.width + 5);
+          maxHeight = Math.max(maxHeight, boxHeight);
+          legendNode.computedWidth = Math.max(legendNode.computedWidth, x + boxWidth + 1.5 * size);
           x += maxWidth + pad.x;
           return translate;
         });
-      $$.computedSize.height = y + maxHeight;
+      legendNode.computedHeight = y + maxHeight;
     },
-    vertical: (transition, pad) => {
+    vertical: (transition, legendNode, pad, size, maxSize) => {
       let x = 0, y = 0, maxWidth = 0;
-      $$.computedSize = {width: 0, height: 0};
       transition
         .attr('transform', function () {
-          const box = itemBox(this);
-          if (y + box.height > $$.maxSize.height){
-            x += maxWidth + pad.x;
+          const el = d3.select(this),
+                boxHeight = size * el.selectAll('tspan').size(),
+                boxWidth = el.select('text').node().getBBox().width;
+
+          if (y + boxHeight > maxSize.height){
+            x += maxWidth + pad.x + size;
             y = 0;
             maxWidth = 0;
           }
           const translate = `translate(${x}, ${y})`;
-          maxWidth = Math.max(maxWidth, box.width);
-          $$.computedSize.height = Math.max($$.computedSize.height, y + box.height);
-          y += box.height + pad.y;
+          maxWidth = Math.max(maxWidth, boxWidth);
+          legendNode.computedHeight = Math.max(legendNode.computedHeight, y + boxHeight);
+          y += boxHeight + pad.y;
           return translate;
         });
-      $$.computedSize.width = x + maxWidth + 5;
+      legendNode.computedWidth = x + maxWidth + 1.5 * size;
     }
   };
 
   /* Inherit from base model */
-  const model = d2b.model.base(legend, $$)
-    .addProp('size', 12, null, _ => point.size(1.5 * Math.pow(_ / 2, 2)) )
-    .addProp('strokeWidth', '1px', null, _ => point.strokeWidth(_) )
-    .addProp('maxSize', {width: 960, height: 500})
-    .addProp('orient', 'vertical')
-    .addProp('duration', 500)
-    .addProp('maxTextLength', Infinity)
-    .addProp('selection', null)
-    .addProp('data', [], function (_) {
-      if(!arguments.length) return $$.data;
-      $$.data = _.data || _;
-      return legend;
-    })
-    .addPropFunctor('key', (d, i) => i)
-    .addPropFunctor('active', false, null, _ => point.active(_) )
+  const model = base(legend, $$)
+    // legend level functors
+    .addPropFunctor('items', d => d)
+    .addPropFunctor('size', 12)
+    .addPropFunctor('maxSize', {width: 960, height: 500})
+    .addPropFunctor('orient', 'vertical')
+    .addPropFunctor('maxTextLength', Infinity)
     .addPropFunctor('allowEmptied', false)
+    // legend item level functors
+    .addPropFunctor('key', (d, i) => i)
     .addPropFunctor('clickable', false)
     .addPropFunctor('dblclickable', false)
-    .addPropFunctor('label', (d => d.label))
-    .addPropFunctor('symbol', 'circle', null, _ => point.type(_) )
-    .addPropFunctor('color', d => d2b.defaultColor(d.label), null, d => point.fill(d))
-    .addPropFunctor('empty', (d => d.empty), null, _ => point.empty(_) )
-    .addMethod('select', (_) => d3.select(_))
-    .addMethod('update', update)
-    .addMethod('computedSize', () => $$.computedSize)
-    .addMethod('generate', (callback) => {
-      const duration = $$.duration;
-      legend.duration(0).update(callback).duration(duration);
+    .addPropFunctor('label', d => d.label)
+    // legend item point functors
+    .addPropFunctor('active', false, null, _ => point.active(_) )
+    .addPropFunctor('symbol', d3.symbolCircle, null, _ => point.type(_) )
+    .addPropFunctor('color', d => color(d.label), null, _ => point.fill(_))
+    // .addPropFunctor('empty', d => d.empty, null, _ => point.empty(_) )
+    // Method to get the computed size of a specific legend container. This
+    // method should be used after the legend has been rendered. Either the
+    // legend SVG node or a d3 selection of the node may be specified.
+    .addMethod('computedSize', (_) => {
+      const node = (_.node)? _.node() : _;
+      if (!node) return {width: 0, height: 0};
+      return {width: node.computedWidth, height: node.computedHeight};
     })
-    .addMethod('clear', () => {
-      if ($$.svg && $$.svg.item) {
-        $$.svg.item
-          .transition()
-            .duration($$.duration)
-            .style('opacity', 0)
-            .remove();
-      }
-    })
-		.addDispatcher(['dblclick', 'click', 'mouseover', 'mouseout']);
+    // Dispatcher setup.
+		.addDispatcher(['dblclick', 'click', 'mouseover', 'mouseout', 'change']);
 
   return legend;
 };

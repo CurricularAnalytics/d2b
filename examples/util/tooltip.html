@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
 
-<script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/d2b.css" />
+<script src="../../build/d2b.js"></script>
 
 <style>
 	body{
@@ -34,7 +34,7 @@
 	<svg class = 'main'></svg>
 
 	<script>
-		var color = d3.scale.category20();
+		var color = d3.scaleCategory20();
 
 		var tooltip = d2b.tooltip()
 			.color(function (d, i) { return color(d); })

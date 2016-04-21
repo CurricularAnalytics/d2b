@@ -1,64 +1,76 @@
+import {default as base} from '../model/base.js';
+import {default as color} from '../core/color.js';
+import {default as tweenArc} from '../util/tweenArc.js';
+
 // pie svg generator
-d2b.svg.pie = function () {
+export default function () {
 
   const $$ = {};
 
   /* Update Function */
-  const pie = function (g) {
-    g.each( function (d, i) {
+  const pie = function (context) {
+    const selection = (context.selection)? context.selection() : context;
+
+    selection.each( function (d, i) {
       const el = d3.select(this);
 
   		// select arc group and get their old data
   		let arc = el.selectAll('.d2b-pie-arc');
   		const oldData = arc.data();
 
-  		arc = arc.data(el.datum(), (d, i) => $$.key(d.data, i));
+  		arc = arc.data($$.values, (d, i) => $$.key(d.data, i));
 
-      const arcEnter = arc.enter().append('g').attr('class', 'd2b-pie-arc'),
-            arcExit = d3.transition(arc.exit()).remove(),
-            arcUpdate = d3.transition(arc.order());
+      let arcEnter = arc.enter().append('g').attr('class', 'd2b-pie-arc'),
+          arcExit = arc.exit(),
+          arcUpdate = arc.merge(arcEnter).order();
 
-      // create path within entered arcs
-  		arcEnter.append('path')
-          .attr('class', 'd2b-pie-arc-path')
-          .attr('fill', function (d, i) { return $$.color.call(this, d.data, i); });
+      arcEnter.append('path')
+          .attr('fill', function (d, i) {
+            return $$.color.call(this, d.data, i);
+          });
 
       // retrieve new data
-  		const newData = arc.data();
+  		const newData = arcUpdate.data();
 
   		// for new arcs, find and set the neighboring insertion point
-  		arcEnter.each( function (d, i) {
-  					const neighbor = findNeighborArc(i, oldData, newData);
-  					const arc = d3.select(this);
-  					arc.select('.d2b-pie-arc-path').node().current = neighbor;
-  				});
+  		arcEnter.select('path')
+          .each( function (d, i) {
+            this.current = findNeighborArc(i, oldData, newData);
+          });
 
-  		// transition arc path
-  		arcUpdate
-        .select('.d2b-pie-arc-path')
-  				.call(d2b.arcTween, $$.arc)
-          .attr('fill', function (d, i) { return $$.color.call(this, d.data, i); });
-
-  		// exit arcs through their proper exit position
-      arc.exit()
+      arcExit
   	      .datum(function(d, i) {
   					const data = findNeighborArc(i, newData, oldData);
   					data.data = d.data;
   					return data;
-  				})
-  		arcExit
-        .select('.d2b-pie-arc-path')
-          .call(d2b.arcTween, $$.arc);
+  				});
+
+      // start transition for exiting and updating arcs
+      if (context !== selection) {
+        arcExit = arcExit.transition(context);
+        arcUpdate = arcUpdate.transition(context);
+      }
+
+  		// transition arc path
+  		arcUpdate
+        .select('path')
+          .call(tweenArc, $$.arc)
+          .attr('fill', function (d, i) {
+            return $$.color.call(this, d.data, i);
+          });
+
+      arcExit.remove().select('path').call(tweenArc, $$.arc);
 
     });
     return pie;
   };
 
   /* Inherit from base model */
-  const model = d2b.model.base(pie, $$)
+  const model = base(pie, $$)
     .addProp('key', d => d.label)
-    .addProp('arc', d3.svg.arc().innerRadius(100).outerRadius(200))
-    .addPropFunctor('color', d => d2b.defaultColor(d.label));
+    .addProp('arc', d3.arc().innerRadius(100).outerRadius(200))
+    .addPropFunctor('values', d => d)
+    .addPropFunctor('color', d => color(d.label));
 
 
 	function findNeighborArc (i, data0, data1) {

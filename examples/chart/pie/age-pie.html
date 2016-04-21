@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
 
-<script src="../../../vendor/js/vendor.js"></script>
-<script src="../../../build/js/d2b.js"></script>
-<link rel="stylesheet" type="text/css" href="../../../build/css/d2b.css" />
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
 
 <body style='padding: 0;margin: 0;'>
 
@@ -12,24 +12,22 @@
 	<div class = 'pie-chart'></div>
 
 	<script>
-		var pie = d2b.chart.pie();
+		var pie = d2b.chartPie().padding(30).donutRatio(0.5);
+		var format = d3.format(',');
 
-		pie
-			.select('.pie-chart')
-			.padding(30)
-			.data([
-				{label: 'older than 5', value: 2704659},
+		var chart = d3.select('.pie-chart')
+			.datum([
+				{label: 'younger than 5', value: 2704659},
 				{label: '5-13', value: 4499890},
 				{label: '14-17', value: 2159981},
 				{label: '18-24', value: 3853788},
 				{label: '25-44', value: 14106543},
 				{label: '45-64', value: 8819342},
-				{label: 'younger than 65', value: 612463}
+				{label: 'older than 65', value: 612463}
 			])
-			.donutRatio(0.5)
-			.generate();
+			.call(pie);
 
-		window.onresize = pie.generate;
+		window.onresize = function () {chart.call(pie)};
 	</script>
 </body>
 </html>

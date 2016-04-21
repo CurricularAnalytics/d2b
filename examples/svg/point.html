@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
 
-<script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d2b.js"></script>
-<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<link rel="stylesheet" type="text/css" href="../../build/d2b.css" />
+<script src="../../build/d2b.js"></script>
 
 <body>
 
@@ -11,72 +11,29 @@
 
 <script>
   var width = 960, height = 500;
-  var sets = [];
-	sets.push([
-		{ fill: 'red', stroke:'blue', size: 50, active:true, empty: false, type:'circle' },
-		{ fill: 'steelblue', stroke:'black', size: 600, active:true, empty: false, type:'close' },
-		{ fill: 'steelblue', stroke:'black', size: 600, active:true, empty: true, type:'venus' }
-	]);
-	sets.push([
-		{ fill: 'red', stroke:'blue', size: 3000, active:false, empty: true, type:'circle' },
-		{ fill: 'blue', stroke:'red', size: 1500, active:false, empty: false, type:'close' },
-		{ fill: 'blue', stroke:'red', size: 1500, active:false, empty: true, type:'venus' }
-	]);
-	sets.push([
-		{ fill: 'blue', stroke:'red', size: 2200, active:true, empty: true, type:'circle' },
-		{ fill: 'red', stroke:'steelblue', size: 200, active:true, empty: true, type:'close' },
-		{ fill: 'red', stroke:'steelblue', size: 200, active:true, empty: false, type:'venus' }
-	]);
-	sets.push([
-		{ fill: 'blue', stroke:'red', size: 5000, active:true, empty: false, type:'circle' },
-		{ fill: 'red', stroke:'steelblue', size: 200, active:true, empty: true, type:'close' },
-		{ fill: 'red', stroke:'steelblue', size: 200, active:true, empty: false, type:'venus' }
-	]);
-	sets.push([
-		{ fill: 'blue', stroke:'red', size: 1200, active:true, empty: true, type:'circle' },
-		{ fill: 'red', stroke:'steelblue', size: 200, active:true, empty: true, type:'close' },
-		{ fill: 'red', stroke:'steelblue', size: 200, active:true, empty: false, type:'venus' }
-	]);
 
 	var svg = d3.select('svg')
       .attr('width', width)
       .attr('height', height)
     .append('g')
-      .datum({ sets: sets, index: 0 })
 			.attr('transform', 'translate('+width / 2+', '+height / 2+')');
 
-	var point = d2b.svg.point()
-		.fill((function(d){return d.fill;}))
-		.stroke(function(d){return d.stroke;})
-		.active(function(d){return d.active;})
-		.empty(function(d){return d.empty;})
-		.size(function(d){return d.size;})
-		.type(function(d){return d.type;});
+  var point = d2b.point().fill('steelblue').active(true);
+  var types = [
+    d3.symbolCircle, d3.symbolCross, d3.symbolDiamond, d3.symbolSquare,
+    d3.symbolStar, d3.symbolTriangle, d3.symbolWye,
+    d2b.symbolVenus, d2b.symbolVenus
+  ];
+
+  svg.call(point)
 
   var update = function () {
-    var pointSvg = svg.selectAll('.point').data(function(d){
-      var data = d.sets[d.index];
-      if (!data) data = d.sets[d.index = 0];
-      d.index += 1;
-      return data;
-    });
-    var transition;
-
-    pointSvg.enter()
-      .append('g')
-        .attr('class', 'point');
-
-    transition = pointSvg
-      .transition()
-        .attr('transform', function(d, i){
-          return 'translate('+150 * (i-1)+', 0)';
-        })
-        .call(point);
-
+    var type = types[Math.floor(Math.random() * types.length)];
+    point.size(Math.random() * 6000 + 500).type(type);
+    svg.call(point);
   };
-
   update();
-  setInterval( function () { update(); }, 5000)
+  setInterval( update, 1000);
 
 </script>
 

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
 
-<script src="../../../vendor/js/vendor.js"></script>
-<script src="../../../build/js/d2b.js"></script>
-<link rel="stylesheet" type="text/css" href="../../../build/css/d2b.css" />
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
 
 <body>
 	<div class = 'pie-chart'></div>
@@ -11,20 +11,20 @@
 	<script>
 		// $(document).ready(function(){
 
-			var pie = d2b.chart.pie();
+			var pie = d2b.chartPie();
 
 			pie.legend()
 				// .clickable(false)
 				// .dblclickable(false)
 				// .allowEmptied(true)
-				.orient('horizontal')
+				// .orient('horizontal')
 				// .maxTextLength(10)
-				.size(16);
-
-			pie.checkbox()
 				// .size(16);
 
+
 			// var color = d3.scale.category20b();
+
+			// d2b.defaultColor = d3.scale.category20b();
 
 			pie
 				// .color(d => color(d.label))
@@ -35,34 +35,36 @@
 				.center((w, h, r) => {return {x: w / 2, y: h / 2 + r / 2};})
 				// .at('center right')
 				// .duration(2500)
-				.data([
-					{label: 'arc 1', value: 23},
-					{label: 'arc 2', value: 31},
-					{label: 'arc 3', value: 80},
-					{label: 'arc 4', value: 8}
-				])
 				.size({height: 400})
 				.donutRatio(0.5)
-				.select('.pie-chart')
-				.legendAt('bottom center')
-				// .control('hideLegend', {state: true, visible: true})
-				// .legendAt('top left')
-				// .legendAt('center center')
-				.update();
+				// .legendAt('bottom center')
+				// .legendAt('top left');
+
+			var chart = d3.select('.pie-chart');
+
+			chart
+					.datum([
+						{label: 'arc 1', value: 23},
+						{label: 'arc 2', value: 31},
+						{label: 'arc 3', value: 80},
+						{label: 'arc 4', value: 8}
+					])
+				.transition()
+					.call(pie);
 
 		setTimeout( function () {
-			pie
-				.data([
-					{label: 'arc 1', value: 25},
-					// {label: 'arc 2', value: 38},
-					{label: 'arc 3', value: 40},
-					{label: 'arc 5', value: 90},
-					{label: 'arc 4', value: 61}
-				])
-				.update();
+			chart
+					.datum([
+						{label: 'arc 1', value: 25},
+						{label: 'arc 3', value: 40},
+						{label: 'arc 5', value: 90},
+						{label: 'arc 4', value: 61}
+					])
+				.transition()
+					.call(pie);
 		}, 2000);
 
-		window.onresize = pie.generate;
+		window.onresize = function () {chart.transition().call(pie)};
 	</script>
 </body>
 </html>

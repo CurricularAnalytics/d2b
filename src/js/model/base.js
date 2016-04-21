@@ -1,5 +1,6 @@
+import {default as functor} from '../core/functor.js';
 /**
-  * d2b.model.base() returns a d2b base model.
+  * d2b.modelBase() returns a d2b base model.
   *
   * model.interface() will return a base interface with various built in
   * getter/setter methods.
@@ -9,7 +10,7 @@
   * @return {Object} model - object with properties and methods
   */
 
-d2b.model.base = function (base = {}, $$ = {}, protect) {
+export default function (base = {}, $$ = {}, protect) {
 
   const propFn = (prop, cb) => {
     return function (_) {
@@ -31,7 +32,7 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
     return function (_) {
       if (!arguments.length) return $$[prop];
       const old = $$[prop];
-      $$[prop] = d3.functor(_);
+      $$[prop] = functor(_);
       if (cb) cb(_, old);
       return base;
     }
@@ -131,7 +132,7 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
       }
       // allow for null:default 'fn' in order to access callback
       fn = fn || propFnFunctor(prop, cb);
-      value = d3.functor(value);
+      value = functor(value);
       if (cb) cb(value);
 
       $$[prop] = value;
@@ -156,7 +157,7 @@ d2b.model.base = function (base = {}, $$ = {}, protect) {
         console.error(`${store} value is already defined.`);
         return model;
       }
-      
+
       base[prop] = function (key, fn) {
         if(arguments.length === 0) return $$[store];
         if(arguments.length === 1) return $$[store].on(key);

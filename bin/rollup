@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+
+var rollup = require('rollup');
+var babel = require('rollup-plugin-babel');
+
+rollup.rollup({
+  entry: "index.js",
+  plugins: [
+    babel({
+      presets: [ "es2015-rollup" ],
+      exclude: 'node_modules/**'
+    })
+  ]
+}).then(function(bundle) {
+  return bundle.write({
+    format: "umd",
+    moduleName: "d2b",
+    dest: "build/d2b.js"
+  });
+}).then(function() {
+  console.warn("↳ build/d2b.js");
+}).catch(abort);
+
+function abort(error) {
+  console.error(error.stack);
+}

@@ -1,92 +1,78 @@
 <!DOCTYPE html>
 <html>
-<link rel="stylesheet" type="text/css" href="../../build/css/d2b.css" />
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
 
-<script src="../../vendor/js/vendor.js"></script>
-<script src="../../build/js/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../build/d2b.css" />
+<script src="../../build/d2b.js"></script>
 
-<style>
-	body{
-		font-family:"Droid Sans";
-		margin: 0;
-	}
-	svg{
-		display:block;
-		background:rgba(100,100,100,0.3);
-	}
-</style>
+<style>.legend{background: #ddd;}body{font-family: 'Droid Sans';}</style>
 
 <body>
 
-Legend:
-<svg class = 'legend'></svg>
-<script>
-	var maxSize = function () {
-		return {
-			width: d3.select('body').node().getBoundingClientRect().width,
-			height: d3.select('body').node().getBoundingClientRect().height,
-		}
-	};
+	<svg class = 'legend'></svg>
+	<script>
+		var maxSize = function () {
+			return {
+				width: window.innerWidth,
+				height: window.innerHeight,
+			}
+		};
 
-  var data = [
-    {label: 'Item 1 Long One', empty: false, active: true, clickable: true, dblclickable: true},
-    {label: 'Item 2', empty: true, active: true, clickable: true, dblclickable: true},
-    {label: 'Item 3 Here is a Longer One', empty: false, active: true, clickable: true, dblclickable: true},
-    {label: 'Item 4 Another', empty: true, active: true, clickable: true, dblclickable: true},
-    {label: 'Item 5', empty: true},
-    {label: 'Item 6 More', empty: false},
-    {label: 'Item 7', empty: false},
-  ];
+	  var data = [
+	    {label: 'Item 1 Long One', empty: false, active: true, clickable: true, dblclickable: true},
+	    {label: 'Item 2', empty: true, active: true, clickable: true, dblclickable: true},
+	    {label: 'Item 3 Here is a Longer One', empty: false, active: true, clickable: true, dblclickable: true},
+	    {label: 'Item 4 Another', empty: true, active: true, clickable: true, dblclickable: true},
+	    {label: 'Item 5', empty: true},
+	    {label: 'Item 6 More', empty: false},
+	    {label: 'Item 7', empty: false},
+	  ];
 
-	var size = maxSize();
+		var legend = d2b.legend()
+			.size(16)
+			.active(true)
+			.clickable(d => d.clickable)
+			.dblclickable(d => d.dblclickable)
+			// .allowEmptied(false)
+			.maxTextLength(10)
+			// // .duration(500)
+			.orient('horizontal')
+			// .on('change', function (d, i, leg) {
+			// 	console.log(leg.datum())
+			// });
+	    // .on('click', function(d, i) {
+	    //   // console.log(this, d, i);
+			// 	legend.update();
+	    // })
+	    // .on('dblclick', function(d, i) {
+	    //   // console.log(this, d, i);
+			// 	legend.update();
+	    // })
+			// .on('mouseover', function(d, i) {
+			// 	// console.log(this, d, i);
+			// })
+			// .on('mouseout', function(d, i) {
+			// 	// console.log(this, d, i);
+			// });
 
-	var legend = d2b.svg.legend()
-		.size(16)
-		.maxSize(size)
-		.empty(d => d.empty)
-		.active(true)
-		.clickable(d => d.clickable)
-		.dblclickable(d => d.dblclickable)
-		.allowEmptied(false)
-		.maxTextLength(100)
-		// .duration(500)
-		.orient('horizontal')
-    .on('click', function(d, i) {
-      // console.log(this, d, i);
-			legend.update();
-    })
-    .on('dblclick', function(d, i) {
-      // console.log(this, d, i);
-			legend.update();
-    })
-		.on('mouseover', function(d, i) {
-			// console.log(this, d, i);
-		})
-		.on('mouseout', function(d, i) {
-			// console.log(this, d, i);
-		});
+		var legendSvg = d3.select('.legend').datum(data);
 
-	var legendSvg = d3.select('.legend').datum(data);
+		var legendUpdate = function () {
+			var size = maxSize();
+			var transition = legendSvg.transition().call(legend.maxSize(size));
+			var computedSize = legend.computedSize(legendSvg);
 
-	var legendUpdate = function () {
-		var size = maxSize();
-		var transition = legendSvg
-			.transition()
-				.call(legend.maxSize(size));
-		var computedSize = legend.computedSize();
+			transition
+				.attr('width', computedSize.width)
+				.attr('height', computedSize.height);
 
-		transition
-			.attr('width', computedSize.width)
-			.attr('height', computedSize.height);
+		};
+		// setTimeout(legendUpdate, 1000)
+		legendUpdate();
 
-	};
+		window.onresize = legendUpdate;
 
-	legendUpdate();
-
-	window.onresize = legendUpdate;
-
-</script>
-
+	</script>
 
 </body>
 </html>

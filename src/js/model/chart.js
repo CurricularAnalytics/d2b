@@ -1,5 +1,8 @@
+import {default as base} from '../model/base.js';
+import {default as legend} from '../svg/legend.js';
+
 /**
-  * d2b.model.chart() returns a d2b chart model.
+  * d2b.modelChart() returns a d2b chart model.
   *
   * model.base() will return a chart interface with various built in
   * getter/setter methods.
@@ -11,272 +14,226 @@
   * @return {Object} model - object with model properties and methods
   */
 
-d2b.model.chart = function (update, events = [], $$ = {}) {
+export default function (update, events = [], $$ = {}) {
 
-  /* Chart interface */
-  const chart = (selection) => {
-    if(selection.duration) chart.duration(selection.duration());
-    chart
-      .selection(selection)
-      .data(selection.datum())
-      .update();
+  // Chart main update function. Usually used as a call from a d3 selection.
+  // e.g. d3.select('div.chart').call(d2b.chartPie())
+  const chart = (context) => {
+    // Iterate through the context and call chart.update with each element.
+    // If context is a transition this transition will propagate to each of
+    // the chart elements.
+    context.each(function (d, i) {
+      const el = d3.select(this);
+      const elContext = (context.selection)? el.transition(context) : el;
+      build(elContext, i);
+    });
   };
 
-  /* Inherit from base model */
-  const model = d2b.model.base(chart, $$)
-    .addProp('selection', d3.select('body'))
-    .addProp('size', null)
-    .addProp('duration', 500)
-    .addProp('legendAt', 'center right')
-    .addProp('padding', {top: 0, left: 0, right: 0, bottom: 0}, function (_) {
-      if(!arguments.length) return $$.padding;
-      if (typeof(_) === 'number') {
-        $$.padding = {top: _, left: _, right: _, bottom: _}
-      };
-      ['top', 'bottm', 'right', 'left'].forEach( d => {
-        if (_[d]) $$.padding[d] == _[d];
-      });
-      return chart;
-    })
-    .addProp('data', null, function (data) {
-      if (!arguments.length) return $$.data;
-      $$.data = data.data || data;
-
-      return chart;
-    })
-    .addPropGet('checkbox',
-      d2b.svg.checkbox().on('change.d2b-chart-checkbox', () => chart.update())
-    )
-    .addPropGet('legend', d2b.svg.legend())
-    .addMethod('select', (_) => {
-      $$.selection = d3.select(_);
-      return chart;
-    })
-    .addMethod('update', (callback) => {
-    	$$.dispatch.beforeUpdate.call($$.selection);
-
-      // execute update
-      update();
-
-  		// flush the d3 timer after update complete
-  		// this allows for immediate updates with $$.duration = 0
-  		d3.timer.flush();
-
-  		$$.dispatch.afterUpdate.call($$.selection);
-
-      // if update callback supplied call it now
-  		if(callback && typeof callback === 'function') callback();
-
-      return chart;
-    })
-    .addMethod('generate', (callback) => {
-      const duration = $$.duration;
-      chart
-        .duration(0)
-        .update()
-        .duration(duration);
-    })
-    .addMethod('control', function (key, data) {
-      if (arguments.length === 0) return controlsData;
-      const control = controlsData.filter(d => d.key === key)[0];
-      if (!control) {
-        console.error(`Control ${key} not found.`);
-        return chart;
-      }
-      if (arguments.length === 1) return control;
-      for (let key in data) if(key !== 'key') control[key] = data[key];
-
-      return chart;
-    })
+  // Settup base model to have generic chart properties.
+  const model = base(chart, $$)
+    .addProp('legend', legend())
+    .addPropFunctor('size', null)
+    .addPropFunctor('padding', 0)
+    // duration is used if the chart needs an internal update
+    .addPropFunctor('duration', 250)
+    .addPropFunctor('legendHidden', false)
+    .addPropFunctor('legendAt', 'center right')
     .addDispatcher(['beforeUpdate', 'afterUpdate'].concat(events));
 
-  /* Controls */
-  const controlsData = [];
-
-  model.addControl = (_) => {
-    controlsData.push(_);
-    return model;
-  };
-
-  model
-    .addControl({
-      key: 'hideLegend', label: 'Hide Legend', visible: false, state: false
-    });
-
-  const updateControls = (transition, margin = {}) => {
-
-    $$.svg.controls = $$.svg.group.selectAll('.d2b-controls')
-        .data([controlsData.filter(d => d.visible)]);
-
-    const newControls = $$.svg.controls.enter()
-      .append('g')
-        .attr('class', 'd2b-controls');
-
-    const control = $$.svg.controls.selectAll('.d2b-control')
-        .data(d => d, d => d.key);
-
-    const newControl = control.enter()
-      .append('g')
-        .style('opacity', 0)
-        .attr('class', 'd2b-control');
-
-    control.exit()
-      .transition()
-        .duration($$.duration)
-        .style('opacity', 0)
-        .remove();
-
-    let x = 0, y = 0, boxHeight = 0;
-    const pad = {x: 12, y: 5};
-
-    control
-        .call($$.checkbox)
-        .each( function (d) {
-          const box = this.getBBox();
-          boxHeight = box.height;
-
-          if (x + box.width > $$.width && i > 0) {
-            x = 0;
-            y += box.height + pad.y;
-          }
-
-          this.translate = `translate(${x}, ${y})`;
-
-          x += box.width + pad.x;
-        });
-
-    newControl.attr('transform', function () { return this.translate; })
-
-    newControls.attr('transform', function () { return this.translate; })
-
-    transition.selectAll('.d2b-control')
-        .style('opacity', 1)
-        .attr('transform', function () { return this.translate; });
-
-    let marginTop = y + boxHeight;
-    if(boxHeight) marginTop += pad.y;
-    margin.top += marginTop;
-    $$.height -= marginTop;
-  };
-
-  /* Legend */
-  const updateLegend = (transition, margin = {}) => {
-
-    $$.svg.legend = $$.svg.group.selectAll('.d2b-legend').data([$$.legend]);
-    const newLegend = $$.svg.legend.enter().append('g').attr('class', 'd2b-legend');
-
-    let size, x, y;
-    let at = $$.legendAt.split(" ");
+  // Position the legend either by the specified center coordinates or by
+  // computing them dynamicaly from the chart size, legend size and legend
+  // orientation.
+  function positionLegend (chartLegend, enterLegend, width, height, legendOrient, legendSize, tools) {
+    let x, y;
+    let at = tools.prop($$.legendAt).split(" ");
     at = {x: at[1], y: at[0]};
-    const legendTransition = $$.svg.legend.transition().duration($$.duration);
-
-    $$.legend
-      .selection($$.svg.legend)
-      .duration($$.duration)
-      .maxSize({width: $$.width, height: $$.height})
-      .update();
-
-    if (chart.control('hideLegend').state) return $$.legend.clear();
-
-    size = $$.legend.computedSize();
 
     switch (at.x) {
       case 'left':
-        x = margin.left;
+        x = 0;
         break;
       case 'center':
-        x = margin.left + $$.width / 2 - size.width / 2;
+        x = width / 2 - legendSize.width / 2;
         break;
       default: // right
-        x = margin.left + $$.width - size.width;
+        x = width - legendSize.width;
     }
 
     switch (at.y) {
       case 'bottom':
-        y = margin.top + $$.height - size.height;
+        y = height - legendSize.height;
         break;
       case 'center':
-        y = margin.top + $$.height / 2 - size.height / 2;
+        y = height / 2 - legendSize.height / 2;
         break;
       default: // top
-        y = margin.top;
+        y = 0;
     }
 
     // add chart margin to allow for horizontal or vertical legend
     // except in the case of a centered legend
     const pad = 10;
-    size = {height: size.height + pad, width: size.width + pad};
+    const spacing = {left: 0, top: 0, bottom: 0, right: 0};
+    legendSize.height += pad;
+    legendSize.width += pad;
     if (at.x !== 'center' || at.y !== 'center') {
-      if ($$.legend.orient() === 'horizontal') {
-        if (at.y === 'top') margin.top += size.height;
-        else if (at.y === 'bottom') margin.bottom += size.height;
-        $$.height -= size.height;
+      if (legendOrient === 'horizontal') {
+        if (at.y === 'top') spacing.top += legendSize.height;
+        else if (at.y === 'bottom') spacing.bottom += legendSize.height;
       } else {
-        if (at.x === 'left') margin.left += size.width;
-        else if (at.x === 'right') margin.right += size.width;
-        $$.width -= size.width;
+        if (at.x === 'left') spacing.left += legendSize.width;
+        else if (at.x === 'right') spacing.right += legendSize.width;
       }
     }
 
     // translate the legend to the proper coordinates
-    newLegend.attr('transform', `translate(${x}, ${y})`);
-    legendTransition.attr('transform', `translate(${x}, ${y})`);
-  };
+    enterLegend.attr('transform', `translate(${x}, ${y})`);
+    chartLegend.attr('transform', `translate(${x}, ${y})`);
 
-  /* Main Container */
-  const updateContainer = (transition, margin = {}) => {
-    $$.svg.main = $$.svg.group.selectAll('.d2b-main').data([$$.data]);
-    $$.svg.main.enter()
-      .append('g')
-        .attr('class', 'd2b-main')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`);
+    return spacing;
+  }
 
-    transition
-      .select('.d2b-main')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`);
-  };
+  // General tools used in generating the chart. These are helpful in the
+  // individual charts when the original context is no longer available. These
+  // methods ensure that the chart's context is always the first argument for
+  // accessor functions or event listeners.
+  function newTools (context, index) {
+    const tools = {
+      // retrieve a chart property e.g. `tools.prop($$.size)` or with extra
+      // arguments `tools.prop($$.radius, this, [width, height])`
+      prop: (prop, inst, args = []) => {
+        inst = inst || context;
+        args.unshift(context);
+        return (typeof prop === 'function')? prop.apply(inst, args) : prop;
+      },
+      // dispatch a chart event e.g. `tools.dispatch("beforeUpdate")` or with
+      // extra arguments `tools.dispatch("barClick", this, [d, i])`
+      dispatch: (key, inst, args = []) => {
+        inst = inst || context;
+        args.unshift(context);
+        return $$.dispatch.apply(key, inst, args);
+      },
+      // trigger an update for the context under the 'd2b-chart' transition space
+      update: function () {
+        const newContext = (context.selection? context.selection() : context)
+          .transition('d2b-chart')
+            .duration(tools.prop($$.duration));
 
-  /* Chart Build Method */
-  model.build = () => {
+        build(newContext, index);
+      }
+    };
 
-    $$.svg = $$.selection.selectAll('.d2b-svg').data([$$.data]);
+    return tools;
+  }
 
-    const newSvg = $$.svg.enter()
-      .append('svg')
-        .attr('class', 'd2b-svg');
+  // Padding can either be a constant or an object containing any of the
+  // attributes (left, right, top, bottom). cleanPadding returns an object
+  // with (left, right, top, bottom) attributes.
+  function cleanPadding (pad) {
+    const padding = {top: 0, left: 0, right: 0, bottom: 0};
+    if (typeof(pad) === 'number') return {top: pad, left: pad, right: pad, bottom: pad};
+    ['top', 'bottm', 'right', 'left'].forEach( d => {
+      if (pad[d]) padding[d] == pad[d];
+    });
+    return padding;
+  }
 
-    newSvg
+  // Main build function to build the chart components and call the 'update'
+  // function for the specific chart.
+  function build (context, index) {
+    const tools = newTools(context, index);
+
+    const selection = (context.selection)? context.selection() : context,
+          datum = selection.datum(),
+          size = tools.prop($$.size),
+          padding = cleanPadding(tools.prop($$.padding)),
+          translate = `translate(${padding.left}, ${padding.top})`;
+
+
+    // trigger before update event
+    tools.dispatch("beforeUpdate");
+
+    // enter d2b-svg and d2b-group
+    let svg = selection.selectAll('.d2b-svg').data(d => [d]);
+    let enterSvg = svg.enter().append('svg').attr('class', 'd2b-svg');
+
+    // setup box attributes
+    let box = selection.node().getBoundingClientRect();
+
+    let width = (size && size.width)? size.width : box.width;
+    let height = (size && size.height)? size.height : box.height;
+
+    enterSvg
+        .attr('width', width)
+        .attr('height', height)
       .append('g')
         .attr('class', 'd2b-group')
-        .attr('transform', `translate(${$$.padding.left}, ${$$.padding.top})`);
+        .attr('transform', translate);
 
-    $$.svg.group = $$.svg.select('.d2b-group');
-
-    // set dimensions
-    const box = $$.selection.node().getBoundingClientRect();
-
-    $$.width = ($$.size && $$.size.width)? $$.size.width : box.width;
-    $$.height = ($$.size && $$.size.height)? $$.size.height : box.height;
-
-    const transition = $$.svg
-      .transition()
-        .duration($$.duration)
-        .attr('width', $$.width)
-        .attr('height', $$.height)
+    // update d2b-svg and d2b-group
+    context
+      .select('.d2b-svg')
+        .attr('width', width)
+        .attr('height', height)
       .select('.d2b-group')
-        .attr('transform', `translate(${$$.padding.left}, ${$$.padding.top})`);
+        .attr('transform', translate);
 
-    $$.width -= $$.padding.top + $$.padding.bottom;
-    $$.height -= $$.padding.left + $$.padding.right;
+    let group = selection.select('.d2b-group');
 
-    const margin = {left: 0, top: 0, bottom: 0, right: 0};
+    // account for padding in box dimensions
+    width -= padding.top + padding.bottom;
+    height -= padding.left + padding.right;
 
-    updateControls(transition, margin);
-    updateLegend(transition, margin);
-    updateContainer(transition, margin);
+    // enter update exit position d2b-chart-legend
+    let chartLegend = group.selectAll('.d2b-chart-legend')
+        .data((tools.prop($$.legendHidden))? [] : [datum]);
 
-    return model;
+    let enterLegend = chartLegend.enter()
+      .append('g')
+        .attr('class', 'd2b-chart-legend')
+        .style('opacity', 0);
 
+    let exitLegend = chartLegend.exit();
+
+    chartLegend = chartLegend.merge(enterLegend);
+
+    if (context !== selection) {
+      chartLegend = chartLegend.transition(context);
+      exitLegend = exitLegend.transition(context).style('opacity', 0);
+    }
+
+    chartLegend
+      .style('opacity', 1)
+      .call($$.legend.maxSize({width: width, height: height}));
+
+    exitLegend.remove();
+
+    // position legend and account for legend spacing
+    let legendSpacing = {left: 0, top: 0};
+    if (chartLegend.size()) {
+      const legendSize = $$.legend.computedSize(chartLegend);
+      const legendOrient = $$.legend.orient().call(chartLegend.node(), datum, index);
+      legendSpacing = positionLegend(chartLegend, enterLegend, width, height, legendOrient, legendSize, tools);
+      width -= legendSpacing.left + legendSpacing.right;
+      height -= legendSpacing.top + legendSpacing.bottom;
+    }
+
+    // enter update exit main chart container
+    const mainTranslate = `translate(${legendSpacing.left}, ${legendSpacing.top})`;
+    let main = group.selectAll('.d2b-chart-main').data(d => [d]);
+    let mainEnter = main.enter()
+      .append('g')
+        .attr('class', 'd2b-chart-main')
+        .attr('transform', mainTranslate);
+
+    main = context.select('.d2b-chart-main').attr('transform', mainTranslate);
+
+    // Update the chart with the main context (selection or transition),
+    // inner width, inner height, and a tools object.
+    update(main, width, height, tools);
+
+    // trigger after update event
+    tools.dispatch("afterUpdate");
   };
 
   return model;

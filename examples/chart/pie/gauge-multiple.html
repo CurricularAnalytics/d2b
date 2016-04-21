@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<style>
+	.chart {
+		width: 560px;
+		height: 300px;
+		margin-right: 10px;
+		margin-bottom: 10px;
+		float: left;
+		border: 1px solid #eee;
+	}
+</style>
+
+<body>
+	<div class = 'charts'></div>
+
+	<script>
+			var pie = d2b.chartPie();
+			var percent = d3.format('.1%');
+			var color = d3.scaleLinear()
+				.domain([0, 0.5, 1])
+				.range(['FireBrick', 'Yellow', 'LimeGreen']);
+
+		  var chart = d3.select('.pie-chart');
+
+			pie
+				.padding(10)
+			// half circle gauge
+				.startAngle(-Math.PI / 2)
+				.endAngle(Math.PI / 2)
+				.radius( function (w, h) { return this.lastRadius = Math.min(h, w / 2); })
+				.center( function (w, h, r) { return {x: w / 2, y: h / 2 + r / 2}; })
+			// or full circle gauge
+				// .endAngle(- Math.PI * 2)
+				// .radius( function (w, h) { return this.lastRadius = Math.min(h, w) / 2; })
+				.color( function (d, i) { return color(d.value); })
+				.legendHidden(true)
+				.showPercent(true)
+				.donutRatio(0.5)
+				.on('afterUpdate.gagueify', gaugeify);
+
+		function gaugeify (context) {
+			var selection = (context.selection)? context.selection() : context,
+					lastRadius = selection.select('.d2b-chart-main').node().lastRadius,
+					arc = context.selectAll('.d2b-pie-arc').style('pointer-events', 'none');
+			arc.each( function (d) {
+				var arc = d3.select(this);
+				// initial color change
+				if (d.data.label === 'empty') arc.select('path').style('fill', '#eee');
+				// set arc to transition if the context was a transition
+				if (context !== selection) arc = arc.transition(context);
+				// if this is the 'value' arc, modify it's text attributes
+				if (d.data.label === 'value') {
+					arc
+						.select('.d2b-pie-arc-percent')
+							.attr('transform', 'translate(0, 0)')
+						.select('text')
+							.attr('y', 0)
+							.style('font-weight', 'normal')
+							.style('font-size', lastRadius / 6 + 'px')
+							.style('fill', color(d.data.value));
+				} else {
+				// if it's the 'empty' arc, don't display percent value and transition color
+					arc.select('.d2b-pie-arc-percent').style('display', 'none');
+					arc.select('path').style('fill', '#eee');
+				}
+			});
+		}
+
+		function update () {
+			var value;
+			var chart = d3.select('.charts').selectAll('.chart')
+					.data([
+						[
+							{label: 'value', value: value = Math.random()},
+							{label: 'empty', value: 1 - value}
+						],
+						[
+							{label: 'value', value: value = Math.random()},
+							{label: 'empty', value: 1 - value}
+						],
+						[
+							{label: 'value', value: value = Math.random()},
+							{label: 'empty', value: 1 - value}
+						],
+						[
+							{label: 'value', value: value = Math.random()},
+							{label: 'empty', value: 1 - value}
+						]
+					]);
+
+			chart.enter()
+				.append('div')
+					.attr('class', 'chart')
+				.merge(chart)
+				.transition()
+					.call(pie);
+		}
+
+		update();
+		setInterval(update , 2000);
+	</script>
+</body>
+</html>
