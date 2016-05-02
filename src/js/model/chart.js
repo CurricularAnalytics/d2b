@@ -98,6 +98,7 @@ export default function (update, events = [], $$ = {}) {
   // methods ensure that the chart's context is always the first argument for
   // accessor functions or event listeners.
   function newTools (context, index) {
+    const selection = context.selection? context.selection() : context;
     const tools = {
       // retrieve a chart property e.g. `tools.prop($$.size)` or with extra
       // arguments `tools.prop($$.radius, this, [width, height])`
@@ -113,10 +114,13 @@ export default function (update, events = [], $$ = {}) {
         args.unshift(context);
         return $$.dispatch.apply(key, inst, args);
       },
+      // chart selections
+      context: context,
+      selection: selection,
       // trigger an update for the context under the 'd2b-chart' transition space
       update: function () {
         const newContext = (context.selection? context.selection() : context)
-          .transition('d2b-chart')
+          .transition()
             .duration(tools.prop($$.duration));
 
         build(newContext, index);
@@ -151,7 +155,7 @@ export default function (update, events = [], $$ = {}) {
 
 
     // trigger before update event
-    tools.dispatch("beforeUpdate");
+    selection.dispatch('beforeUpdate');
 
     // enter d2b-svg and d2b-group
     let svg = selection.selectAll('.d2b-svg').data(d => [d]);
@@ -233,7 +237,7 @@ export default function (update, events = [], $$ = {}) {
     update(main, width, height, tools);
 
     // trigger after update event
-    tools.dispatch("afterUpdate");
+    selection.dispatch('afterUpdate');
   };
 
   return model;

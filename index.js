@@ -4,6 +4,16 @@ export {
 } from './src/js/shape/shape.js';
 
 export {
+  mean,
+  median,
+  midpoint,
+  mode,
+  range,
+  toDegrees,
+  toRadians
+} from './src/js/math/math.js';
+
+export {
   point,
   legend,
   svgPie,
@@ -11,7 +21,7 @@ export {
   svgArea,
   svgScatter,
   svgBar,
-  // svgBubblePack
+  svgBubblePack
 } from './src/js/svg/svg.js';
 
 export {

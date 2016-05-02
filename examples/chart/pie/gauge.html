@@ -11,19 +11,21 @@
 	<script>
 			var pie = d2b.chartPie();
 			var percent = d3.format('.1%');
+			var lastRadius = 0;
 			var color = d3.scaleLinear()
 				.domain([0, 0.5, 1])
 				.range(['FireBrick', 'Yellow', 'LimeGreen']);
 
-		  var chart = d3.select('.pie-chart');
+		  var chart = d3.select('.pie-chart')
+				.on('afterUpdate', gaugeify);
 
 			pie
 				.padding(10)
 		// half circle gauge
 				.startAngle(-Math.PI / 2)
 				.endAngle(Math.PI / 2)
-				.radius( (w, h) => { this.lastRadius = Math.min(h, w / 2); })
-				.center( (w, h, r) => { return {x: w / 2, y: h / 2 + r / 2}; })
+				.radius( function (d, w, h) { return lastRadius = Math.min(h, w / 2); })
+				.center( function (d, w, h, r) { return {x: w / 2, y: h / 2 + r / 2}; })
 		// or full circle gauge
 				// .endAngle(- Math.PI * 2)
 				// .radius( (w, h) => { this.lastRadius = Math.min(h, w) / 2; })
@@ -31,25 +33,28 @@
 				.legendHidden(true)
 				.size({height: 400})
 				.showPercent(true)
-				.donutRatio(0.5)
-				.on('afterUpdate.gagueify', gaugeify);
+				.donutRatio(0.5);
 
-		function gaugeify (context) {
-			var selection = (context.selection)? context.selection() : context,
-					lastRadius = selection.select('.d2b-chart-main').node().lastRadius,
-					arc = context.selectAll('.d2b-pie-arc').style('pointer-events', 'none');
+		function gaugeify (d, i) {
+			var selection = d3.select(this),
+					arc = selection
+						.selectAll('.d2b-pie-arc')
+							.style('pointer-events', 'none');
+
+			// select percent and text, and interrupt their transitions
+			arc.select('.d2b-pie-arc-percent').interrupt().select('text').interrupt();
+
 			arc.each( function (d) {
 				var arc = d3.select(this);
 				// initial color change
 				if (d.data.label === 'empty') arc.select('path').style('fill', '#eee');
-				// set arc to transition if the context was a transition
-				if (context !== selection) arc = arc.transition(context);
 				// if this is the 'value' arc, modify it's text attributes
 				if (d.data.label === 'value') {
 					arc
 						.select('.d2b-pie-arc-percent')
 							.attr('transform', 'translate(0, 0)')
-						.select('text')
+						.select('text').transition()
+							.call(d2b.tweenNumber, function (d) {return d.data.__percent__;}, percent)
 							.attr('y', 0)
 							.style('font-weight', 'normal')
 							.style('font-size', lastRadius / 6 + 'px')
@@ -76,7 +81,7 @@
 		update();
 		setInterval(update , 2000);
 
-		window.onresize = function () {chart.call(pie)};
+		window.onresize = function () {chart.transition().call(pie)};
 	</script>
 </body>
 </html>

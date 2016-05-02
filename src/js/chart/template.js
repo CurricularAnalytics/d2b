@@ -14,11 +14,10 @@ export default function () {
   // legend click events can be configured for hiding / showing specific chart
   // elements.
   $$.legend
-    .items(d => d.values)
+    .items(d => d)
     .active(true)
     .clickable(true)
-    .dblclickable(true)
-    .on('change', () => { console.log('legend changed!') });
+    .dblclickable(true);
 
   function update(context, width, height, tools) {
     // context is simply the main chart container to append content to. It may

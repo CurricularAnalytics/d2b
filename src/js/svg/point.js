@@ -104,12 +104,12 @@ export default function () {
           empty = $$.empty.call(this, d, i);
 
     d3.select(this).select('path.d2b-point-back')
-      .transition('d2b-point-transition')
+      .transition()
         .duration(100)
         .attr('d', symbolBig);
 
     d3.select(this).select('path.d2b-point-front')
-      .transition('d2b-point-transition')
+      .transition()
         .duration(100)
         .style('opacity', (empty)? 0.5 : 1)
         .attr('d', symbolSmall);
@@ -120,12 +120,12 @@ export default function () {
           empty = $$.empty.call(this, d, i);
 
     d3.select(this).select('path.d2b-point-back')
-      .transition('d2b-point-transition')
+      .transition()
         .duration(100)
         .attr('d', symbolNormal);
 
     d3.select(this).select('path.d2b-point-front')
-      .transition('d2b-point-transition')
+      .transition()
         .duration(100)
         .style('opacity', (empty)? 0 : 1)
         .attr('d', symbolSmall);

@@ -34,6 +34,9 @@ export default function () {
             color = $$.color.call(this, d, i),
             symbol = $$.symbol.call(this, d, i);
 
+      let shift = $$.shift.call(this, d, i);
+      if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
+
       $$.point
           .fill( function (dd, ii) {
             return $$.pcolor.call(this, dd, ii) || color;
@@ -58,12 +61,12 @@ export default function () {
 
       pointEnter
           .style('opacity', 0)
-          .call(pointTransform, x, y);
+          .call(pointTransform, x, y, shift);
 
       pointUpdate
           .style('opacity', 1)
           .call($$.point)
-          .call(pointTransform, x, y);
+          .call(pointTransform, x, y, shift);
 
       pointExit
           .style('opacity', 0)
@@ -74,9 +77,9 @@ export default function () {
     return scatter;
   };
 
-  function pointTransform (transition, x, y) {
+  function pointTransform (transition, x, y, shift) {
     transition.attr('transform', function (d, i) {
-      const px = x($$.px.call(this, d, i));
+      const px = x($$.px.call(this, d, i)) + shift;
       const py = y($$.py.call(this, d, i));
       return `translate(${px}, ${py})`;
     })
@@ -97,6 +100,7 @@ export default function () {
       else $$.y = d;
       return scatter;
     })
+    .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)
     .addPropFunctor('color', d => color(d.label))
@@ -106,7 +110,7 @@ export default function () {
     .addPropFunctor('pcolor', d => null)
     .addPropFunctor('psymbol', null)
     .addPropFunctor('pkey', (d, i) => i)
-    .addPropFunctor('psize', d => 25);;
+    .addPropFunctor('psize', d => 25);
 
   return scatter;
 };

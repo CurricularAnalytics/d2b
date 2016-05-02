@@ -37,8 +37,11 @@ export default function () {
                 y = $$.y.call(this, d, i),
                 values = $$.values.call(this, d, i);
 
+          let shift = $$.shift.call(this, d, i);
+          if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
+
           return $$.line
-            .x((d, i) => x($$.px.call(this, d, i)))
+            .x((d, i) => x($$.px.call(this, d, i)) + shift)
             .y((d, i) => y($$.py.call(this, d, i)))
             (values);
         });
@@ -61,6 +64,7 @@ export default function () {
       else $$.y = d;
       return line;
     })
+    .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)
     .addPropFunctor('color', d => color(d.label))

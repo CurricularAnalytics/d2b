@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<body>
+	<div class = 'pie-charts'></div>
+
+	<script>
+		var pie = d2b.chartPie();
+
+		pie
+			.padding(10)
+			.values(function (d) {return d.values;})
+			.startAngle(function (d) {return d.startAngle;})
+			.endAngle(function (d) {return d.endAngle;})
+			.size({height: 400})
+			.donutRatio(0.5);
+
+		var data = [
+			{
+				startAngle: 0,
+				endAngle: Math.PI,
+				values: [
+					{label: 'arc 1', value: 23},
+					{label: 'arc 2', value: 31},
+					{label: 'arc 3', value: 80},
+					{label: 'arc 4', value: 8}
+				]
+			},
+			{
+				startAngle: 0,
+				endAngle: 2 * Math.PI,
+				values: [
+					{label: 'arc 1', value: 25},
+					{label: 'arc 3', value: 40},
+					{label: 'arc 5', value: 90},
+					{label: 'arc 4', value: 61}
+				]
+			}
+		];
+
+		var chart = d3.select('.pie-charts').selectAll('.pie-chart').data(data);
+		chart = chart.enter().append('div').attr('class', 'pie-chart');
+
+		chart.call(pie);
+
+		window.onresize = function () {chart.transition().call(pie)};
+	</script>
+</body>
+</html>

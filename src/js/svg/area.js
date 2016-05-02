@@ -10,7 +10,7 @@ export default function () {
   /* Update Function */
   const area = function (context) {
     const selection = context.selection? context.selection() : context;
-    
+
     selection.each(d => {
       stackNest.entries(d).forEach(sg => stacker(sg.values))
     });
@@ -43,8 +43,11 @@ export default function () {
                 y = $$.y.call(this, d, i),
                 values = $$.values.call(this, d, i);
 
+          let shift = $$.shift.call(this, d, i);
+          if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
+
           return $$.area
-            .x((d, i) => x(d.x))
+            .x((d, i) => x(d.__x__) + shift)
             .y0((d, i) => y(d.__y0__))
             .y1((d, i) => y(d.__y1__))
             (values);
@@ -54,7 +57,8 @@ export default function () {
   };
 
   const stacker = stack()
-      .out((d, y0, y1) => {
+      .out((d, y0, y1, x) => {
+        d.__x__ = x;
         d.__y0__ = y0;
         d.__y1__ = y1;
       });
@@ -80,6 +84,7 @@ export default function () {
         else $$.y = d;
         return area;
       })
+      .addPropFunctor('shift', null)
       .addPropFunctor('stackBy', null)
       .addPropFunctor('key', d => d.label)
       .addPropFunctor('values', d => d.values, null, d => stacker.values(d))

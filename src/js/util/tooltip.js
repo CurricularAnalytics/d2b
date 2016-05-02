@@ -63,7 +63,7 @@ export default function (id = d2b.id()) {
     $$.tooltip = $$.tooltip.merge(newTooltip);
 
     $$.tooltip
-      .transition('d2b-tooltip-insert')
+      .transition()
         .duration(100)
         .style('opacity', 1);
 

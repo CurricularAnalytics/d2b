@@ -15,7 +15,7 @@ export default function () {
             maxTextLength = $$.maxTextLength.call(this, data, index),
             items = $$.items.call(this, data, index);
 
-      // Set point size and stroke width.
+      // Set point size and stroke width for.
       point
           .size(1.5 * Math.pow(size / 2, 2))
           .strokeWidth(size * 0.1);
@@ -102,19 +102,11 @@ export default function () {
   // 'd2b-legend' namespace.
   function bindEvents (selection, index) {
     selection.selectAll('.d2b-legend-item')
-        .on('click.d2b-legend', function (d, i) {
+        .on('click', function (d, i) {
           click.call(this, d, i, selection, index);
-          $$.dispatch.call("click", this, selection, d, i);
         })
-        .on('dblclick.d2b-legend', function (d, i) {
+        .on('dblclick', function (d, i) {
           dblclick.call(this, d, i, selection, index);
-          $$.dispatch.call("dblclick", this, selection, d, i);
-        })
-        .on('mouseover.d2b-legend', function (d, i) {
-          $$.dispatch.call("mouseover", this, selection, d, i);
-        })
-        .on('mouseout.d2b-legend', function (d, i) {
-          $$.dispatch.call("mouseout", this, selection, d, i);
         });
   }
 
@@ -122,25 +114,27 @@ export default function () {
   function click (d, i, selection, index) {
     const clickable = $$.clickable.call(this, d, i),
           allowEmptied = $$.allowEmptied.call(selection.node(), selection.datum(), index),
-          data = selection.datum();
+          data = selection.datum(),
+          node = selection.node();
 
     if (!clickable) return;
 
-    d.empty = !d.empty;
+    d.__empty__ = !d.__empty__;
 
-    d3.select(this).transition('d2b-legend-change').duration(100).call(point);
-
-    if (allowEmptied) return $$.dispatch.call("change", this, selection, d, i);
+    const el = d3.select(this),
+          items = selection.selectAll('.d2b-legend-item');
 
     let allEmpty = true;
-    data.forEach( d => allEmpty = (d.empty)? allEmpty : false );
+    data.forEach( d => allEmpty = (d.__empty__)? allEmpty : false );
 
-    if (allEmpty) {
-      data.forEach( d => d.empty = false );
-      selection.transition('d2b-legend-change').duration(100).call(legend);
+    if (allEmpty && !allowEmptied) {
+      items.each(d => d.__empty__ = false).transition().duration(100).call(point);
+      items.filter(dd => dd != d).dispatch('change');
+    } else {
+      el.transition().duration(100).call(point);
     }
 
-     $$.dispatch.call("change", this, selection, d, i);
+    el.dispatch('change', {bubbles: true});
   };
 
   // On legend item dblclick decide and perform any necessary actions.
@@ -150,16 +144,17 @@ export default function () {
 
     if (!dblclickable) return;
 
-    data.forEach(d => d.empty = true);
-    d.empty = false;
+    data.forEach(d => d.__empty__ = true);
+    d.__empty__ = false;
 
-    selection.transition('d2b-legend-change').duration(100).call(legend);
-
-    $$.dispatch.call("change", this, selection, d, i);
+    const items = selection.selectAll('.d2b-legend-item');
+    items.transition().duration(100).call(point);
+    items.filter(dd => dd != d).dispatch('change');
+    d3.select(this).dispatch('change', {bubbles: true});
   };
 
   // Initialize new d2b point.
-  const point = svgPoint().empty(d => d.empty);
+  const point = svgPoint().empty(d => d.__empty__);
 
   // Position legend items either horizontally or vertically.
   const position = {
@@ -231,7 +226,6 @@ export default function () {
     .addPropFunctor('active', false, null, _ => point.active(_) )
     .addPropFunctor('symbol', d3.symbolCircle, null, _ => point.type(_) )
     .addPropFunctor('color', d => color(d.label), null, _ => point.fill(_))
-    // .addPropFunctor('empty', d => d.empty, null, _ => point.empty(_) )
     // Method to get the computed size of a specific legend container. This
     // method should be used after the legend has been rendered. Either the
     // legend SVG node or a d3 selection of the node may be specified.
@@ -239,9 +233,7 @@ export default function () {
       const node = (_.node)? _.node() : _;
       if (!node) return {width: 0, height: 0};
       return {width: node.computedWidth, height: node.computedHeight};
-    })
-    // Dispatcher setup.
-		.addDispatcher(['dblclick', 'click', 'mouseover', 'mouseout', 'change']);
+    });
 
   return legend;
 };

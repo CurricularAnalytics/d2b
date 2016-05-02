@@ -54,9 +54,10 @@ export default function () {
         const graph = d3.select(this),
               color = $$.color.call(this, d, i),
               x = $$[orient.x].call(this, d, i),
-              y = $$[orient.y].call(this, d, i),
-              offset = $$.offset.call(this, d, i) ||
-                       (x.bandwidth)? x.bandwidth() / 2 : 0;
+              y = $$[orient.y].call(this, d, i);
+
+         let shift = $$.shift.call(this, d, i);
+         if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
         // enter update exit bars
         const bar = graph.selectAll('.d2b-bar-group').data($$.values, $$.pkey);
@@ -67,12 +68,12 @@ export default function () {
 
         barUpdate.each(function (d, i) {
           const centered = $$.pcentered.call(this, d, i),
-                barOffset = (centered)? offset - bandwidth / 4
+                barShift = (centered)? shift - bandwidth / 4
                                       :
-                                        offset - bandwidth / 2 +
+                                        shift - bandwidth / 2 +
                                         d.__stackIndex__ * barWidth +
                                         groupPadding;
-          d.__basepx__ = x(d.__base__) + barOffset;
+          d.__basepx__ = x(d.__base__) + barShift;
           d.__extentpx__ = [y(d.__extent__[0]), y(d.__extent__[1])]
           d.__extentpx__.sort(d3.ascending);
         });
@@ -180,7 +181,7 @@ export default function () {
       .addPropFunctor('padding', 0.5)
       .addPropFunctor('groupPadding', 0)
       .addPropFunctor('bandwidth', null)
-      .addPropFunctor('offset', null)
+      .addPropFunctor('shift', null)
       .addPropFunctor('stackBy', null)
       .addPropFunctor('key', d => d.label)
       .addPropFunctor('values', d => d.values, null, d => stacker.values(d))

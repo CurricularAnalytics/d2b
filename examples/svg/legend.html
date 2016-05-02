@@ -36,26 +36,11 @@
 			// .allowEmptied(false)
 			.maxTextLength(10)
 			// // .duration(500)
-			.orient('horizontal')
-			// .on('change', function (d, i, leg) {
-			// 	console.log(leg.datum())
-			// });
-	    // .on('click', function(d, i) {
-	    //   // console.log(this, d, i);
-			// 	legend.update();
-	    // })
-	    // .on('dblclick', function(d, i) {
-	    //   // console.log(this, d, i);
-			// 	legend.update();
-	    // })
-			// .on('mouseover', function(d, i) {
-			// 	// console.log(this, d, i);
-			// })
-			// .on('mouseout', function(d, i) {
-			// 	// console.log(this, d, i);
-			// });
+			.orient('horizontal');
 
 		var legendSvg = d3.select('.legend').datum(data);
+
+		legendSvg.on('change', function (d, i) {console.log(this, d, i)})
 
 		var legendUpdate = function () {
 			var size = maxSize();
@@ -69,7 +54,6 @@
 		};
 		// setTimeout(legendUpdate, 1000)
 		legendUpdate();
-
 		window.onresize = legendUpdate;
 
 	</script>

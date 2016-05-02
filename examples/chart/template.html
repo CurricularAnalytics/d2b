@@ -42,7 +42,7 @@
 			.call(template);
 
 			d3.select('input').on('change', function (){
-				chart.transition().call(template.legendHidden(!template.legendHidden()));
+				chart.transition().call(template.legendHidden(!template.legendHidden()()));
 			});
 
 		window.onresize = function () {chart.call(template)};

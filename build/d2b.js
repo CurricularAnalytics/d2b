@@ -56,6 +56,121 @@
 	  };
 	}
 
+	function number (x) {
+		return x === null ? NaN : +x;
+	};
+
+	function mean (arr, value, weight) {
+	  var totalWeight = 0,
+	      contribution = 0;
+	  weight = functor(weight || 1);
+	  value = functor(value || function (d) {
+	    return d;
+	  });
+	  arr.filter(function (a) {
+	    return !isNaN(number(weight(a))) && !isNaN(number(value(a)));
+	  }).forEach(function (item) {
+	    var w = weight(item),
+	        v = value(item);
+	    totalWeight += w;
+	    contribution += v * w;
+	  });
+	  if (arr.length && totalWeight) return contribution / totalWeight;
+	}
+
+	function median (arr, value, weight) {
+	  weight = functor(weight || 1);
+	  value = functor(value || function (d) {
+	    return d;
+	  });
+
+	  var medians = [],
+	      midWeight;
+
+	  var newArray = arr.filter(function (a) {
+	    return weight(a) !== 0 && !isNaN(number(weight(a))) && !isNaN(number(value(a)));
+	  }).sort(function (a, b) {
+	    return d3.ascending(value(a), value(b));
+	  });
+
+	  midWeight = Math.round(d3.sum(newArray, function (item) {
+	    return weight(item);
+	  }) / 2 * 1e12) / 1e12;
+
+	  var currentPosition = 0;
+	  var getNext = false;
+
+	  newArray.forEach(function (item) {
+	    if (getNext) {
+	      medians.push(value(item));
+	      getNext = false;
+	    }
+
+	    currentPosition += weight(item);
+
+	    if (currentPosition === midWeight) {
+	      medians.push(value(item));
+	      getNext = true;
+	    }
+
+	    if (currentPosition > midWeight && medians.length === 0) {
+	      medians.push(value(item));
+	    }
+	  });
+
+	  if (arr.length) return mean(medians);
+	};
+
+	function mode (arr, value, weight) {
+	  weight = functor(weight || 1);
+	  value = functor(value || function (d) {
+	    return d;
+	  });
+
+	  var modes = [],
+	      maxFrequency = 0,
+	      frequencies = {};
+
+	  arr.forEach(function (item) {
+	    var val = number(value(item));
+	    if (isNaN(value(item))) return;
+	    frequencies[val] = frequencies[val] || 0;
+	    frequencies[val] += weight(item);
+
+	    if (frequencies[val] > maxFrequency) {
+	      maxFrequency = frequencies[value(item)];
+	      modes = [value(item)];
+	    } else if (frequencies[value(item)] == maxFrequency) {
+	      modes.push(value(item));
+	    }
+	  });
+
+	  if (arr.length) return mean(modes);
+	};
+
+	function range (arr, value) {
+	  value = functor(value || function (d) {
+	    return d;
+	  });
+	  var extent = d3.extent(arr, value);
+	  if (arr.length) return extent[1] - extent[0];
+	};
+
+	function midpoint (arr, value) {
+	  value = functor(value || function (d) {
+	    return d;
+	  });
+	  if (arr.length) return d3.mean(d3.extent(arr, value));
+	};
+
+	function toDegrees (angle) {
+	  return angle * (Math.PI / 180);
+	};
+
+	function toRadians (angle) {
+	  return angle * (180 / Math.PI);
+	};
+
 	/**
 	  * d2b.modelBase() returns a d2b base model.
 	  *
@@ -336,18 +451,18 @@
 	    var size = $$.size.call(this, d, i),
 	        empty = $$.empty.call(this, d, i);
 
-	    d3.select(this).select('path.d2b-point-back').transition('d2b-point-transition').duration(100).attr('d', symbolBig);
+	    d3.select(this).select('path.d2b-point-back').transition().duration(100).attr('d', symbolBig);
 
-	    d3.select(this).select('path.d2b-point-front').transition('d2b-point-transition').duration(100).style('opacity', empty ? 0.5 : 1).attr('d', symbolSmall);
+	    d3.select(this).select('path.d2b-point-front').transition().duration(100).style('opacity', empty ? 0.5 : 1).attr('d', symbolSmall);
 	  }
 
 	  function mouseout(d, i) {
 	    var size = $$.size.call(this, d, i),
 	        empty = $$.empty.call(this, d, i);
 
-	    d3.select(this).select('path.d2b-point-back').transition('d2b-point-transition').duration(100).attr('d', symbolNormal);
+	    d3.select(this).select('path.d2b-point-back').transition().duration(100).attr('d', symbolNormal);
 
-	    d3.select(this).select('path.d2b-point-front').transition('d2b-point-transition').duration(100).style('opacity', empty ? 0 : 1).attr('d', symbolSmall);
+	    d3.select(this).select('path.d2b-point-front').transition().duration(100).style('opacity', empty ? 0 : 1).attr('d', symbolSmall);
 	  }
 
 	  return point;
@@ -404,7 +519,7 @@
 	          maxTextLength = $$.maxTextLength.call(this, data, index),
 	          items = $$.items.call(this, data, index);
 
-	      // Set point size and stroke width.
+	      // Set point size and stroke width for.
 	      point$$.size(1.5 * Math.pow(size / 2, 2)).strokeWidth(size * 0.1);
 
 	      // enter d2b-legend container
@@ -480,16 +595,10 @@
 	  // Bind events and dispatchers to all legend items within selection. Use the
 	  // 'd2b-legend' namespace.
 	  function bindEvents(selection, index) {
-	    selection.selectAll('.d2b-legend-item').on('click.d2b-legend', function (d, i) {
+	    selection.selectAll('.d2b-legend-item').on('click', function (d, i) {
 	      click.call(this, d, i, selection, index);
-	      $$.dispatch.call("click", this, selection, d, i);
-	    }).on('dblclick.d2b-legend', function (d, i) {
+	    }).on('dblclick', function (d, i) {
 	      dblclick.call(this, d, i, selection, index);
-	      $$.dispatch.call("dblclick", this, selection, d, i);
-	    }).on('mouseover.d2b-legend', function (d, i) {
-	      $$.dispatch.call("mouseover", this, selection, d, i);
-	    }).on('mouseout.d2b-legend', function (d, i) {
-	      $$.dispatch.call("mouseout", this, selection, d, i);
 	    });
 	  }
 
@@ -497,29 +606,33 @@
 	  function click(d, i, selection, index) {
 	    var clickable = $$.clickable.call(this, d, i),
 	        allowEmptied = $$.allowEmptied.call(selection.node(), selection.datum(), index),
-	        data = selection.datum();
+	        data = selection.datum(),
+	        node = selection.node();
 
 	    if (!clickable) return;
 
-	    d.empty = !d.empty;
+	    d.__empty__ = !d.__empty__;
 
-	    d3.select(this).transition('d2b-legend-change').duration(100).call(point$$);
-
-	    if (allowEmptied) return $$.dispatch.call("change", this, selection, d, i);
+	    var el = d3.select(this),
+	        items = selection.selectAll('.d2b-legend-item');
 
 	    var allEmpty = true;
 	    data.forEach(function (d) {
-	      return allEmpty = d.empty ? allEmpty : false;
+	      return allEmpty = d.__empty__ ? allEmpty : false;
 	    });
 
-	    if (allEmpty) {
-	      data.forEach(function (d) {
-	        return d.empty = false;
-	      });
-	      selection.transition('d2b-legend-change').duration(100).call(legend);
+	    if (allEmpty && !allowEmptied) {
+	      items.each(function (d) {
+	        return d.__empty__ = false;
+	      }).transition().duration(100).call(point$$);
+	      items.filter(function (dd) {
+	        return dd != d;
+	      }).dispatch('change');
+	    } else {
+	      el.transition().duration(100).call(point$$);
 	    }
 
-	    $$.dispatch.call("change", this, selection, d, i);
+	    el.dispatch('change', { bubbles: true });
 	  };
 
 	  // On legend item dblclick decide and perform any necessary actions.
@@ -530,18 +643,21 @@
 	    if (!dblclickable) return;
 
 	    data.forEach(function (d) {
-	      return d.empty = true;
+	      return d.__empty__ = true;
 	    });
-	    d.empty = false;
+	    d.__empty__ = false;
 
-	    selection.transition('d2b-legend-change').duration(100).call(legend);
-
-	    $$.dispatch.call("change", this, selection, d, i);
+	    var items = selection.selectAll('.d2b-legend-item');
+	    items.transition().duration(100).call(point$$);
+	    items.filter(function (dd) {
+	      return dd != d;
+	    }).dispatch('change');
+	    d3.select(this).dispatch('change', { bubbles: true });
 	  };
 
 	  // Initialize new d2b point.
 	  var point$$ = point().empty(function (d) {
-	    return d.empty;
+	    return d.__empty__;
 	  });
 
 	  // Position legend items either horizontally or vertically.
@@ -620,7 +736,6 @@
 	  }, null, function (_) {
 	    return point$$.fill(_);
 	  })
-	  // .addPropFunctor('empty', d => d.empty, null, _ => point.empty(_) )
 	  // Method to get the computed size of a specific legend container. This
 	  // method should be used after the legend has been rendered. Either the
 	  // legend SVG node or a d3 selection of the node may be specified.
@@ -628,9 +743,7 @@
 	    var node = _.node ? _.node() : _;
 	    if (!node) return { width: 0, height: 0 };
 	    return { width: node.computedWidth, height: node.computedHeight };
-	  })
-	  // Dispatcher setup.
-	  .addDispatcher(['dblclick', 'click', 'mouseover', 'mouseout', 'change']);
+	  });
 
 	  return legend;
 	};
@@ -811,8 +924,11 @@
 	          y = $$.y.call(this, d, i),
 	          values = $$.values.call(this, d, i);
 
+	      var shift = $$.shift.call(this, d, i);
+	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
 	      return $$.line.x(function (d, i) {
-	        return x($$.px.call(_this, d, i));
+	        return x($$.px.call(_this, d, i)) + shift;
 	      }).y(function (d, i) {
 	        return y($$.py.call(_this, d, i));
 	      })(values);
@@ -834,7 +950,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return line;
-	  }).addPropFunctor('key', function (d) {
+	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -975,8 +1091,11 @@
 	          y = $$.y.call(this, d, i),
 	          values = $$.values.call(this, d, i);
 
+	      var shift = $$.shift.call(this, d, i);
+	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
 	      return $$.area.x(function (d, i) {
-	        return x(d.x);
+	        return x(d.__x__) + shift;
 	      }).y0(function (d, i) {
 	        return y(d.__y0__);
 	      }).y1(function (d, i) {
@@ -987,7 +1106,8 @@
 	    return area;
 	  };
 
-	  var stacker = stack().out(function (d, y0, y1) {
+	  var stacker = stack().out(function (d, y0, y1, x) {
+	    d.__x__ = x;
 	    d.__y0__ = y0;
 	    d.__y1__ = y1;
 	  });
@@ -1012,7 +1132,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return area;
-	  }).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
+	  }).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1065,6 +1185,9 @@
 	          color = $$.color.call(this, d, i),
 	          symbol = $$.symbol.call(this, d, i);
 
+	      var shift = $$.shift.call(this, d, i);
+	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
 	      $$.point.fill(function (dd, ii) {
 	        return $$.pcolor.call(this, dd, ii) || color;
 	      }).type(function (dd, ii) {
@@ -1082,9 +1205,9 @@
 	        pointExit = pointExit.transition(context);
 	      }
 
-	      pointEnter.style('opacity', 0).call(pointTransform, x, y);
+	      pointEnter.style('opacity', 0).call(pointTransform, x, y, shift);
 
-	      pointUpdate.style('opacity', 1).call($$.point).call(pointTransform, x, y);
+	      pointUpdate.style('opacity', 1).call($$.point).call(pointTransform, x, y, shift);
 
 	      pointExit.style('opacity', 0).remove();
 	    });
@@ -1092,9 +1215,9 @@
 	    return scatter;
 	  };
 
-	  function pointTransform(transition, x, y) {
+	  function pointTransform(transition, x, y, shift) {
 	    transition.attr('transform', function (d, i) {
-	      var px = x($$.px.call(this, d, i));
+	      var px = x($$.px.call(this, d, i)) + shift;
 	      var py = y($$.py.call(this, d, i));
 	      return 'translate(' + px + ', ' + py + ')';
 	    });
@@ -1113,7 +1236,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return scatter;
-	  }).addPropFunctor('key', function (d) {
+	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1131,7 +1254,7 @@
 	    return i;
 	  }).addPropFunctor('psize', function (d) {
 	    return 25;
-	  });;
+	  });
 
 	  return scatter;
 	};
@@ -1186,8 +1309,10 @@
 	        var graph = d3.select(this),
 	            color = $$.color.call(this, d, i),
 	            x = $$[orient.x].call(this, d, i),
-	            _y = $$[orient.y].call(this, d, i),
-	            offset = $$.offset.call(this, d, i) || x.bandwidth ? x.bandwidth() / 2 : 0;
+	            _y = $$[orient.y].call(this, d, i);
+
+	        var shift = $$.shift.call(this, d, i);
+	        if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
 	        // enter update exit bars
 	        var bar = graph.selectAll('.d2b-bar-group').data($$.values, $$.pkey);
@@ -1198,8 +1323,8 @@
 
 	        barUpdate.each(function (d, i) {
 	          var centered = $$.pcentered.call(this, d, i),
-	              barOffset = centered ? offset - bandwidth / 4 : offset - bandwidth / 2 + d.__stackIndex__ * barWidth + groupPadding;
-	          d.__basepx__ = x(d.__base__) + barOffset;
+	              barShift = centered ? shift - bandwidth / 4 : shift - bandwidth / 2 + d.__stackIndex__ * barWidth + groupPadding;
+	          d.__basepx__ = x(d.__base__) + barShift;
 	          d.__extentpx__ = [_y(d.__extent__[0]), _y(d.__extent__[1])];
 	          d.__extentpx__.sort(d3.ascending);
 	        });
@@ -1298,7 +1423,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return bar;
-	  }).addPropFunctor('orient', 'vertical').addPropFunctor('padding', 0.5).addPropFunctor('groupPadding', 0).addPropFunctor('bandwidth', null).addPropFunctor('offset', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
+	  }).addPropFunctor('orient', 'vertical').addPropFunctor('padding', 0.5).addPropFunctor('groupPadding', 0).addPropFunctor('bandwidth', null).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1346,6 +1471,303 @@
 	//     });
 	//   });
 	// });
+
+	// bubble pack svg generator
+	function bubblePack () {
+	  var $$ = {};
+
+	  // bubble pack updater
+	  var bubblePack = function bubblePack(context) {
+	    var transition = context.selection ? context : null,
+	        selection = context.selection ? context.selection() : context,
+	        graph = selection.selectAll('.d2b-bubble-pack-graph').data(function (d) {
+	      return d;
+	    }, $$.key);
+
+	    // enter graph
+	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-bubble-pack-graph');
+
+	    var graphUpdate = graph.merge(graphEnter).order(),
+	        graphExit = graph.exit();
+
+	    if (transition) {
+	      graphUpdate = graphUpdate.transition(transition);
+	      graphExit = graphExit.transition(transition);
+	    }
+
+	    // update graph
+	    graphUpdate.style('opacity', 1);
+
+	    // exit graph
+	    graphExit.style('opacity', 0).remove();
+
+	    // iterate through each context element
+	    context.each(function (d, i) {
+	      var selection = d3.select(this),
+	          graph = selection.selectAll('.d2b-bubble-pack-graph');
+
+	      selection.on('change', function () {
+	        selection.transition().duration($$.duration).call(bubblePack);
+	      });
+
+	      // render the bubble packs for each graph
+	      graph.each(function (d, i) {
+	        var el = d3.select(this),
+	            x = $$.x.call(this, d, i),
+	            y = $$.y.call(this, d, i),
+	            color = $$.color.call(this, d, i),
+	            symbol = $$.symbol.call(this, d, i);
+
+	        d.values.forEach(compute);
+
+	        var shift = $$.shift.call(this, d, i);
+	        if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
+	        $$.point.fill(function (dd, ii) {
+	          return $$.pcolor.call(this, dd, ii) || color;
+	        }).type(function (dd, ii) {
+	          return $$.psymbol.call(this, dd, ii) || symbol;
+	        });
+
+	        renderPacks(el, d.values, transition, x, y, shift, selection);
+	      });
+
+	      positionIndicators(selection);
+	    });
+
+	    return bubblePack;
+	  };
+
+	  // Position all bubble indicators to be next to each other.
+	  function positionIndicators(selection) {
+	    var positionx = 0,
+	        positiony = 0,
+	        maxWidth = 300;
+	    selection.selectAll('.d2b-bubble-indicator.d2b-active').attr('transform', function () {
+	      var box = this.getBBox();
+
+	      if (box.width + positionx > maxWidth && positionx > 0) {
+	        positionx = 0;
+	        positiony += box.height + 5;
+	      }
+
+	      var translate = 'translate(' + positionx + ', ' + positiony + ')';
+	      positionx += box.width + 5;
+	      return translate;
+	    });
+	  }
+
+	  // On chart change (usually a bubble/indicator click) update and dispatch events.
+	  function change(node, d, i, chart) {
+	    if (!d.__children__) return;
+	    // d.__expanded__ = !d.__expanded__;
+	    // d3.select(node).dispatch(d, i);
+	    d3.select(node).dispatch('change', { bubbles: true, cancelable: true });
+	    // if ($$.manualUpdate) return;
+	    // chart.transition().duration($$.duration).call(bubblePack);
+	  }
+
+	  /**
+	   * Renders bubble.
+	   * @param {d3.selection} el - bubble pack
+	   * @param {d3.transition or null} trans - transition if present
+	   * @param {d3.scale} x - x scale
+	   * @param {d3.scale} y - y scale
+	   * @param {Number} shift - horizontal pixel shift
+	   * @param {d3.selection} chart - master chart container
+	   */
+	  function renderPoint(el, trans, x, y, shift, chart) {
+	    el.each(function (d, i) {
+	      var el = d3.select(this);
+
+	      var transform = el.attr('transform');
+
+	      if (!transform) {
+	        el.attr('transform', 'translate(' + (x(d.__parent__ ? d.__parent__.__x__ : d.__x__) + shift + ',') + (y(d.__parent__ ? d.__parent__.__y__ : d.__y__) + ')'));
+	      }
+
+	      if (d.__children__) {
+	        el.attr('cursor', 'pointer').on('click', function () {
+	          d3.select(this).dispatch('change', { bubbles: true, cancelable: true });
+	        }).on('change', function (d) {
+	          return d.__expanded__ = !d.__expanded__;
+	        });
+	      } else el.attr('cursor', '').on('click', null);
+
+	      if (trans) el = el.transition(trans);
+
+	      if (d.__expanded__) el.style('opacity', 0).selectAll('*').remove();else el.style('opacity', 1).call($$.point);
+
+	      el.attr('transform', 'translate(' + (x(d.__x__) + shift) + ', ' + y(d.__y__) + ')');
+	    });
+	  }
+
+	  /**
+	   * Renders bubble indicator.
+	   * @param {d3.selection} el - bubble pack
+	   * @param {d3.transition or null} trans - transition if present
+	   * @param {d3.scale} x - x scale
+	   * @param {d3.scale} y - y scale
+	   * @param {Number} shift - horizontal pixel shift
+	   * @param {d3.selection} chart - master chart container
+	   */
+	  function renderIndicator(el, trans, x, y, shift, chart) {
+	    el.each(function (d, i) {
+	      var el = d3.select(this).classed('d2b-active', d.__expanded__);
+
+	      if (!d.__expanded__) return el.selectAll('rect, text').remove();
+
+	      var rect = el.select('rect'),
+	          text = el.select('text');
+	      if (!rect.size()) rect = el.append('rect');
+	      if (!text.size()) text = el.append('text');
+
+	      text.text($$.pindicator.call(this, d, i).substring(0, 5)).attr('x', 5);
+	      var textBox = text.node().getBBox();
+	      text.attr('y', textBox.height / 1.35);
+	      rect.on('click', function () {
+	        d3.select(this).dispatch('change', { bubbles: true, cancelable: true });
+	      }).on('change', function (d) {
+	        return d.__expanded__ = !d.__expanded__;
+	      }).attr('width', textBox.width + 10).attr('height', textBox.height).style('fill', $$.point.fill()).style('stroke', $$.point.stroke());
+	    });
+	  }
+
+	  /**
+	   * Renders bubble packs recursively.
+	   * @param {d3.selection} el - packs container
+	   * @param {Array} data - packs data
+	   * @param {d3.transition or null} trans - transition if present
+	   * @param {d3.scale} x - x scale
+	   * @param {d3.scale} y - y scale
+	   * @param {Number} shift - horizontal pixel shift
+	   * @param {d3.selection} chart - master chart container
+	   * @param {Number} depth - depth tracker
+	   */
+	  function renderPacks(el, data, trans, x, y, shift, chart) {
+	    var depth = arguments.length <= 7 || arguments[7] === undefined ? 0 : arguments[7];
+
+	    // set pack data
+	    var pack = el.selectAll('.d2b-bubble-pack.d2b-depth-' + depth).data(data, $$.pkey),
+	        packEnter = pack.enter().append('g').attr('class', 'd2b-bubble-pack d2b-depth-' + depth),
+	        packUpdate = pack.merge(packEnter);
+
+	    packEnter.append('g').attr('class', 'd2b-bubble-point').style('opacity', 0);
+	    renderPoint(packUpdate.select('.d2b-bubble-point'), trans, x, y, shift, chart);
+	    packEnter.append('g').attr('class', 'd2b-bubble-indicator');
+	    renderIndicator(packUpdate.select('.d2b-bubble-indicator'), trans, x, y, shift, chart);
+
+	    // update children bubbles if expanded
+	    packUpdate.each(function (d, i) {
+	      var el = d3.select(this);
+	      if (d.__children__ && d.__expanded__) {
+	        renderPacks(el, d.__children__, trans, x, y, shift, chart, depth + 1);
+	      } else {
+	        el.selectAll('.d2b-bubble-pack').transition(trans).remove().select('.d2b-bubble-point').style('opacity', 0).attr('transform', 'translate(' + (x(d.__x__) + shift) + ', ' + y(d.__y__) + ')');
+	      }
+	    });
+
+	    var packExit = pack.exit();
+	    if (trans) packExit = packExit.transition(trans);
+	    packExit.remove();
+	  }
+
+	  // Recursively set the data structure starting at root node `d`
+	  function setStructure(d) {
+	    var depth = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+
+	    var children = $$.pchildren(d);
+	    d.__leaves__ = [];
+	    d.__depth__ = depth;
+	    if (children && children.length) {
+	      d.__children__ = children;
+	      children.forEach(function (child) {
+	        setStructure(child, depth + 1);
+	        child.__parent__ = d;
+	        d.__leaves__ = d.__leaves__.concat(child.__leaves__);
+	      });
+	    } else {
+	      d.__x__ = $$.px(d);
+	      d.__y__ = $$.py(d);
+	      d.__size__ = $$.psize(d);
+	      d.__leaves__.push(d);
+	    }
+	  }
+
+	  // Recursively set x, y, size attributes starting at root node `d`
+	  function setAttributes(d) {
+	    d.__x__ = ($$.tendancy.x || $$.tendancy)(d.__leaves__, function (d) {
+	      return d.__x__;
+	    }, function (d) {
+	      return d.__size__;
+	    });
+	    d.__y__ = ($$.tendancy.y || $$.tendancy)(d.__leaves__, function (d) {
+	      return d.__y__;
+	    }, function (d) {
+	      return d.__size__;
+	    });
+	    d.__size__ = d3.sum(d.__leaves__, function (d) {
+	      return d.__size__;
+	    });
+
+	    if (d.__children__ && d.__children__.length) {
+	      d.__children__.forEach(function (child) {
+	        return setAttributes(child);
+	      });
+	    }
+	  }
+
+	  // Compute hierarchical structure and render attributes
+	  function compute(d) {
+	    setStructure(d);
+	    setAttributes(d);
+	  }
+
+	  /* Inherit from base model */
+	  var model = base(bubblePack, $$).addProp('point', point().active(true), null, function (d) {
+	    $$.point.size(function (d) {
+	      return d.__size__ * 100;
+	    }).active(function (d) {
+	      return !!d.__children__;
+	    });
+	  }).addProp('x', d3.scaleLinear(), function (d) {
+	    if (!arguments.length) return $$.x;
+	    if (d.domain) $$.x = function () {
+	      return d;
+	    };else $$.x = d;
+	    return bubblePack;
+	  }).addProp('y', d3.scaleLinear(), function (d) {
+	    if (!arguments.length) return $$.y;
+	    if (d.domain) $$.y = function () {
+	      return d;
+	    };else $$.y = d;
+	    return bubblePack;
+	  }).addProp('tendancy', mean).addProp('duration', 250).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
+	    return d.label;
+	  }).addPropFunctor('values', function (d) {
+	    return d.values;
+	  }).addPropFunctor('color', function (d) {
+	    return color(d.label);
+	  }).addPropFunctor('symbol', function (d) {
+	    return d3.symbolCircle;
+	  }).addPropFunctor('px', function (d) {
+	    return d.x;
+	  }).addPropFunctor('py', function (d) {
+	    return d.y;
+	  }).addPropFunctor('psize', function (d) {
+	    return d.size;
+	  }).addPropFunctor('pchildren', function (d) {
+	    return d.children;
+	  }).addPropFunctor('pcolor', function (d) {
+	    return null;
+	  }).addPropFunctor('psymbol', null).addPropFunctor('pindicator', function (d) {
+	    return d.label;
+	  }).addPropFunctor('pkey', function (d, i) {
+	    return i;
+	  });
+
+	  return bubblePack;
+	};
 
 	/**
 	  * d2b.modelChart() returns a d2b chart model.
@@ -1442,6 +1864,7 @@
 	  // methods ensure that the chart's context is always the first argument for
 	  // accessor functions or event listeners.
 	  function newTools(context, index) {
+	    var selection = context.selection ? context.selection() : context;
 	    var tools = {
 	      // retrieve a chart property e.g. `tools.prop($$.size)` or with extra
 	      // arguments `tools.prop($$.radius, this, [width, height])`
@@ -1461,9 +1884,12 @@
 	        args.unshift(context);
 	        return $$.dispatch.apply(key, inst, args);
 	      },
+	      // chart selections
+	      context: context,
+	      selection: selection,
 	      // trigger an update for the context under the 'd2b-chart' transition space
 	      update: function update() {
-	        var newContext = (context.selection ? context.selection() : context).transition('d2b-chart').duration(tools.prop($$.duration));
+	        var newContext = (context.selection ? context.selection() : context).transition().duration(tools.prop($$.duration));
 
 	        build(newContext, index);
 	      }
@@ -1496,7 +1922,7 @@
 	        translate = 'translate(' + padding.left + ', ' + padding.top + ')';
 
 	    // trigger before update event
-	    tools.dispatch("beforeUpdate");
+	    selection.dispatch('beforeUpdate');
 
 	    // enter d2b-svg and d2b-group
 	    var svg = selection.selectAll('.d2b-svg').data(function (d) {
@@ -1563,7 +1989,7 @@
 	    update(main, width, height, tools);
 
 	    // trigger after update event
-	    tools.dispatch("afterUpdate");
+	    selection.dispatch('afterUpdate');
 	  };
 
 	  return model;
@@ -1719,7 +2145,7 @@
 
 	    $$.tooltip = $$.tooltip.merge(newTooltip);
 
-	    $$.tooltip.transition('d2b-tooltip-insert').duration(100).style('opacity', 1);
+	    $$.tooltip.transition().duration(100).style('opacity', 1);
 
 	    $$.dispatch.call("insert", $$.tooltip, this, d, i);
 	  };
@@ -1776,10 +2202,8 @@
 	  // legend click events can be configured for hiding / showing specific chart
 	  // elements.
 	  $$.legend.items(function (d) {
-	    return d.values;
-	  }).active(true).clickable(true).dblclickable(true).on('change', function () {
-	    console.log('legend changed!');
-	  });
+	    return d;
+	  }).active(true).clickable(true).dblclickable(true);
 
 	  function update(context, width, height, tools) {
 	    // context is simply the main chart container to append content to. It may
@@ -1811,13 +2235,7 @@
 		var chart = model.base();
 
 		// configure legend
-		$$.legend.active(true).clickable(true).dblclickable(true).on('change', function (legend, d) {
-			return legend.datum().__update__();
-		}).on('mouseover.d2b-pie', function (legend, d) {
-			return d3.select(d.__elem__).each(arcGrow);
-		}).on('mouseout.d2b-pie', function (legend, d) {
-			return d3.select(d.__elem__).each(arcShrink);
-		});
+		$$.legend.active(true).clickable(true).dblclickable(true);
 
 		// pie data layout
 		var layout = d3.pie().sort(null);
@@ -1836,20 +2254,18 @@
 		var percent = d3.format('.0%');
 
 		// configure model properties
-		model.addProp('donutRatio', 0).addProp('startAngle', 0, null, function (d) {
-			return layout.startAngle(d);
-		}).addProp('endAngle', 2 * Math.PI, null, function (d) {
-			return layout.endAngle(d);
-		}).addProp('at', 'center center').addProp('key', function (d) {
+		model.addProp('key', function (d) {
 			return d.label;
 		}, null, function (d) {
 			$$.legend.key(d);
 			pie.key(d);
 		}).addProp('tooltip', tooltip().followMouse(true).html(function (d) {
 			return '<b>' + $$.label(d.data) + ':</b> ' + $$.value(d.data);
-		})).addPropFunctor('showPercent', function (d, i, p) {
-			return p > 0.03;
-		}).addPropFunctor('center', null).addPropFunctor('radius', function (w, h) {
+		})).addPropFunctor('values', function (d) {
+			return d;
+		}).addPropFunctor('donutRatio', 0).addPropFunctor('startAngle', 0).addPropFunctor('endAngle', 2 * Math.PI).addPropFunctor('at', 'center center').addPropFunctor('showPercent', function (d, i) {
+			return d.__percent__ > 0.03;
+		}).addPropFunctor('center', null).addPropFunctor('radius', function (d, w, h) {
 			return Math.min(w, h) / 2;
 		}).addPropFunctor('sort', null).addPropFunctor('color', function (d) {
 			return d2b.defaultColor(d.label);
@@ -1873,29 +2289,37 @@
 		function update(context, width, height, tools) {
 			var selection = context.selection ? context.selection() : context,
 			    node = selection.node(),
-			    radius = $$.radius.call(node, width, height);
+			    datum = selection.datum(),
+			    radius = $$.radius.call(node, datum, width, height),
+			    startAngle = $$.startAngle.call(node, datum),
+			    endAngle = $$.endAngle.call(node, datum),
+			    donutRatio = $$.donutRatio.call(node, datum),
+			    at = $$.at.call(node, datum),
+			    values = $$.values.call(node, datum).filter(function (d) {
+				return !d.__empty__;
+			});
 
-			// Retrieve pie datum, save refresh method, filter out emptied items.
-			var datum = selection.datum();
-			datum.__update__ = tools.update;
-			datum = datum.filter(function (d) {
-				return !d.empty;
+			// legend functionality
+			tools.selection.select('.d2b-chart-legend').on('change', tools.update).selectAll('.d2b-legend-item').on('mouseover', function (d) {
+				return d3.select(d.__arc__).each(arcGrow);
+			}).on('mouseout', function (d) {
+				return d3.select(d.__arc__).each(arcShrink);
 			});
 
 			// Filter and sort for current data.
-			var total = d3.sum(datum, function (d, i) {
-				return $$.value.call(chart, d, i);
+			var total = d3.sum(values, function (d, i) {
+				return d.__value__ = $$.value(d, i);
 			});
 
 			// Select and enter pie chart 'g' element.
-			var chartGroup = selection.selectAll('.d2b-pie-chart').data([datum]);
+			var chartGroup = selection.selectAll('.d2b-pie-chart').data([values]);
 			var chartGroupEnter = chartGroup.enter().append('g').attr('class', 'd2b-pie-chart');
 
 			chartGroup = chartGroup.merge(chartGroupEnter).datum(function (d) {
-				d = layout(d);
+				d = layout.startAngle(startAngle).endAngle(endAngle)(d);
 				d.forEach(function (dd) {
 					dd.outerRadius = radius;
-					dd.innerRadius = radius * $$.donutRatio;
+					dd.innerRadius = radius * donutRatio;
 				});
 				return d;
 			});
@@ -1906,9 +2330,10 @@
 
 			// For each arc in the pie chart assert the transitioning flag and store
 			// the element node in data. Also setup hover and tooltip events;
-			var arcGroup = selection.selectAll('.d2b-pie-arc').each(function (d) {
+			var arcGroup = selection.selectAll('.d2b-pie-arc').each(function (d, i) {
 				this.outerRadius = d.outerRadius;
-				d.data.__elem__ = this;
+				d.data.__arc__ = this;
+				d.data.__percent__ = d.data.__value__ / total;
 			}).on('mouseover', arcGrow).on('mouseout', arcShrink).call($$.tooltip);
 
 			var arcPercent = arcGroup.selectAll('.d2b-pie-arc-percent').data(function (d) {
@@ -1935,12 +2360,12 @@
 			}
 
 			arcGroup.select('.d2b-pie-arc-percent').call(d2b.tweenCentroid, arc).select('text').call(tweenNumber, function (d) {
-				return d.value / total;
+				return d.data.__percent__;
 			}, percent).style('opacity', function (d, i) {
-				return $$.showPercent.call(this, d.data, i, d.value / total) ? 1 : 0;
+				return $$.showPercent.call(this, d.data, i) ? 1 : 0;
 			});
 
-			var coords = chartCoords(node, radius, width, height);
+			var coords = chartCoords(node, datum, radius, width, height);
 			chartGroupEnter.attr('transform', 'translate(' + coords.x + ', ' + coords.y + ')');
 			chartGroup.attr('transform', 'translate(' + coords.x + ', ' + coords.y + ')');
 		}
@@ -1948,11 +2373,11 @@
 		// Position the pie chart according to the 'at' string (e.g. 'center left',
 		// 'top center', ..). Unless a `$$.center` function is specified by the user
 		// to return the {x: , y:} coordinates of the pie chart center.
-		function chartCoords(node, radius, width, height) {
-			var coords = $$.center.call(node, width, height, radius);
+		function chartCoords(node, datum, radius, width, height) {
+			var coords = $$.center.call(node, datum, width, height, radius),
+			    at = $$.at.call(node, datum, width, height).split(' ');
 
 			if (!coords) {
-				var at = $$.at.split(' ');
 				at = { x: at[1], y: at[0] };
 				coords = {};
 				switch (at.x) {
@@ -1986,14 +2411,14 @@
 			if (this.transitioning) return;
 			var path = d3.select(this).select('path');
 			d.outerRadius = this.outerRadius * 1.03;
-			path.transition('d2b-chart').call(tweenArc, arc);
+			path.transition().call(tweenArc, arc);
 		}
 
 		function arcShrink(d) {
 			if (this.transitioning) return;
 			var path = d3.select(this).select('path');
 			d.outerRadius = this.outerRadius;
-			path.transition('d2b-chart').call(tweenArc, arc);
+			path.transition().call(tweenArc, arc);
 		}
 
 		return chart;
@@ -2001,6 +2426,13 @@
 
 	exports.symbolMars = mars;
 	exports.symbolVenus = venus;
+	exports.mean = mean;
+	exports.median = median;
+	exports.midpoint = midpoint;
+	exports.mode = mode;
+	exports.range = range;
+	exports.toDegrees = toDegrees;
+	exports.toRadians = toRadians;
 	exports.point = point;
 	exports.legend = legend;
 	exports.svgPie = pie;
@@ -2008,6 +2440,7 @@
 	exports.svgArea = area;
 	exports.svgScatter = scatter;
 	exports.svgBar = bar;
+	exports.svgBubblePack = bubblePack;
 	exports.modelBase = base;
 	exports.modelChart = modelChart;
 	exports.defaultColor = color;
