@@ -49,18 +49,21 @@ export default function () {
       graphUpdate.style('opacity', 1);
       graphExit.style('opacity', 0).remove();
 
+      if ($$.tooltip) $$.tooltip.clear('bar');
+
       // iterate through graph containers
       graphUpdate.each(function (d, i) {
         const graph = d3.select(this),
               color = $$.color.call(this, d, i),
               x = $$[orient.x].call(this, d, i),
-              y = $$[orient.y].call(this, d, i);
+              y = $$[orient.y].call(this, d, i),
+              values = $$.values.call(this, d, i);
 
-         let shift = $$.shift.call(this, d, i);
-         if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
+        let shift = $$.shift.call(this, d, i);
+        if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
         // enter update exit bars
-        const bar = graph.selectAll('.d2b-bar-group').data($$.values, $$.pkey);
+        const bar = graph.selectAll('.d2b-bar-group').data(values, $$.pkey);
         const barEnter = bar.enter().append('g').attr('class', 'd2b-bar-group');
         barEnter.append('rect');
         let barUpdate = bar.merge(barEnter).order(),
@@ -77,6 +80,12 @@ export default function () {
           d.__extentpx__ = [y(d.__extent__[0]), y(d.__extent__[1])]
           d.__extentpx__.sort(d3.ascending);
         });
+
+        if ($$.tooltip) $$.tooltip.graph('bar', i)
+          .data(values)
+          [orient.x]((d, i) => x($$[orient.px](d, i)))
+          [orient.y]((d, i) => y($$[orient.py](d, i)))
+          .color((d, i) => $$.pcolor(d, i) || color);
 
         if (context !== selection) {
           barUpdate = barUpdate.transition(context);
@@ -177,6 +186,7 @@ export default function () {
         else $$.y = d;
         return bar;
       })
+      .addProp('tooltip', null)
       .addPropFunctor('orient', 'vertical')
       .addPropFunctor('padding', 0.5)
       .addPropFunctor('groupPadding', 0)

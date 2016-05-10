@@ -3,6 +3,7 @@ import {default as tooltip} from '../util/tooltip.js';
 import {default as tweenArc} from '../util/tweenArc.js';
 import {default as tweenCentroid} from '../util/tweenCentroid.js';
 import {default as tweenNumber} from '../util/tweenNumber.js';
+import {default as color} from '../core/color.js';
 
 /**
  * d2b.chartPie() returns a d2b
@@ -54,7 +55,7 @@ export default function () {
 		.addPropFunctor('center', null)
 		.addPropFunctor('radius', (d, w, h) => Math.min(w, h) / 2)
 		.addPropFunctor('sort', null)
-		.addPropFunctor('color', d => d2b.defaultColor(d.label), null, (d) => {
+		.addPropFunctor('color', d => color(d.label), null, (d) => {
 			$$.tooltip.color(dd => d3.rgb(d(dd.data)).darker(0.3));
 			$$.legend.color(d);
 			pie.color(d);
@@ -104,7 +105,7 @@ export default function () {
 		if (selection !== context) chartGroup = chartGroup.transition(context);
 
 		chartGroup.call(pie);
-		
+
 		// For each arc in the pie chart assert the transitioning flag and store
 		// the element node in data. Also setup hover and tooltip events;
 		let arcGroup = selection
@@ -196,14 +197,14 @@ export default function () {
 		if (this.transitioning) return;
 		const path = d3.select(this).select('path');
 		d.outerRadius = this.outerRadius * 1.03;
-		path.transition().call(tweenArc, arc);
+		path.transition().duration(100).call(tweenArc, arc);
 	}
 
 	function arcShrink (d) {
 		if (this.transitioning) return;
 		const path = d3.select(this).select('path');
 		d.outerRadius = this.outerRadius;
-		path.transition().call(tweenArc, arc);
+		path.transition().duration(100).call(tweenArc, arc);
 	}
 
 	return chart;

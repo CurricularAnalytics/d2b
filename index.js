@@ -15,6 +15,7 @@ export {
 
 export {
   point,
+  axes,
   legend,
   svgPie,
   svgLine,
@@ -41,6 +42,7 @@ export {
   tweenNumber,
   tweenArc,
   tooltip,
+  tooltipAxis,
   stack,
   omit
 } from './src/js/util/util.js';

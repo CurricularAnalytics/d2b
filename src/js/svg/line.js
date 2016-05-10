@@ -28,6 +28,8 @@ export default function () {
       lineUpdate = lineUpdate.transition(context);
     }
 
+    if ($$.tooltip) $$.tooltip.clear('line')
+
     graphUpdate.style('opacity', 1);
     graphExit.style('opacity', 0).remove();
     lineUpdate
@@ -35,7 +37,14 @@ export default function () {
         .attr('d', function (d, i) {
           const x = $$.x.call(this, d, i),
                 y = $$.y.call(this, d, i),
+                color = $$.color.call(this, d, i),
                 values = $$.values.call(this, d, i);
+
+          if ($$.tooltip) $$.tooltip.graph('line', i)
+            .data(values)
+            .x((d, i) => x($$.px(d, i)))
+            .y((d, i) => y($$.py(d, i)))
+            .color(color);
 
           let shift = $$.shift.call(this, d, i);
           if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
@@ -64,6 +73,7 @@ export default function () {
       else $$.y = d;
       return line;
     })
+    .addProp('tooltip', null)
     .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)

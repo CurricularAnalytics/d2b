@@ -4,5 +4,6 @@ export {default as tweenArc} from './tweenArc.js';
 export {default as tweenNumber} from './tweenNumber.js';
 export {default as tweenCentroid} from './tweenCentroid.js';
 export {default as tooltip} from './tooltip.js';
+export {default as tooltipAxis} from './tooltipAxis.js';
 export {default as stack} from './stack.js';
 export {omit} from './object.js';

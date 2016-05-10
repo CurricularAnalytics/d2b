@@ -14,7 +14,7 @@ import {default as legend} from '../svg/legend.js';
   * @return {Object} model - object with model properties and methods
   */
 
-export default function (update, events = [], $$ = {}) {
+export default function (update, $$ = {}) {
 
   // Chart main update function. Usually used as a call from a d3 selection.
   // e.g. d3.select('div.chart').call(d2b.chartPie())
@@ -37,8 +37,7 @@ export default function (update, events = [], $$ = {}) {
     // duration is used if the chart needs an internal update
     .addPropFunctor('duration', 250)
     .addPropFunctor('legendHidden', false)
-    .addPropFunctor('legendAt', 'center right')
-    .addDispatcher(['beforeUpdate', 'afterUpdate'].concat(events));
+    .addPropFunctor('legendAt', 'center right');
 
   // Position the legend either by the specified center coordinates or by
   // computing them dynamicaly from the chart size, legend size and legend

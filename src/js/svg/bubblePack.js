@@ -24,6 +24,8 @@ export default function () {
       graphExit = graphExit.transition(transition);
     }
 
+    if ($$.tooltip) $$.tooltip.clear('bubblePack');
+
     // update graph
     graphUpdate.style('opacity', 1);
 
@@ -60,7 +62,14 @@ export default function () {
               return $$.psymbol.call(this, dd, ii) || symbol;
             });
 
-        renderPacks(el, d.values, transition, x, y, shift, selection);
+        const addTooltipPoint = $$.tooltip?
+            $$.tooltip.graph('bubblePack', i)
+                .x((d, i) => x(d.__x__))
+                .y((d, i) => y(d.__y__))
+                .color((d, i) => $$.pcolor(d, i) || color)
+                .addPoint
+              : null;
+        renderPacks(el, d.values, transition, x, y, shift, selection, addTooltipPoint);
       });
 
       positionIndicators(selection);
@@ -90,11 +99,7 @@ export default function () {
   // On chart change (usually a bubble/indicator click) update and dispatch events.
   function change(node, d, i, chart) {
     if (!d.__children__) return;
-    // d.__expanded__ = !d.__expanded__;
-    // d3.select(node).dispatch(d, i);
     d3.select(node).dispatch('change', {bubbles: true, cancelable: true});
-    // if ($$.manualUpdate) return;
-    // chart.transition().duration($$.duration).call(bubblePack);
   }
 
   /**
@@ -180,9 +185,10 @@ export default function () {
    * @param {d3.scale} y - y scale
    * @param {Number} shift - horizontal pixel shift
    * @param {d3.selection} chart - master chart container
+   * @param {function} addTooltipPoint - function to append a point to the tooltip component
    * @param {Number} depth - depth tracker
    */
-  function renderPacks(el, data, trans, x, y, shift, chart, depth = 0) {
+  function renderPacks(el, data, trans, x, y, shift, chart, addTooltipPoint, depth = 0) {
     // set pack data
     const pack = el.selectAll(`.d2b-bubble-pack.d2b-depth-${depth}`)
               .data(data, $$.pkey),
@@ -199,8 +205,9 @@ export default function () {
     packUpdate.each(function (d, i) {
       const el = d3.select(this);
       if (d.__children__ && d.__expanded__) {
-        renderPacks(el, d.__children__, trans, x, y, shift, chart, depth + 1);
+        renderPacks(el, d.__children__, trans, x, y, shift, chart, addTooltipPoint, depth + 1);
       } else {
+        if (addTooltipPoint) addTooltipPoint(d);
         el.selectAll('.d2b-bubble-pack')
           .transition(trans)
             .remove()
@@ -271,6 +278,7 @@ export default function () {
       else $$.y = d;
       return bubblePack;
     })
+    .addProp('tooltip', null)
     .addProp('tendancy', mean)
     .addProp('duration', 250)
     .addPropFunctor('shift', null)

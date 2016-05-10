@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<body style='padding: 100px;'>
+
+<svg></svg>
+
+<script>
+  var width = 960, height = 500;
+
+  var y = d3.scaleLinear().domain([30, 0]).range([0, height]);
+  var x = d3.scaleLinear().domain([0, 20]).range([0, width]);
+  var xAxis = d3.axisBottom().scale(x);
+  var yAxis = d3.axisRight().scale(y);
+
+  var bubblePack = d2b.svgBubblePack().x(x).y(y);
+
+  // chart svg, will also be used as the mouse tracker
+	var svg = d3.select('svg')
+      .attr('width', width)
+      .attr('height', height)
+    .append('g');
+
+  // Tooltip svg container. This will be used to draw tooltip guides.
+  var svgContainer = svg.append('g');
+
+  // svg background so that all mousemove events are captured
+  var svgBackground = svg.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('opacity', 0);
+
+  var tooltip = d2b.tooltipAxis()
+      .tracker(svg)
+      .svgContainer(svgContainer)
+      .htmlContainer(d3.select('body'))
+      .size({width: width, height: height})
+      .title(function (d) {return d[0].__x__;})
+      .row(function (d) {return d.__y__;})
+      .trackX(true)
+      .trackY(true);
+
+  bubblePack.tooltip(tooltip);
+
+  var data = [
+    {
+      label: 'bubble pack 1',
+      values: [
+        {
+          label: 'one',
+          children: [
+            {
+              label: 'one-one',
+              size: 5,
+              x: 10,
+              y: 25
+            }
+          ]
+        },
+        {
+          __expanded__: true,
+          label: 'two',
+          children: [
+            {
+              label: 'two-one',
+              size: 5,
+              x: 3,
+              y: 15
+            },
+            {
+              label: 'two-two',
+              children: [
+                {
+                  label: 'two-two-one',
+                  size: 2,
+                  x: 6,
+                  y: 8
+                },
+                {
+                  label: 'two-two-two',
+                  size: 17,
+                  x: 12,
+                  y: 21
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ];
+
+  var packs = svg.append('g')
+      .datum(data)
+      .attr('class', 'packs')
+      .call(bubblePack);
+
+  svg.append('g').call(xAxis);
+  svg.append('g').call(yAxis);
+
+</script>
+
+</body>
+</html>

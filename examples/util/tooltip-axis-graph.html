@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<body style='padding: 100px;'>
+
+<svg></svg>
+
+<script>
+  var width = 960, height = 500;
+
+  var y = d3.scaleLinear().domain([70, 0]).range([0, height]);
+  var x = d3.scaleLinear().domain([0, 60]).range([0, width]);
+  var xAxis = d3.axisBottom().scale(x);
+  var yAxis = d3.axisRight().scale(y);
+
+  var bar = d2b.svgArea().x(x).y(y);
+
+  // chart svg, will also be used as the mouse tracker
+	var svg = d3.select('svg')
+      .attr('width', width)
+      .attr('height', height)
+    .append('g');
+
+  // Tooltip svg container. This will be used to draw tooltip guides.
+  var svgContainer = svg.append('g');
+
+  // svg background so that all mousemove events are captured
+  var svgBackground = svg.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('opacity', 0);
+
+  var tooltip = d2b.tooltipAxis()
+      .tracker(svg)
+      .svgContainer(svgContainer)
+      .htmlContainer(d3.select('body'))
+      .size({width: width, height: height})
+      .title(function (d) {return d[0].x;})
+      .row(function (d) {return d.y;})
+      .trackX(true)
+      .trackY(false);
+
+  bar.tooltip(tooltip);
+
+  var data = [
+    {
+      label: 'Bar One',
+      values: [
+        {x: 10, y: 25},
+        {x: 20, y: 15},
+        {x: 30, y: 35},
+        {x: 40, y: 52},
+        {x: 50, y: 41},
+        {x: 60, y: 18}
+      ]
+    },
+    {
+      label: 'Bar Two',
+      values: [
+        {x: 10, y: 20},
+        {x: 20, y: 15},
+        {x: 30, y: 55},
+        {x: 40, y: 22},
+        {x: 50, y: 31},
+        {x: 60, y: 38}
+      ]
+    }
+  ];
+
+  var bars = svg.append('g')
+      .datum(data)
+      .attr('class', 'bars')
+      .call(bar);
+
+  svg.append('g').call(xAxis);
+  svg.append('g').call(yAxis);
+
+</script>
+
+</body>
+</html>

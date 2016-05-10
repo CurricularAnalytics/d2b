@@ -10,6 +10,8 @@ export default function () {
   const scatter = function (context) {
     const selection = context.selection? context.selection() : context;
 
+    if ($$.tooltip) $$.tooltip.clear('bar');
+
     const graph = selection.selectAll('.d2b-scatter-graph').data(d => d, $$.key);
 
     const graphEnter = graph.enter().append('g')
@@ -32,10 +34,17 @@ export default function () {
             x = $$.x.call(this, d, i),
             y = $$.y.call(this, d, i),
             color = $$.color.call(this, d, i),
-            symbol = $$.symbol.call(this, d, i);
+            symbol = $$.symbol.call(this, d, i),
+            values = $$.values.call(this, d, i);
 
       let shift = $$.shift.call(this, d, i);
       if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
+
+      if ($$.tooltip) $$.tooltip.graph('scatter', i)
+        .data(values)
+        .x((d, i) => x($$.px(d, i)))
+        .y((d, i) => y($$.py(d, i)))
+        .color((d, i) => $$.pcolor(d, i) || color);
 
       $$.point
           .fill( function (dd, ii) {
@@ -47,7 +56,7 @@ export default function () {
           .size($$.psize);
 
       const point = el.selectAll('.d2b-scatter-point')
-          .data($$.values, $$.pkey);
+          .data(values, $$.pkey);
       const pointEnter = point.enter().append('g')
           .attr('class', 'd2b-scatter-point');
 
@@ -100,6 +109,7 @@ export default function () {
       else $$.y = d;
       return scatter;
     })
+    .addProp('tooltip', null)
     .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)

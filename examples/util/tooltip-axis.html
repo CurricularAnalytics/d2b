@@ -2,94 +2,103 @@
 <html>
 <script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
 
-<link rel="stylesheet" type="text/css" href="../../build/d2b.css" />
-<script src="../../build/d2b.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
 
-<style>
-	body{
-		margin-left: 20px;
-		margin-top: 50px;
-		padding: 10px;
-		/*margin: 0;
-		padding: 0;*/
+<body style='padding: 100px;'>
 
-		border: 5px solid black;
+<svg></svg>
 
-    /*border-collapse: collapse;*/
-		/*width: 100%;*/
-	}
+<script>
+  var width = 960, height = 500;
 
-	.main {
-		position: relative;
-	}
+  var x = d3.scaleLinear().domain([0, 70]).range([0, 960]);
+  var y = d3.scaleLinear().domain([0, 60]).range([0, 500]);
+  var xAxis = d3.axisBottom().scale(x);
+  var yAxis = d3.axisRight().scale(y);
 
-	.rect {
-		width: 20px;
-		height: 20px;
-		position: absolute;
-		background: red;
-	}
+  // chart svg, will also be used as the mouse tracker
+	var svg = d3.select('svg')
+      .attr('width', width)
+      .attr('height', height)
+    .append('g');
 
-	circle {
-		fill: steelblue;
-	}
+  // Tooltip svg container. This will be used to draw tooltip guides.
+  var svgContainer = svg.append('g');
 
-	svg {
-		width: 500px;
-		height: 500px;
-	}
-</style>
+  // svg background so that all mousemove events are captured
+  var svgBackground = svg.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('opacity', 0);
 
-<body>
+  // first graph
+  var dotOneData = [
+    {x: 10, y: 25},
+    {x: 20, y: 15},
+    {x: 30, y: 35},
+    {x: 40, y: 52},
+    {x: 50, y: 41},
+    {x: 60, y: 18}
+  ];
+  var dot = svg.selectAll('.dot-one').data(dotOneData);
+  dot.enter()
+    .append('circle')
+      .attr('class', 'dot-one')
+      .attr('r', 10)
+      .attr('fill', 'blue')
+      .attr('cx', function (d) {return x(d.x);})
+      .attr('cy', function (d) {return y(d.y);});
 
-		<div class = 'area'></div>
+  // second graph
+  var dotTwoData = [
+    {x: 10, y: 20},
+    {x: 20, y: 15},
+    {x: 30, y: 55},
+    {x: 40, y: 22},
+    {x: 50, y: 31},
+    {x: 60, y: 38}
+  ];
+  var dot = svg.selectAll('.dot-two').data(dotTwoData);
+  dot.enter()
+    .append('circle')
+      .attr('class', 'dot-two')
+      .attr('r', 10)
+      .attr('fill', 'red')
+      .attr('cx', function (d) {return x(d.x);})
+      .attr('cy', function (d) {return y(d.y);});
 
-	<div class = 'main'></div>
-	<svg class = 'main'></svg>
+  svg.append('g').call(xAxis);
+  svg.append('g').call(yAxis);
 
-	<script>
+  // Now that the graphs are setup we can create and configure the tooltip.
+  var tooltip = d2b.tooltipAxis()
+      .tracker(svg)
+      .title(items => items[0].x)
+      .x(function (d) {return x(d.x);})
+      .y(function (d) {return y(d.y);})
+      .svgContainer(svgContainer)
+      .htmlContainer(d3.select('body'))
+      .size({width: width, height: height})
+      .trackX(true)
+      .trackY(false);
 
-		var body = d3.select('body');
-		var div = d3.select('div.main');
-		var svg = d3.select('svg.main');
+  // tooltip.clear();
+  // tooltip.clear('dot');
+  // tooltip.clear('dot', 'one');
 
-		var tooltip = d2b.tooltip()
-		// 	.layout(0)
-		// 	.style(1)
-			.my('top left')
-			.at('top left')
-			.followMouse(false)
-		// 	.trackX(true)
-		// 	.trackY(true)
-		// 	.equalOverride(true)
-		// 	.perGraph(true)
-		// 	.tracker(body)
-		// 	.container(body);
+  tooltip.graph('dot', 'one')
+      .row(d => 'One - '+d.y)
+      .color('blue')
+      .data(dotOneData);
 
-		// tooltip.tracker('this').tracker('that');
+  tooltip.graph('dot', 'two')
+      .row(d => 'Two - '+d.y)
+      .color('red')
+      .data(dotTwoData);
 
-		var rect = div.selectAll('.rect').data([1, 2, 3, 4]);
-
-		rect.enter()
-			.append('div')
-				.attr('class', 'rect')
-				.style('left', function (d) { return d * 50 + 'px'; })
-				.style('top', function (d) { return d * 100 + 'px'; })
-
-		rect.call(tooltip('rectangles'));
-
-		var circle = svg.selectAll('circle').data([1, 2, 3, 4]);
-
-		circle.enter()
-			.append('circle')
-				.attr('r', 15)
-				.attr('cx', function (d) { return d * 100; })
-				.attr('cy', function (d) { return d * 100; })
-
-		circle.call(tooltip('circles'));
-
-
-	</script>
+  // tooltip.clear('dot', 'one');
+</script>
 
 </body>
 </html>

@@ -915,6 +915,8 @@
 	      lineUpdate = lineUpdate.transition(context);
 	    }
 
+	    if ($$.tooltip) $$.tooltip.clear('line');
+
 	    graphUpdate.style('opacity', 1);
 	    graphExit.style('opacity', 0).remove();
 	    lineUpdate.style('stroke', $$.color).attr('d', function (d, i) {
@@ -922,7 +924,14 @@
 
 	      var x = $$.x.call(this, d, i),
 	          y = $$.y.call(this, d, i),
+	          color = $$.color.call(this, d, i),
 	          values = $$.values.call(this, d, i);
+
+	      if ($$.tooltip) $$.tooltip.graph('line', i).data(values).x(function (d, i) {
+	        return x($$.px(d, i));
+	      }).y(function (d, i) {
+	        return y($$.py(d, i));
+	      }).color(color);
 
 	      var shift = $$.shift.call(this, d, i);
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
@@ -950,7 +959,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return line;
-	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
+	  }).addProp('tooltip', null).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1084,12 +1093,21 @@
 	      areaUpdate = areaUpdate.transition(context);
 	    }
 
+	    if ($$.tooltip) $$.tooltip.clear('area');
+
 	    graphUpdate.style('opacity', 1);
 	    graphExit.style('opacity', 0).remove();
 	    areaUpdate.style('fill', $$.color).attr('d', function (d, i) {
 	      var x = $$.x.call(this, d, i),
 	          y = $$.y.call(this, d, i),
-	          values = $$.values.call(this, d, i);
+	          values = $$.values.call(this, d, i),
+	          color = $$.color.call(this, d, i);
+
+	      if ($$.tooltip) $$.tooltip.graph('area', i).data(values).x(function (d, i) {
+	        return x($$.px(d, i));
+	      }).y(function (d, i) {
+	        return y($$.py(d, i));
+	      }).color(color);
 
 	      var shift = $$.shift.call(this, d, i);
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
@@ -1132,7 +1150,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return area;
-	  }).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
+	  }).addProp('tooltip', null).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1161,6 +1179,8 @@
 	  var scatter = function scatter(context) {
 	    var selection = context.selection ? context.selection() : context;
 
+	    if ($$.tooltip) $$.tooltip.clear('bar');
+
 	    var graph = selection.selectAll('.d2b-scatter-graph').data(function (d) {
 	      return d;
 	    }, $$.key);
@@ -1183,10 +1203,19 @@
 	          x = $$.x.call(this, d, i),
 	          y = $$.y.call(this, d, i),
 	          color = $$.color.call(this, d, i),
-	          symbol = $$.symbol.call(this, d, i);
+	          symbol = $$.symbol.call(this, d, i),
+	          values = $$.values.call(this, d, i);
 
 	      var shift = $$.shift.call(this, d, i);
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
+	      if ($$.tooltip) $$.tooltip.graph('scatter', i).data(values).x(function (d, i) {
+	        return x($$.px(d, i));
+	      }).y(function (d, i) {
+	        return y($$.py(d, i));
+	      }).color(function (d, i) {
+	        return $$.pcolor(d, i) || color;
+	      });
 
 	      $$.point.fill(function (dd, ii) {
 	        return $$.pcolor.call(this, dd, ii) || color;
@@ -1194,7 +1223,7 @@
 	        return $$.psymbol.call(this, dd, ii) || symbol;
 	      }).size($$.psize);
 
-	      var point = el.selectAll('.d2b-scatter-point').data($$.values, $$.pkey);
+	      var point = el.selectAll('.d2b-scatter-point').data(values, $$.pkey);
 	      var pointEnter = point.enter().append('g').attr('class', 'd2b-scatter-point');
 
 	      var pointUpdate = point.merge(pointEnter).order(),
@@ -1236,7 +1265,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return scatter;
-	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
+	  }).addProp('tooltip', null).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1304,18 +1333,21 @@
 	      graphUpdate.style('opacity', 1);
 	      graphExit.style('opacity', 0).remove();
 
+	      if ($$.tooltip) $$.tooltip.clear('bar');
+
 	      // iterate through graph containers
 	      graphUpdate.each(function (d, i) {
 	        var graph = d3.select(this),
 	            color = $$.color.call(this, d, i),
 	            x = $$[orient.x].call(this, d, i),
-	            _y = $$[orient.y].call(this, d, i);
+	            _y = $$[orient.y].call(this, d, i),
+	            values = $$.values.call(this, d, i);
 
 	        var shift = $$.shift.call(this, d, i);
 	        if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
 	        // enter update exit bars
-	        var bar = graph.selectAll('.d2b-bar-group').data($$.values, $$.pkey);
+	        var bar = graph.selectAll('.d2b-bar-group').data(values, $$.pkey);
 	        var barEnter = bar.enter().append('g').attr('class', 'd2b-bar-group');
 	        barEnter.append('rect');
 	        var barUpdate = bar.merge(barEnter).order(),
@@ -1327,6 +1359,14 @@
 	          d.__basepx__ = x(d.__base__) + barShift;
 	          d.__extentpx__ = [_y(d.__extent__[0]), _y(d.__extent__[1])];
 	          d.__extentpx__.sort(d3.ascending);
+	        });
+
+	        if ($$.tooltip) $$.tooltip.graph('bar', i).data(values)[orient.x](function (d, i) {
+	          return x($$[orient.px](d, i));
+	        })[orient.y](function (d, i) {
+	          return _y($$[orient.py](d, i));
+	        }).color(function (d, i) {
+	          return $$.pcolor(d, i) || color;
 	        });
 
 	        if (context !== selection) {
@@ -1423,7 +1463,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return bar;
-	  }).addPropFunctor('orient', 'vertical').addPropFunctor('padding', 0.5).addPropFunctor('groupPadding', 0).addPropFunctor('bandwidth', null).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
+	  }).addProp('tooltip', null).addPropFunctor('orient', 'vertical').addPropFunctor('padding', 0.5).addPropFunctor('groupPadding', 0).addPropFunctor('bandwidth', null).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1495,6 +1535,8 @@
 	      graphExit = graphExit.transition(transition);
 	    }
 
+	    if ($$.tooltip) $$.tooltip.clear('bubblePack');
+
 	    // update graph
 	    graphUpdate.style('opacity', 1);
 
@@ -1529,7 +1571,14 @@
 	          return $$.psymbol.call(this, dd, ii) || symbol;
 	        });
 
-	        renderPacks(el, d.values, transition, x, y, shift, selection);
+	        var addTooltipPoint = $$.tooltip ? $$.tooltip.graph('bubblePack', i).x(function (d, i) {
+	          return x(d.__x__);
+	        }).y(function (d, i) {
+	          return y(d.__y__);
+	        }).color(function (d, i) {
+	          return $$.pcolor(d, i) || color;
+	        }).addPoint : null;
+	        renderPacks(el, d.values, transition, x, y, shift, selection, addTooltipPoint);
 	      });
 
 	      positionIndicators(selection);
@@ -1560,11 +1609,7 @@
 	  // On chart change (usually a bubble/indicator click) update and dispatch events.
 	  function change(node, d, i, chart) {
 	    if (!d.__children__) return;
-	    // d.__expanded__ = !d.__expanded__;
-	    // d3.select(node).dispatch(d, i);
 	    d3.select(node).dispatch('change', { bubbles: true, cancelable: true });
-	    // if ($$.manualUpdate) return;
-	    // chart.transition().duration($$.duration).call(bubblePack);
 	  }
 
 	  /**
@@ -1642,10 +1687,11 @@
 	   * @param {d3.scale} y - y scale
 	   * @param {Number} shift - horizontal pixel shift
 	   * @param {d3.selection} chart - master chart container
+	   * @param {function} addTooltipPoint - function to append a point to the tooltip component
 	   * @param {Number} depth - depth tracker
 	   */
-	  function renderPacks(el, data, trans, x, y, shift, chart) {
-	    var depth = arguments.length <= 7 || arguments[7] === undefined ? 0 : arguments[7];
+	  function renderPacks(el, data, trans, x, y, shift, chart, addTooltipPoint) {
+	    var depth = arguments.length <= 8 || arguments[8] === undefined ? 0 : arguments[8];
 
 	    // set pack data
 	    var pack = el.selectAll('.d2b-bubble-pack.d2b-depth-' + depth).data(data, $$.pkey),
@@ -1661,8 +1707,9 @@
 	    packUpdate.each(function (d, i) {
 	      var el = d3.select(this);
 	      if (d.__children__ && d.__expanded__) {
-	        renderPacks(el, d.__children__, trans, x, y, shift, chart, depth + 1);
+	        renderPacks(el, d.__children__, trans, x, y, shift, chart, addTooltipPoint, depth + 1);
 	      } else {
+	        if (addTooltipPoint) addTooltipPoint(d);
 	        el.selectAll('.d2b-bubble-pack').transition(trans).remove().select('.d2b-bubble-point').style('opacity', 0).attr('transform', 'translate(' + (x(d.__x__) + shift) + ', ' + y(d.__y__) + ')');
 	      }
 	    });
@@ -1742,7 +1789,7 @@
 	      return d;
 	    };else $$.y = d;
 	    return bubblePack;
-	  }).addProp('tendancy', mean).addProp('duration', 250).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
+	  }).addProp('tooltip', null).addProp('tendancy', mean).addProp('duration', 250).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1769,6 +1816,23 @@
 	  return bubblePack;
 	};
 
+	// axis svg generator
+	function axes () {
+	  var $$ = {};
+
+	  /* Update Function */
+	  var axes = function axes(context) {
+	    var selection = context.selection ? context.selection() : context;
+
+	    return axes;
+	  };
+
+	  /* Inherit from base model */
+	  var model = base(axes, $$);
+
+	  return axes;
+	};
+
 	/**
 	  * d2b.modelChart() returns a d2b chart model.
 	  *
@@ -1783,8 +1847,7 @@
 	  */
 
 	function modelChart (update) {
-	  var events = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-	  var $$ = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+	  var $$ = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
 
 	  // Chart main update function. Usually used as a call from a d3 selection.
@@ -1803,7 +1866,7 @@
 	  // Settup base model to have generic chart properties.
 	  var model = base(chart, $$).addProp('legend', legend()).addPropFunctor('size', null).addPropFunctor('padding', 0)
 	  // duration is used if the chart needs an internal update
-	  .addPropFunctor('duration', 250).addPropFunctor('legendHidden', false).addPropFunctor('legendAt', 'center right').addDispatcher(['beforeUpdate', 'afterUpdate'].concat(events));
+	  .addPropFunctor('duration', 250).addPropFunctor('legendHidden', false).addPropFunctor('legendAt', 'center right');
 
 	  // Position the legend either by the specified center coordinates or by
 	  // computing them dynamicaly from the chart size, legend size and legend
@@ -2189,6 +2252,293 @@
 	  return tooltip;
 	};
 
+	function oreq () {
+	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	    args[_key] = arguments[_key];
+	  }
+
+	  var val = args[0];
+	  args.forEach(function (a) {
+	    if (val === null || val === undefined) val = a;
+	  });
+	  return val;
+	}
+
+	function tooltipAxis () {
+	  var id = arguments.length <= 0 || arguments[0] === undefined ? d2b.id() : arguments[0];
+
+	  var $$ = {};
+
+	  var tooltip = {};
+
+	  var positionMarker = function positionMarker(marker, info, type) {
+	    if (type === 'y') {
+	      if (info.y === Infinity) return marker.style('opacity', 0);
+	      marker.style('opacity', 1).attr('transform', 'translate(0, ' + info.y + ')').attr('y1', 0).attr('y2', 0).attr('x1', 0).attr('x2', $$.size.width);
+	    } else {
+	      if (info.x === Infinity) return marker.style('opacity', 0);
+	      marker.style('opacity', 1).attr('transform', 'translate(' + info.x + ', 0)').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', $$.size.height);
+	    }
+	  };
+
+	  var positionTooltip = function positionTooltip(tooltip, info, base) {
+	    var node = tooltip.node();
+	    if (!node) return;
+	    var tooltipBox = tooltip.node().getBoundingClientRect();
+	    var x = base.x,
+	        y = base.y,
+	        pad = 10;
+
+	    if ($$.trackY) {
+	      if (info.y > $$.size.height / 2) {
+	        y += info.y - pad - tooltipBox.height;
+	      } else {
+	        y += info.y + pad;
+	      }
+	    } else {
+	      if (d3.event.clientY - base.y > $$.size.height / 2) {
+	        y = d3.event.clientY - pad - tooltipBox.height;
+	      } else {
+	        y = d3.event.clientY + pad;
+	      }
+	    }
+
+	    if ($$.trackX) {
+	      if (info.x > $$.size.width / 2) {
+	        x += info.x - pad - tooltipBox.width;
+	      } else {
+	        x += info.x + pad;
+	      }
+	    } else {
+	      if (d3.event.clientX - base.x > $$.size.width / 2) {
+	        x = d3.event.clientX - pad - tooltipBox.width;
+	      } else {
+	        x = d3.event.clientX + pad;
+	      }
+	    }
+
+	    x += window.scrollX;
+	    y += window.scrollY;
+
+	    tooltip.style('left', x + 'px').style('top', y + 'px');
+	  };
+
+	  var populateTooltip = function populateTooltip(tooltip, info) {
+	    var title = $$.title(info.points.map(function (d) {
+	      return d.data;
+	    }));
+
+	    tooltip.select('.d2b-tooltip-title').style('display', title ? 'block' : 'none').html(title);
+
+	    var content = tooltip.select('.d2b-tooltip-content');
+
+	    var row = content.selectAll('.d2b-tooltip-row').data(info.points);
+	    var rowEnter = row.enter().append('div').attr('class', 'd2b-tooltip-row');
+
+	    row.exit().remove();
+
+	    row = row.merge(rowEnter).html(function (d) {
+	      return d.row;
+	    }).style('border-left-color', function (d) {
+	      return d.color || 'transparent';
+	    });
+	  };
+
+	  // Finds the x, y coordinates associated with the points 'closest' to the cursor.
+	  // Also returns the set of points that meet the 'closest' configuration.
+	  var findPointInfo = function findPointInfo(base) {
+	    var cursor = { x: d3.event.clientX - base.x, y: d3.event.clientY - base.y };
+	    var x = Infinity,
+	        y = Infinity,
+	        points = [];
+	    for (var groupName in groups) {
+	      if (!groups.hasOwnProperty(groupName)) continue;
+	      var group = groups[groupName];
+
+	      var _loop = function _loop(graphName) {
+	        if (!group.hasOwnProperty(graphName)) return 'continue';
+	        var graph = group[graphName];
+	        var newPoints = [];
+	        graph.config.data.forEach(function (d, i) {
+	          var item = {
+	            data: d,
+	            x: oreq(graph.config.x(d, i), $$.x(d, i)),
+	            y: oreq(graph.config.y(d, i), $$.y(d, i)),
+	            color: oreq(graph.config.color(d, i), $$.color(d, i)),
+	            row: oreq(graph.config.row(d, i), $$.row(d, i))
+	          };
+
+	          if ($$.trackX && $$.trackY) {
+	            if (item.x === x && item.y === y) return newPoints.push(item);
+
+	            var od = Math.sqrt(Math.pow(x - cursor.x, 2) + Math.pow(y - cursor.y, 2));
+	            var nd = Math.sqrt(Math.pow(item.x - cursor.x, 2) + Math.pow(item.y - cursor.y, 2));
+
+	            if (nd < od) {
+	              x = item.x;
+	              y = item.y;
+	              points = [];
+	              newPoints = [item];
+	            }
+	          } else if ($$.trackX) {
+	            if (item.x === x) return newPoints.push(item);
+
+	            var od = Math.abs(x - cursor.x);
+	            var nd = Math.abs(item.x - cursor.x);
+
+	            if (nd < od) {
+	              x = item.x;
+	              points = [];
+	              newPoints = [item];
+	            }
+	          } else if ($$.trackY) {
+	            if (item.y === y) return newPoints.push(item);
+
+	            var od = Math.abs(y - cursor.y);
+	            var nd = Math.abs(item.y - cursor.y);
+
+	            if (nd < od) {
+	              y = item.y;
+	              points = [];
+	              newPoints = [item];
+	            }
+	          }
+	        });
+
+	        points = points.concat(newPoints);
+	      };
+
+	      for (var graphName in group) {
+	        var _ret = _loop(graphName);
+
+	        if (_ret === 'continue') continue;
+	      }
+	    }
+
+	    points = points.sort(function (a, b) {
+	      return d3.ascending(a.x, b.x) || d3.ascending(a.y, b.y);
+	    });
+
+	    return { x: x, y: y, points: points };
+	  };
+
+	  var mouseover = function mouseover(d, i) {
+	    var base = $$.selectionSvg.selectAll('.d2b-tooltip-base').data([d]);
+	    base = base.merge(base.enter().append('rect').attr('class', 'd2b-tooltip-base'));
+	    var baseBox = base.node().getBoundingClientRect();
+	    baseBox = { x: baseBox.left + window.scrollX, y: baseBox.top + window.scrollY };
+
+	    var pointInfo = findPointInfo(baseBox);
+
+	    var markerX = $$.selectionSvg.selectAll('.d2b-tooltip-marker-x').data($$.trackX ? [d] : []);
+	    var markerXEnter = markerX.enter().append('line').attr('class', 'd2b-tooltip-marker-x d2b-tooltip-marker').call(positionMarker, pointInfo, 'x');
+
+	    var markerY = $$.selectionSvg.selectAll('.d2b-tooltip-marker-y').data($$.trackY ? [d] : []);
+	    var markerYEnter = markerY.enter().append('line').attr('class', 'd2b-tooltip-marker-y d2b-tooltip-marker').call(positionMarker, pointInfo, 'y');
+
+	    $$.tooltip = $$.selection.selectAll('.d2b-tooltip').data(function (d) {
+	      return [d];
+	    });
+
+	    var newTooltip = $$.tooltip.enter().append('div').style('opacity', 0).attr('class', 'd2b-tooltip');
+
+	    newTooltip.append('div').attr('class', 'd2b-tooltip-title');
+
+	    newTooltip.append('div').attr('class', 'd2b-tooltip-content').call(populateTooltip, pointInfo).call(positionTooltip, pointInfo, baseBox);
+
+	    $$.tooltip = $$.tooltip.merge(newTooltip);
+
+	    $$.tooltip.transition().duration(100).style('opacity', 1);
+
+	    $$.dispatch.call("insert", $$.tooltip, this, d, i);
+	  };
+
+	  var mousemove = function mousemove(d, i) {
+	    var base = $$.selectionSvg.select('.d2b-tooltip-base');
+	    var baseBox = base.node().getBoundingClientRect();
+	    baseBox = { x: baseBox.left, y: baseBox.top };
+
+	    var pointInfo = findPointInfo(baseBox);
+
+	    var markerX = $$.selectionSvg.select('.d2b-tooltip-marker-x').call(positionMarker, pointInfo, 'x');
+
+	    var markerY = $$.selectionSvg.select('.d2b-tooltip-marker-y').call(positionMarker, pointInfo, 'y');
+
+	    $$.tooltip.call(populateTooltip, pointInfo).call(positionTooltip, pointInfo, baseBox);
+
+	    $$.dispatch.call("move", $$.tooltip, this, d, i);
+	  };
+
+	  var mouseout = function mouseout(d, i) {
+	    $$.selectionSvg.selectAll('.d2b-tooltip-marker, .d2b-tooltip-base').remove();
+	    $$.selection.selectAll('.d2b-tooltip').transition().duration(100).style('opacity', 0).remove();
+
+	    $$.dispatch.call("remove", $$.tooltip, this, d, i);
+	  };
+
+	  var event = function event(listener) {
+	    return listener + '.d2b-tooltip-axis';
+	  };
+
+	  // update container which houses tooltip html components
+	  var updateContainerHtml = function updateContainerHtml(n, o) {
+	    if (o) o.select('div.d2b-tooltip-axis-area-' + id).remove();
+	    if (!n) return;
+	    $$.selection = n.selectAll('div.d2b-tooltip-axis-area-' + id).data([tooltip]);
+	    $$.selection = $$.selection.merge($$.selection.enter().append('div').attr('class', 'd2b-tooltip-axis-area-' + id + ' d2b-tooltip-axis-area'));
+	  };
+
+	  // update container which houses tooltip svg components
+	  var updateContainerSvg = function updateContainerSvg(n, o) {
+	    if (o) o.select('g.d2b-tooltip-axis-area-' + id).remove();
+	    if (!n) return;
+	    $$.selectionSvg = n.selectAll('g.d2b-tooltip-axis-area-' + id).data([tooltip]);
+	    $$.selectionSvg = $$.selectionSvg.merge($$.selectionSvg.enter().append('g').attr('class', 'd2b-tooltip-axis-area-' + id + ' d2b-tooltip-axis-area'));
+	  };
+
+	  // update mouse event tracker
+	  var updateTracker = function updateTracker(n, o) {
+	    if (o) {
+	      o.on(event('mouseover'), null).on(event('mouseout'), null).on(event('mousemove'), null);
+	    }
+	    if (n) {
+	      n.on(event('mouseover'), mouseover).on(event('mouseout'), mouseout).on(event('mousemove'), mousemove);
+	    }
+	  };
+
+	  // setup tooltip model
+	  var model = base(tooltip, $$).addPropFunctor('title', null).addProp('htmlContainer', d3.select('body'), null, updateContainerHtml).addProp('svgContainer', null, null, updateContainerSvg).addProp('tracker', d3.select('body'), null, updateTracker).addProp('size', null).addProp('trackX', true).addProp('trackY', false).addMethod('clear', function (groupName, graphName) {
+	    if (arguments.length === 0) groups = {};else if (arguments.length === 1) delete groups[groupName];else if (arguments.length >= 2) delete groups[groupName][graphName];
+	  }).addPropFunctor('x', function (d) {
+	    return d.x;
+	  }).addPropFunctor('y', function (d) {
+	    return d.y;
+	  }).addPropFunctor('color', null).addPropFunctor('row', null).addDispatcher(['insert', 'move', 'remove']);
+
+	  // construct an interface for each graph that is initialized
+	  var groups = {};
+	  tooltip.graph = function () {
+	    var groupName = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+	    var graphName = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+	    var graphs = groups[groupName] = groups[groupName] || {};
+	    var graph = graphs[graphName];
+
+	    if (!graph) {
+	      graph = graphs[graphName] = { config: {} };
+	      var graphModel = base(graph, graph.config);
+
+	      graphModel.addProp('data', []).addMethod('addPoint', function (p) {
+	        return graph.config.data.push(p);
+	      }).addPropFunctor('x', null).addPropFunctor('y', null).addPropFunctor('color', null).addPropFunctor('row', null);
+	    }
+
+	    return graph;
+	  };
+
+	  return tooltip;
+	};
+
 	function template () {
 
 	  // Configure model and chart properties.
@@ -2268,7 +2618,7 @@
 		}).addPropFunctor('center', null).addPropFunctor('radius', function (d, w, h) {
 			return Math.min(w, h) / 2;
 		}).addPropFunctor('sort', null).addPropFunctor('color', function (d) {
-			return d2b.defaultColor(d.label);
+			return color(d.label);
 		}, null, function (d) {
 			$$.tooltip.color(function (dd) {
 				return d3.rgb(d(dd.data)).darker(0.3);
@@ -2411,14 +2761,14 @@
 			if (this.transitioning) return;
 			var path = d3.select(this).select('path');
 			d.outerRadius = this.outerRadius * 1.03;
-			path.transition().call(tweenArc, arc);
+			path.transition().duration(100).call(tweenArc, arc);
 		}
 
 		function arcShrink(d) {
 			if (this.transitioning) return;
 			var path = d3.select(this).select('path');
 			d.outerRadius = this.outerRadius;
-			path.transition().call(tweenArc, arc);
+			path.transition().duration(100).call(tweenArc, arc);
 		}
 
 		return chart;
@@ -2434,6 +2784,7 @@
 	exports.toDegrees = toDegrees;
 	exports.toRadians = toRadians;
 	exports.point = point;
+	exports.axes = axes;
 	exports.legend = legend;
 	exports.svgPie = pie;
 	exports.svgLine = line;
@@ -2451,6 +2802,7 @@
 	exports.tweenNumber = tweenNumber;
 	exports.tweenArc = tweenArc;
 	exports.tooltip = tooltip;
+	exports.tooltipAxis = tooltipAxis;
 	exports.stack = stack;
 	exports.omit = omit;
 	exports.chartTemplate = template;
