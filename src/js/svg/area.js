@@ -12,7 +12,7 @@ export default function () {
     const selection = context.selection? context.selection() : context;
 
     selection.each(d => {
-      stackNest.entries(d).forEach(sg => stacker(sg.values))
+      // stackNest.entries(d).forEach(sg => stacker(sg.values))
     });
 
     const graph = selection.selectAll('.d2b-area-graph').data(d => d, $$.key);
@@ -34,7 +34,14 @@ export default function () {
       areaUpdate = areaUpdate.transition(context);
     }
 
-    if ($$.tooltip) $$.tooltip.clear('area');
+    selection.each(function (d, i) {
+      const tooltip = $$.tooltip.call(this, d, i);
+      if (tooltip) tooltip.clear('area');
+      d3.select(this)
+        .selectAll('.d2b-area')
+        .each(function () {this.tooltip = tooltip;});
+      stackNest.entries(d).forEach(sg => stacker(sg.values));
+    });
 
     graphUpdate.style('opacity', 1);
     graphExit.style('opacity', 0).remove();
@@ -49,8 +56,7 @@ export default function () {
           let shift = $$.shift.call(this, d, i);
           if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
-
-          if ($$.tooltip) $$.tooltip.graph('area', i)
+          if (this.tooltip) this.tooltip.graph('area', i)
             .data(values)
             .x((d, i) => x(d.__x__) + shift)
             .y((d, i) => y(d.__y1__))
@@ -94,7 +100,7 @@ export default function () {
         else $$.y = d;
         return area;
       })
-      .addProp('tooltip', null)
+      .addPropFunctor('tooltip', d => d.tooltip)
       .addPropFunctor('shift', null)
       .addPropFunctor('stackBy', null)
       .addPropFunctor('key', d => d.label)

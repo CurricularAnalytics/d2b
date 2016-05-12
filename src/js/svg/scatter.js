@@ -10,8 +10,6 @@ export default function () {
   const scatter = function (context) {
     const selection = context.selection? context.selection() : context;
 
-    if ($$.tooltip) $$.tooltip.clear('bar');
-
     const graph = selection.selectAll('.d2b-scatter-graph').data(d => d, $$.key);
 
     const graphEnter = graph.enter().append('g')
@@ -25,6 +23,14 @@ export default function () {
       graphUpdate = graphUpdate.transition(context);
       graphExit = graphExit.transition(context);
     }
+
+    selection.each(function (d, i) {
+      const tooltip = $$.tooltip.call(this, d, i);
+      if (tooltip) tooltip.clear('scatter');
+      d3.select(this)
+        .selectAll('.d2b-scatter-graph')
+        .each(function () {this.tooltip = tooltip;});
+    });
 
     graphUpdate.style('opacity', 1);
     graphExit.style('opacity', 0).remove();
@@ -40,7 +46,7 @@ export default function () {
       let shift = $$.shift.call(this, d, i);
       if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
-      if ($$.tooltip) $$.tooltip.graph('scatter', i)
+      if (this.tooltip) this.tooltip.graph('scatter', i)
         .data(values)
         .x((d, i) => x($$.px(d, i)) + shift)
         .y((d, i) => y($$.py(d, i)))
@@ -109,7 +115,7 @@ export default function () {
       else $$.y = d;
       return scatter;
     })
-    .addProp('tooltip', null)
+    .addPropFunctor('tooltip', d => d.tooltip)
     .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)

@@ -34,18 +34,6 @@
       .attr('height', height)
       .attr('opacity', 0);
 
-  var tooltip = d2b.tooltipAxis()
-      .tracker(svg)
-      .svgContainer(svgContainer)
-      .htmlContainer(d3.select('body'))
-      .size({width: width, height: height})
-      .title(function (d) {return d[0].x;})
-      .row(function (d) {return d.y;})
-      .trackX(true)
-      .trackY(false);
-
-  bar.tooltip(tooltip);
-
   var data = [
     {
       label: 'Bar One',
@@ -81,6 +69,13 @@
       ]
     }
   ];
+
+  data.tooltip = d2b.tooltipAxis()
+      .tracker(svg)
+      .svgContainer(svgContainer)
+      .size({width: width, height: height})
+      .title(function (d) {return d[0].x;})
+      .row(function (d) {return d.y;});
 
   var bars = svg.append('g')
       .datum(data)

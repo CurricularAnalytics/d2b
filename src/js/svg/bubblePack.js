@@ -24,8 +24,6 @@ export default function () {
       graphExit = graphExit.transition(transition);
     }
 
-    if ($$.tooltip) $$.tooltip.clear('bubblePack');
-
     // update graph
     graphUpdate.style('opacity', 1);
 
@@ -35,7 +33,10 @@ export default function () {
     // iterate through each context element
     context.each(function (d, i) {
       const selection = d3.select(this),
-            graph = selection.selectAll('.d2b-bubble-pack-graph');
+            graph = selection.selectAll('.d2b-bubble-pack-graph'),
+            tooltip = $$.tooltip.call(this, d, i);
+            
+      if (tooltip) tooltip.clear('bubblePack');
 
       selection.on('change', function () {
         selection.transition().duration($$.duration).call(bubblePack);
@@ -62,14 +63,14 @@ export default function () {
               return $$.psymbol.call(this, dd, ii) || symbol;
             });
 
-        const addTooltipPoint = $$.tooltip?
-            $$.tooltip.graph('bubblePack', i)
+        const addTooltipPoint = tooltip?
+            tooltip.graph('bubblePack', i)
                 .x((d, i) => x(d.__x__) + shift)
                 .y((d, i) => y(d.__y__))
                 .color((d, i) => $$.pcolor(d, i) || color)
                 .addPoint
               : null;
-              
+
         renderPacks(el, d.values, transition, x, y, shift, selection, addTooltipPoint);
       });
 
@@ -279,9 +280,9 @@ export default function () {
       else $$.y = d;
       return bubblePack;
     })
-    .addProp('tooltip', null)
     .addProp('tendancy', mean)
     .addProp('duration', 250)
+    .addPropFunctor('tooltip', d => d.tooltip)
     .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)

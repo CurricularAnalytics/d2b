@@ -1,8 +1,8 @@
 import {default as base} from '../model/base.js';
-import {default as id} from '../core/id.js';
+import {default as d2bid} from '../core/id.js';
 import {default as oreq} from '../core/oreq.js';
 
-export default function (id = d2b.id()) {
+export default function (id = d2bid()) {
   const $$ = {};
 
   const tooltip = {};
@@ -279,6 +279,8 @@ export default function (id = d2b.id()) {
       if (arguments.length === 0) groups = {};
       else if (arguments.length === 1) delete groups[groupName];
       else if (arguments.length >= 2) delete groups[groupName][graphName];
+
+      return tooltip;
     })
     .addPropFunctor('title', null)
     .addPropFunctor('x', d => d.x)
@@ -300,7 +302,10 @@ export default function (id = d2b.id()) {
 
       graphModel
         .addProp('data', [])
-        .addMethod('addPoint', p => graph.config.data.push(p))
+        .addMethod('addPoint', p => {
+          graph.config.data.push(p)
+          return graph.interface;
+        })
         .addPropFunctor('x', null)
         .addPropFunctor('y', null)
         .addPropFunctor('color', null)

@@ -1,7 +1,7 @@
 import {default as base} from '../model/base.js';
 import {default as color} from '../core/color.js';
 import {default as stack} from '../util/stack.js';
-import {default as id} from '../core/id.js';
+import {default as d2bid} from '../core/id.js';
 
 // bar svg generator
 export default function () {
@@ -12,6 +12,8 @@ export default function () {
     const selection = context.selection? context.selection() : context;
     // iterate through each selection element
     selection.each(function (d, i) {
+      const tooltip = $$.tooltip.call(this, d, i);
+
       // set orientation mappings
       let orient = {};
       if ($$.orient.call(this, d, i) === 'horizontal') {
@@ -19,6 +21,7 @@ export default function () {
       } else {
         orient = { rotate: false, px: 'px', py: 'py', x: 'x', y: 'y', w: 'width', h: 'height' };
       }
+      
       stacker.x($$[orient.px]).y($$[orient.py]);
 
       // run each selection datum through the stacker
@@ -49,7 +52,7 @@ export default function () {
       graphUpdate.style('opacity', 1);
       graphExit.style('opacity', 0).remove();
 
-      if ($$.tooltip) $$.tooltip.clear('bar');
+      if (tooltip) tooltip.clear('bar');
 
       // iterate through graph containers
       graphUpdate.each(function (d, i) {
@@ -81,7 +84,7 @@ export default function () {
           d.__extentpx__.sort(d3.ascending);
         });
 
-        if ($$.tooltip) $$.tooltip.graph('bar', i)
+        if (tooltip) tooltip.graph('bar', i)
           .data(values)
           [orient.x]((d, i) => x($$[orient.px](d, i)) + shift)
           [orient.y]((d, i) => y(d.__extent__[1]))
@@ -125,7 +128,7 @@ export default function () {
 
   const stackNest = d3.nest().key(d => {
     const key = $$.stackBy(d);
-    return (key !== false && key !== null)? key : id();
+    return (key !== false && key !== null)? key : d2bid();
   });
 
   // custom stacker build out that separates the negative and possitive bars
@@ -186,7 +189,7 @@ export default function () {
         else $$.y = d;
         return bar;
       })
-      .addProp('tooltip', null)
+      .addPropFunctor('tooltip', d => d.tooltip)
       .addPropFunctor('orient', 'vertical')
       .addPropFunctor('padding', 0.5)
       .addPropFunctor('groupPadding', 0)
@@ -206,7 +209,7 @@ export default function () {
 };
 
 
-//original stacking function, might use this one instead of d3 stack layout in the future
+//original stacking function, might revert to this one instead of d3 stack layout in the future
 // // create stack layout based on $$.stack key accessor
 // const stacking = stackNest.entries(data);
 // const bandwidth = (1 - $$.padding.call(this, data, i)) * ($$.bandwidth.call(this, data, i) || getBandwidth(data, orient));

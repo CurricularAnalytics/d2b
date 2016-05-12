@@ -34,17 +34,9 @@
       .attr('height', height)
       .attr('opacity', 0);
 
-  var tooltip = d2b.tooltipAxis()
-      .tracker(svg)
-      .svgContainer(svgContainer)
-      .htmlContainer(d3.select('body'))
-      .size({width: width, height: height})
-      .title(function (d) {return d[0].__x__;})
-      .row(function (d) {return d.__y__;})
-      .trackX(true)
-      .trackY(true);
+  // var tooltip =
 
-  bubblePack.tooltip(tooltip);
+  // bubblePack.tooltip(tooltip);
 
   var data = [
     {
@@ -93,6 +85,16 @@
       ]
     }
   ];
+
+  data.tooltip = d2b.tooltipAxis()
+      .tracker(svg)
+      .svgContainer(svgContainer)
+      .htmlContainer(d3.select('body'))
+      .size({width: width, height: height})
+      .title(function (d) {return d[0].__x__;})
+      .row(function (d) {return d.__y__;})
+      .trackX(true)
+      .trackY(true);
 
   var packs = svg.append('g')
       .datum(data)

@@ -1,8 +1,8 @@
 import {default as base} from '../model/base.js';
-import {default as id} from '../core/id.js';
+import {default as d2bid} from '../core/id.js';
 
 // tooltip with id in case of multiple d2b.tooltip generators
-export default function (id = d2b.id()) {
+export default function (id = d2bid()) {
   const $$ = {};
 
   const tooltip = function (context) {
@@ -123,6 +123,8 @@ export default function (id = d2b.id()) {
         .on(event('mouseover'), null)
         .on(event('mouseout'), null)
         .on(event('mousemove'), null);
+
+      return tooltip;  
     })
     .addPropFunctor('followMouse', false)
     .addPropFunctor('color', null)
