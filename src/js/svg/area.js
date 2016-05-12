@@ -46,14 +46,15 @@ export default function () {
                 values = $$.values.call(this, d, i),
                 color = $$.color.call(this, d, i);
 
-          if ($$.tooltip) $$.tooltip.graph('area', i)
-            .data(values)
-            .x((d, i) => x($$.px(d, i)))
-            .y((d, i) => y($$.py(d, i)))
-            .color(color);
-
           let shift = $$.shift.call(this, d, i);
           if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
+
+
+          if ($$.tooltip) $$.tooltip.graph('area', i)
+            .data(values)
+            .x((d, i) => x(d.__x__) + shift)
+            .y((d, i) => y(d.__y1__))
+            .color(color);
 
           return $$.area
             .x((d, i) => x(d.__x__) + shift)

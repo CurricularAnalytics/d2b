@@ -83,8 +83,8 @@ export default function () {
 
         if ($$.tooltip) $$.tooltip.graph('bar', i)
           .data(values)
-          [orient.x]((d, i) => x($$[orient.px](d, i)))
-          [orient.y]((d, i) => y($$[orient.py](d, i)))
+          [orient.x]((d, i) => x($$[orient.px](d, i)) + shift)
+          [orient.y]((d, i) => y(d.__extent__[1]))
           .color((d, i) => $$.pcolor(d, i) || color);
 
         if (context !== selection) {

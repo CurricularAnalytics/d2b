@@ -17,7 +17,7 @@
   var xAxis = d3.axisBottom().scale(x);
   var yAxis = d3.axisRight().scale(y);
 
-  var bar = d2b.svgArea().x(x).y(y);
+  var bar = d2b.svgBar().x(x).y(y);
 
   // chart svg, will also be used as the mouse tracker
 	var svg = d3.select('svg')
@@ -60,6 +60,17 @@
     },
     {
       label: 'Bar Two',
+      values: [
+        {x: 10, y: 20},
+        {x: 20, y: 15},
+        {x: 30, y: 55},
+        {x: 40, y: 22},
+        {x: 50, y: 31},
+        {x: 60, y: 38}
+      ]
+    },
+    {
+      label: 'Bar Three',
       values: [
         {x: 10, y: 20},
         {x: 20, y: 15},

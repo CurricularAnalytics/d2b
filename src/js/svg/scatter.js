@@ -42,7 +42,7 @@ export default function () {
 
       if ($$.tooltip) $$.tooltip.graph('scatter', i)
         .data(values)
-        .x((d, i) => x($$.px(d, i)))
+        .x((d, i) => x($$.px(d, i)) + shift)
         .y((d, i) => y($$.py(d, i)))
         .color((d, i) => $$.pcolor(d, i) || color);
 

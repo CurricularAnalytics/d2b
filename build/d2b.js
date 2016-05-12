@@ -927,14 +927,14 @@
 	          color = $$.color.call(this, d, i),
 	          values = $$.values.call(this, d, i);
 
+	      var shift = $$.shift.call(this, d, i);
+	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
 	      if ($$.tooltip) $$.tooltip.graph('line', i).data(values).x(function (d, i) {
-	        return x($$.px(d, i));
+	        return x($$.px(d, i)) + shift;
 	      }).y(function (d, i) {
 	        return y($$.py(d, i));
 	      }).color(color);
-
-	      var shift = $$.shift.call(this, d, i);
-	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
 	      return $$.line.x(function (d, i) {
 	        return x($$.px.call(_this, d, i)) + shift;
@@ -1103,14 +1103,14 @@
 	          values = $$.values.call(this, d, i),
 	          color = $$.color.call(this, d, i);
 
-	      if ($$.tooltip) $$.tooltip.graph('area', i).data(values).x(function (d, i) {
-	        return x($$.px(d, i));
-	      }).y(function (d, i) {
-	        return y($$.py(d, i));
-	      }).color(color);
-
 	      var shift = $$.shift.call(this, d, i);
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
+	      if ($$.tooltip) $$.tooltip.graph('area', i).data(values).x(function (d, i) {
+	        return x(d.__x__) + shift;
+	      }).y(function (d, i) {
+	        return y(d.__y1__);
+	      }).color(color);
 
 	      return $$.area.x(function (d, i) {
 	        return x(d.__x__) + shift;
@@ -1210,7 +1210,7 @@
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
 	      if ($$.tooltip) $$.tooltip.graph('scatter', i).data(values).x(function (d, i) {
-	        return x($$.px(d, i));
+	        return x($$.px(d, i)) + shift;
 	      }).y(function (d, i) {
 	        return y($$.py(d, i));
 	      }).color(function (d, i) {
@@ -1362,9 +1362,9 @@
 	        });
 
 	        if ($$.tooltip) $$.tooltip.graph('bar', i).data(values)[orient.x](function (d, i) {
-	          return x($$[orient.px](d, i));
+	          return x($$[orient.px](d, i)) + shift;
 	        })[orient.y](function (d, i) {
-	          return _y($$[orient.py](d, i));
+	          return _y(d.__extent__[1]);
 	        }).color(function (d, i) {
 	          return $$.pcolor(d, i) || color;
 	        });
@@ -1572,12 +1572,13 @@
 	        });
 
 	        var addTooltipPoint = $$.tooltip ? $$.tooltip.graph('bubblePack', i).x(function (d, i) {
-	          return x(d.__x__);
+	          return x(d.__x__) + shift;
 	        }).y(function (d, i) {
 	          return y(d.__y__);
 	        }).color(function (d, i) {
 	          return $$.pcolor(d, i) || color;
 	        }).addPoint : null;
+
 	        renderPacks(el, d.values, transition, x, y, shift, selection, addTooltipPoint);
 	      });
 
@@ -2507,9 +2508,9 @@
 	  };
 
 	  // setup tooltip model
-	  var model = base(tooltip, $$).addPropFunctor('title', null).addProp('htmlContainer', d3.select('body'), null, updateContainerHtml).addProp('svgContainer', null, null, updateContainerSvg).addProp('tracker', d3.select('body'), null, updateTracker).addProp('size', null).addProp('trackX', true).addProp('trackY', false).addMethod('clear', function (groupName, graphName) {
+	  var model = base(tooltip, $$).addProp('htmlContainer', d3.select('body'), null, updateContainerHtml).addProp('svgContainer', null, null, updateContainerSvg).addProp('tracker', d3.select('body'), null, updateTracker).addProp('size', { height: 0, width: 0 }).addProp('trackX', true).addProp('trackY', false).addMethod('clear', function (groupName, graphName) {
 	    if (arguments.length === 0) groups = {};else if (arguments.length === 1) delete groups[groupName];else if (arguments.length >= 2) delete groups[groupName][graphName];
-	  }).addPropFunctor('x', function (d) {
+	  }).addPropFunctor('title', null).addPropFunctor('x', function (d) {
 	    return d.x;
 	  }).addPropFunctor('y', function (d) {
 	    return d.y;

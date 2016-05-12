@@ -269,11 +269,10 @@ export default function (id = d2b.id()) {
 
   // setup tooltip model
   const model = base(tooltip, $$)
-    .addPropFunctor('title', null)
     .addProp('htmlContainer', d3.select('body'), null, updateContainerHtml)
     .addProp('svgContainer', null, null, updateContainerSvg)
     .addProp('tracker', d3.select('body'), null, updateTracker)
-    .addProp('size', null)
+    .addProp('size', {height: 0, width: 0})
     .addProp('trackX', true)
     .addProp('trackY', false)
     .addMethod('clear', function (groupName, graphName) {
@@ -281,6 +280,7 @@ export default function (id = d2b.id()) {
       else if (arguments.length === 1) delete groups[groupName];
       else if (arguments.length >= 2) delete groups[groupName][graphName];
     })
+    .addPropFunctor('title', null)
     .addPropFunctor('x', d => d.x)
     .addPropFunctor('y', d => d.y)
     .addPropFunctor('color', null)

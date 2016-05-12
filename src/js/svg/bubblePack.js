@@ -64,11 +64,12 @@ export default function () {
 
         const addTooltipPoint = $$.tooltip?
             $$.tooltip.graph('bubblePack', i)
-                .x((d, i) => x(d.__x__))
+                .x((d, i) => x(d.__x__) + shift)
                 .y((d, i) => y(d.__y__))
                 .color((d, i) => $$.pcolor(d, i) || color)
                 .addPoint
               : null;
+              
         renderPacks(el, d.values, transition, x, y, shift, selection, addTooltipPoint);
       });
 

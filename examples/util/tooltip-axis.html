@@ -74,7 +74,7 @@
   // Now that the graphs are setup we can create and configure the tooltip.
   var tooltip = d2b.tooltipAxis()
       .tracker(svg)
-      .title(items => items[0].x)
+      .title(function (items) {return items[0].x;})
       .x(function (d) {return x(d.x);})
       .y(function (d) {return y(d.y);})
       .svgContainer(svgContainer)
@@ -88,12 +88,12 @@
   // tooltip.clear('dot', 'one');
 
   tooltip.graph('dot', 'one')
-      .row(d => 'One - '+d.y)
+      .row(function (d) {return 'One - '+d.y;})
       .color('blue')
       .data(dotOneData);
 
   tooltip.graph('dot', 'two')
-      .row(d => 'Two - '+d.y)
+      .row(function (d) {return 'Two - '+d.y;})
       .color('red')
       .data(dotTwoData);
 
