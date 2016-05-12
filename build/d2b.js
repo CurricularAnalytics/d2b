@@ -2526,15 +2526,15 @@
 	    var graph = graphs[graphName];
 
 	    if (!graph) {
-	      graph = graphs[graphName] = { config: {} };
-	      var graphModel = base(graph, graph.config);
+	      graph = graphs[graphName] = { interface: {}, config: {} };
+	      var graphModel = base(graph.interface, graph.config);
 
 	      graphModel.addProp('data', []).addMethod('addPoint', function (p) {
 	        return graph.config.data.push(p);
 	      }).addPropFunctor('x', null).addPropFunctor('y', null).addPropFunctor('color', null).addPropFunctor('row', null);
 	    }
 
-	    return graph;
+	    return graph.interface;
 	  };
 
 	  return tooltip;

@@ -295,8 +295,8 @@ export default function (id = d2b.id()) {
     let graph = graphs[graphName];
 
     if (!graph) {
-      graph = graphs[graphName] = {config: {}};
-      const graphModel = base(graph, graph.config);
+      graph = graphs[graphName] = {interface: {},config: {}};
+      const graphModel = base(graph.interface, graph.config);
 
       graphModel
         .addProp('data', [])
@@ -307,7 +307,7 @@ export default function (id = d2b.id()) {
         .addPropFunctor('row', null);
     }
 
-    return graph;
+    return graph.interface;
   };
 
   return tooltip;
