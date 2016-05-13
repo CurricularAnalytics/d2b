@@ -7,6 +7,7 @@ export default function (id = d2bid()) {
 
   const tooltip = {};
 
+  // Position markers relative to selected points and axes
   const positionMarker = function (marker, info, type) {
     if (type === 'y') {
       if (info.y === Infinity) return marker.style('opacity', 0);
@@ -23,6 +24,7 @@ export default function (id = d2bid()) {
     }
   };
 
+  // Position tooltip relative to selected points and axes
   const positionTooltip = function (tooltip, info, base) {
     const node = tooltip.node();
     if (!node) return;
@@ -63,6 +65,7 @@ export default function (id = d2bid()) {
     tooltip.style('left', x+'px').style('top', y+'px');
   };
 
+  // Populate tooltip with point rows
   const populateTooltip = function (tooltip, info) {
     const title = $$.title(info.points.map(d => d.data));
 
@@ -109,7 +112,7 @@ export default function (id = d2bid()) {
             const od = Math.sqrt(Math.pow(x - cursor.x, 2) + Math.pow(y - cursor.y, 2));
             const nd = Math.sqrt(Math.pow(item.x - cursor.x, 2) + Math.pow(item.y - cursor.y, 2));
 
-            if (nd < od) {
+            if (nd < od && nd < $$.threshold) {
               x = item.x;
               y = item.y;
               points = [];
@@ -121,7 +124,7 @@ export default function (id = d2bid()) {
             const od = Math.abs(x - cursor.x);
             const nd = Math.abs(item.x - cursor.x);
 
-            if (nd < od) {
+            if (nd < od && nd < $$.threshold) {
               x = item.x;
               points = [];
               newPoints = [item];
@@ -132,7 +135,7 @@ export default function (id = d2bid()) {
             const od = Math.abs(y - cursor.y);
             const nd = Math.abs(item.y - cursor.y);
 
-            if (nd < od) {
+            if (nd < od && nd < $$.threshold) {
               y = item.y;
               points = [];
               newPoints = [item];
@@ -151,82 +154,83 @@ export default function (id = d2bid()) {
     return {x: x, y: y, points: points};
   };
 
-  const mouseover = function (d, i) {
-    let base = $$.selectionSvg.selectAll('.d2b-tooltip-base').data([d]);
-    base = base.merge(base.enter().append('rect').attr('class', 'd2b-tooltip-base'));
-    let baseBox = base.node().getBoundingClientRect();
-    baseBox = {x: baseBox.left + window.scrollX, y: baseBox.top + window.scrollY};
-
-    const pointInfo = findPointInfo(baseBox);
-
-    const markerX = $$.selectionSvg.selectAll('.d2b-tooltip-marker-x').data($$.trackX? [d] : []);
-    const markerXEnter = markerX.enter().append('line')
-      .attr('class', 'd2b-tooltip-marker-x d2b-tooltip-marker')
-      .call(positionMarker, pointInfo, 'x');
-
-    const markerY = $$.selectionSvg.selectAll('.d2b-tooltip-marker-y').data($$.trackY? [d] : []);
-    const markerYEnter = markerY.enter().append('line')
-      .attr('class', 'd2b-tooltip-marker-y d2b-tooltip-marker')
-      .call(positionMarker, pointInfo, 'y');
-
-    $$.tooltip = $$.selection.selectAll('.d2b-tooltip').data(d => [d]);
-
-    const newTooltip = $$.tooltip.enter()
-      .append('div')
-        .style('opacity', 0)
-        .attr('class', 'd2b-tooltip');
-
-    newTooltip.append('div').attr('class', 'd2b-tooltip-title');
-
-    newTooltip
-      .append('div')
-        .attr('class', 'd2b-tooltip-content')
-        .call(populateTooltip, pointInfo)
-        .call(positionTooltip, pointInfo, baseBox);
-
-    $$.tooltip = $$.tooltip.merge(newTooltip);
-
-    $$.tooltip
-      .transition()
-        .duration(100)
-        .style('opacity', 1);
-
-    $$.dispatch.call("insert", $$.tooltip, this, d, i);
+  // Exit tooltip element.
+  const exitElement = function (el) {
+    el.transition().duration(50).style('opacity', 0).remove();
   };
 
+  // Enter tooltip element.
+  const enterElement = function (el) {
+    el.transition().duration(50).style('opacity', 1);
+  };
+
+  // Enter tooltip components.
+  const enter = function () {
+    const markerX = $$.selectionSvg.selectAll('.d2b-tooltip-marker-x').data($$.trackX? [tooltip] : []);
+    const markerXEnter = markerX.enter()
+      .append('line')
+        .attr('class', 'd2b-tooltip-marker-x d2b-tooltip-marker');
+
+    const markerY = $$.selectionSvg.selectAll('.d2b-tooltip-marker-y').data($$.trackY? [tooltip] : []);
+    const markerYEnter = markerY.enter()
+      .append('line')
+        .attr('class', 'd2b-tooltip-marker-y d2b-tooltip-marker');
+
+    const tooltipEl = $$.selection.selectAll('.d2b-tooltip').data([tooltip]);
+
+    const tooltipEnter = tooltipEl.enter()
+      .append('div')
+        .attr('class', 'd2b-tooltip');
+
+    tooltipEnter.merge(tooltipEl).call(enterElement);
+    markerY.merge(markerYEnter).call(enterElement);
+    markerX.merge(markerXEnter).call(enterElement);
+
+    tooltipEnter.append('div').attr('class', 'd2b-tooltip-title');
+    tooltipEnter.append('div').attr('class', 'd2b-tooltip-content');
+  };
+
+  // Exit tooltip components.
+  const exit = function () {
+    $$.selectionSvg.selectAll('.d2b-tooltip-marker-x').data([]).exit().call(exitElement);
+    $$.selectionSvg.selectAll('.d2b-tooltip-marker-y').data([]).exit().call(exitElement);
+    $$.selection.selectAll('.d2b-tooltip').data([]).exit().call(exitElement);
+  };
+
+  // Tracker mousemove event.
   const mousemove = function (d, i) {
-    let base = $$.selectionSvg.select('.d2b-tooltip-base');
+    let base = $$.selectionSvg.selectAll('.d2b-tooltip-base').data([d]);
+    base = base.merge(base.enter().append('rect').attr('class', 'd2b-tooltip-base'));
     let baseBox = base.node().getBoundingClientRect();
     baseBox = {x: baseBox.left, y: baseBox.top};
 
     const pointInfo = findPointInfo(baseBox);
 
-    const markerX = $$.selectionSvg
+    if (pointInfo.points.length) enter();
+    else return exit();
+
+    $$.selectionSvg
       .select('.d2b-tooltip-marker-x')
         .call(positionMarker, pointInfo, 'x');
 
-    const markerY = $$.selectionSvg
+    $$.selectionSvg
       .select('.d2b-tooltip-marker-y')
         .call(positionMarker, pointInfo, 'y');
 
-    $$.tooltip
+    $$.selection
+      .select('.d2b-tooltip')
         .call(populateTooltip, pointInfo)
         .call(positionTooltip, pointInfo, baseBox);
 
     $$.dispatch.call("move", $$.tooltip, this, d, i);
   };
 
+  // Tracker mouseout event.
   const mouseout = function (d, i) {
-    $$.selectionSvg.selectAll('.d2b-tooltip-marker, .d2b-tooltip-base').remove();
-    $$.selection.selectAll('.d2b-tooltip')
-      .transition()
-        .duration(100)
-        .style('opacity', 0)
-        .remove();
-
-    $$.dispatch.call("remove", $$.tooltip, this, d, i);
+    exit();
   };
 
+  // Event key builder.
   const event = (listener) => {
     return `${listener}.d2b-tooltip-axis`;
   };
@@ -255,13 +259,11 @@ export default function (id = d2bid()) {
   const updateTracker = (n, o) => {
     if (o) {
       o
-          .on(event('mouseover'), null)
           .on(event('mouseout'), null)
           .on(event('mousemove'), null);
     }
     if (n) {
       n
-          .on(event('mouseover'), mouseover)
           .on(event('mouseout'), mouseout)
           .on(event('mousemove'), mousemove);
     }
@@ -275,6 +277,7 @@ export default function (id = d2bid()) {
     .addProp('size', {height: 0, width: 0})
     .addProp('trackX', true)
     .addProp('trackY', false)
+    .addProp('threshold', Infinity)
     .addMethod('clear', function (groupName, graphName) {
       if (arguments.length === 0) groups = {};
       else if (arguments.length === 1) delete groups[groupName];

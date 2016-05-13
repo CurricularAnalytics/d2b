@@ -1,6 +1,10 @@
+import {default as functor} from '../core/functor.js';
+
 // Wraps text based on character count and text accessor. This method uses
 // d3's enter/update/exit strategy as to be less destructive on the text content.
 export default function (text, getText = d => d.label, count = Infinity) {
+  getText = functor(getText);
+  
   text.each( function(d, i) {
     let text = d3.select(this),
         words = getText.call(this, d, i).split(/\s+/).reverse(),

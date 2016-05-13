@@ -478,6 +478,8 @@
 	  } : arguments[1];
 	  var count = arguments.length <= 2 || arguments[2] === undefined ? Infinity : arguments[2];
 
+	  getText = functor(getText);
+
 	  text.each(function (d, i) {
 	    var text = d3.select(this),
 	        words = getText.call(this, d, i).split(/\s+/).reverse(),
@@ -1850,21 +1852,126 @@
 	  return bubblePack;
 	};
 
-	// axis svg generator
-	function axes () {
+	// plane svg generator
+	function plane () {
 	  var $$ = {};
 
 	  /* Update Function */
-	  var axes = function axes(context) {
+	  var plane = function plane(context) {
 	    var selection = context.selection ? context.selection() : context;
 
-	    return axes;
+	    selection.each(function (d, i) {
+	      var size = $$.size.call(this, d, i),
+	          margin = makeMargin($$.margin.call(this, d, i)),
+	          axes = $$.axes.call(this, d, i);
+
+	      var padding = makePadding($$.padding.call(this, d, i));
+
+	      var el = d3.select(this);
+
+	      var axis = el.selectAll('.d2b-axis').data(axes, $$.key),
+	          axisEnter = axis.enter().append('g').attr('class', 'd2b-axis');
+
+	      var axisUpdate = axis.merge(axisEnter);
+	      var axisExit = axis.exit();
+
+	      if (context !== selection) axisExit = axisExit.transition(context);
+	      axisExit.style('opacity', 0).remove();
+
+	      if (!padding) padding = dynamicPadding(axisUpdate, size);
+
+	      // axisUpdate.each(function (d, i) {
+	      //   const axis = $$.axis.call(this, d, i),
+	      //         scale = axis.scale(),
+	      //         orient = $$.orient.call(this, d, i),
+	      //         key = $$.key.call(this, d, i),
+	      //         labelInner = $$.labelInner.call(this, d, i),
+	      //         labelOuter = $$.labelOuter.call(this, d, i),
+	      //         wrapLength = $$.wrapLength.call(this, d, i);
+	      //
+	      //
+	      //
+	      //   let axisUpdate = d3.select(this);
+	      //
+	      //   const maxLength = getMaxLength(axisUpdate, scale.ticks(), wrapLength);
+	      //
+	      //   // if (context !== selection) axisUpdate = axisUpdate.transition(context);
+	      //   //
+	      //   // axisUpdate.call(axis);
+	      //
+	      // });
+	    });
+
+	    return plane;
 	  };
 
 	  /* Inherit from base model */
-	  var model = base(axes, $$);
+	  var model = base(plane, $$)
+	  // plane level functors
+	  .addPropFunctor('size', { width: 960, height: 500 }).addPropFunctor('padding', null).addPropFunctor('margin', 0).addPropFunctor('axes', function (d) {
+	    return d.axes;
+	  })
+	  // axis level functors
+	  .addPropFunctor('axis', function (d) {
+	    return d.axis || d3.axisBottom();
+	  }).addPropFunctor('orient', function (d) {
+	    return d.orient || 'bottom';
+	  }).addPropFunctor('wrapLength', Infinity).addPropFunctor('key', function (d, i) {
+	    return d.key || i;
+	  }).addPropFunctor('labelInner', function (d) {
+	    return d.labelInner || null;
+	  }).addPropFunctor('labelOuter', function (d) {
+	    return d.labelOuter || null;
+	  });
 
-	  return axes;
+	  return plane;
+
+	  // insert and remove axes to find the largest ticks on any sides
+	  function dynamicPadding(axisSvg, size) {
+	    axisSvg.each(function (d, i) {
+	      var axis = $$.axis.call(this, d, i),
+	          scale = axis.scale(),
+	          orient = $$.orient.call(this, d, i).split(' '),
+	          labelOuter = $$.labelOuter.call(this, d, i),
+	          wrapLength = $$.wrapLength.call(this, d, i),
+	          el = d3.select(this),
+	          vert = ['right', 'left'].indexOf(orient[0]) > -1;
+
+	      if (vert) scale.range([0, size.height]);else scale.range([0, size.width]);
+
+	      var testAxis = el.append('g');
+
+	      testAxis.call(axis);
+	      // .selectAll('.tick text')
+	      //   .call(textWrapTicks, wrapLength);
+
+	      // textAxis.remove();
+
+	      var testLabel = el.append('text').attr('class', 'd2b-axis-label-outer').text(labelOuter);
+
+	      // testLabel.remove();
+	    });
+	  }
+
+	  // returns maximum tick length
+	  // function getMaxLength(container, ticks, wrapLength) {
+	  //   console.log(ticks)
+	  //   container.selectAll('.d2b-test-tick').data(ticks)
+	  //     .enter().append('text')
+	  //     .call(textWrap, function (d) { console.log(d)}, wrapLength);
+	  //
+	  // }
+
+	  // create padding from number or object
+	  function makePadding(p) {
+	    return typeof p === 'number' ? { top: p, left: p, right: p, bottom: p } : p;
+	  }
+
+	  // create margin same as padding but default as 0
+	  function makeMargin(m) {
+	    m = m || 0;
+	    return makePadding(m);
+	  }
 	};
 
 	/**
@@ -2307,6 +2414,7 @@
 
 	  var tooltip = {};
 
+	  // Position markers relative to selected points and axes
 	  var positionMarker = function positionMarker(marker, info, type) {
 	    if (type === 'y') {
 	      if (info.y === Infinity) return marker.style('opacity', 0);
@@ -2317,6 +2425,7 @@
 	    }
 	  };
 
+	  // Position tooltip relative to selected points and axes
 	  var positionTooltip = function positionTooltip(tooltip, info, base) {
 	    var node = tooltip.node();
 	    if (!node) return;
@@ -2359,6 +2468,7 @@
 	    tooltip.style('left', x + 'px').style('top', y + 'px');
 	  };
 
+	  // Populate tooltip with point rows
 	  var populateTooltip = function populateTooltip(tooltip, info) {
 	    var title = $$.title(info.points.map(function (d) {
 	      return d.data;
@@ -2410,7 +2520,7 @@
 	            var od = Math.sqrt(Math.pow(x - cursor.x, 2) + Math.pow(y - cursor.y, 2));
 	            var nd = Math.sqrt(Math.pow(item.x - cursor.x, 2) + Math.pow(item.y - cursor.y, 2));
 
-	            if (nd < od) {
+	            if (nd < od && nd < $$.threshold) {
 	              x = item.x;
 	              y = item.y;
 	              points = [];
@@ -2422,7 +2532,7 @@
 	            var od = Math.abs(x - cursor.x);
 	            var nd = Math.abs(item.x - cursor.x);
 
-	            if (nd < od) {
+	            if (nd < od && nd < $$.threshold) {
 	              x = item.x;
 	              points = [];
 	              newPoints = [item];
@@ -2433,7 +2543,7 @@
 	            var od = Math.abs(y - cursor.y);
 	            var nd = Math.abs(item.y - cursor.y);
 
-	            if (nd < od) {
+	            if (nd < od && nd < $$.threshold) {
 	              y = item.y;
 	              points = [];
 	              newPoints = [item];
@@ -2458,60 +2568,69 @@
 	    return { x: x, y: y, points: points };
 	  };
 
-	  var mouseover = function mouseover(d, i) {
-	    var base = $$.selectionSvg.selectAll('.d2b-tooltip-base').data([d]);
-	    base = base.merge(base.enter().append('rect').attr('class', 'd2b-tooltip-base'));
-	    var baseBox = base.node().getBoundingClientRect();
-	    baseBox = { x: baseBox.left + window.scrollX, y: baseBox.top + window.scrollY };
-
-	    var pointInfo = findPointInfo(baseBox);
-
-	    var markerX = $$.selectionSvg.selectAll('.d2b-tooltip-marker-x').data($$.trackX ? [d] : []);
-	    var markerXEnter = markerX.enter().append('line').attr('class', 'd2b-tooltip-marker-x d2b-tooltip-marker').call(positionMarker, pointInfo, 'x');
-
-	    var markerY = $$.selectionSvg.selectAll('.d2b-tooltip-marker-y').data($$.trackY ? [d] : []);
-	    var markerYEnter = markerY.enter().append('line').attr('class', 'd2b-tooltip-marker-y d2b-tooltip-marker').call(positionMarker, pointInfo, 'y');
-
-	    $$.tooltip = $$.selection.selectAll('.d2b-tooltip').data(function (d) {
-	      return [d];
-	    });
-
-	    var newTooltip = $$.tooltip.enter().append('div').style('opacity', 0).attr('class', 'd2b-tooltip');
-
-	    newTooltip.append('div').attr('class', 'd2b-tooltip-title');
-
-	    newTooltip.append('div').attr('class', 'd2b-tooltip-content').call(populateTooltip, pointInfo).call(positionTooltip, pointInfo, baseBox);
-
-	    $$.tooltip = $$.tooltip.merge(newTooltip);
-
-	    $$.tooltip.transition().duration(100).style('opacity', 1);
-
-	    $$.dispatch.call("insert", $$.tooltip, this, d, i);
+	  // Exit tooltip element.
+	  var exitElement = function exitElement(el) {
+	    el.transition().duration(50).style('opacity', 0).remove();
 	  };
 
+	  // Enter tooltip element.
+	  var enterElement = function enterElement(el) {
+	    el.transition().duration(50).style('opacity', 1);
+	  };
+
+	  // Enter tooltip components.
+	  var enter = function enter() {
+	    var markerX = $$.selectionSvg.selectAll('.d2b-tooltip-marker-x').data($$.trackX ? [tooltip] : []);
+	    var markerXEnter = markerX.enter().append('line').attr('class', 'd2b-tooltip-marker-x d2b-tooltip-marker');
+
+	    var markerY = $$.selectionSvg.selectAll('.d2b-tooltip-marker-y').data($$.trackY ? [tooltip] : []);
+	    var markerYEnter = markerY.enter().append('line').attr('class', 'd2b-tooltip-marker-y d2b-tooltip-marker');
+
+	    var tooltipEl = $$.selection.selectAll('.d2b-tooltip').data([tooltip]);
+
+	    var tooltipEnter = tooltipEl.enter().append('div').attr('class', 'd2b-tooltip');
+
+	    tooltipEnter.merge(tooltipEl).call(enterElement);
+	    markerY.merge(markerYEnter).call(enterElement);
+	    markerX.merge(markerXEnter).call(enterElement);
+
+	    tooltipEnter.append('div').attr('class', 'd2b-tooltip-title');
+	    tooltipEnter.append('div').attr('class', 'd2b-tooltip-content');
+	  };
+
+	  // Exit tooltip components.
+	  var exit = function exit() {
+	    $$.selectionSvg.selectAll('.d2b-tooltip-marker-x').data([]).exit().call(exitElement);
+	    $$.selectionSvg.selectAll('.d2b-tooltip-marker-y').data([]).exit().call(exitElement);
+	    $$.selection.selectAll('.d2b-tooltip').data([]).exit().call(exitElement);
+	  };
+
+	  // Tracker mousemove event.
 	  var mousemove = function mousemove(d, i) {
-	    var base = $$.selectionSvg.select('.d2b-tooltip-base');
+	    var base = $$.selectionSvg.selectAll('.d2b-tooltip-base').data([d]);
+	    base = base.merge(base.enter().append('rect').attr('class', 'd2b-tooltip-base'));
 	    var baseBox = base.node().getBoundingClientRect();
 	    baseBox = { x: baseBox.left, y: baseBox.top };
 
 	    var pointInfo = findPointInfo(baseBox);
 
-	    var markerX = $$.selectionSvg.select('.d2b-tooltip-marker-x').call(positionMarker, pointInfo, 'x');
+	    if (pointInfo.points.length) enter();else return exit();
 
-	    var markerY = $$.selectionSvg.select('.d2b-tooltip-marker-y').call(positionMarker, pointInfo, 'y');
+	    $$.selectionSvg.select('.d2b-tooltip-marker-x').call(positionMarker, pointInfo, 'x');
 
-	    $$.tooltip.call(populateTooltip, pointInfo).call(positionTooltip, pointInfo, baseBox);
+	    $$.selectionSvg.select('.d2b-tooltip-marker-y').call(positionMarker, pointInfo, 'y');
+
+	    $$.selection.select('.d2b-tooltip').call(populateTooltip, pointInfo).call(positionTooltip, pointInfo, baseBox);
 
 	    $$.dispatch.call("move", $$.tooltip, this, d, i);
 	  };
 
+	  // Tracker mouseout event.
 	  var mouseout = function mouseout(d, i) {
-	    $$.selectionSvg.selectAll('.d2b-tooltip-marker, .d2b-tooltip-base').remove();
-	    $$.selection.selectAll('.d2b-tooltip').transition().duration(100).style('opacity', 0).remove();
-
-	    $$.dispatch.call("remove", $$.tooltip, this, d, i);
+	    exit();
 	  };
 
+	  // Event key builder.
 	  var event = function event(listener) {
 	    return listener + '.d2b-tooltip-axis';
 	  };
@@ -2535,15 +2654,15 @@
 	  // update mouse event tracker
 	  var updateTracker = function updateTracker(n, o) {
 	    if (o) {
-	      o.on(event('mouseover'), null).on(event('mouseout'), null).on(event('mousemove'), null);
+	      o.on(event('mouseout'), null).on(event('mousemove'), null);
 	    }
 	    if (n) {
-	      n.on(event('mouseover'), mouseover).on(event('mouseout'), mouseout).on(event('mousemove'), mousemove);
+	      n.on(event('mouseout'), mouseout).on(event('mousemove'), mousemove);
 	    }
 	  };
 
 	  // setup tooltip model
-	  var model = base(tooltip, $$).addProp('htmlContainer', d3.select('body'), null, updateContainerHtml).addProp('svgContainer', null, null, updateContainerSvg).addProp('tracker', d3.select('body'), null, updateTracker).addProp('size', { height: 0, width: 0 }).addProp('trackX', true).addProp('trackY', false).addMethod('clear', function (groupName, graphName) {
+	  var model = base(tooltip, $$).addProp('htmlContainer', d3.select('body'), null, updateContainerHtml).addProp('svgContainer', null, null, updateContainerSvg).addProp('tracker', d3.select('body'), null, updateTracker).addProp('size', { height: 0, width: 0 }).addProp('trackX', true).addProp('trackY', false).addProp('threshold', Infinity).addMethod('clear', function (groupName, graphName) {
 	    if (arguments.length === 0) groups = {};else if (arguments.length === 1) delete groups[groupName];else if (arguments.length >= 2) delete groups[groupName][graphName];
 
 	    return tooltip;
@@ -2823,7 +2942,7 @@
 	exports.toDegrees = toDegrees;
 	exports.toRadians = toRadians;
 	exports.point = point;
-	exports.axes = axes;
+	exports.plane = plane;
 	exports.legend = legend;
 	exports.svgPie = pie;
 	exports.svgLine = line;

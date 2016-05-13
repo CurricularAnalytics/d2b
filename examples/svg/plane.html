@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<style>
+  path {
+    display: none;
+  }
+  line {
+    stroke-width: 1px;
+    stroke: #444;
+    stroke-opacity: 0.5;
+  }
+</style>
+
+<body>
+
+<svg></svg>
+
+<script>
+  var width = 200, height = 200;
+
+  var x = d3.scaleLinear().domain([0, 7]);
+  var y = d3.scaleLinear().domain([100, 0]);
+
+  var xAxis = d3.axisBottom().scale(x);
+  var yAxis = d3.axisRight().scale(y);
+
+  var plane = d2b.plane()
+    // // axes level properties
+    // .size(d => d.size)
+    // .padding(d => d.padding)
+    // .margin(d => d.margin)
+    // .axes(d => d.axes)
+    // // axis level properties
+    // .axis(d => d.axis)
+    // .key((d, i) => i)
+    // .orient(d => d.orient)
+    // .labelInner(d => d.labelInner)
+    // .labelOuter(d => d.labelOuter);
+
+	var svg = d3.select('svg')
+      .attr('width', width * 2)
+      .attr('height', height * 2)
+    .append('g')
+      .attr('transform', 'translate('+width / 2+', '+height / 2+')');
+
+  svg
+    .datum({
+      size: {width: width, height: height},
+      padding: null,
+      margin: 0,
+      axes: [
+        {
+          axis: d3.axisTop().scale(x).tickSizeInner(20).tickSizeOuter(100).tickPadding(20),
+          orient: 'bottom',
+          labelInner: 'x-inner',
+          labelOuter: 'x-outer',
+        }
+      ]
+    })
+    .call(plane);
+
+</script>
+
+</body>
+</html>

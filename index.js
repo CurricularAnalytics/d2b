@@ -15,7 +15,7 @@ export {
 
 export {
   point,
-  axes,
+  plane,
   legend,
   svgPie,
   svgLine,

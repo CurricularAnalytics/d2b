@@ -6,4 +6,4 @@ export {default as svgArea} from './area.js';
 export {default as svgScatter} from './scatter.js';
 export {default as svgBar} from './bar.js';
 export {default as svgBubblePack} from './bubblePack.js';
-export {default as axes} from './axes.js';
+export {default as plane} from './plane.js';
