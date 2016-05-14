@@ -1867,10 +1867,15 @@
 
 	      var padding = makePadding($$.padding.call(this, d, i));
 
+	      // axes element
 	      var el = d3.select(this);
 
+	      // enter new axes
 	      var axis = el.selectAll('.d2b-axis').data(axes, $$.key),
 	          axisEnter = axis.enter().append('g').attr('class', 'd2b-axis');
+
+	      axisEnter.append('text').attr('class', 'd2b-axis-label-outer');
+	      axisEnter.append('text').attr('class', 'd2b-axis-label-inner');
 
 	      var axisUpdate = axis.merge(axisEnter);
 	      var axisExit = axis.exit();
@@ -1878,28 +1883,90 @@
 	      if (context !== selection) axisExit = axisExit.transition(context);
 	      axisExit.style('opacity', 0).remove();
 
-	      if (!padding) padding = dynamicPadding(axisUpdate, size);
+	      // if padding is null, find it dynamically
+	      if (!padding) padding = getDynamicPadding(axisUpdate, size);
 
-	      // axisUpdate.each(function (d, i) {
-	      //   const axis = $$.axis.call(this, d, i),
-	      //         scale = axis.scale(),
-	      //         orient = $$.orient.call(this, d, i),
-	      //         key = $$.key.call(this, d, i),
-	      //         labelInner = $$.labelInner.call(this, d, i),
-	      //         labelOuter = $$.labelOuter.call(this, d, i),
-	      //         wrapLength = $$.wrapLength.call(this, d, i);
-	      //
-	      //
-	      //
-	      //   let axisUpdate = d3.select(this);
-	      //
-	      //   const maxLength = getMaxLength(axisUpdate, scale.ticks(), wrapLength);
-	      //
-	      //   // if (context !== selection) axisUpdate = axisUpdate.transition(context);
-	      //   //
-	      //   // axisUpdate.call(axis);
-	      //
-	      // });
+	      // create plane box model
+	      var box = this.planeBox = {
+	        top: margin.top + padding.top,
+	        bottom: margin.bottom + padding.bottom,
+	        right: margin.right + padding.right,
+	        left: margin.left + padding.left
+	      };
+	      box.height = size.height - box.top - box.bottom;
+	      box.width = size.width - box.left - box.right;
+
+	      // update each axis
+	      axisUpdate.each(function (d, i) {
+	        var axis = $$.axis.call(this, d, i),
+	            scale = axis.scale(),
+	            orient = $$.orient.call(this, d, i).split(' '),
+	            labelInner = $$.labelInner.call(this, d, i),
+	            labelOuter = $$.labelOuter.call(this, d, i),
+	            wrapLength = $$.wrapLength.call(this, d, i),
+	            el = d3.select(this),
+	            vert = ['right', 'left'].indexOf(orient[0]) > -1;
+
+	        var axisUpdate = d3.select(this);
+	        if (context !== selection) axisUpdate = axisUpdate.transition(context);
+
+	        if (vert) scale.range([0, box.height]);else scale.range([0, box.width]);
+
+	        var labelPadInner = 0;
+	        var labelPadOuter = 0;
+	        axisUpdate.call(axis).selectAll('.tick text').each(function () {
+	          var tick = d3.select(this);
+	          var text = tick.text();
+	          console.log(text);
+	          tick.text('').call(textWrap, function (d) {
+	            return d;
+	          }, wrapLength);
+	          var box = this.getBBox();
+
+	          if (orient[1] === 'inner') labelPadInner = Math.max(labelPadInner, box[vert ? 'width' : 'height']);else labelPadOuter = Math.max(labelPadOuter, box[vert ? 'width' : 'height']);
+
+	          if (orient[0] === 'top' && orient[1] === 'outer') {
+	            tick.selectAll('tspan').attr('y', tick.attr('y') - box.height);
+	          }
+	        });
+
+	        var labelOuterUpdate = axisUpdate.select('.d2b-axis-label-outer').text(labelOuter);
+	        var labelInnerUpdate = axisUpdate.select('.d2b-axis-label-inner').text(labelInner);
+
+	        var labelOuterBox = labelOuterUpdate.node().getBBox();
+	        var labelInnerBox = labelInnerUpdate.node().getBBox();
+	        // console.log
+	        switch (orient[0]) {
+	          case 'right':
+	            axisUpdate.attr('transform', 'translate(' + (box.left + box.width) + ', ' + box.top + ')');
+	            labelOuterUpdate.attr('transform', 'translate(' + labelPadOuter + ', ' + box.height / 2 + ')');
+	            labelInnerUpdate.attr('transform', 'translate(' + -labelPadInner + ', ' + box.height + ')');
+	            break;
+	          case 'bottom':
+	            axisUpdate.attr('transform', 'translate(' + box.left + ', ' + (box.top + box.height) + ')');
+	            // labelOuterUpdate.attr('transform', `translate(
+	            //   ${}, ${}
+	            // )`);
+	            // labelInnerUpdate.attr('transform', `translate(
+	            //   ${}, ${}
+	            // )`);
+	            break;
+	          case 'left':
+	            axisUpdate.attr('transform', 'translate(' + box.left + ', ' + box.top + ')');
+	            // labelOuterUpdate.attr('transform', `translate(
+	            //   ${}, ${}
+	            // )`);
+	            // labelInnerUpdate.attr('transform', `translate(
+	            //   ${}, ${}
+	            // )`);
+	            break;
+	          case 'top':
+	            axisUpdate.attr('transform', 'translate(' + box.left + ', ' + box.top + ')');
+	            labelOuterUpdate.attr('transform', 'translate(' + box.width / 2 + ', ' + -labelPadOuter + ')');
+	            labelInnerUpdate.attr('transform', 'translate(' + box.width + ', ' + labelPadInner + ')');
+	            break;
+	        };
+	      });
 	    });
 
 	    return plane;
@@ -1908,7 +1975,9 @@
 	  /* Inherit from base model */
 	  var model = base(plane, $$)
 	  // plane level functors
-	  .addPropFunctor('size', { width: 960, height: 500 }).addPropFunctor('padding', null).addPropFunctor('margin', 0).addPropFunctor('axes', function (d) {
+	  .addPropFunctor('size', function (d) {
+	    return d.size || { width: 960, height: 500 };
+	  }).addPropFunctor('padding', null).addPropFunctor('margin', 0).addPropFunctor('axes', function (d) {
 	    return d.axes;
 	  })
 	  // axis level functors
@@ -1926,8 +1995,10 @@
 
 	  return plane;
 
-	  // insert and remove axes to find the largest ticks on any sides
-	  function dynamicPadding(axisSvg, size) {
+	  // insert and remove axes and labels to find the largest ticks on any sides
+	  function getDynamicPadding(axisSvg, size) {
+	    var axisPad = { top: 0, left: 0, right: 0, bottom: 0 },
+	        labelPad = { top: 0, left: 0, right: 0, bottom: 0 };
 	    axisSvg.each(function (d, i) {
 	      var axis = $$.axis.call(this, d, i),
 	          scale = axis.scale(),
@@ -1939,28 +2010,37 @@
 
 	      if (vert) scale.range([0, size.height]);else scale.range([0, size.width]);
 
-	      var testAxis = el.append('g');
+	      if (orient[1] !== 'inner') {
+	        var testAxis = el.append('g');
+	        testAxis.call(axis).selectAll('.tick text').each(function () {
+	          var tick = d3.select(this);
+	          var text = tick.text();
+	          tick.text('').call(textWrap, function () {
+	            return text;
+	          }, wrapLength);
 
-	      testAxis.call(axis);
-	      // .selectAll('.tick text')
-	      //   .call(textWrapTicks, wrapLength);
+	          var box = this.getBBox();
 
-	      // textAxis.remove();
+	          axisPad[orient[0]] = Math.max(axisPad[orient[0]], box[vert ? 'width' : 'height']);
+	        });
+	        testAxis.remove();
+	      }
 
-	      var testLabel = el.append('text').attr('class', 'd2b-axis-label-outer').text(labelOuter);
+	      if (labelOuter) {
+	        var testLabel = el.append('text').attr('class', 'd2b-axis-label-outer').text(labelOuter);
 
-	      // testLabel.remove();
+	        var box = testLabel.node().getBBox();
+	        labelPad[orient[0]] = Math.max(labelPad[orient[0]], box[vert ? 'width' : 'height']);
+	        testLabel.remove();
+	      }
 	    });
+	    return {
+	      left: axisPad.left + labelPad.left,
+	      right: axisPad.right + labelPad.right,
+	      top: axisPad.top + labelPad.top,
+	      bottom: axisPad.bottom + labelPad.bottom
+	    };
 	  }
-
-	  // returns maximum tick length
-	  // function getMaxLength(container, ticks, wrapLength) {
-	  //   console.log(ticks)
-	  //   container.selectAll('.d2b-test-tick').data(ticks)
-	  //     .enter().append('text')
-	  //     .call(textWrap, function (d) { console.log(d)}, wrapLength);
-	  //
-	  // }
 
 	  // create padding from number or object
 	  function makePadding(p) {
@@ -2395,6 +2475,8 @@
 	  return tooltip;
 	};
 
+	// Work around for JavaScripts ||= operator. Only null, undefined, and false will me construed ad falsy.
+
 	function oreq () {
 	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 	    args[_key] = arguments[_key];
@@ -2402,7 +2484,7 @@
 
 	  var val = args[0];
 	  args.forEach(function (a) {
-	    if (val === null || val === undefined) val = a;
+	    if (val === null || val === undefined || val === false) val = a;
 	  });
 	  return val;
 	}

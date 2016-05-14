@@ -23,13 +23,15 @@
 <script>
   var width = 200, height = 200;
 
-  var x = d3.scaleLinear().domain([0, 7]);
+  // var x = d3.scaleLinear().domain([0, 7]);
+  var x = d3.scaleBand().domain(['short label', 'this is a longer label', 'and a longer one']);
   var y = d3.scaleLinear().domain([100, 0]);
 
   var xAxis = d3.axisBottom().scale(x);
   var yAxis = d3.axisRight().scale(y);
 
   var plane = d2b.plane()
+    .wrapLength(10);
     // // axes level properties
     // .size(d => d.size)
     // .padding(d => d.padding)
@@ -55,13 +57,14 @@
       margin: 0,
       axes: [
         {
-          axis: d3.axisTop().scale(x).tickSizeInner(20).tickSizeOuter(100).tickPadding(20),
-          orient: 'bottom',
+          axis: d3.axisTop().scale(x).tickSizeInner(10),
+          orient: 'top outer',
           labelInner: 'x-inner',
           labelOuter: 'x-outer',
         }
       ]
     })
+    // .transition()
     .call(plane);
 
 </script>
