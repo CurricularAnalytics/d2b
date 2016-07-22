@@ -144,5 +144,21 @@
 .d2b-bubble-pack-graph .d2b-bubble-indicator text {
   pointer-events: none; }
 
+.d2b-plane text {
+  font-size: 10pt; }
+
+.d2b-plane .d2b-y-axis .d2b-axis-label,
+.d2b-plane .d2b-y2-axis .d2b-axis-label {
+  transform: rotate(-90deg); }
+
+.d2b-plane .d2b-grid .tick line {
+  stroke-dasharray: 5 5; }
+
+.d2b-plane .d2b-grid .tick text {
+  display: none; }
+
+.d2b-plane .d2b-axis-label {
+  font-weight: bold; }
+
 .d2b-svg {
   display: block; }

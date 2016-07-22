@@ -24,14 +24,6 @@ export default function () {
       graphExit = graphExit.transition(context);
     }
 
-    selection.each(function (d, i) {
-      const tooltip = $$.tooltip.call(this, d, i);
-      if (tooltip) tooltip.clear('scatter');
-      d3.select(this)
-        .selectAll('.d2b-scatter-graph')
-        .each(function () {this.tooltip = tooltip;});
-    });
-
     graphUpdate.style('opacity', 1);
     graphExit.style('opacity', 0).remove();
 
@@ -41,12 +33,13 @@ export default function () {
             y = $$.y.call(this, d, i),
             color = $$.color.call(this, d, i),
             symbol = $$.symbol.call(this, d, i),
-            values = $$.values.call(this, d, i);
+            values = $$.values.call(this, d, i),
+            tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
       let shift = $$.shift.call(this, d, i);
       if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
-      if (this.tooltip) this.tooltip.graph('scatter', i)
+      if (tooltipGraph) tooltipGraph
         .data(values)
         .x((d, i) => x($$.px(d, i)) + shift)
         .y((d, i) => y($$.py(d, i)))
@@ -115,7 +108,7 @@ export default function () {
       else $$.y = d;
       return scatter;
     })
-    .addPropFunctor('tooltip', d => d.tooltip)
+    .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
     .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)

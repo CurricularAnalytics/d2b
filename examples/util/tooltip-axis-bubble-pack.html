@@ -17,7 +17,7 @@
   var xAxis = d3.axisBottom().scale(x);
   var yAxis = d3.axisRight().scale(y);
 
-  var bubblePack = d2b.svgBubblePack().x(x).y(y);
+  var bubblePack = d2b.svgBubblePack().x(x).y(y)//.px(d => d.x).py(d => d.y);
 
   // chart svg, will also be used as the mouse tracker
 	var svg = d3.select('svg')
@@ -28,19 +28,28 @@
   // Tooltip svg container. This will be used to draw tooltip guides.
   var svgContainer = svg.append('g');
 
-  // svg background so that all mousemove events are captured
-  var svgBackground = svg.append('rect')
-      .attr('width', width)
-      .attr('height', height)
-      .attr('opacity', 0);
+  // // svg background so that all mousemove events are captured
+  // var svgBackground = svg.append('rect')
+  //     .attr('width', width)
+  //     .attr('height', height)
+  //     .attr('opacity', 0);
 
-  // var tooltip =
-
-  // bubblePack.tooltip(tooltip);
+  var tooltip = d2b.tooltipAxis()
+      .threshold(50)
+      // .tracker(d3.select('svg'))
+      // .tracker(d3.select('html'))
+      .svgContainer(svgContainer)
+      .htmlContainer(d3.select('body'))
+      .size({width: width, height: height})
+      .title(function (d) {return Math.round(d[0].__x__);})
+      .row(function (d) {return 'y: '+Math.round(d.__y__)+' --- size: '+d.__size__;})
+      .trackX(true)
+      .trackY(true);
 
   var data = [
     {
       label: 'bubble pack 1',
+      tooltipGraph: tooltip.graph('bubble', 1),
       values: [
         {
           label: 'one',
@@ -86,20 +95,9 @@
     }
   ];
 
-  data.tooltip = d2b.tooltipAxis()
-      .threshold(50)
-      .tracker(svg)
-      .svgContainer(svgContainer)
-      .htmlContainer(d3.select('body'))
-      .size({width: width, height: height})
-      .title(function (d) {return d[0].__x__;})
-      .row(function (d) {return d.__y__;})
-      .trackX(true)
-      .trackY(true);
-
   var packs = svg.append('g')
-      .datum(data)
       .attr('class', 'packs')
+      .datum(data)
       .call(bubblePack);
 
   svg.append('g').call(xAxis);

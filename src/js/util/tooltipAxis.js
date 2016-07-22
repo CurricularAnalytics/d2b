@@ -305,6 +305,10 @@ export default function (id = d2bid()) {
 
       graphModel
         .addProp('data', [])
+        .addMethod('clear', () => {
+          graph.config.data = [];
+          return graph.interface;
+        })
         .addMethod('addPoint', p => {
           graph.config.data.push(p)
           return graph.interface;

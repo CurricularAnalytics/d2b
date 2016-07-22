@@ -1,0 +1,25 @@
+.d2b-plane {
+  text {
+    font-size: 10pt;
+  }
+
+  .d2b-y-axis,
+  .d2b-y2-axis {
+    .d2b-axis-label {
+      transform: rotate(-90deg);
+    }
+  }
+
+  .d2b-grid {
+    .tick line {
+      stroke-dasharray: 5 5;
+    }
+    .tick text {
+      display: none;
+    }
+  }
+
+  .d2b-axis-label {
+    font-weight: bold;
+  }
+}

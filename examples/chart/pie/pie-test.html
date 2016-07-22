@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<body>
+	<div class = 'pie-chart'></div>
+
+	<script>
+			var pie = d2b.chartPie()
+				.size({height: 400})
+				.donutRatio(0.5);
+
+			var chart = d3.select('.pie-chart')
+					.datum([
+						{label: 'arc 1', value: 23},
+						{label: 'arc 2', value: 31},
+						{label: 'arc 3', value: 80},
+						{label: 'arc 4', value: 8}
+					])
+				// .transition()
+					// .call(pie);
+
+			pie(chart);		
+
+	</script>
+</body>
+</html>

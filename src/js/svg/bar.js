@@ -12,7 +12,6 @@ export default function () {
     const selection = context.selection? context.selection() : context;
     // iterate through each selection element
     selection.each(function (d, i) {
-      const tooltip = $$.tooltip.call(this, d, i);
 
       // set orientation mappings
       let orient = {};
@@ -21,7 +20,7 @@ export default function () {
       } else {
         orient = { rotate: false, px: 'px', py: 'py', x: 'x', y: 'y', w: 'width', h: 'height' };
       }
-      
+
       stacker.x($$[orient.px]).y($$[orient.py]);
 
       // run each selection datum through the stacker
@@ -52,15 +51,14 @@ export default function () {
       graphUpdate.style('opacity', 1);
       graphExit.style('opacity', 0).remove();
 
-      if (tooltip) tooltip.clear('bar');
-
       // iterate through graph containers
       graphUpdate.each(function (d, i) {
         const graph = d3.select(this),
               color = $$.color.call(this, d, i),
               x = $$[orient.x].call(this, d, i),
               y = $$[orient.y].call(this, d, i),
-              values = $$.values.call(this, d, i);
+              values = $$.values.call(this, d, i),
+              tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
         let shift = $$.shift.call(this, d, i);
         if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
@@ -84,7 +82,7 @@ export default function () {
           d.__extentpx__.sort(d3.ascending);
         });
 
-        if (tooltip) tooltip.graph('bar', i)
+        if (tooltipGraph) tooltipGraph
           .data(values)
           [orient.x]((d, i) => x($$[orient.px](d, i)) + shift)
           [orient.y]((d, i) => y(d.__extent__[1]))
@@ -189,7 +187,7 @@ export default function () {
         else $$.y = d;
         return bar;
       })
-      .addPropFunctor('tooltip', d => d.tooltip)
+      .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
       .addPropFunctor('orient', 'vertical')
       .addPropFunctor('padding', 0.5)
       .addPropFunctor('groupPadding', 0)

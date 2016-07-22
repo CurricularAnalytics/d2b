@@ -477,19 +477,25 @@
 	    return d.label;
 	  } : arguments[1];
 	  var count = arguments.length <= 2 || arguments[2] === undefined ? Infinity : arguments[2];
+	  var anchor = arguments.length <= 3 || arguments[3] === undefined ? 'start' : arguments[3];
 
 	  getText = functor(getText);
 
 	  text.each(function (d, i) {
 	    var text = d3.select(this),
-	        words = getText.call(this, d, i).split(/\s+/).reverse(),
+	        words = ('' + getText.call(this, d, i)).split(/\s+/).reverse(),
 	        word = undefined,
 	        lines = [],
 	        line = [words.pop()],
-	        lineHeight = 1.1;
+	        lineHeight = 1.1,
+	        x = +text.attr('x'),
+	        y = +text.attr('y'),
+	        dy = parseFloat(text.attr('dy')) || 0;
+
+	    // clear text if the wrapper is being run for the first time
+	    if (text.html().indexOf('tspan') === -1) text.text('');
 
 	    while (word = words.pop()) {
-	      // console.log(line.length)
 	      if (line.join(' ').length + word.length > count) {
 	        lines.push(line);
 	        line = [];
@@ -499,12 +505,14 @@
 	    }
 	    lines.push(line);
 
-	    var tspan = text.selectAll('tspan').data(lines);
+	    var tspan = text.selectAll('tspan').data(lines),
+	        height = (lines.length - 1) * lineHeight,
+	        offset = anchor === 'end' ? height : anchor === 'middle' ? height / 2 : 0;
 
 	    tspan.merge(tspan.enter().append('tspan')).text(function (d) {
 	      return d.join(' ');
-	    }).attr('x', 0).attr('y', 0).attr('dy', function (d, i) {
-	      return i * lineHeight + 'em';
+	    }).attr('x', x).attr('y', y).attr('dy', function (d, i) {
+	      return dy + i * lineHeight - offset + 'em';
 	    });
 	  });
 	}
@@ -917,14 +925,6 @@
 	      lineUpdate = lineUpdate.transition(context);
 	    }
 
-	    selection.each(function (d, i) {
-	      var tooltip = $$.tooltip.call(this, d, i);
-	      if (tooltip) tooltip.clear('line');
-	      d3.select(this).selectAll('.d2b-line').each(function () {
-	        this.tooltip = tooltip;
-	      });
-	    });
-
 	    graphUpdate.style('opacity', 1);
 	    graphExit.style('opacity', 0).remove();
 	    lineUpdate.style('stroke', $$.color).attr('d', function (d, i) {
@@ -933,12 +933,13 @@
 	      var x = $$.x.call(this, d, i),
 	          y = $$.y.call(this, d, i),
 	          color = $$.color.call(this, d, i),
-	          values = $$.values.call(this, d, i);
+	          values = $$.values.call(this, d, i),
+	          tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
 	      var shift = $$.shift.call(this, d, i);
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
-	      if (this.tooltip) this.tooltip.graph('line', i).data(values).x(function (d, i) {
+	      if (tooltipGraph) tooltipGraph.data(values).x(function (d, i) {
 	        return x($$.px(d, i)) + shift;
 	      }).y(function (d, i) {
 	        return y($$.py(d, i));
@@ -967,8 +968,8 @@
 	      return d;
 	    };else $$.y = d;
 	    return line;
-	  }).addPropFunctor('tooltip', function (d) {
-	    return d.tooltip;
+	  }).addPropFunctor('tooltipGraph', function (d) {
+	    return d.tooltipGraph;
 	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
@@ -1078,10 +1079,6 @@
 	  var area = function area(context) {
 	    var selection = context.selection ? context.selection() : context;
 
-	    selection.each(function (d) {
-	      // stackNest.entries(d).forEach(sg => stacker(sg.values))
-	    });
-
 	    var graph = selection.selectAll('.d2b-area-graph').data(function (d) {
 	      return d;
 	    }, $$.key);
@@ -1102,11 +1099,6 @@
 	    }
 
 	    selection.each(function (d, i) {
-	      var tooltip = $$.tooltip.call(this, d, i);
-	      if (tooltip) tooltip.clear('area');
-	      d3.select(this).selectAll('.d2b-area').each(function () {
-	        this.tooltip = tooltip;
-	      });
 	      stackNest.entries(d).forEach(function (sg) {
 	        return stacker(sg.values);
 	      });
@@ -1118,12 +1110,13 @@
 	      var x = $$.x.call(this, d, i),
 	          y = $$.y.call(this, d, i),
 	          values = $$.values.call(this, d, i),
-	          color = $$.color.call(this, d, i);
+	          color = $$.color.call(this, d, i),
+	          tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
 	      var shift = $$.shift.call(this, d, i);
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
-	      if (this.tooltip) this.tooltip.graph('area', i).data(values).x(function (d, i) {
+	      if (tooltipGraph) tooltipGraph.data(values).x(function (d, i) {
 	        return x(d.__x__) + shift;
 	      }).y(function (d, i) {
 	        return y(d.__y1__);
@@ -1167,8 +1160,8 @@
 	      return d;
 	    };else $$.y = d;
 	    return area;
-	  }).addPropFunctor('tooltip', function (d) {
-	    return d.tooltip;
+	  }).addPropFunctor('tooltipGraph', function (d) {
+	    return d.tooltipGraph;
 	  }).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
@@ -1212,14 +1205,6 @@
 	      graphExit = graphExit.transition(context);
 	    }
 
-	    selection.each(function (d, i) {
-	      var tooltip = $$.tooltip.call(this, d, i);
-	      if (tooltip) tooltip.clear('scatter');
-	      d3.select(this).selectAll('.d2b-scatter-graph').each(function () {
-	        this.tooltip = tooltip;
-	      });
-	    });
-
 	    graphUpdate.style('opacity', 1);
 	    graphExit.style('opacity', 0).remove();
 
@@ -1229,12 +1214,13 @@
 	          y = $$.y.call(this, d, i),
 	          color = $$.color.call(this, d, i),
 	          symbol = $$.symbol.call(this, d, i),
-	          values = $$.values.call(this, d, i);
+	          values = $$.values.call(this, d, i),
+	          tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
 	      var shift = $$.shift.call(this, d, i);
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
-	      if (this.tooltip) this.tooltip.graph('scatter', i).data(values).x(function (d, i) {
+	      if (tooltipGraph) tooltipGraph.data(values).x(function (d, i) {
 	        return x($$.px(d, i)) + shift;
 	      }).y(function (d, i) {
 	        return y($$.py(d, i));
@@ -1290,8 +1276,8 @@
 	      return d;
 	    };else $$.y = d;
 	    return scatter;
-	  }).addPropFunctor('tooltip', function (d) {
-	    return d.tooltip;
+	  }).addPropFunctor('tooltipGraph', function (d) {
+	    return d.tooltipGraph;
 	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
@@ -1324,7 +1310,6 @@
 	    var selection = context.selection ? context.selection() : context;
 	    // iterate through each selection element
 	    selection.each(function (d, i) {
-	      var tooltip = $$.tooltip.call(this, d, i);
 
 	      // set orientation mappings
 	      var orient = {};
@@ -1363,15 +1348,14 @@
 	      graphUpdate.style('opacity', 1);
 	      graphExit.style('opacity', 0).remove();
 
-	      if (tooltip) tooltip.clear('bar');
-
 	      // iterate through graph containers
 	      graphUpdate.each(function (d, i) {
 	        var graph = d3.select(this),
 	            color = $$.color.call(this, d, i),
 	            x = $$[orient.x].call(this, d, i),
 	            _y = $$[orient.y].call(this, d, i),
-	            values = $$.values.call(this, d, i);
+	            values = $$.values.call(this, d, i),
+	            tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
 	        var shift = $$.shift.call(this, d, i);
 	        if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
@@ -1391,7 +1375,7 @@
 	          d.__extentpx__.sort(d3.ascending);
 	        });
 
-	        if (tooltip) tooltip.graph('bar', i).data(values)[orient.x](function (d, i) {
+	        if (tooltipGraph) tooltipGraph.data(values)[orient.x](function (d, i) {
 	          return x($$[orient.px](d, i)) + shift;
 	        })[orient.y](function (d, i) {
 	          return _y(d.__extent__[1]);
@@ -1493,8 +1477,8 @@
 	      return d;
 	    };else $$.y = d;
 	    return bar;
-	  }).addPropFunctor('tooltip', function (d) {
-	    return d.tooltip;
+	  }).addPropFunctor('tooltipGraph', function (d) {
+	    return d.tooltipGraph;
 	  }).addPropFunctor('orient', 'vertical').addPropFunctor('padding', 0.5).addPropFunctor('groupPadding', 0).addPropFunctor('bandwidth', null).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
@@ -1576,10 +1560,7 @@
 	    // iterate through each context element
 	    context.each(function (d, i) {
 	      var selection = d3.select(this),
-	          graph = selection.selectAll('.d2b-bubble-pack-graph'),
-	          tooltip = $$.tooltip.call(this, d, i);
-
-	      if (tooltip) tooltip.clear('bubblePack');
+	          graph = selection.selectAll('.d2b-bubble-pack-graph');
 
 	      selection.on('change', function () {
 	        selection.transition().duration($$.duration).call(bubblePack);
@@ -1591,7 +1572,8 @@
 	            x = $$.x.call(this, d, i),
 	            y = $$.y.call(this, d, i),
 	            color = $$.color.call(this, d, i),
-	            symbol = $$.symbol.call(this, d, i);
+	            symbol = $$.symbol.call(this, d, i),
+	            tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
 	        d.values.forEach(compute);
 
@@ -1604,7 +1586,7 @@
 	          return $$.psymbol.call(this, dd, ii) || symbol;
 	        });
 
-	        var addTooltipPoint = tooltip ? tooltip.graph('bubblePack', i).x(function (d, i) {
+	        var addTooltipPoint = tooltipGraph ? tooltipGraph.clear().x(function (d, i) {
 	          return x(d.__x__) + shift;
 	        }).y(function (d, i) {
 	          return y(d.__y__);
@@ -1823,8 +1805,8 @@
 	      return d;
 	    };else $$.y = d;
 	    return bubblePack;
-	  }).addProp('tendancy', mean).addProp('duration', 250).addPropFunctor('tooltip', function (d) {
-	    return d.tooltip;
+	  }).addProp('tendancy', mean).addProp('duration', 250).addPropFunctor('tooltipGraph', function (d) {
+	    return d.tooltipGraph;
 	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
@@ -1852,121 +1834,80 @@
 	  return bubblePack;
 	};
 
+	// TODO: Clean up text wrapping with transition udpates
+	// TODO: Clean up plane build workflow
+
 	// plane svg generator
 	function plane () {
-	  var $$ = {};
+
+	  var $$ = {},
+	      labelPad = 5;
 
 	  /* Update Function */
 	  var plane = function plane(context) {
 	    var selection = context.selection ? context.selection() : context;
 
 	    selection.each(function (d, i) {
-	      var size = $$.size.call(this, d, i),
+	      // get plane props
+	      var size = $$.size.call(this, d, i) || { width: 960, height: 500 },
 	          margin = makeMargin($$.margin.call(this, d, i)),
-	          axes = $$.axes.call(this, d, i);
+	          x = $$.x.call(this, d, i),
+	          x2 = $$.x2.call(this, d, i),
+	          y = $$.y.call(this, d, i),
+	          y2 = $$.y2.call(this, d, i),
+	          el = d3.select(this),
+	          axes = {
+	        x: { type: 'x', data: x },
+	        x2: { type: 'x2', data: x2 },
+	        y: { type: 'y', data: y },
+	        y2: { type: 'y2', data: y2 }
+	      };
 
+	      // check if user defined padding
 	      var padding = makePadding($$.padding.call(this, d, i));
 
-	      // axes element
-	      var el = d3.select(this);
+	      // enter plane svg group
+	      var planeUpdate = el.selectAll('.d2b-plane').data([d]),
+	          planeEnter = planeUpdate.enter().append('g').attr('class', 'd2b-plane'),
+	          plane = planeUpdate.merge(planeEnter);
 
-	      // enter new axes
-	      var axis = el.selectAll('.d2b-axis').data(axes, $$.key),
-	          axisEnter = axis.enter().append('g').attr('class', 'd2b-axis');
+	      var transCtx = context !== selection ? context : null;
 
-	      axisEnter.append('text').attr('class', 'd2b-axis-label-outer');
-	      axisEnter.append('text').attr('class', 'd2b-axis-label-inner');
+	      setupAxis(axes.x, i, plane, size.width, transCtx);
+	      setupAxis(axes.x2, i, plane, size.width, transCtx);
+	      setupAxis(axes.y, i, plane, size.height, transCtx);
+	      setupAxis(axes.y2, i, plane, size.height, transCtx);
 
-	      var axisUpdate = axis.merge(axisEnter);
-	      var axisExit = axis.exit();
+	      // if padding is not set, find it dynamically
+	      if (!padding) padding = dynamicPadding(axes);
 
-	      if (context !== selection) axisExit = axisExit.transition(context);
-	      axisExit.style('opacity', 0).remove();
-
-	      // if padding is null, find it dynamically
-	      if (!padding) padding = getDynamicPadding(axisUpdate, size);
-
-	      // create plane box model
-	      var box = this.planeBox = {
-	        top: margin.top + padding.top,
-	        bottom: margin.bottom + padding.bottom,
-	        right: margin.right + padding.right,
-	        left: margin.left + padding.left
+	      // define plane box properties
+	      var planeBox = {
+	        top: padding.top + margin.top,
+	        bottom: padding.bottom + margin.bottom,
+	        left: padding.left + margin.left,
+	        right: padding.right + margin.right
 	      };
-	      box.height = size.height - box.top - box.bottom;
-	      box.width = size.width - box.left - box.right;
+	      planeBox.width = size.width - planeBox.left - planeBox.right;
+	      planeBox.height = size.height - planeBox.top - planeBox.bottom;
 
-	      // update each axis
-	      axisUpdate.each(function (d, i) {
-	        var axis = $$.axis.call(this, d, i),
-	            scale = axis.scale(),
-	            orient = $$.orient.call(this, d, i).split(' '),
-	            labelInner = $$.labelInner.call(this, d, i),
-	            labelOuter = $$.labelOuter.call(this, d, i),
-	            wrapLength = $$.wrapLength.call(this, d, i),
-	            el = d3.select(this),
-	            vert = ['right', 'left'].indexOf(orient[0]) > -1;
+	      // position plane
+	      plane.attr('transform', 'translate(' + planeBox.left + ', ' + planeBox.top + ')');
 
-	        var axisUpdate = d3.select(this);
-	        if (context !== selection) axisUpdate = axisUpdate.transition(context);
+	      updateAxis(axes.x, planeBox.width, 0, planeBox.height);
+	      updateAxis(axes.x2, planeBox.width, 0, 0);
+	      updateAxis(axes.y, planeBox.height, 0, 0);
+	      updateAxis(axes.y2, planeBox.height, planeBox.width, 0);
 
-	        if (vert) scale.range([0, box.height]);else scale.range([0, box.width]);
+	      updateGrid(axes.x, planeBox.width, planeBox.height);
+	      updateGrid(axes.x2, planeBox.width, planeBox.height);
+	      updateGrid(axes.y, planeBox.height, planeBox.width);
+	      updateGrid(axes.y2, planeBox.height, planeBox.width);
 
-	        var labelPadInner = 0;
-	        var labelPadOuter = 0;
-	        axisUpdate.call(axis).selectAll('.tick text').each(function () {
-	          var tick = d3.select(this);
-	          var text = tick.text();
-	          console.log(text);
-	          tick.text('').call(textWrap, function (d) {
-	            return d;
-	          }, wrapLength);
-	          var box = this.getBBox();
-
-	          if (orient[1] === 'inner') labelPadInner = Math.max(labelPadInner, box[vert ? 'width' : 'height']);else labelPadOuter = Math.max(labelPadOuter, box[vert ? 'width' : 'height']);
-
-	          if (orient[0] === 'top' && orient[1] === 'outer') {
-	            tick.selectAll('tspan').attr('y', tick.attr('y') - box.height);
-	          }
-	        });
-
-	        var labelOuterUpdate = axisUpdate.select('.d2b-axis-label-outer').text(labelOuter);
-	        var labelInnerUpdate = axisUpdate.select('.d2b-axis-label-inner').text(labelInner);
-
-	        var labelOuterBox = labelOuterUpdate.node().getBBox();
-	        var labelInnerBox = labelInnerUpdate.node().getBBox();
-	        // console.log
-	        switch (orient[0]) {
-	          case 'right':
-	            axisUpdate.attr('transform', 'translate(' + (box.left + box.width) + ', ' + box.top + ')');
-	            labelOuterUpdate.attr('transform', 'translate(' + labelPadOuter + ', ' + box.height / 2 + ')');
-	            labelInnerUpdate.attr('transform', 'translate(' + -labelPadInner + ', ' + box.height + ')');
-	            break;
-	          case 'bottom':
-	            axisUpdate.attr('transform', 'translate(' + box.left + ', ' + (box.top + box.height) + ')');
-	            // labelOuterUpdate.attr('transform', `translate(
-	            //   ${}, ${}
-	            // )`);
-	            // labelInnerUpdate.attr('transform', `translate(
-	            //   ${}, ${}
-	            // )`);
-	            break;
-	          case 'left':
-	            axisUpdate.attr('transform', 'translate(' + box.left + ', ' + box.top + ')');
-	            // labelOuterUpdate.attr('transform', `translate(
-	            //   ${}, ${}
-	            // )`);
-	            // labelInnerUpdate.attr('transform', `translate(
-	            //   ${}, ${}
-	            // )`);
-	            break;
-	          case 'top':
-	            axisUpdate.attr('transform', 'translate(' + box.left + ', ' + box.top + ')');
-	            labelOuterUpdate.attr('transform', 'translate(' + box.width / 2 + ', ' + -labelPadOuter + ')');
-	            labelInnerUpdate.attr('transform', 'translate(' + box.width + ', ' + labelPadInner + ')');
-	            break;
-	        };
-	      });
+	      updateLabel(axes.x, planeBox.width);
+	      updateLabel(axes.x2, planeBox.width);
+	      updateLabel(axes.y, -planeBox.height);
+	      updateLabel(axes.y2, -planeBox.height);
 	    });
 
 	    return plane;
@@ -1976,70 +1917,260 @@
 	  var model = base(plane, $$)
 	  // plane level functors
 	  .addPropFunctor('size', function (d) {
-	    return d.size || { width: 960, height: 500 };
-	  }).addPropFunctor('padding', null).addPropFunctor('margin', 0).addPropFunctor('axes', function (d) {
-	    return d.axes;
+	    return d.size;
+	  }).addPropFunctor('padding', null).addPropFunctor('margin', 0).addPropFunctor('x', function (d) {
+	    return d.x;
+	  }).addPropFunctor('x2', function (d) {
+	    return d.x2;
+	  }).addPropFunctor('y', function (d) {
+	    return d.y;
+	  }).addPropFunctor('y2', function (d) {
+	    return d.y2;
 	  })
 	  // axis level functors
 	  .addPropFunctor('axis', function (d) {
-	    return d.axis || d3.axisBottom();
+	    return d.axis;
 	  }).addPropFunctor('orient', function (d) {
-	    return d.orient || 'bottom';
-	  }).addPropFunctor('wrapLength', Infinity).addPropFunctor('key', function (d, i) {
-	    return d.key || i;
-	  }).addPropFunctor('labelInner', function (d) {
-	    return d.labelInner || null;
-	  }).addPropFunctor('labelOuter', function (d) {
-	    return d.labelOuter || null;
+	    return d.orient;
+	  }).addPropFunctor('wrapLength', Infinity).addPropFunctor('tickSize', 6).addPropFunctor('showGrid', true).addPropFunctor('label', function (d) {
+	    return d.label;
+	  }).addPropFunctor('labelOrient', function (d) {
+	    return d.labelOrient;
 	  });
 
 	  return plane;
 
-	  // insert and remove axes and labels to find the largest ticks on any sides
-	  function getDynamicPadding(axisSvg, size) {
-	    var axisPad = { top: 0, left: 0, right: 0, bottom: 0 },
-	        labelPad = { top: 0, left: 0, right: 0, bottom: 0 };
-	    axisSvg.each(function (d, i) {
-	      var axis = $$.axis.call(this, d, i),
-	          scale = axis.scale(),
-	          orient = $$.orient.call(this, d, i).split(' '),
-	          labelOuter = $$.labelOuter.call(this, d, i),
-	          wrapLength = $$.wrapLength.call(this, d, i),
-	          el = d3.select(this),
-	          vert = ['right', 'left'].indexOf(orient[0]) > -1;
+	  function setupAxis(axis, index, plane, extent, transCtx) {
+	    var axisData = [],
+	        gridData = [],
+	        data = axis.data;
 
-	      if (vert) scale.range([0, size.height]);else scale.range([0, size.width]);
+	    if (data) {
+	      setAxisInfo(axis, data, index, plane, extent);
+	      axisData = [data];
+	      if (axis.info.showGrid) gridData = [data];
+	    }
 
-	      if (orient[1] !== 'inner') {
-	        var testAxis = el.append('g');
-	        testAxis.call(axis).selectAll('.tick text').each(function () {
-	          var tick = d3.select(this);
-	          var text = tick.text();
-	          tick.text('').call(textWrap, function () {
-	            return text;
-	          }, wrapLength);
+	    // enter new axis container
+	    axis.update = plane.selectAll('.d2b-' + axis.type + '-axis').data(axisData);
+	    axis.enter = axis.update.enter().append('g').attr('class', 'd2b-axis d2b-' + axis.type + '-axis');
 
-	          var box = this.getBBox();
+	    // enter label container
+	    axis.labelEnter = axis.enter.append('text').attr('class', 'd2b-axis-label');
 
-	          axisPad[orient[0]] = Math.max(axisPad[orient[0]], box[vert ? 'width' : 'height']);
-	        });
-	        testAxis.remove();
-	      }
+	    // merge axis svg container
+	    axis.svg = axis.enter.merge(axis.update);
 
-	      if (labelOuter) {
-	        var testLabel = el.append('text').attr('class', 'd2b-axis-label-outer').text(labelOuter);
+	    // fetch axis label
+	    axis.label = axis.svg.select('.d2b-axis-label');
 
-	        var box = testLabel.node().getBBox();
-	        labelPad[orient[0]] = Math.max(labelPad[orient[0]], box[vert ? 'width' : 'height']);
-	        testLabel.remove();
-	      }
+	    // exit axis
+	    axis.update.exit().remove();
+
+	    // set axis grid data
+	    axis.gridUpdate = plane.selectAll('.d2b-' + axis.type + '-grid').data(gridData);
+
+	    // enter axis grid
+	    axis.gridEnter = axis.gridUpdate.enter().append('g').attr('class', 'd2b-grid d2b-' + axis.type + '-grid');
+
+	    // exit axis grid
+	    axis.gridUpdate.exit().remove();
+
+	    // merge axis grid
+	    axis.grid = axis.gridEnter.merge(axis.gridUpdate);
+
+	    if (transCtx) {
+	      axis.svg = axis.svg.transition(transCtx);
+	      axis.update = axis.update.transition(transCtx);
+	      axis.grid = axis.grid.transition(transCtx);
+	      axis.gridUpdate = axis.gridUpdate.transition(transCtx);
+	      axis.label = axis.label.transition(transCtx);
+	    }
+	  }
+
+	  function updateAxis(axis, extent, x, y) {
+	    if (!axis.data) return;
+	    setAxisTickSize(axis);
+	    setAxisRange(axis, extent);
+
+	    axis.enter.call(axis.info.axis).call(wrapTicks, axis).attr('transform', 'translate(' + x + ', ' + y + ')');
+	    axis.update.call(axis.info.axis).attr('transform', 'translate(' + x + ', ' + y + ')');
+
+	    axis.svg.call(wrapTicks, axis).on('end', function () {
+	      axis.svg.call(wrapTicks, axis);
 	    });
-	    return {
-	      left: axisPad.left + labelPad.left,
-	      right: axisPad.right + labelPad.right,
-	      top: axisPad.top + labelPad.top,
-	      bottom: axisPad.bottom + labelPad.bottom
+	  }
+
+	  function updateGrid(axis, extentRange, extentGrid) {
+	    if (!axis.data) return;
+	    setGridTickSize(axis, extentGrid);
+	    setAxisRange(axis, extentRange);
+
+	    axis.gridUpdate.call(axis.info.axis).selectAll('.tick text').remove();
+
+	    axis.gridEnter.call(axis.info.axis).selectAll('.tick text').remove();
+	  }
+
+	  function updateLabel(axis, extent) {
+	    if (!axis.data) return;
+	    axis.labelEnter.text(axis.info.label).attr('x', labelX(axis, extent)).attr('y', labelY(axis)).attr('text-anchor', labelAnchor(axis));
+	    axis.label.text(axis.info.label).attr('x', labelX(axis, extent)).attr('y', labelY(axis)).attr('text-anchor', labelAnchor(axis));
+	  }
+
+	  function setGridTickSize(axis, extent) {
+	    if (!axis.data) return;
+	    switch (axis.type) {
+	      case 'x':
+	        return axis.info.axis.tickSize(axis.info.orient === 'inner' ? -extent : extent);
+	      case 'x2':
+	        return axis.info.axis.tickSize(axis.info.orient === 'inner' ? extent : -extent);
+	      case 'y':
+	        return axis.info.axis.tickSize(axis.info.orient === 'inner' ? extent : -extent);
+	      case 'y2':
+	        return axis.info.axis.tickSize(axis.info.orient === 'inner' ? -extent : extent);
+	    }
+	  }
+
+	  function setAxisTickSize(axis) {
+	    if (!axis.data) return;
+	    axis.info.axis.tickSizeOuter(0).tickSizeInner(axis.info.tickSize);
+	  }
+
+	  function setAxisRange(axis, extent) {
+	    if (!axis.data) return;
+	    axis.info.axis.scale().range([0, extent]);
+	  }
+
+	  // insert and remove dummy ticks and labels to pad axes accordingly
+	  function setAxisInfo(axis, d, i, cont, extent) {
+	    if (!axis.data) return;
+	    var info = axis.info = {};
+
+	    info.axis = $$.axis(d, i);
+	    info.orient = $$.orient(d, i) || 'outer';
+	    info.wrapLength = $$.wrapLength(d, i) || Infinity;
+	    info.label = $$.label(d, i) || '';
+	    info.labelOrient = $$.labelOrient(d, i) || 'outer center';
+	    info.tickSize = $$.tickSize(d, i);
+	    info.showGrid = $$.showGrid(d, i);
+	    info.labelOrient1 = info.labelOrient.split(' ')[0];
+	    info.labelOrient2 = info.labelOrient.split(' ')[1];
+
+	    info.wrapAnchor = wrapAnchor(axis);
+
+	    setAxisTickSize(axis);
+	    setAxisRange(axis, extent);
+
+	    var dummyAxis = cont.append('g').attr('class', 'd2b-axis d2b-' + axis.type + '-axis').call(info.axis).call(wrapTicks, axis);
+	    info.axisBox = dummyAxis.node().getBBox();
+
+	    var dummyLabel = dummyAxis.append('text').attr('class', 'd2b-axis-label d2b-' + axis.type + '-label').text(info.label);
+	    info.labelBox = dummyLabel.node().getBBox();
+
+	    dummyAxis.remove();
+	  }
+
+	  function labelAnchor(axis) {
+	    if (!axis.data) return;
+	    var info = axis.info,
+	        vert = ['y', 'y2'].indexOf(axis.type) > -1;
+	    return info.labelOrient2 === 'start' && vert ? 'end' : info.labelOrient2 === 'end' && !vert ? 'end' : info.labelOrient2 === 'middle' ? 'middle' : 'start';
+	  }
+
+	  function wrapAnchor(axis) {
+	    if (!axis.data) return;
+	    switch (axis.type) {
+	      case 'x':
+	        return axis.info.orient === 'inner' ? 'end' : 'start';
+	      case 'x2':
+	        return axis.info.orient === 'outer' ? 'end' : 'start';
+	      case 'y':
+	      case 'y2':
+	        return 'middle';
+	      default:
+	        return 'start';
+	    }
+	  }
+
+	  function labelY(axis) {
+	    if (!axis.data) return;
+	    var info = axis.info;
+	    var y = 0;
+
+	    switch (axis.type + ' ' + info.orient + ' ' + info.labelOrient1) {
+	      case 'x inner inner':
+	      case 'x2 outer outer':
+	        return -info.axisBox.height - labelPad;
+	      case 'x inner outer':
+	      case 'x2 outer inner':
+	        return info.labelBox.height + labelPad;
+	      case 'x outer inner':
+	      case 'x2 inner outer':
+	      case 'y inner outer':
+	      case 'y2 outer inner':
+	        return -labelPad;
+	      case 'x outer outer':
+	      case 'x2 inner inner':
+	        return info.labelBox.height + info.axisBox.height + labelPad;
+	      case 'y inner inner':
+	      case 'y2 outer outer':
+	        return info.labelBox.height + info.axisBox.width + labelPad;
+	      case 'y outer inner':
+	      case 'y2 inner outer':
+	        return info.labelBox.height + labelPad;
+	      case 'y outer outer':
+	      case 'y2 inner inner':
+	        return -info.axisBox.width - labelPad;
+	    }
+	  }
+
+	  function labelX(axis, extent) {
+	    if (!axis.data) return;
+	    return axis.info.labelOrient2 === 'start' ? 0 : axis.info.labelOrient2 === 'middle' ? extent / 2 : extent;
+	  }
+
+	  function dynamicPadding(axes) {
+	    var padding = { top: 0, left: 0, right: 0, bottom: 0 };
+
+	    if (axes.x.data) {
+	      if (axes.x.info.orient === 'outer') padding.bottom += axes.x.info.axisBox.height;
+	      if (axes.x.info.labelOrient1 === 'outer') padding.bottom += axes.x.info.labelBox.height + labelPad;
 	    };
+
+	    if (axes.x2.data) {
+	      if (axes.x2.info.orient === 'outer') padding.top += axes.x2.info.axisBox.height;
+	      if (axes.x2.info.labelOrient1 === 'outer') padding.top += axes.x2.info.labelBox.height;
+	    };
+
+	    if (axes.y.data) {
+	      if (axes.y.info.orient === 'outer') padding.left += axes.y.info.axisBox.width;
+	      if (axes.y.info.labelOrient1 === 'outer') padding.left += axes.y.info.labelBox.height;
+	    };
+
+	    if (axes.y2.data) {
+	      if (axes.y2.info.orient === 'outer') padding.right += axes.y2.info.axisBox.width;
+	      if (axes.y2.info.labelOrient1 === 'outer') padding.right += axes.y2.info.labelBox.height + labelPad;
+	    };
+
+	    padding.top = Math.max(padding.top, 10);
+	    padding.bottom = Math.max(padding.bottom, 10);
+	    padding.left = Math.max(padding.left, 10);
+	    padding.right = Math.max(padding.right, 10);
+
+	    return padding;
+	  }
+
+	  function wrapTicks(el, axis) {
+	    if (!axis.data) return;
+	    var length = axis.info.wrapLength,
+	        anchor = axis.info.wrapAnchor;
+	    el.selectAll('.tick text').each(function () {
+	      var tick = d3.select(this);
+	      if (tick.html().indexOf('tspan') === -1) this.__storeText__ = tick.text();
+	      tick.text('');
+	    }).call(textWrap, function () {
+	      return this.__storeText__;
+	    }, length, anchor);
 	  }
 
 	  // create padding from number or object
@@ -2049,8 +2180,7 @@
 
 	  // create margin same as padding but default as 0
 	  function makeMargin(m) {
-	    m = m || 0;
-	    return makePadding(m);
+	    return makePadding(m || 0);
 	  }
 	};
 
@@ -2767,7 +2897,10 @@
 	      graph = graphs[graphName] = { interface: {}, config: {} };
 	      var graphModel = base(graph.interface, graph.config);
 
-	      graphModel.addProp('data', []).addMethod('addPoint', function (p) {
+	      graphModel.addProp('data', []).addMethod('clear', function () {
+	        graph.config.data = [];
+	        return graph.interface;
+	      }).addMethod('addPoint', function (p) {
 	        graph.config.data.push(p);
 	        return graph.interface;
 	      }).addPropFunctor('x', null).addPropFunctor('y', null).addPropFunctor('color', null).addPropFunctor('row', null);

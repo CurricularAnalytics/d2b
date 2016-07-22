@@ -34,9 +34,20 @@
       .attr('height', height)
       .attr('opacity', 0);
 
+  var tooltip = d2b.tooltipAxis()
+      // .tracker(svg)
+      .trackX(true)
+      .trackY(false)
+      .threshold(50)
+      .svgContainer(svgContainer)
+      .size({width: width, height: height})
+      .title(function (d) {return d[0].x;})
+      .row(function (d) {return d.y;});
+
   var data = [
     {
       label: 'Bar One',
+      tooltipGraph: tooltip.graph('Bar', 1),
       values: [
         {x: 10, y: 25},
         {x: 20, y: 15},
@@ -48,6 +59,7 @@
     },
     {
       label: 'Bar Two',
+      tooltipGraph: tooltip.graph('Bar', 2),
       values: [
         {x: 10, y: 20},
         {x: 20, y: 15},
@@ -59,6 +71,7 @@
     },
     {
       label: 'Bar Three',
+      tooltipGraph: tooltip.graph('Bar', 3),
       values: [
         {x: 10, y: 20},
         {x: 20, y: 15},
@@ -69,13 +82,6 @@
       ]
     }
   ];
-
-  data.tooltip = d2b.tooltipAxis()
-      .tracker(svg)
-      .svgContainer(svgContainer)
-      .size({width: width, height: height})
-      .title(function (d) {return d[0].x;})
-      .row(function (d) {return d.y;});
 
   var bars = svg.append('g')
       .datum(data)

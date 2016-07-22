@@ -11,10 +11,6 @@ export default function () {
   const area = function (context) {
     const selection = context.selection? context.selection() : context;
 
-    selection.each(d => {
-      // stackNest.entries(d).forEach(sg => stacker(sg.values))
-    });
-
     const graph = selection.selectAll('.d2b-area-graph').data(d => d, $$.key);
 
     const graphEnter = graph.enter().append('g')
@@ -35,11 +31,6 @@ export default function () {
     }
 
     selection.each(function (d, i) {
-      const tooltip = $$.tooltip.call(this, d, i);
-      if (tooltip) tooltip.clear('area');
-      d3.select(this)
-        .selectAll('.d2b-area')
-        .each(function () {this.tooltip = tooltip;});
       stackNest.entries(d).forEach(sg => stacker(sg.values));
     });
 
@@ -51,12 +42,13 @@ export default function () {
           const x = $$.x.call(this, d, i),
                 y = $$.y.call(this, d, i),
                 values = $$.values.call(this, d, i),
-                color = $$.color.call(this, d, i);
+                color = $$.color.call(this, d, i),
+                tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
           let shift = $$.shift.call(this, d, i);
           if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
-          if (this.tooltip) this.tooltip.graph('area', i)
+          if (tooltipGraph) tooltipGraph
             .data(values)
             .x((d, i) => x(d.__x__) + shift)
             .y((d, i) => y(d.__y1__))
@@ -100,7 +92,7 @@ export default function () {
         else $$.y = d;
         return area;
       })
-      .addPropFunctor('tooltip', d => d.tooltip)
+      .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
       .addPropFunctor('shift', null)
       .addPropFunctor('stackBy', null)
       .addPropFunctor('key', d => d.label)

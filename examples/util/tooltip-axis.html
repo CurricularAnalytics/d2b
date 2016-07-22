@@ -73,12 +73,12 @@
 
   // Now that the graphs are setup we can create and configure the tooltip.
   var tooltip = d2b.tooltipAxis()
-      .tracker(svg)
+      // .tracker(svg)
       .title(function (items) {return items[0].x;})
       .x(function (d) {return x(d.x);})
       .y(function (d) {return y(d.y);})
       .svgContainer(svgContainer)
-      .htmlContainer(d3.select('body'))
+      // .htmlContainer(d3.select('body'))
       .size({width: width, height: height})
       .trackX(true)
       .trackY(false);

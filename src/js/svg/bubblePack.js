@@ -33,10 +33,7 @@ export default function () {
     // iterate through each context element
     context.each(function (d, i) {
       const selection = d3.select(this),
-            graph = selection.selectAll('.d2b-bubble-pack-graph'),
-            tooltip = $$.tooltip.call(this, d, i);
-            
-      if (tooltip) tooltip.clear('bubblePack');
+            graph = selection.selectAll('.d2b-bubble-pack-graph');
 
       selection.on('change', function () {
         selection.transition().duration($$.duration).call(bubblePack);
@@ -48,7 +45,8 @@ export default function () {
               x = $$.x.call(this, d, i),
               y = $$.y.call(this, d, i),
               color = $$.color.call(this, d, i),
-              symbol = $$.symbol.call(this, d, i);
+              symbol = $$.symbol.call(this, d, i),
+              tooltipGraph = $$.tooltipGraph.call(this, d, i);
 
         d.values.forEach(compute);
 
@@ -63,8 +61,9 @@ export default function () {
               return $$.psymbol.call(this, dd, ii) || symbol;
             });
 
-        const addTooltipPoint = tooltip?
-            tooltip.graph('bubblePack', i)
+        const addTooltipPoint = tooltipGraph?
+            tooltipGraph
+                .clear()
                 .x((d, i) => x(d.__x__) + shift)
                 .y((d, i) => y(d.__y__))
                 .color((d, i) => $$.pcolor(d, i) || color)
@@ -282,7 +281,7 @@ export default function () {
     })
     .addProp('tendancy', mean)
     .addProp('duration', 250)
-    .addPropFunctor('tooltip', d => d.tooltip)
+    .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
     .addPropFunctor('shift', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)
