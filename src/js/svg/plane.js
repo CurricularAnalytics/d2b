@@ -57,6 +57,9 @@ export default function () {
       planeBox.width = size.width - planeBox.left - planeBox.right;
       planeBox.height = size.height - planeBox.top - planeBox.bottom;
 
+      // store plane box on the node
+      this.planeBox = planeBox;
+
       // position plane
       plane.attr('transform', `translate(${planeBox.left}, ${planeBox.top})`);
 
@@ -97,7 +100,13 @@ export default function () {
     .addPropFunctor('tickSize', 6)
     .addPropFunctor('showGrid', true)
     .addPropFunctor('label', d => d.label)
-    .addPropFunctor('labelOrient', d => d.labelOrient);
+    .addPropFunctor('labelOrient', d => d.labelOrient)
+    // other methods
+    .addMethod('computedSize', (_) => {
+      const node = (_.node)? _.node() : _;
+      if (!node) return {width: 0, height: 0};
+      return node.planeBox;
+    });
 
   return plane;
 
@@ -157,7 +166,6 @@ export default function () {
 
     axis.enter
       .call(axis.info.axis)
-      .call(wrapTicks, axis)
       .attr('transform', `translate(${x}, ${y})`);
     axis.update
       .call(axis.info.axis)
@@ -371,10 +379,10 @@ export default function () {
     el.selectAll('.tick text')
       .each(function () {
         const tick = d3.select(this);
-        if (tick.html().indexOf('tspan') === -1) this.__storeText__ = tick.text();
+        if (tick.html().indexOf('tspan') === -1) this.storeText = tick.text();
         tick.text('');
       })
-      .call(textWrap, function () { return this.__storeText__; }, length, anchor);
+      .call(textWrap, function () { return this.storeText; }, length, anchor);
   }
 
   // create padding from number or object

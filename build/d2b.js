@@ -523,23 +523,26 @@
 	  var legend = function legend(context) {
 	    context.each(function (data, index) {
 	      var selection = d3.select(this),
+	          itemSize = $$.itemSize.call(this, data, index),
 	          size = $$.size.call(this, data, index),
-	          maxSize = $$.maxSize.call(this, data, index),
-	          orient = $$.orient.call(this, data, index),
+	          orient = $$.orient.call(this, data, index).split(' '),
+	          orient1 = orient[0],
 	          maxTextLength = $$.maxTextLength.call(this, data, index),
 	          items = $$.items.call(this, data, index);
 
 	      // Set point size and stroke width for.
-	      point$$.size(1.5 * Math.pow(size / 2, 2)).strokeWidth(size * 0.1);
+	      point$$.size(1.5 * Math.pow(itemSize / 2, 2)).strokeWidth(itemSize * 0.1);
 
 	      // enter d2b-legend container
-	      var g = selection.selectAll('.d2b-legend').data([items]);
-	      g = g.merge(g.enter().append('g').attr('class', 'd2b-legend'));
+	      var g = selection.selectAll('.d2b-legend').data([items]),
+	          gEnter = g.enter().append('g').attr('class', 'd2b-legend');
+	      g = g.merge(gEnter);
 
 	      // enter d2b-legend-items
 	      var item = g.selectAll('.d2b-legend-item').data(function (d) {
 	        return d;
 	      }, $$.key);
+
 	      var itemEnter = item.enter().append('g').attr('class', 'd2b-legend-item').style('opacity', 0);
 	      itemEnter.append('g').append('text');
 
@@ -557,10 +560,10 @@
 	      selection.call(bindEvents, index);
 
 	      // select item wrapper
-	      var wrap = item.select('g').attr('transform', 'translate(' + size / 2 + ', ' + size / 2 + ')');
+	      var wrap = item.select('g').attr('transform', 'translate(' + itemSize / 2 + ', ' + itemSize / 2 + ')');
 
 	      // select item text
-	      var text = item.select('text').attr('transform', 'translate(' + size / 1.5 + ', ' + size / 3 + ')').style('font-size', size + 'px').call(textWrap, $$.label, maxTextLength);
+	      var text = item.select('text').attr('transform', 'translate(' + itemSize / 1.5 + ', ' + itemSize / 3 + ')').style('font-size', itemSize + 'px').call(textWrap, $$.label, maxTextLength);
 
 	      // init transitions if context is a transition
 	      if (context.selection) {
@@ -568,6 +571,7 @@
 	        item = item.transition(context);
 	        wrap = wrap.transition(context);
 	        text = text.transition(context);
+	        g = g.transition(context);
 	      }
 
 	      // remove exiting items
@@ -581,22 +585,31 @@
 	      text.each(function () {
 	        maxWidth = Math.max(maxWidth, this.getBBox().width);
 	      });
-	      maxWidth += size;
+	      maxWidth += itemSize;
 
 	      // inital item padding
-	      var pad = { x: size, y: 5 };
+	      var pad = { x: itemSize, y: 5 };
 
 	      // entering items will be positioned immediately
-	      itemEnter.call(position[orient], this, pad, size, maxSize, maxWidth);
+	      itemEnter.call(positionItems[orient1], {}, pad, itemSize, size, maxWidth);
 
-	      // Initialize computed dimensions of the legend to 0. These are attached
-	      // as attributes to the legend selection node. They can be used to
-	      // reposition the legend accordingly.
-	      this.computedWidth = 0;
-	      this.computedHeight = 0;
+	      // Initialize computed box dimensions of the legend to 0. These are
+	      // attached as attributes to the legend selection node.
+	      this.__box__ = {
+	        width: 0,
+	        height: 0,
+	        top: 0,
+	        left: 0,
+	        right: 0,
+	        bottom: 0
+	      };
 
 	      // update item position and opacity
-	      item.style('opacity', 1).call(position[orient], this, pad, size, maxSize, maxWidth);
+	      item.style('opacity', 1).call(positionItems[orient1], this.__box__, pad, itemSize, size, maxWidth);
+
+	      // postiion legend
+	      gEnter.call(positionLegend, this.__box__, size, orient);
+	      g.call(positionLegend, this.__box__, size, orient);
 	    });
 
 	    return legend;
@@ -670,57 +683,94 @@
 	    return d.__empty__;
 	  });
 
+	  // Position legend according the the box width/height
+	  function positionLegend(ctx, box, size, orient) {
+	    var x = 0,
+	        y = 0;
+	    switch (orient[1]) {
+	      case 'center':
+	      case 'middle':
+	        y = size.height / 2 - box.height / 2;
+	        break;
+	      case 'bottom':
+	        y = size.height - box.height;
+	        break;
+	      case 'top':
+	      default:
+	        y = 0;
+	    }
+	    switch (orient[2]) {
+	      case 'center':
+	      case 'middle':
+	        x = size.width / 2 - box.width / 2;
+	        break;
+	      case 'right':
+	        x = size.width - box.width;
+	        break;
+	      case 'left':
+	      default:
+	        x = 0;
+	    }
+	    box.left = x;
+	    box.right = size.width - x + box.width;
+	    box.top = y;
+	    box.bottom = size.height - y + box.height;
+
+	    ctx.attr('transform', 'translate(' + x + ', ' + y + ')');
+	  }
+
 	  // Position legend items either horizontally or vertically.
-	  var position = {
-	    // transition - d3 transition for legend items that need to be positioned
+	  var positionItems = {
+	    // ctx - d3 context for legend items that need to be positioned
 	    // legendNode - svg node for the current legend (to set compute dimensions)
 	    // pad - item padding
-	    // size - legend 'size', usually the height of each legend item
-	    // maxSize - object with 'width' and 'height' attributes to bound either the vertical or horizontal legend
+	    // itemSize - legend 'itemSize', usually the height of each legend item
+	    // size - object with 'width' and 'height' attributes to bound either the vertical or horizontal legend
 	    // maxWidth - maximum width of all legend items
-	    horizontal: function horizontal(transition, legendNode, pad, size, maxSize, maxWidth) {
+	    horizontal: function horizontal(ctx, legendBox, pad, itemSize, size, maxWidth) {
 	      var x = 0,
 	          y = 0,
 	          maxHeight = 0;
-	      transition.attr('transform', function () {
+
+	      ctx.attr('transform', function () {
 	        var el = d3.select(this),
-	            boxHeight = size * el.selectAll('tspan').size(),
+	            boxHeight = itemSize * el.selectAll('tspan').size(),
 	            boxWidth = el.select('text').node().getBBox().width;
 
-	        if (x + maxWidth > maxSize.width) {
+	        if (x + maxWidth > size.width) {
 	          x = 0;
 	          y += maxHeight + pad.y;
 	          maxHeight = 0;
 	        }
 	        var translate = 'translate(' + x + ', ' + y + ')';
 	        maxHeight = Math.max(maxHeight, boxHeight);
-	        legendNode.computedWidth = Math.max(legendNode.computedWidth, x + boxWidth + 1.5 * size);
+	        legendBox.width = Math.max(legendBox.width, x + boxWidth + 1.5 * itemSize);
 	        x += maxWidth + pad.x;
 	        return translate;
 	      });
-	      legendNode.computedHeight = y + maxHeight;
+	      legendBox.height = y + maxHeight;
 	    },
-	    vertical: function vertical(transition, legendNode, pad, size, maxSize) {
+	    vertical: function vertical(ctx, legendBox, pad, itemSize, size) {
 	      var x = 0,
 	          y = 0,
 	          maxWidth = 0;
-	      transition.attr('transform', function () {
+	      ctx.attr('transform', function () {
 	        var el = d3.select(this),
-	            boxHeight = size * el.selectAll('tspan').size(),
+	            boxHeight = itemSize * el.selectAll('tspan').size(),
 	            boxWidth = el.select('text').node().getBBox().width;
 
-	        if (y + boxHeight > maxSize.height) {
-	          x += maxWidth + pad.x + size;
+	        if (y + boxHeight > size.height) {
+	          x += maxWidth + pad.x + itemSize;
 	          y = 0;
 	          maxWidth = 0;
 	        }
 	        var translate = 'translate(' + x + ', ' + y + ')';
 	        maxWidth = Math.max(maxWidth, boxWidth);
-	        legendNode.computedHeight = Math.max(legendNode.computedHeight, y + boxHeight);
+	        legendBox.height = Math.max(legendBox.height, y + boxHeight);
 	        y += boxHeight + pad.y;
 	        return translate;
 	      });
-	      legendNode.computedWidth = x + maxWidth + 1.5 * size;
+	      legendBox.width = x + maxWidth + 1.5 * itemSize;
 	    }
 	  };
 
@@ -729,7 +779,7 @@
 	  // legend level functors
 	  .addPropFunctor('items', function (d) {
 	    return d;
-	  }).addPropFunctor('size', 12).addPropFunctor('maxSize', { width: 960, height: 500 }).addPropFunctor('orient', 'vertical').addPropFunctor('maxTextLength', Infinity).addPropFunctor('allowEmptied', false)
+	  }).addPropFunctor('itemSize', 12).addPropFunctor('size', { width: 960, height: 500 }).addPropFunctor('orient', 'vertical center right').addPropFunctor('maxTextLength', Infinity).addPropFunctor('allowEmptied', false)
 	  // legend item level functors
 	  .addPropFunctor('key', function (d, i) {
 	    return i;
@@ -746,13 +796,13 @@
 	  }, null, function (_) {
 	    return point$$.fill(_);
 	  })
-	  // Method to get the computed size of a specific legend container. This
+	  // Method to get the computed box of a specific legend container. This
 	  // method should be used after the legend has been rendered. Either the
 	  // legend SVG node or a d3 selection of the node may be specified.
-	  .addMethod('computedSize', function (_) {
+	  .addMethod('box', function (_) {
 	    var node = _.node ? _.node() : _;
-	    if (!node) return { width: 0, height: 0 };
-	    return { width: node.computedWidth, height: node.computedHeight };
+	    if (!node) return null;
+	    return node.__box__;
 	  });
 
 	  return legend;
@@ -1891,6 +1941,9 @@
 	      planeBox.width = size.width - planeBox.left - planeBox.right;
 	      planeBox.height = size.height - planeBox.top - planeBox.bottom;
 
+	      // store plane box on the node
+	      this.planeBox = planeBox;
+
 	      // position plane
 	      plane.attr('transform', 'translate(' + planeBox.left + ', ' + planeBox.top + ')');
 
@@ -1936,6 +1989,12 @@
 	    return d.label;
 	  }).addPropFunctor('labelOrient', function (d) {
 	    return d.labelOrient;
+	  })
+	  // other methods
+	  .addMethod('computedSize', function (_) {
+	    var node = _.node ? _.node() : _;
+	    if (!node) return { width: 0, height: 0 };
+	    return node.planeBox;
 	  });
 
 	  return plane;
@@ -1993,7 +2052,7 @@
 	    setAxisTickSize(axis);
 	    setAxisRange(axis, extent);
 
-	    axis.enter.call(axis.info.axis).call(wrapTicks, axis).attr('transform', 'translate(' + x + ', ' + y + ')');
+	    axis.enter.call(axis.info.axis).attr('transform', 'translate(' + x + ', ' + y + ')');
 	    axis.update.call(axis.info.axis).attr('transform', 'translate(' + x + ', ' + y + ')');
 
 	    axis.svg.call(wrapTicks, axis).on('end', function () {
@@ -2166,10 +2225,10 @@
 	        anchor = axis.info.wrapAnchor;
 	    el.selectAll('.tick text').each(function () {
 	      var tick = d3.select(this);
-	      if (tick.html().indexOf('tspan') === -1) this.__storeText__ = tick.text();
+	      if (tick.html().indexOf('tspan') === -1) this.storeText = tick.text();
 	      tick.text('');
 	    }).call(textWrap, function () {
-	      return this.__storeText__;
+	      return this.storeText;
 	    }, length, anchor);
 	  }
 
@@ -2217,61 +2276,7 @@
 	  // Settup base model to have generic chart properties.
 	  var model = base(chart, $$).addProp('legend', legend()).addPropFunctor('size', null).addPropFunctor('padding', 0)
 	  // duration is used if the chart needs an internal update
-	  .addPropFunctor('duration', 250).addPropFunctor('legendHidden', false).addPropFunctor('legendAt', 'center right');
-
-	  // Position the legend either by the specified center coordinates or by
-	  // computing them dynamicaly from the chart size, legend size and legend
-	  // orientation.
-	  function positionLegend(chartLegend, enterLegend, width, height, legendOrient, legendSize, tools) {
-	    var x = undefined,
-	        y = undefined;
-	    var at = tools.prop($$.legendAt).split(" ");
-	    at = { x: at[1], y: at[0] };
-
-	    switch (at.x) {
-	      case 'left':
-	        x = 0;
-	        break;
-	      case 'center':
-	        x = width / 2 - legendSize.width / 2;
-	        break;
-	      default:
-	        // right
-	        x = width - legendSize.width;
-	    }
-
-	    switch (at.y) {
-	      case 'bottom':
-	        y = height - legendSize.height;
-	        break;
-	      case 'center':
-	        y = height / 2 - legendSize.height / 2;
-	        break;
-	      default:
-	        // top
-	        y = 0;
-	    }
-
-	    // add chart margin to allow for horizontal or vertical legend
-	    // except in the case of a centered legend
-	    var pad = 10;
-	    var spacing = { left: 0, top: 0, bottom: 0, right: 0 };
-	    legendSize.height += pad;
-	    legendSize.width += pad;
-	    if (at.x !== 'center' || at.y !== 'center') {
-	      if (legendOrient === 'horizontal') {
-	        if (at.y === 'top') spacing.top += legendSize.height;else if (at.y === 'bottom') spacing.bottom += legendSize.height;
-	      } else {
-	        if (at.x === 'left') spacing.left += legendSize.width;else if (at.x === 'right') spacing.right += legendSize.width;
-	      }
-	    }
-
-	    // translate the legend to the proper coordinates
-	    enterLegend.attr('transform', 'translate(' + x + ', ' + y + ')');
-	    chartLegend.attr('transform', 'translate(' + x + ', ' + y + ')');
-
-	    return spacing;
-	  }
+	  .addPropFunctor('duration', 250).addPropFunctor('legendHidden', false);
 
 	  // General tools used in generating the chart. These are helpful in the
 	  // individual charts when the original context is no longer available. These
@@ -2375,18 +2380,20 @@
 	      exitLegend = exitLegend.transition(context).style('opacity', 0);
 	    }
 
-	    chartLegend.style('opacity', 1).call($$.legend.maxSize({ width: width, height: height }));
+	    chartLegend.style('opacity', 1).call($$.legend.size({ width: width, height: height }));
 
 	    exitLegend.remove();
 
-	    // position legend and account for legend spacing
+	    // account for legend spacing
 	    var legendSpacing = { left: 0, top: 0 };
 	    if (chartLegend.size()) {
-	      var legendSize = $$.legend.computedSize(chartLegend);
-	      var legendOrient = $$.legend.orient().call(chartLegend.node(), datum, index);
-	      legendSpacing = positionLegend(chartLegend, enterLegend, width, height, legendOrient, legendSize, tools);
-	      width -= legendSpacing.left + legendSpacing.right;
-	      height -= legendSpacing.top + legendSpacing.bottom;
+	      var legendSize = $$.legend.box(chartLegend),
+	          legendOrient = $$.legend.orient().call(chartLegend.node(), datum, 0).split(' '),
+	          pad = 10;
+
+	      if (legendOrient[1] === 'top') legendSpacing.top = legendSize.height + pad;
+	      if (legendOrient[2] === 'left') legendSpacing.left = legendSize.width + pad;
+	      if (legendOrient[0] === 'vertical') width -= legendSize.width + pad;else height -= legendSize.height + pad;
 	    }
 
 	    // enter update exit main chart container

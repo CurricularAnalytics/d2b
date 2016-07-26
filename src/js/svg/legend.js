@@ -9,23 +9,26 @@ export default function () {
   const legend = function (context) {
     context.each(function (data, index) {
       const selection = d3.select(this),
+            itemSize = $$.itemSize.call(this, data, index),
             size = $$.size.call(this, data, index),
-            maxSize = $$.maxSize.call(this, data, index),
-            orient = $$.orient.call(this, data, index),
+            orient = $$.orient.call(this, data, index).split(' '),
+            orient1 = orient[0],
             maxTextLength = $$.maxTextLength.call(this, data, index),
             items = $$.items.call(this, data, index);
 
       // Set point size and stroke width for.
       point
-          .size(1.5 * Math.pow(size / 2, 2))
-          .strokeWidth(size * 0.1);
+          .size(1.5 * Math.pow(itemSize / 2, 2))
+          .strokeWidth(itemSize * 0.1);
 
       // enter d2b-legend container
-      let g = selection.selectAll('.d2b-legend').data([items]);
-      g = g.merge(g.enter().append('g').attr('class', 'd2b-legend'));
+      let g = selection.selectAll('.d2b-legend').data([items]),
+          gEnter = g.enter().append('g').attr('class', 'd2b-legend');
+      g = g.merge(gEnter);
 
       // enter d2b-legend-items
       let item = g.selectAll('.d2b-legend-item').data(d => d, $$.key);
+
       let itemEnter = item.enter()
         .append('g')
           .attr('class', 'd2b-legend-item')
@@ -48,12 +51,12 @@ export default function () {
 
       // select item wrapper
       let wrap = item.select('g')
-          .attr('transform', `translate(${size / 2}, ${size / 2})`);
+          .attr('transform', `translate(${itemSize / 2}, ${itemSize / 2})`);
 
       // select item text
       let text = item.select('text')
-          .attr('transform', `translate(${size / 1.5}, ${size / 3})`)
-          .style('font-size', `${size}px`)
+          .attr('transform', `translate(${itemSize / 1.5}, ${itemSize / 3})`)
+          .style('font-size', `${itemSize}px`)
           .call(textWrap, $$.label, maxTextLength);
 
       // init transitions if context is a transition
@@ -62,6 +65,7 @@ export default function () {
         item = item.transition(context);
         wrap = wrap.transition(context);
         text = text.transition(context);
+        g = g.transition(context);
       }
 
       // remove exiting items
@@ -75,28 +79,39 @@ export default function () {
       text.each(function () {
         maxWidth = Math.max(maxWidth, this.getBBox().width);
       });
-      maxWidth += size;
+      maxWidth += itemSize;
 
       // inital item padding
-      const pad = {x: size, y: 5};
+      const pad = {x: itemSize, y: 5};
 
       // entering items will be positioned immediately
-      itemEnter.call(position[orient], this, pad, size, maxSize, maxWidth);
+      itemEnter.call(positionItems[orient1], {}, pad, itemSize, size, maxWidth);
 
-      // Initialize computed dimensions of the legend to 0. These are attached
-      // as attributes to the legend selection node. They can be used to
-      // reposition the legend accordingly.
-      this.computedWidth = 0;
-      this.computedHeight = 0;
+      // Initialize computed box dimensions of the legend to 0. These are
+      // attached as attributes to the legend selection node.
+      this.__box__ = {
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      };
 
       // update item position and opacity
       item
           .style('opacity', 1)
-          .call(position[orient], this, pad, size, maxSize, maxWidth);
+          .call(positionItems[orient1], this.__box__, pad, itemSize, size, maxWidth);
+
+      // postiion legend
+      gEnter.call(positionLegend, this.__box__, size, orient);
+      g.call(positionLegend, this.__box__, size, orient);
     });
 
     return legend;
   };
+
+
 
   // Bind events and dispatchers to all legend items within selection. Use the
   // 'd2b-legend' namespace.
@@ -156,55 +171,91 @@ export default function () {
   // Initialize new d2b point.
   const point = svgPoint().empty(d => d.__empty__);
 
+  // Position legend according the the box width/height
+  function positionLegend (ctx, box, size, orient) {
+    let x = 0, y = 0;
+    switch(orient[1]) {
+      case 'center':
+      case 'middle':
+        y = size.height / 2 - box.height / 2;
+        break;
+      case 'bottom':
+        y = size.height - box.height;
+        break;
+      case 'top':
+      default:
+        y = 0;
+    }
+    switch(orient[2]) {
+      case 'center':
+      case 'middle':
+        x = size.width / 2 - box.width / 2;
+        break;
+      case 'right':
+        x = size.width - box.width;
+        break;
+      case 'left':
+      default:
+        x = 0;
+    }
+    box.left = x;
+    box.right = size.width - x + box.width;
+    box.top = y;
+    box.bottom = size.height - y + box.height;
+
+    ctx.attr('transform', `translate(${x}, ${y})`);
+  }
+
   // Position legend items either horizontally or vertically.
-  const position = {
-    // transition - d3 transition for legend items that need to be positioned
+  const positionItems = {
+    // ctx - d3 context for legend items that need to be positioned
     // legendNode - svg node for the current legend (to set compute dimensions)
     // pad - item padding
-    // size - legend 'size', usually the height of each legend item
-    // maxSize - object with 'width' and 'height' attributes to bound either the vertical or horizontal legend
+    // itemSize - legend 'itemSize', usually the height of each legend item
+    // size - object with 'width' and 'height' attributes to bound either the vertical or horizontal legend
     // maxWidth - maximum width of all legend items
-    horizontal: (transition, legendNode, pad, size, maxSize, maxWidth) => {
+    horizontal: (ctx, legendBox, pad, itemSize, size, maxWidth) => {
       let x = 0, y = 0, maxHeight = 0;
-      transition
+
+      ctx
         .attr('transform', function () {
           const el = d3.select(this),
-                boxHeight = size * el.selectAll('tspan').size(),
+                boxHeight = itemSize * el.selectAll('tspan').size(),
                 boxWidth = el.select('text').node().getBBox().width;
 
-          if (x + maxWidth > maxSize.width) {
+          if (x + maxWidth > size.width) {
             x = 0;
             y += maxHeight + pad.y;
             maxHeight = 0;
           }
           const translate = `translate(${x}, ${y})`;
           maxHeight = Math.max(maxHeight, boxHeight);
-          legendNode.computedWidth = Math.max(legendNode.computedWidth, x + boxWidth + 1.5 * size);
+          legendBox.width = Math.max(legendBox.width, x + boxWidth + 1.5 * itemSize);
           x += maxWidth + pad.x;
           return translate;
         });
-      legendNode.computedHeight = y + maxHeight;
+      legendBox.height = y + maxHeight;
     },
-    vertical: (transition, legendNode, pad, size, maxSize) => {
+    vertical: (ctx, legendBox, pad, itemSize, size) => {
       let x = 0, y = 0, maxWidth = 0;
-      transition
+      ctx
         .attr('transform', function () {
           const el = d3.select(this),
-                boxHeight = size * el.selectAll('tspan').size(),
+                boxHeight = itemSize * el.selectAll('tspan').size(),
                 boxWidth = el.select('text').node().getBBox().width;
 
-          if (y + boxHeight > maxSize.height){
-            x += maxWidth + pad.x + size;
+          if (y + boxHeight > size.height){
+            x += maxWidth + pad.x + itemSize;
             y = 0;
             maxWidth = 0;
           }
           const translate = `translate(${x}, ${y})`;
           maxWidth = Math.max(maxWidth, boxWidth);
-          legendNode.computedHeight = Math.max(legendNode.computedHeight, y + boxHeight);
+          legendBox.height = Math.max(legendBox.height, y + boxHeight);
           y += boxHeight + pad.y;
           return translate;
         });
-      legendNode.computedWidth = x + maxWidth + 1.5 * size;
+      legendBox.width = x + maxWidth + 1.5 * itemSize;
     }
   };
 
@@ -212,9 +263,9 @@ export default function () {
   const model = base(legend, $$)
     // legend level functors
     .addPropFunctor('items', d => d)
-    .addPropFunctor('size', 12)
-    .addPropFunctor('maxSize', {width: 960, height: 500})
-    .addPropFunctor('orient', 'vertical')
+    .addPropFunctor('itemSize', 12)
+    .addPropFunctor('size', {width: 960, height: 500})
+    .addPropFunctor('orient', 'vertical center right')
     .addPropFunctor('maxTextLength', Infinity)
     .addPropFunctor('allowEmptied', false)
     // legend item level functors
@@ -226,13 +277,13 @@ export default function () {
     .addPropFunctor('active', false, null, _ => point.active(_) )
     .addPropFunctor('symbol', d3.symbolCircle, null, _ => point.type(_) )
     .addPropFunctor('color', d => color(d.label), null, _ => point.fill(_))
-    // Method to get the computed size of a specific legend container. This
+    // Method to get the computed box of a specific legend container. This
     // method should be used after the legend has been rendered. Either the
     // legend SVG node or a d3 selection of the node may be specified.
-    .addMethod('computedSize', (_) => {
+    .addMethod('box', (_) => {
       const node = (_.node)? _.node() : _;
-      if (!node) return {width: 0, height: 0};
-      return {width: node.computedWidth, height: node.computedHeight};
+      if (!node) return null;
+      return node.__box__;
     });
 
   return legend;

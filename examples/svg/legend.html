@@ -5,7 +5,16 @@
 <link rel="stylesheet" type="text/css" href="../../build/d2b.css" />
 <script src="../../build/d2b.js"></script>
 
-<style>.legend{background: #ddd;}body{font-family: 'Droid Sans';}</style>
+<style>
+	.legend{
+		background: #ddd;
+	}
+	body{
+		margin: 0;
+		padding: 0;
+		font-family: 'Droid Sans';
+	}
+</style>
 
 <body>
 
@@ -29,14 +38,12 @@
 	  ];
 
 		var legend = d2b.legend()
-			.size(16)
+			.itemSize(16)
 			.active(true)
 			.clickable(d => d.clickable)
 			.dblclickable(d => d.dblclickable)
-			// .allowEmptied(false)
 			.maxTextLength(10)
-			// // .duration(500)
-			.orient('horizontal');
+			.orient('vertical center right');
 
 		var legendSvg = d3.select('.legend').datum(data);
 
@@ -44,15 +51,11 @@
 
 		var legendUpdate = function () {
 			var size = maxSize();
-			var transition = legendSvg.transition().call(legend.maxSize(size));
-			var computedSize = legend.computedSize(legendSvg);
-
-			transition
-				.attr('width', computedSize.width)
-				.attr('height', computedSize.height);
-
+			var transition = legendSvg.transition().call(legend.size(size));
+			// var computedSize = legend.computedSize(legendSvg);
+			legendSvg.attr('width', size.width).attr('height', size.height);
 		};
-		// setTimeout(legendUpdate, 1000)
+
 		legendUpdate();
 		window.onresize = legendUpdate;
 

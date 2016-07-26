@@ -36,61 +36,7 @@ export default function (update, $$ = {}) {
     .addPropFunctor('padding', 0)
     // duration is used if the chart needs an internal update
     .addPropFunctor('duration', 250)
-    .addPropFunctor('legendHidden', false)
-    .addPropFunctor('legendAt', 'center right');
-
-  // Position the legend either by the specified center coordinates or by
-  // computing them dynamicaly from the chart size, legend size and legend
-  // orientation.
-  function positionLegend (chartLegend, enterLegend, width, height, legendOrient, legendSize, tools) {
-    let x, y;
-    let at = tools.prop($$.legendAt).split(" ");
-    at = {x: at[1], y: at[0]};
-
-    switch (at.x) {
-      case 'left':
-        x = 0;
-        break;
-      case 'center':
-        x = width / 2 - legendSize.width / 2;
-        break;
-      default: // right
-        x = width - legendSize.width;
-    }
-
-    switch (at.y) {
-      case 'bottom':
-        y = height - legendSize.height;
-        break;
-      case 'center':
-        y = height / 2 - legendSize.height / 2;
-        break;
-      default: // top
-        y = 0;
-    }
-
-    // add chart margin to allow for horizontal or vertical legend
-    // except in the case of a centered legend
-    const pad = 10;
-    const spacing = {left: 0, top: 0, bottom: 0, right: 0};
-    legendSize.height += pad;
-    legendSize.width += pad;
-    if (at.x !== 'center' || at.y !== 'center') {
-      if (legendOrient === 'horizontal') {
-        if (at.y === 'top') spacing.top += legendSize.height;
-        else if (at.y === 'bottom') spacing.bottom += legendSize.height;
-      } else {
-        if (at.x === 'left') spacing.left += legendSize.width;
-        else if (at.x === 'right') spacing.right += legendSize.width;
-      }
-    }
-
-    // translate the legend to the proper coordinates
-    enterLegend.attr('transform', `translate(${x}, ${y})`);
-    chartLegend.attr('transform', `translate(${x}, ${y})`);
-
-    return spacing;
-  }
+    .addPropFunctor('legendHidden', false);
 
   // General tools used in generating the chart. These are helpful in the
   // individual charts when the original context is no longer available. These
@@ -207,18 +153,21 @@ export default function (update, $$ = {}) {
 
     chartLegend
       .style('opacity', 1)
-      .call($$.legend.maxSize({width: width, height: height}));
+      .call($$.legend.size({width: width, height: height}));
 
     exitLegend.remove();
 
-    // position legend and account for legend spacing
-    let legendSpacing = {left: 0, top: 0};
+    // account for legend spacing
+    let legendSpacing = { left: 0, top: 0 };
     if (chartLegend.size()) {
-      const legendSize = $$.legend.computedSize(chartLegend);
-      const legendOrient = $$.legend.orient().call(chartLegend.node(), datum, index);
-      legendSpacing = positionLegend(chartLegend, enterLegend, width, height, legendOrient, legendSize, tools);
-      width -= legendSpacing.left + legendSpacing.right;
-      height -= legendSpacing.top + legendSpacing.bottom;
+      const legendSize = $$.legend.box(chartLegend),
+            legendOrient = $$.legend.orient().call(chartLegend.node(), datum, 0).split(' '),
+            pad = 10;
+
+      if (legendOrient[1] === 'top') legendSpacing.top = legendSize.height + pad;
+      if (legendOrient[2] === 'left') legendSpacing.left = legendSize.width + pad;
+      if (legendOrient[0] === 'vertical') width -= legendSize.width + pad;
+      else height -= legendSize.height + pad;
     }
 
     // enter update exit main chart container
