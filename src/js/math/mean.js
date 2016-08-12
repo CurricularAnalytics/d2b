@@ -1,7 +1,7 @@
 import {default as functor} from '../core/functor.js';
 import {default as number} from '../core/number.js';
 
-export default function (arr, value, weight) {
+function mean(arr, value, weight) {
   var totalWeight = 0, contribution = 0;
   weight = functor(weight || 1);
   value = functor(value || function(d){return d;});
@@ -15,4 +15,8 @@ export default function (arr, value, weight) {
       contribution += v * w;
     });
   if(arr.length && totalWeight) return contribution / totalWeight;
-}
+};
+
+mean.tendancy = 'mean';
+
+export default mean;

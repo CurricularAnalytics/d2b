@@ -33,7 +33,18 @@ export default function (base = {}, $$ = {}, protect) {
       if (!arguments.length) return $$[prop];
       const old = $$[prop];
       $$[prop] = functor(_);
-      if (cb) cb(_, old);
+      if (cb) cb($$[prop], old);
+      return base;
+    }
+  };
+
+  const scaleFnFunctor = (prop, cb) => {
+    return function (_) {
+      if (!arguments.length) return $$[prop];
+      const old = $$[prop];
+      if (_ && _.domain) $$[prop] = () => _;
+      else $$[prop] = functor(_);
+      if (cb) cb($$[prop], old);
       return base;
     }
   };
@@ -74,10 +85,9 @@ export default function (base = {}, $$ = {}, protect) {
       // allow for null:default 'fn' in order to access callback
       fn = fn || propFn(prop, cb);
 
-      $$[prop] = value;
-      base[prop] = fn;
+      fn(value)
 
-      if (cb) cb(value);
+      base[prop] = fn;
 
       return model;
     },
@@ -132,13 +142,24 @@ export default function (base = {}, $$ = {}, protect) {
       }
       // allow for null:default 'fn' in order to access callback
       fn = fn || propFnFunctor(prop, cb);
-      value = functor(value);
-      if (cb) cb(value);
 
-      $$[prop] = value;
+      fn(value);
+
       base[prop] = fn;
 
       return model;
+    },
+    /**
+      * model.addScaleFunctor allows new scale functor properties to be added
+      * to the model and base interface. If the property is already defined
+      * an error will be raised.
+      * @param {Number} prop    - property key
+      * @param {Number} value   - default value to set
+      * @param {Number} fn      - function as new prop getter/setter
+      * @return {Object} model  - returns model to allow for method chaining
+      */
+    addScaleFunctor: (prop, value = null, fn = scaleFnFunctor(prop), cb) => {
+      return model.addProp(prop, value, fn, cb);
     },
     /**
       * model.addDispatch allows dispatcher to be added to the model and base

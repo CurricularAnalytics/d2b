@@ -17,7 +17,7 @@
   var y = d3.scaleLinear().domain([100, 0]).range([0, 500]);
   var yAxis = d3.axisRight().scale(y);
 
-	var area = d2b.svgArea().x(x).y(y);
+	var area = d2b.svgArea().x(x).y(y).stackBy(true);
 
   var dataOne = [
     {
@@ -74,6 +74,8 @@
   update(dataOne)
 
   function update (data) {
+    // console.log(area.getComputedGraphs(areaSvg.datum(data)))
+    console.log(area.getVisiblePoints(areaSvg.datum(data)))
     areaSvg.datum(data).transition().call(area);
   }
 

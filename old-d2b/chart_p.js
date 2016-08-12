@@ -14,12 +14,12 @@ import {default as legend} from '../svg/legend.js';
   * @return {Object} model - object with model properties and methods
   */
 
-export default function (update, legendConfig = () => {}, $$ = {}) {
+export default function (update, buildChartData = () => {}, legendConfig = () => {}, $$ = {}) {
 
   // Chart main update function. Usually used as a call from a d3 selection.
   // e.g. d3.select('div.chart').call(d2b.chartPie())
   const chart = (context) => {
-    // Iterate through the context and call chart.update with each element.
+    // Iterate through the context and build each element.
     // If context is a transition this transition will propagate to each of
     // the chart elements.
     context.each(function (d, i) {
@@ -31,7 +31,7 @@ export default function (update, legendConfig = () => {}, $$ = {}) {
 
   // Settup base model to have generic chart properties.
   const model = base(chart, $$)
-    .addProp('legend', legend())
+    .addProp('legend', legend(), null, legendConfig)
     .addPropFunctor('size', null)
     .addPropFunctor('padding', 0)
     // duration is used if the chart needs an internal update
@@ -42,37 +42,19 @@ export default function (update, legendConfig = () => {}, $$ = {}) {
   // individual charts when the original context is no longer available. These
   // methods ensure that the chart's context is always the first argument for
   // accessor functions or event listeners.
-  function newTools (context, index) {
+  function newTools (context, data, index) {
     const selection = context.selection? context.selection() : context;
-    const tools = {
-      // retrieve a chart property e.g. `tools.prop($$.size)` or with extra
-      // arguments `tools.prop($$.radius, this, [width, height])`
-      prop: (prop, inst, args = []) => {
-        inst = inst || context;
-        args.unshift(context);
-        return (typeof prop === 'function')? prop.apply(inst, args) : prop;
-      },
-      // dispatch a chart event e.g. `tools.dispatch("beforeUpdate")` or with
-      // extra arguments `tools.dispatch("barClick", this, [d, i])`
-      dispatch: (key, inst, args = []) => {
-        inst = inst || context;
-        args.unshift(context);
-        return $$.dispatch.apply(key, inst, args);
-      },
-      // chart selections
+    return {
       context: context,
       selection: selection,
-      // trigger an update for the context under the 'd2b-chart' transition space
       update: function () {
         const newContext = (context.selection? context.selection() : context)
           .transition()
-            .duration(tools.prop($$.duration));
+            .duration(data.duration);
 
         build(newContext, index);
       }
     };
-
-    return tools;
   }
 
   // Padding can either be a constant or an object containing any of the
@@ -87,25 +69,51 @@ export default function (update, legendConfig = () => {}, $$ = {}) {
     return padding;
   }
 
+  // Build a reconstruction of the datum to be used throughout the chart nodes
+  function buildData(d, i) {
+    const data = {
+      data: d,
+      legend: $$.legend,
+      size: $$.size(d, i),
+      padding: $$.padding(d, i),
+      legendHidden: $$.legendHidden(d, i),
+      duration: $$.duration(d, i)
+    };
+
+    const chartData = buildChartData(d, i) || {};
+
+    for (let prop in data) {
+      if (data.hasOwnProperty(prop)) {
+        if (prop in chartData) console.error(`Cannot redefine chart data
+                                              property '${prop}'. Please use a
+                                              different property name.`);
+        else chartData[prop] = data[prop];
+      }
+    }
+
+    return chartData;
+  }
+
   // Main build function to build the chart components and call the 'update'
   // function for the specific chart.
   function build (context, index) {
-    legendConfig($$.legend);
-
-    const tools = newTools(context, index);
 
     const selection = (context.selection)? context.selection() : context,
-          datum = selection.datum(),
-          size = tools.prop($$.size),
-          padding = cleanPadding(tools.prop($$.padding)),
-          translate = `translate(${padding.left}, ${padding.top})`;
+          datum = selection.datum();
 
+    const data = buildData(datum, index);
+
+    const tools = newTools(context, data, index),
+          padding = cleanPadding(data.padding),
+          legend = data.legend,
+          size = data.size,
+          translate = `translate(${padding.left}, ${padding.top})`;
 
     // trigger before update event
     selection.dispatch('beforeUpdate');
 
     // enter d2b-svg and d2b-group
-    let svg = selection.selectAll('.d2b-svg').data(d => [d]);
+    let svg = selection.selectAll('.d2b-svg').data([data]);
     let enterSvg = svg.enter().append('svg').attr('class', 'd2b-svg');
 
     // setup box attributes
@@ -135,15 +143,9 @@ export default function (update, legendConfig = () => {}, $$ = {}) {
     width -= padding.top + padding.bottom;
     height -= padding.left + padding.right;
 
-    // enter main container
-    let main = group.selectAll('.d2b-chart-main').data(d => [d]);
-    let mainEnter = main.enter()
-      .append('g')
-        .attr('class', 'd2b-chart-main')
-
     // enter update exit position d2b-chart-legend
     let chartLegend = group.selectAll('.d2b-chart-legend')
-        .data((tools.prop($$.legendHidden))? [] : [datum]);
+        .data(data.legendHidden? [] : [data]);
 
     let enterLegend = chartLegend.enter()
       .append('g')
@@ -152,7 +154,15 @@ export default function (update, legendConfig = () => {}, $$ = {}) {
 
     let exitLegend = chartLegend.exit();
 
-    chartLegend = chartLegend.merge(enterLegend);
+    chartLegend = chartLegend.merge(enterLegend)
+
+    chartLegend
+      .on('change', d  => {
+        selection.selectAll('.d2b-legend-item').each(d => {
+          d.data.hidden = d.__empty__;
+        })
+        tools.update();
+      });
 
     if (context !== selection) {
       chartLegend = chartLegend.transition(context);
@@ -161,15 +171,15 @@ export default function (update, legendConfig = () => {}, $$ = {}) {
 
     chartLegend
       .style('opacity', 1)
-      .call($$.legend.size({width: width, height: height}));
+      .call(legend.size({width: width, height: height}));
 
     exitLegend.remove();
 
     // account for legend spacing
     let legendSpacing = { left: 0, top: 0 };
     if (chartLegend.size()) {
-      const legendSize = $$.legend.box(chartLegend),
-            legendOrient = $$.legend.orient().call(chartLegend.node(), datum, 0).split(' '),
+      const legendSize = legend.box(chartLegend),
+            legendOrient = legend.orient()(data).split(' '),
             pad = 10;
 
       if (legendOrient[1] === 'top') legendSpacing.top = legendSize.height + pad;
@@ -177,16 +187,23 @@ export default function (update, legendConfig = () => {}, $$ = {}) {
       if (legendOrient[0] === 'vertical') width -= legendSize.width + pad;
       else height -= legendSize.height + pad;
     }
-
     // enter update exit main chart container
     const mainTranslate = `translate(${legendSpacing.left}, ${legendSpacing.top})`;
-    mainEnter.attr('transform', mainTranslate);
 
-    main = context.select('.d2b-chart-main').attr('transform', mainTranslate);
+    let main = group.selectAll('.d2b-chart-main').data([data]);
+
+    let mainEnter = main.enter()
+      .append('g')
+        .attr('class', 'd2b-chart-main')
+        .attr('transform', mainTranslate);
+
+    main = main.merge(mainEnter);
+
+    if (context !== selection) main = main.transition(context).attr('transform', mainTranslate);
 
     // Update the chart with the main context (selection or transition),
     // inner width, inner height, and a tools object.
-    update(main, index, width, height, tools);
+    update(main, data, index, width, height, tools);
 
     // trigger after update event
     selection.dispatch('afterUpdate');

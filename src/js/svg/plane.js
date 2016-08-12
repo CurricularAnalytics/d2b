@@ -58,10 +58,13 @@ export default function () {
       planeBox.height = size.height - planeBox.top - planeBox.bottom;
 
       // store plane box on the node
-      this.planeBox = planeBox;
+      this.__box__ = planeBox;
+
+      if (transCtx) planeUpdate = planeUpdate.transition(transCtx);
 
       // position plane
-      plane.attr('transform', `translate(${planeBox.left}, ${planeBox.top})`);
+      planeEnter.attr('transform', `translate(${planeBox.left}, ${planeBox.top})`);
+      planeUpdate.attr('transform', `translate(${planeBox.left}, ${planeBox.top})`);
 
       updateAxis (axes.x, planeBox.width, 0, planeBox.height);
       updateAxis (axes.x2, planeBox.width, 0, 0);
@@ -95,17 +98,19 @@ export default function () {
     .addPropFunctor('y2', d => d.y2)
     // axis level functors
     .addPropFunctor('axis', d => d.axis)
-    .addPropFunctor('orient', d => d.orient)
-    .addPropFunctor('wrapLength', Infinity)
-    .addPropFunctor('tickSize', 6)
-    .addPropFunctor('showGrid', true)
+    .addPropFunctor('orient', d => d.orient || 'outer')
+    .addPropFunctor('wrapLength', d => d.wrapLength || Infinity)
+    .addPropFunctor('tickSize', d => d.tickSize || 6)
+    .addPropFunctor('showGrid', d => d.showGrid!==null && d.showGrid!==undefined? d.showGrid : true)
     .addPropFunctor('label', d => d.label)
-    .addPropFunctor('labelOrient', d => d.labelOrient)
-    // other methods
-    .addMethod('computedSize', (_) => {
+    .addPropFunctor('labelOrient', d => d.labelOrient || 'outer center')
+    // Method to get the computed box of a specific legend container. This
+    // method should be used after the plane has been rendered. Either the
+    // legend SVG node or a d3 selection of the node may be specified.
+    .addMethod('box', (_) => {
       const node = (_.node)? _.node() : _;
-      if (!node) return {width: 0, height: 0};
-      return node.planeBox;
+      if (!node) return null;
+      return node.__box__;
     });
 
   return plane;
@@ -241,10 +246,10 @@ export default function () {
     const info = axis.info = {};
 
     info.axis = $$.axis(d, i);
-    info.orient = $$.orient(d, i) || 'outer';
-    info.wrapLength = $$.wrapLength(d, i) || Infinity;
+    info.orient = $$.orient(d, i);
+    info.wrapLength = $$.wrapLength(d, i);
     info.label = $$.label(d, i) || '';
-    info.labelOrient = $$.labelOrient(d, i) || 'outer center';
+    info.labelOrient = $$.labelOrient(d, i);
     info.tickSize = $$.tickSize(d, i);
     info.showGrid = $$.showGrid(d, i);
     info.labelOrient1 = info.labelOrient.split(' ')[0];

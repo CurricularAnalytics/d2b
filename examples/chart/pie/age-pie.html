@@ -12,15 +12,17 @@
 	<div class = 'pie-chart'></div>
 
 	<script>
-		var pie = d2b.chartPie().donutRatio(0.5).legend(d2b.legend().orient('horizontal top center'));
+		var pie = d2b.chartPie().donutRatio(0.5).at('center left');
 		var format = d3.format(',');
+
+		pie.legend().orient('vertical center right');
 
 		var chart = d3.select('.pie-chart')
 			.datum([
-				{label: 'younger than 5', value: 2704659},
+				{label: 'younger than 5', value: 2704659, hidden: true},
 				{label: '5-13', value: 4499890},
 				{label: '14-17', value: 2159981},
-				{label: '18-24', value: 3853788},
+				{label: '18-24', value: 3853788, hidden: true},
 				{label: '25-44', value: 14106543},
 				{label: '45-64', value: 8819342},
 				{label: 'older than 65', value: 612463}

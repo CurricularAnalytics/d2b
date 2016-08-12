@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<script src="../../d3.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<body>
+	<div class = 'axis-chart'></div>
+
+	<script>
+
+			var axis = d2b.chartAxis();
+
+			axis
+				.padding(10)
+				.size({height: 400})
+				.x(() => {
+					return {
+						linearPadding: [-0.15, 0.15]
+					}
+				})
+				.y(() => {
+					return {
+						linearPadding: [-0.15, 0.15]
+					}
+				})
+				.tooltipConfig(tooltip => {
+					tooltip.trackY(true).threshold(Infinity)
+				})
+				// .graphYType(d => d.yType || 'y')
+				// .x().x2().y().y2() // for manual scaling
+				// .plane() // to configure the d2b plane
+				;
+
+			var chart = d3.selectAll('.axis-chart');
+
+			var data = {
+				// groups: [
+				// 	{
+				// 		label: 'Bar Grouping',
+				// 	}
+				// ],
+				sets: [
+					{
+						generators: [d2b.svgBar().padding(0.2).groupPadding(0.03)],
+						// tooltip: function (tooltip) {
+						// 	// tooltip.html()...
+						// },
+						graphs: [
+					    {
+					      label: 'bar 1',
+					      values: [
+					        {x: 1, y: 25},
+					        {x: 2, y: 38},
+					        {x: 3, y: 24},
+					        {x: 4, y: 60},
+					        {x: 5, y: 22}
+					      ]
+					    },
+					    {
+					      label: 'bar 2',
+					      values: [
+					        {x: 3, y: 45},
+					        {x: 5, y: 31},
+					      ]
+					    }
+						]
+					},
+					{
+						generators: [d2b.svgArea(), d2b.svgLine(), d2b.svgScatter()],
+						// tooltip: function (tooltip) {
+						// 	// tooltip.html()...
+						// },
+						graphs: [
+					    {
+					      label: 'area 1',
+								hidden: true,
+					      values: [
+					        {x: 1, y: 25},
+					        {x: 2, y: 38},
+					        {x: 3, y: 24},
+					        {x: 4, y: 60},
+					        {x: 5, y: 22}
+					      ]
+					    },
+					    {
+					      label: 'area 2',
+								hidden: true,
+					      values: [
+					        {x: 3, y: 45},
+					        {x: 5, y: 31},
+					      ]
+					    }
+						]
+					},
+					{
+						generators: [d2b.svgBubblePack()],
+						// tooltip: function (tooltip) {
+						// 	// tooltip.html()...
+						// },
+						graphs: [
+					    {
+								hidden: true,
+					      label: 'bubble pack 1',
+					      values: [
+					        {
+					          label: 'one',
+					          children: [
+					            {
+					              label: 'one-one',
+					              size: 5,
+					              x: 10,
+					              y: 25
+					            }
+					          ]
+					        },
+					        {
+					          __expanded__: true,
+					          label: 'two',
+					          children: [
+					            {
+					              label: 'two-one',
+					              size: 5,
+					              x: 3,
+					              y: 15
+					            },
+					            {
+					              label: 'two-two',
+					              children: [
+					                {
+					                  label: 'two-two-one',
+					                  size: 2,
+					                  x: 6,
+					                  y: 8
+					                },
+					                {
+					                  label: 'two-two-two',
+					                  size: 17,
+					                  x: 12,
+					                  y: 21
+					                }
+					              ]
+					            }
+					          ]
+					        }
+					      ]
+					    }
+						]
+					}
+				]
+			};
+
+			chart
+					.data([data])
+				.transition()
+					.call(axis);
+
+		// setTimeout( function () {
+		// 	chart
+		// 			.datum()
+		// 		.transition()
+		// 			.call(axis);
+		// }, 2000);
+
+		// setTimeout(function (){
+		// 	axis.legend().order((a, b) => d3.descending(a.label, b.label));
+		// 	chart.transition().call(axis);
+		// }, 2000)
+
+		window.onresize = function () {chart.call(axis)};
+	</script>
+</body>
+</html>

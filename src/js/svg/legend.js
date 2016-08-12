@@ -7,6 +7,7 @@ export default function () {
   const $$ = {};
 
   const legend = function (context) {
+
     context.each(function (data, index) {
       const selection = d3.select(this),
             itemSize = $$.itemSize.call(this, data, index),
@@ -27,12 +28,13 @@ export default function () {
       g = g.merge(gEnter);
 
       // enter d2b-legend-items
-      let item = g.selectAll('.d2b-legend-item').data(d => d, $$.key);
+      let item = g.selectAll('.d2b-legend-item').data(d => d.sort($$.order), $$.key);
 
       let itemEnter = item.enter()
         .append('g')
           .attr('class', 'd2b-legend-item')
           .style('opacity', 0);
+
       itemEnter.append('g').append('text');
 
       // exit d2b-legend-items
@@ -44,7 +46,7 @@ export default function () {
             const clickable = $$.clickable.call(this, d, i),
                   dblclickable = $$.dblclickable.call(this, d, i);
             return (clickable || dblclickable)? 'pointer' : 'auto';
-          })
+          });
 
       // bind item events for each selection
       selection.call(bindEvents, index);
@@ -134,16 +136,16 @@ export default function () {
 
     if (!clickable) return;
 
-    d.__empty__ = !d.__empty__;
+    $$.setEmpty(d, i, !$$.empty(d, i))
 
     const el = d3.select(this),
           items = selection.selectAll('.d2b-legend-item');
 
     let allEmpty = true;
-    data.forEach( d => allEmpty = (d.__empty__)? allEmpty : false );
+    items.each( (d, i) => allEmpty = ($$.empty(d, i))? allEmpty : false );
 
     if (allEmpty && !allowEmptied) {
-      items.each(d => d.__empty__ = false).transition().duration(100).call(point);
+      items.each((d, i) => $$.setEmpty(d, i, false)).transition().duration(100).call(point);
       items.filter(dd => dd != d).dispatch('change');
     } else {
       el.transition().duration(100).call(point);
@@ -159,17 +161,18 @@ export default function () {
 
     if (!dblclickable) return;
 
-    data.forEach(d => d.__empty__ = true);
-    d.__empty__ = false;
-
     const items = selection.selectAll('.d2b-legend-item');
+
+    items.each((d, i) => $$.setEmpty(d, i, true));
+    $$.setEmpty(d, i, false);
+
     items.transition().duration(100).call(point);
     items.filter(dd => dd != d).dispatch('change');
     d3.select(this).dispatch('change', {bubbles: true});
   };
 
   // Initialize new d2b point.
-  const point = svgPoint().empty(d => d.__empty__);
+  const point = svgPoint();
 
   // Position legend according the the box width/height
   function positionLegend (ctx, box, size, orient) {
@@ -268,11 +271,16 @@ export default function () {
     .addPropFunctor('orient', 'vertical center right')
     .addPropFunctor('maxTextLength', Infinity)
     .addPropFunctor('allowEmptied', false)
+    .addPropFunctor('order', (a, b) => d3.ascending($$.label(a), $$.label(b)))
     // legend item level functors
     .addPropFunctor('key', (d, i) => i)
     .addPropFunctor('clickable', false)
     .addPropFunctor('dblclickable', false)
     .addPropFunctor('label', d => d.label)
+    .addPropFunctor('empty', d => d.empty, null, _ => point.empty(_))
+    .addPropFunctor('setEmpty', (d, i, state) => {
+      d.empty = state;
+    })
     // legend item point functors
     .addPropFunctor('active', false, null, _ => point.active(_) )
     .addPropFunctor('symbol', d3.symbolCircle, null, _ => point.type(_) )
@@ -284,7 +292,7 @@ export default function () {
       const node = (_.node)? _.node() : _;
       if (!node) return null;
       return node.__box__;
-    });
+    })
 
   return legend;
 };

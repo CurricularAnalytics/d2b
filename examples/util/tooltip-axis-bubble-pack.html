@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
 
@@ -49,7 +49,7 @@
   var data = [
     {
       label: 'bubble pack 1',
-      tooltipGraph: tooltip.graph('bubble', 1),
+      // tooltipGraph: tooltip.graph('bubble', 1),
       values: [
         {
           label: 'one',
@@ -102,6 +102,110 @@
 
   svg.append('g').call(xAxis);
   svg.append('g').call(yAxis);
+
+</script>
+
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<script src="../d3.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
+<script src="../../../build/d2b.js"></script>
+
+<body>
+
+<svg></svg>
+
+<script>
+  var width = 960, height = 500;
+
+  var x = d3.scaleLinear().domain([0, 15]).range([0, 960]);
+  var xAxis = d3.axisBottom().scale(x);
+  var y = d3.scaleLinear().domain([30, 0]).range([0, 500]);
+  var yAxis = d3.axisRight().scale(y);
+
+	var bubblePack = d2b.svgBubblePack().x(x).y(y).tendancy(d2b.mean).psymbol(d => d.symbol || d3.symbolCircle);
+
+	var svg = d3.select('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+  var bubblePackSvg = svg.append('g').attr('class', 'bubble-pack');
+  svg.append('g').call(xAxis);
+  svg.append('g').call(yAxis);
+
+  var tooltipSvgContainer = svg.append('g');
+  var tooltip = d2b.tooltipAxis()
+      .threshold(50)
+      .svgContainer(tooltipSvgContainer)
+      .htmlContainer(d3.select('body'))
+      .size({width: width, height: height})
+      .title(function (d) {return Math.round(d[0].x);})
+      .row(function (d) {return 'y: '+Math.round(d.y)+' --- size: '+d.size;})
+      .trackX(true)
+      .trackY(true);
+
+  var dataOne = [
+    {
+      label: 'bubble pack 1',
+      tooltipGraph: tooltip.graph('bubble', 1),
+      values: [
+        {
+          label: 'one',
+          children: [
+            {
+              label: 'one-one',
+              size: 5,
+              x: 10,
+              y: 25
+            }
+          ]
+        },
+        {
+          __expanded__: true,
+          label: 'two',
+          children: [
+            {
+              label: 'two-one',
+              size: 5,
+              x: 3,
+              y: 15
+            },
+            {
+              label: 'two-two',
+              children: [
+                {
+                  label: 'two-two-one',
+                  size: 2,
+                  x: 6,
+                  y: 8
+                },
+                {
+                  label: 'two-two-two',
+                  size: 17,
+                  x: 12,
+                  y: 21
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ];
+
+  update(dataOne)
+
+  function update (data) {
+    bubblePackSvg
+        .datum(data)
+      .transition()
+        .call(bubblePack);
+  }
 
 </script>
 

@@ -2,7 +2,7 @@ import {default as functor} from '../core/functor.js';
 import {default as number} from '../core/number.js';
 import {default as mean} from './mean.js';
 
-export default function(arr, value, weight){
+function mode(arr, value, weight){
   weight = functor(weight || 1);
   value = functor(value || function(d){return d;});
 
@@ -24,3 +24,7 @@ export default function(arr, value, weight){
 
   if(arr.length) return mean(modes);
 };
+
+mode.tendancy = 'mode';
+
+export default mode;

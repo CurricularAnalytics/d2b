@@ -7,37 +7,78 @@ import {default as d2bid} from '../core/id.js';
 export default function () {
   const $$ = {};
 
+  function getOrientMap(orient) {
+    return orient === 'horizontal'?
+      { rotate: true, px: 'py', py: 'px', x: 'y', y: 'x', w: 'height', h: 'width' } :
+      { rotate: false, px: 'px', py: 'py', x: 'x', y: 'y', w: 'width', h: 'height' };
+  }
+
+  function getGraphs (d, i, orientMap = getOrientMap($$.orient(d, i))) {
+
+    const graphs = $$.graphs(d, i).map((graph, i) => {
+
+      const newGraph = {
+        data:           graph,
+        index:          i,
+        x:              $$.x(graph, i),
+        y:              $$.y(graph, i),
+        tooltipGraph:   $$.tooltipGraph(graph, i),
+        shift:          $$.shift(graph, i),
+        stackBy:        $$.stackBy(graph, i),
+        key:            $$.key(graph, i),
+        color:          $$.color(graph, i)
+      };
+      newGraph.values = $$.values(graph, i).map((point, i) => {
+        return {
+          data:     point,
+          index:    i,
+          graph:    newGraph,
+          key:      $$.pkey(point, i),
+          x:        $$.px(point, i),
+          y:        $$.py(point, i),
+          centered: $$.pcentered(point, i),
+          color:    $$.pcolor(point, i)
+        };
+      });
+      return newGraph;
+
+    });
+
+    stacker.x(d => d[orientMap.x]).y(d => d[orientMap.y]);
+    stackNest
+      .entries(graphs)
+      .forEach((sg, si) => {
+        return stacker.out(buildOut(si))(sg.values);
+      });
+
+    return graphs;
+  }
+
   /* Update Function */
   const bar = function (context) {
     const selection = context.selection? context.selection() : context;
     // iterate through each selection element
     selection.each(function (d, i) {
+      const orient = $$.orient(d, i),
+            orientMap = getOrientMap(orient),
+            graphs = getGraphs(d, i, orientMap);
 
-      // set orientation mappings
-      let orient = {};
-      if ($$.orient.call(this, d, i) === 'horizontal') {
-        orient = { rotate: true, px: 'py', py: 'px', x: 'y', y: 'x', w: 'height', h: 'width' };
-      } else {
-        orient = { rotate: false, px: 'px', py: 'py', x: 'x', y: 'y', w: 'width', h: 'height' };
-      }
+      let padding = $$.padding(d, i),
+          groupPadding = $$.groupPadding(d, i),
+          bandwidth = $$.bandwidth(d, i);
 
-      stacker.x($$[orient.px]).y($$[orient.py]);
+      bandwidth = (1 - padding) * (bandwidth || getBandwidth(graphs, orientMap));
 
-      // run each selection datum through the stacker
-      const stacking = stackNest.entries(d);
-      stacking.forEach((sg, si) => stacker.out(buildOut(si))(sg.values));
+      const stacking = stackNest.entries(graphs),
+            barWidth = bandwidth / stacking.length;
 
-      // compute bar sizing properties
-      const bandwidth = (1 - $$.padding.call(this, d, i)) *
-                        ($$.bandwidth.call(this, d, i) || getBandwidth(d, orient)),
-            barWidth = bandwidth / stacking.length,
-            groupPadding = barWidth * $$.groupPadding.call(this, d, i);
+      groupPadding = barWidth * groupPadding;
 
       // enter update exit bar graph container
-      const graph = d3.select(this).selectAll('.d2b-bar-graph').data(d, $$.key);
+      const graph = d3.select(this).selectAll('.d2b-bar-graph').data(graphs, d => d.key);
 
       const graphEnter = graph.enter().append('g')
-          .attr('class', 'd2b-bar-graph')
+          .attr('class', 'd2b-bar-graph d2b-graph')
           .style('opacity', 0);
 
       let graphUpdate = graph.merge(graphEnter).order(),
@@ -52,41 +93,31 @@ export default function () {
       graphExit.style('opacity', 0).remove();
 
       // iterate through graph containers
-      graphUpdate.each(function (d, i) {
-        const graph = d3.select(this),
-              color = $$.color.call(this, d, i),
-              x = $$[orient.x].call(this, d, i),
-              y = $$[orient.y].call(this, d, i),
-              values = $$.values.call(this, d, i),
-              tooltipGraph = $$.tooltipGraph.call(this, d, i);
+      graphUpdate.each(function (d) {
+        const graph = d3.select(this), x = d.x, y = d.y;
 
-        let shift = $$.shift.call(this, d, i);
+        let shift = d.shift;
         if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
         // enter update exit bars
-        const bar = graph.selectAll('.d2b-bar-group').data(values, $$.pkey);
+        const bar = graph.selectAll('.d2b-bar-group').data(d.values, v => v.key);
         const barEnter = bar.enter().append('g').attr('class', 'd2b-bar-group');
         barEnter.append('rect');
         let barUpdate = bar.merge(barEnter).order(),
             barExit = bar.exit();
 
-        barUpdate.each(function (d, i) {
-          const centered = $$.pcentered.call(this, d, i),
-                barShift = (centered)? shift - bandwidth / 4
-                                      :
-                                        shift - bandwidth / 2 +
-                                        d.__stackIndex__ * barWidth +
-                                        groupPadding;
-          d.__basepx__ = x(d.__base__) + barShift;
-          d.__extentpx__ = [y(d.__extent__[0]), y(d.__extent__[1])]
-          d.__extentpx__.sort(d3.ascending);
+        barUpdate.each(point => {
+          const barShift = (point.centered)? shift - bandwidth / 4 : shift - bandwidth / 2 + point.stackIndex * barWidth + groupPadding;
+          point.basepx = x(point.base) + barShift;
+          point.extentpx = [y(point.extent[0]), y(point.extent[1])]
+          point.extentpx.sort(d3.ascending);
         });
 
-        if (tooltipGraph) tooltipGraph
-          .data(values)
-          [orient.x]((d, i) => x($$[orient.px](d, i)) + shift)
-          [orient.y]((d, i) => y(d.__extent__[1]))
-          .color((d, i) => $$.pcolor(d, i) || color);
+        if (d.tooltipGraph) d.tooltipGraph
+          .data(d.values)
+          [orientMap.x](point => x(point[orientMap.x] + shift))
+          [orientMap.y](point => y(point.extent[1]))
+          .color(point => point.color || d.color);
 
         if (context !== selection) {
           barUpdate = barUpdate.transition(context);
@@ -96,23 +127,19 @@ export default function () {
         barEnter
             .attr('class', 'd2b-bar-group')
             .style('opacity', 0)
-            .call(transformBar, {x: d => d.__basepx__, y: d => y(0)}, orient)
+            .call(transformBar, {x: point => point.basepx, y: point => d.y(0)}, orientMap)
           .select('rect')
-            .attr('fill', function (d, i) {
-              return $$.pcolor.call(this, d, i) || color;
-            })
-            .attr(orient.w, barWidth - groupPadding * 2)
-            .attr(orient.h, 0);
+            .attr('fill', point => point.color || d.color)
+            .attr(orientMap.w, barWidth - groupPadding * 2)
+            .attr(orientMap.h, 0);
 
         barUpdate
             .style('opacity', 1)
-            .call(transformBar, {x: d => d.__basepx__, y: d => d.__extentpx__[0]}, orient)
+            .call(transformBar, {x: point => point.basepx, y: point => point.extentpx[0]}, orientMap)
           .select('rect')
-            .attr('fill', function (d, i) {
-              return $$.pcolor.call(this, d, i) || color;
-            })
-            .attr(orient.w, barWidth - groupPadding * 2)
-            .attr(orient.h, d => d.__extentpx__[1] - d.__extentpx__[0]);
+            .attr('fill', point => point.color || d.color)
+            .attr(orientMap.w, barWidth - groupPadding * 2)
+            .attr(orientMap.h, d => d.extentpx[1] - d.extentpx[0]);
 
         barExit.style('opacity', 0).remove();
 
@@ -122,43 +149,40 @@ export default function () {
     return bar;
   };
 
-  const stacker = stack();
+  const stacker = stack().values(d => d.values);
 
-  const stackNest = d3.nest().key(d => {
-    const key = $$.stackBy(d);
-    return (key !== false && key !== null)? key : d2bid();
-  });
+  const stackNest = d3.nest().key(d => d.stackBy);
 
   // custom stacker build out that separates the negative and possitive bars
   function buildOut(stackIndex) {
     const offsets = {};
     return function(d, y0, y1, x){
-      const dy = y1 - y0,
-            offset = offsets[x] = offsets[x] || [0, 0];
-      d.__stackIndex__ = stackIndex;
-      d.__base__ = x;
-      if(dy > 0) d.__extent__ = [offset[0], offset[0] += dy];
-      else d.__extent__ = [offset[1], offset[1] += dy];
+      const offset = offsets[x] = offsets[x] || [0, 0];
+
+      d.dy = y1 - y0;
+      d.stackIndex = stackIndex;
+      d.base = x;
+      if (d.dy > 0) d.extent = [offset[0], offset[0] += d.dy];
+      else d.extent = [offset[1], offset[1] += d.dy];
     }
   }
 
   // transform bar position
-  function transformBar (transition, pos, orient) {
+  function transformBar (transition, pos, orientMap) {
     transition.attr('transform', d => {
-      return `translate(${[pos[orient.x](d), pos[orient.y](d)]})`;
+      return `translate(${[pos[orientMap.x](d), pos[orientMap.y](d)]})`;
     });
   }
 
   // find closes non equal point pixel distance on the base axis
-  function getBandwidth (data, orient) {
+  function getBandwidth (graphs, orientMap) {
     const xVals = [];
-    data.forEach( (graph, graphIndex) => {
-      const x = $$[orient.x].call(data, graph, graphIndex),
-            values = $$.values.call(data, graph, graphIndex);
+    graphs.forEach( graph => {
+      const x = graph[orientMap.x],
+            values = graph.values;
 
-      values.forEach( (d, i) => {
-        const px = $$[orient.px].call(graph, d, i);
-        xVals.push(x(px));
+      values.forEach( point => {
+        xVals.push(x(point.x));
       });
     });
 
@@ -174,34 +198,57 @@ export default function () {
 
   /* Inherit from base model */
   const model = base(bar, $$)
-      .addProp('stack', d3.stack(), null, d => stacker.stack(d))
-      .addProp('x', d3.scaleLinear(), function (d) {
-        if (!arguments.length) return $$.x;
-        if (d.domain) $$.x = () => d;
-        else $$.x = d;
-        return bar;
-      })
-      .addProp('y', d3.scaleLinear(), function (d) {
-        if (!arguments.length) return $$.y;
-        if (d.domain) $$.y = () => d;
-        else $$.y = d;
-        return bar;
-      })
-      .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
-      .addPropFunctor('orient', 'vertical')
+      .addPropFunctor('graphs', d => d)
       .addPropFunctor('padding', 0.5)
       .addPropFunctor('groupPadding', 0)
       .addPropFunctor('bandwidth', null)
+      // graph props
+      .addScaleFunctor('x', d3.scaleLinear())
+      .addScaleFunctor('y', d3.scaleLinear())
+      .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
+      .addPropFunctor('orient', 'vertical')
       .addPropFunctor('shift', null)
-      .addPropFunctor('stackBy', null)
+      .addPropFunctor('stackBy', (d, i) => i)
       .addPropFunctor('key', d => d.label)
-      .addPropFunctor('values', d => d.values, null, d => stacker.values(d))
+      .addPropFunctor('values', d => d.values, null)
       .addPropFunctor('color', d => color(d.label))
+      // point props
       .addPropFunctor('px', d => d.x)
       .addPropFunctor('py', d => d.y)
       .addPropFunctor('pcentered', false)
       .addPropFunctor('pcolor', null)
-      .addPropFunctor('pkey', (d, i) => i);
+      .addPropFunctor('pkey', (d, i) => i)
+      // methods
+      .addMethod('getComputedGraphs', context => {
+        return (context.selection? context.selection() : context).data().map((d, i) => getGraphs(d, i));
+      })
+      .addMethod('getVisiblePoints', context => {
+        return (context.selection? context.selection() : context).data().map((d, i) => {
+          const orient = $$.orient(d, i),
+                orientMap = getOrientMap(orient),
+                graphs = getGraphs(d, i, orientMap);
+
+          const extent0 = [].concat.apply([], graphs.map(graph => {
+            return graph.values.map(v => {
+              const point = {};
+              point[`${orientMap.x}`] = v.base;
+              point[`${orientMap.y}`] = v.extent[0];
+              point.graph = graph;
+              return point;
+            });
+          }));
+          const extent1 = [].concat.apply([], graphs.map(graph => {
+            return graph.values.map(v => {
+              const point = {};
+              point[`${orientMap.x}`] = v.base;
+              point[`${orientMap.y}`] = v.extent[1];
+              point.graph = graph;
+              return point;
+            });
+          }));
+          return extent0.concat(extent1);
+        });
+      });
 
   return bar;
 };

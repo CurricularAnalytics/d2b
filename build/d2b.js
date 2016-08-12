@@ -60,7 +60,7 @@
 		return x === null ? NaN : +x;
 	};
 
-	function mean (arr, value, weight) {
+	function mean(arr, value, weight) {
 	  var totalWeight = 0,
 	      contribution = 0;
 	  weight = functor(weight || 1);
@@ -76,9 +76,11 @@
 	    contribution += v * w;
 	  });
 	  if (arr.length && totalWeight) return contribution / totalWeight;
-	}
+	};
 
-	function median (arr, value, weight) {
+	mean.tendancy = 'mean';
+
+	function median(arr, value, weight) {
 	  weight = functor(weight || 1);
 	  value = functor(value || function (d) {
 	    return d;
@@ -121,7 +123,9 @@
 	  if (arr.length) return mean(medians);
 	};
 
-	function mode (arr, value, weight) {
+	median.tendancy = 'median';
+
+	function mode(arr, value, weight) {
 	  weight = functor(weight || 1);
 	  value = functor(value || function (d) {
 	    return d;
@@ -148,7 +152,9 @@
 	  if (arr.length) return mean(modes);
 	};
 
-	function range (arr, value) {
+	mode.tendancy = 'mode';
+
+	function range(arr, value) {
 	  value = functor(value || function (d) {
 	    return d;
 	  });
@@ -156,12 +162,16 @@
 	  if (arr.length) return extent[1] - extent[0];
 	};
 
-	function midpoint (arr, value) {
+	range.tendancy = 'range';
+
+	function midpoint(arr, value) {
 	  value = functor(value || function (d) {
 	    return d;
 	  });
 	  if (arr.length) return d3.mean(d3.extent(arr, value));
 	};
+
+	midpoint.tendancy = 'midpoint';
 
 	function toDegrees (angle) {
 	  return angle * (Math.PI / 180);
@@ -212,7 +222,19 @@
 	      if (!arguments.length) return $$[prop];
 	      var old = $$[prop];
 	      $$[prop] = functor(_);
-	      if (cb) cb(_, old);
+	      if (cb) cb($$[prop], old);
+	      return _base;
+	    };
+	  };
+
+	  var scaleFnFunctor = function scaleFnFunctor(prop, cb) {
+	    return function (_) {
+	      if (!arguments.length) return $$[prop];
+	      var old = $$[prop];
+	      if (_ && _.domain) $$[prop] = function () {
+	        return _;
+	      };else $$[prop] = functor(_);
+	      if (cb) cb($$[prop], old);
 	      return _base;
 	    };
 	  };
@@ -261,10 +283,9 @@
 	      // allow for null:default 'fn' in order to access callback
 	      fn = fn || propFn(prop, cb);
 
-	      $$[prop] = value;
-	      _base[prop] = fn;
+	      fn(value);
 
-	      if (cb) cb(value);
+	      _base[prop] = fn;
 
 	      return model;
 	    },
@@ -326,13 +347,28 @@
 	      }
 	      // allow for null:default 'fn' in order to access callback
 	      fn = fn || propFnFunctor(prop, cb);
-	      value = functor(value);
-	      if (cb) cb(value);
 
-	      $$[prop] = value;
+	      fn(value);
+
 	      _base[prop] = fn;
 
 	      return model;
+	    },
+	    /**
+	      * model.addScaleFunctor allows new scale functor properties to be added
+	      * to the model and base interface. If the property is already defined
+	      * an error will be raised.
+	      * @param {Number} prop    - property key
+	      * @param {Number} value   - default value to set
+	      * @param {Number} fn      - function as new prop getter/setter
+	      * @return {Object} model  - returns model to allow for method chaining
+	      */
+	    addScaleFunctor: function addScaleFunctor(prop) {
+	      var value = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+	      var fn = arguments.length <= 2 || arguments[2] === undefined ? scaleFnFunctor(prop) : arguments[2];
+	      var cb = arguments[3];
+
+	      return model.addProp(prop, value, fn, cb);
 	    },
 	    /**
 	      * model.addDispatch allows dispatcher to be added to the model and base
@@ -521,6 +557,7 @@
 	  var $$ = {};
 
 	  var legend = function legend(context) {
+
 	    context.each(function (data, index) {
 	      var selection = d3.select(this),
 	          itemSize = $$.itemSize.call(this, data, index),
@@ -540,10 +577,11 @@
 
 	      // enter d2b-legend-items
 	      var item = g.selectAll('.d2b-legend-item').data(function (d) {
-	        return d;
+	        return d.sort($$.order);
 	      }, $$.key);
 
 	      var itemEnter = item.enter().append('g').attr('class', 'd2b-legend-item').style('opacity', 0);
+
 	      itemEnter.append('g').append('text');
 
 	      // exit d2b-legend-items
@@ -634,19 +672,19 @@
 
 	    if (!clickable) return;
 
-	    d.__empty__ = !d.__empty__;
+	    $$.setEmpty(d, i, !$$.empty(d, i));
 
 	    var el = d3.select(this),
 	        items = selection.selectAll('.d2b-legend-item');
 
 	    var allEmpty = true;
-	    data.forEach(function (d) {
-	      return allEmpty = d.__empty__ ? allEmpty : false;
+	    items.each(function (d, i) {
+	      return allEmpty = $$.empty(d, i) ? allEmpty : false;
 	    });
 
 	    if (allEmpty && !allowEmptied) {
-	      items.each(function (d) {
-	        return d.__empty__ = false;
+	      items.each(function (d, i) {
+	        return $$.setEmpty(d, i, false);
 	      }).transition().duration(100).call(point$$);
 	      items.filter(function (dd) {
 	        return dd != d;
@@ -665,12 +703,13 @@
 
 	    if (!dblclickable) return;
 
-	    data.forEach(function (d) {
-	      return d.__empty__ = true;
-	    });
-	    d.__empty__ = false;
-
 	    var items = selection.selectAll('.d2b-legend-item');
+
+	    items.each(function (d, i) {
+	      return $$.setEmpty(d, i, true);
+	    });
+	    $$.setEmpty(d, i, false);
+
 	    items.transition().duration(100).call(point$$);
 	    items.filter(function (dd) {
 	      return dd != d;
@@ -679,9 +718,7 @@
 	  };
 
 	  // Initialize new d2b point.
-	  var point$$ = point().empty(function (d) {
-	    return d.__empty__;
-	  });
+	  var point$$ = point();
 
 	  // Position legend according the the box width/height
 	  function positionLegend(ctx, box, size, orient) {
@@ -779,12 +816,20 @@
 	  // legend level functors
 	  .addPropFunctor('items', function (d) {
 	    return d;
-	  }).addPropFunctor('itemSize', 12).addPropFunctor('size', { width: 960, height: 500 }).addPropFunctor('orient', 'vertical center right').addPropFunctor('maxTextLength', Infinity).addPropFunctor('allowEmptied', false)
+	  }).addPropFunctor('itemSize', 12).addPropFunctor('size', { width: 960, height: 500 }).addPropFunctor('orient', 'vertical center right').addPropFunctor('maxTextLength', Infinity).addPropFunctor('allowEmptied', false).addPropFunctor('order', function (a, b) {
+	    return d3.ascending($$.label(a), $$.label(b));
+	  })
 	  // legend item level functors
 	  .addPropFunctor('key', function (d, i) {
 	    return i;
 	  }).addPropFunctor('clickable', false).addPropFunctor('dblclickable', false).addPropFunctor('label', function (d) {
 	    return d.label;
+	  }).addPropFunctor('empty', function (d) {
+	    return d.empty;
+	  }, null, function (_) {
+	    return point$$.empty(_);
+	  }).addPropFunctor('setEmpty', function (d, i, state) {
+	    d.empty = state;
 	  })
 	  // legend item point functors
 	  .addPropFunctor('active', false, null, function (_) {
@@ -948,93 +993,6 @@
 	  return pie;
 	};
 
-	// line svg generator
-	function line () {
-	  var $$ = {};
-
-	  /* Update Function */
-	  var line = function line(context) {
-	    var selection = context.selection ? context.selection() : context;
-
-	    var graph = selection.selectAll('.d2b-line-graph').data(function (d) {
-	      return d;
-	    }, $$.key);
-
-	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-line-graph').style('opacity', 0);
-
-	    graphEnter.append('path').attr('class', 'd2b-line');
-
-	    var graphUpdate = graph.merge(graphEnter).order(),
-	        graphExit = graph.exit();
-
-	    var lineUpdate = graphUpdate.select('.d2b-line');
-
-	    if (context !== selection) {
-	      graphUpdate = graphUpdate.transition(context);
-	      graphExit = graphExit.transition(context);
-	      lineUpdate = lineUpdate.transition(context);
-	    }
-
-	    graphUpdate.style('opacity', 1);
-	    graphExit.style('opacity', 0).remove();
-	    lineUpdate.style('stroke', $$.color).attr('d', function (d, i) {
-	      var _this = this;
-
-	      var x = $$.x.call(this, d, i),
-	          y = $$.y.call(this, d, i),
-	          color = $$.color.call(this, d, i),
-	          values = $$.values.call(this, d, i),
-	          tooltipGraph = $$.tooltipGraph.call(this, d, i);
-
-	      var shift = $$.shift.call(this, d, i);
-	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
-
-	      if (tooltipGraph) tooltipGraph.data(values).x(function (d, i) {
-	        return x($$.px(d, i)) + shift;
-	      }).y(function (d, i) {
-	        return y($$.py(d, i));
-	      }).color(color);
-
-	      return $$.line.x(function (d, i) {
-	        return x($$.px.call(_this, d, i)) + shift;
-	      }).y(function (d, i) {
-	        return y($$.py.call(_this, d, i));
-	      })(values);
-	    });
-
-	    return line;
-	  };
-
-	  /* Inherit from base model */
-	  var model = base(line, $$).addProp('line', d3.line()).addProp('x', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.x;
-	    if (d.domain) $$.x = function () {
-	      return d;
-	    };else $$.x = d;
-	    return line;
-	  }).addProp('y', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.y;
-	    if (d.domain) $$.y = function () {
-	      return d;
-	    };else $$.y = d;
-	    return line;
-	  }).addPropFunctor('tooltipGraph', function (d) {
-	    return d.tooltipGraph;
-	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
-	    return d.label;
-	  }).addPropFunctor('values', function (d) {
-	    return d.values;
-	  }).addPropFunctor('color', function (d) {
-	    return color(d.label);
-	  }).addPropFunctor('px', function (d) {
-	    return d.x;
-	  }).addPropFunctor('py', function (d) {
-	    return d.y;
-	  });
-
-	  return line;
-	};
-
 	// d2b.stack will stack the x and y values in place for
 	// some datum and d3.stack configuration.
 	function stack () {
@@ -1122,18 +1080,191 @@
 	};
 
 	// line svg generator
+	function line () {
+	  var $$ = {};
+
+	  function getGraphs(d, i) {
+	    var graphs = $$.graphs(d, i).map(function (graph, i) {
+	      var newGraph = {
+	        data: graph,
+	        index: i,
+	        x: $$.x(graph, i),
+	        y: $$.y(graph, i),
+	        tooltipGraph: $$.tooltipGraph(graph, i),
+	        shift: $$.shift(graph, i),
+	        stackBy: $$.stackBy(graph, i),
+	        key: $$.key(graph, i),
+	        color: $$.color(graph, i)
+	      };
+	      newGraph.values = $$.values(graph, i).map(function (point, i) {
+	        return {
+	          data: point,
+	          index: i,
+	          graph: newGraph,
+	          x: $$.px(point, i),
+	          y: $$.py(point, i)
+	        };
+	      });
+	      return newGraph;
+	    });
+
+	    stackNest.entries(graphs).forEach(function (sg) {
+	      return stacker(sg.values);
+	    });
+
+	    return graphs;
+	  }
+
+	  /* Update Function */
+	  var line = function line(context) {
+	    var selection = context.selection ? context.selection() : context;
+
+	    var graph = selection.selectAll('.d2b-line-graph').data(function (d, i) {
+	      return getGraphs(d, i);
+	    }, function (d) {
+	      return d.key;
+	    });
+
+	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-line-graph d2b-graph').style('opacity', 0);
+
+	    graphEnter.append('path').attr('class', 'd2b-line');
+
+	    var graphUpdate = graph.merge(graphEnter).order(),
+	        graphExit = graph.exit();
+
+	    var lineUpdate = graphUpdate.select('.d2b-line');
+
+	    if (context !== selection) {
+	      graphUpdate = graphUpdate.transition(context);
+	      graphExit = graphExit.transition(context);
+	      lineUpdate = lineUpdate.transition(context);
+	    }
+
+	    graphUpdate.style('opacity', 1);
+	    graphExit.style('opacity', 0).remove();
+	    lineUpdate.style('stroke', function (d) {
+	      return d.color;
+	    }).attr('d', function (d, i) {
+	      var x = d.x,
+	          y = d.y;
+	      var shift = d.shift;
+	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+
+	      if (d.tooltipGraph) d.tooltipGraph.data(d.values).x(function (d, i) {
+	        return x(d.x) + shift;
+	      }).y(function (d, i) {
+	        return y(d.y1);
+	      }).color(d.color);
+
+	      return $$.line.x(function (d, i) {
+	        return x(d.x) + shift;
+	      }).y(function (d, i) {
+	        return y(d.y1);
+	      })(d.values);
+	    });
+
+	    return line;
+	  };
+
+	  var stacker = stack().values(function (d) {
+	    return d.values;
+	  }).y(function (d) {
+	    return d.y;
+	  }).x(function (d) {
+	    return d.x;
+	  });
+
+	  var stackNest = d3.nest().key(function (d) {
+	    var key = d.stackBy;
+	    return key !== false && key !== null ? key : d2bid();
+	  });
+
+	  /* Inherit from base model */
+	  var model = base(line, $$).addProp('line', d3.line()).addPropFunctor('graphs', function (d) {
+	    return d;
+	  })
+	  // graph props
+	  .addScaleFunctor('x', d3.scaleLinear()).addScaleFunctor('y', d3.scaleLinear()).addPropFunctor('tooltipGraph', function (d) {
+	    return d.tooltipGraph;
+	  }).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
+	    return d.label;
+	  }).addPropFunctor('values', function (d) {
+	    return d.values;
+	  }).addPropFunctor('color', function (d) {
+	    return color(d.label);
+	  })
+	  // points props
+	  .addPropFunctor('px', function (d) {
+	    return d.x;
+	  }).addPropFunctor('py', function (d) {
+	    return d.y;
+	  })
+	  // methods
+	  .addMethod('getComputedGraphs', function (context) {
+	    return (context.selection ? context.selection() : context).data().map(function (d, i) {
+	      return getGraphs(d, i);
+	    });
+	  }).addMethod('getVisiblePoints', function (context) {
+	    var data = line.getComputedGraphs(context);
+	    return data.map(function (graphs) {
+	      return [].concat.apply([], graphs.map(function (graph) {
+	        return graph.values.map(function (v) {
+	          return { x: v.x, y: v.y1, graph: graph };
+	        });
+	      }));
+	    });
+	  });
+
+	  return line;
+	};
+
+	// line svg generator
 	function area () {
 	  var $$ = {};
+
+	  function getGraphs(d, i) {
+	    var graphs = $$.graphs(d, i).map(function (graph, i) {
+	      var newGraph = {
+	        data: graph,
+	        index: i,
+	        x: $$.x(graph, i),
+	        y: $$.y(graph, i),
+	        tooltipGraph: $$.tooltipGraph(graph, i),
+	        shift: $$.shift(graph, i),
+	        stackBy: $$.stackBy(graph, i),
+	        key: $$.key(graph, i),
+	        color: $$.color(graph, i)
+	      };
+	      newGraph.values = $$.values(graph, i).map(function (point, i) {
+	        return {
+	          data: point,
+	          index: i,
+	          graph: newGraph,
+	          x: $$.px(point, i),
+	          y: $$.py(point, i)
+	        };
+	      });
+	      return newGraph;
+	    });
+
+	    stackNest.entries(graphs).forEach(function (sg) {
+	      return stacker(sg.values);
+	    });
+
+	    return graphs;
+	  }
 
 	  /* Update Function */
 	  var area = function area(context) {
 	    var selection = context.selection ? context.selection() : context;
 
-	    var graph = selection.selectAll('.d2b-area-graph').data(function (d) {
-	      return d;
-	    }, $$.key);
+	    var graph = selection.selectAll('.d2b-area-graph').data(function (d, i) {
+	      return getGraphs(d, i);
+	    }, function (d) {
+	      return d.key;
+	    });
 
-	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-area-graph').style('opacity', 0);
+	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-area-graph d2b-graph').style('opacity', 0);
 
 	    graphEnter.append('path').attr('class', 'd2b-area');
 
@@ -1148,86 +1279,87 @@
 	      areaUpdate = areaUpdate.transition(context);
 	    }
 
-	    selection.each(function (d, i) {
-	      stackNest.entries(d).forEach(function (sg) {
-	        return stacker(sg.values);
-	      });
-	    });
-
 	    graphUpdate.style('opacity', 1);
 	    graphExit.style('opacity', 0).remove();
-	    areaUpdate.style('fill', $$.color).attr('d', function (d, i) {
-	      var x = $$.x.call(this, d, i),
-	          y = $$.y.call(this, d, i),
-	          values = $$.values.call(this, d, i),
-	          color = $$.color.call(this, d, i),
-	          tooltipGraph = $$.tooltipGraph.call(this, d, i);
-
-	      var shift = $$.shift.call(this, d, i);
+	    areaUpdate.style('fill', function (d) {
+	      return d.color;
+	    }).attr('d', function (d, i) {
+	      var x = d.x,
+	          y = d.y;
+	      var shift = d.shift;
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
-	      if (tooltipGraph) tooltipGraph.data(values).x(function (d, i) {
-	        return x(d.__x__) + shift;
+	      if (d.tooltipGraph) d.tooltipGraph.data(d.values).x(function (d, i) {
+	        return x(d.x) + shift;
 	      }).y(function (d, i) {
-	        return y(d.__y1__);
-	      }).color(color);
+	        return y(d.y1);
+	      }).color(d.color);
 
 	      return $$.area.x(function (d, i) {
-	        return x(d.__x__) + shift;
+	        return x(d.x) + shift;
 	      }).y0(function (d, i) {
-	        return y(d.__y0__);
+	        return y(d.y0);
 	      }).y1(function (d, i) {
-	        return y(d.__y1__);
-	      })(values);
+	        return y(d.y1);
+	      })(d.values);
 	    });
 
 	    return area;
 	  };
 
-	  var stacker = stack().out(function (d, y0, y1, x) {
-	    d.__x__ = x;
-	    d.__y0__ = y0;
-	    d.__y1__ = y1;
+	  var stacker = stack().values(function (d) {
+	    return d.values;
+	  }).y(function (d) {
+	    return d.y;
+	  }).x(function (d) {
+	    return d.x;
 	  });
 
 	  var stackNest = d3.nest().key(function (d) {
-	    var key = $$.stackBy(d);
+	    var key = d.stackBy;
 	    return key !== false && key !== null ? key : d2bid();
 	  });
 
 	  /* Inherit from base model */
-	  var model = base(area, $$).addProp('area', d3.area()).addProp('stack', d3.stack(), null, function (d) {
-	    return stacker.stack(d);
-	  }).addProp('x', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.x;
-	    if (d.domain) $$.x = function () {
-	      return d;
-	    };else $$.x = d;
-	    return area;
-	  }).addProp('y', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.y;
-	    if (d.domain) $$.y = function () {
-	      return d;
-	    };else $$.y = d;
-	    return area;
-	  }).addPropFunctor('tooltipGraph', function (d) {
+	  var model = base(area, $$).addProp('area', d3.area()).addPropFunctor('graphs', function (d) {
+	    return d;
+	  })
+	  // graph props
+	  .addScaleFunctor('x', d3.scaleLinear()).addScaleFunctor('y', d3.scaleLinear()).addPropFunctor('tooltipGraph', function (d) {
 	    return d.tooltipGraph;
 	  }).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
-	  }, null, function (d) {
-	    return stacker.values(d);
 	  }).addPropFunctor('color', function (d) {
 	    return color(d.label);
-	  }).addPropFunctor('px', function (d) {
+	  })
+	  // points props
+	  .addPropFunctor('px', function (d) {
 	    return d.x;
-	  }, null, function (d) {
-	    return stacker.x(d);
 	  }).addPropFunctor('py', function (d) {
 	    return d.y;
-	  }, null, function (d) {
-	    return stacker.y(d);
+	  })
+	  // methods
+	  .addMethod('getComputedGraphs', function (context) {
+	    return (context.selection ? context.selection() : context).data().map(function (d, i) {
+	      return getGraphs(d, i);
+	    });
+	  }).addMethod('getVisiblePoints', function (context) {
+	    var data = area.getComputedGraphs(context);
+	    return data.map(function (graphs) {
+	      var y0s = [].concat.apply([], graphs.map(function (graph) {
+	        return graph.values.map(function (v) {
+	          return { x: v.x, y: v.y0, graph: graph };
+	        });
+	      }));
+	      var y1s = [].concat.apply([], graphs.map(function (graph) {
+	        return graph.values.map(function (v) {
+	          return { x: v.x, y: v.y1, graph: graph };
+	        });
+	      }));
+	      return y0s.concat(y1s);
+	    });
 	  });
 
 	  return area;
@@ -1237,15 +1369,54 @@
 	function scatter () {
 	  var $$ = {};
 
+	  function getGraphs(d, i) {
+	    var graphs = $$.graphs(d, i).map(function (graph, i) {
+	      var newGraph = {
+	        data: graph,
+	        index: i,
+	        x: $$.x(graph, i),
+	        y: $$.y(graph, i),
+	        tooltipGraph: $$.tooltipGraph(graph, i),
+	        shift: $$.shift(graph, i),
+	        stackBy: $$.stackBy(graph, i),
+	        key: $$.key(graph, i),
+	        color: $$.color(graph, i),
+	        symbol: $$.symbol(graph, i)
+	      };
+	      newGraph.values = $$.values(graph, i).map(function (point, i) {
+	        return {
+	          data: point,
+	          index: i,
+	          graph: newGraph,
+	          x: $$.px(point, i),
+	          y: $$.py(point, i),
+	          color: $$.pcolor(point, i),
+	          symbol: $$.psymbol(point, i),
+	          key: $$.pkey(point, i),
+	          size: $$.psize(point, i)
+	        };
+	      });
+	      return newGraph;
+	    });
+
+	    stackNest.entries(graphs).forEach(function (sg) {
+	      return stacker(sg.values);
+	    });
+
+	    return graphs;
+	  }
+
 	  /* Update Function */
 	  var scatter = function scatter(context) {
 	    var selection = context.selection ? context.selection() : context;
 
-	    var graph = selection.selectAll('.d2b-scatter-graph').data(function (d) {
-	      return d;
-	    }, $$.key);
+	    var graph = selection.selectAll('.d2b-scatter-graph').data(function (d, i) {
+	      return getGraphs(d, i);
+	    }, function (d) {
+	      return d.key;
+	    });
 
-	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-scatter-graph').style('opacity', 0);
+	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-scatter-graph d2b-graph').style('opacity', 0);
 
 	    var graphUpdate = graph.merge(graphEnter).order(),
 	        graphExit = graph.exit();
@@ -1260,31 +1431,31 @@
 
 	    graphUpdate.each(function (d, i) {
 	      var el = d3.select(this),
-	          x = $$.x.call(this, d, i),
-	          y = $$.y.call(this, d, i),
-	          color = $$.color.call(this, d, i),
-	          symbol = $$.symbol.call(this, d, i),
-	          values = $$.values.call(this, d, i),
-	          tooltipGraph = $$.tooltipGraph.call(this, d, i);
+	          x = d.x,
+	          y = d.y;
 
-	      var shift = $$.shift.call(this, d, i);
+	      var shift = d.shift;
 	      if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
-	      if (tooltipGraph) tooltipGraph.data(values).x(function (d, i) {
-	        return x($$.px(d, i)) + shift;
-	      }).y(function (d, i) {
-	        return y($$.py(d, i));
-	      }).color(function (d, i) {
-	        return $$.pcolor(d, i) || color;
+	      if (d.tooltipGraph) d.tooltipGraph.data(d.values).x(function (p) {
+	        return x(p.x) + d.shift;
+	      }).y(function (p) {
+	        return y(p.y);
+	      }).color(function (p) {
+	        return p.color || d.color;
 	      });
 
-	      $$.point.fill(function (dd, ii) {
-	        return $$.pcolor.call(this, dd, ii) || color;
-	      }).type(function (dd, ii) {
-	        return $$.psymbol.call(this, dd, ii) || symbol;
-	      }).size($$.psize);
+	      $$.point.fill(function (p) {
+	        return p.color || d.color;
+	      }).type(function (p) {
+	        return p.symbol || d.symbol;
+	      }).size(function (p) {
+	        return p.size;
+	      });
 
-	      var point = el.selectAll('.d2b-scatter-point').data(values, $$.pkey);
+	      var point = el.selectAll('.d2b-scatter-point').data(d.values, function (p) {
+	        return p.key;
+	      });
 	      var pointEnter = point.enter().append('g').attr('class', 'd2b-scatter-point');
 
 	      var pointUpdate = point.merge(pointEnter).order(),
@@ -1306,29 +1477,32 @@
 	  };
 
 	  function pointTransform(transition, x, y, shift) {
-	    transition.attr('transform', function (d, i) {
-	      var px = x($$.px.call(this, d, i)) + shift;
-	      var py = y($$.py.call(this, d, i));
-	      return 'translate(' + px + ', ' + py + ')';
+	    transition.attr('transform', function (p, i) {
+	      return 'translate(' + (x(p.x) + shift) + ', ' + y(p.y1) + ')';
 	    });
 	  }
 
+	  var stacker = stack().values(function (d) {
+	    return d.values;
+	  }).y(function (d) {
+	    return d.y;
+	  }).x(function (d) {
+	    return d.x;
+	  });
+
+	  var stackNest = d3.nest().key(function (d) {
+	    var key = d.stackBy;
+	    return key !== false && key !== null ? key : d2bid();
+	  });
+
 	  /* Inherit from base model */
-	  var model = base(scatter, $$).addProp('point', point().active(true)).addProp('x', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.x;
-	    if (d.domain) $$.x = function () {
-	      return d;
-	    };else $$.x = d;
-	    return scatter;
-	  }).addProp('y', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.y;
-	    if (d.domain) $$.y = function () {
-	      return d;
-	    };else $$.y = d;
-	    return scatter;
-	  }).addPropFunctor('tooltipGraph', function (d) {
+	  var model = base(scatter, $$).addProp('point', point().active(true)).addPropFunctor('graphs', function (d) {
+	    return d;
+	  })
+	  // graph props
+	  .addScaleFunctor('x', d3.scaleLinear()).addScaleFunctor('y', d3.scaleLinear()).addPropFunctor('tooltipGraph', function (d) {
 	    return d.tooltipGraph;
-	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
+	  }).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
@@ -1336,7 +1510,9 @@
 	    return color(d.label);
 	  }).addPropFunctor('symbol', function (d) {
 	    return d3.symbolCircle;
-	  }).addPropFunctor('px', function (d) {
+	  })
+	  // points props
+	  .addPropFunctor('px', function (d) {
 	    return d.x;
 	  }).addPropFunctor('py', function (d) {
 	    return d.y;
@@ -1346,6 +1522,21 @@
 	    return i;
 	  }).addPropFunctor('psize', function (d) {
 	    return 25;
+	  })
+	  // methods
+	  .addMethod('getComputedGraphs', function (context) {
+	    return (context.selection ? context.selection() : context).data().map(function (d, i) {
+	      return getGraphs(d, i);
+	    });
+	  }).addMethod('getVisiblePoints', function (context) {
+	    var data = scatter.getComputedGraphs(context);
+	    return data.map(function (graphs) {
+	      return [].concat.apply([], graphs.map(function (graph) {
+	        return graph.values.map(function (v) {
+	          return { x: v.x, y: v.y1, graph: graph };
+	        });
+	      }));
+	    });
 	  });
 
 	  return scatter;
@@ -1355,37 +1546,80 @@
 	function bar () {
 	  var $$ = {};
 
+	  function getOrientMap(orient) {
+	    return orient === 'horizontal' ? { rotate: true, px: 'py', py: 'px', x: 'y', y: 'x', w: 'height', h: 'width' } : { rotate: false, px: 'px', py: 'py', x: 'x', y: 'y', w: 'width', h: 'height' };
+	  }
+
+	  function getGraphs(d, i) {
+	    var orientMap = arguments.length <= 2 || arguments[2] === undefined ? getOrientMap($$.orient(d, i)) : arguments[2];
+
+
+	    var graphs = $$.graphs(d, i).map(function (graph, i) {
+
+	      var newGraph = {
+	        data: graph,
+	        index: i,
+	        x: $$.x(graph, i),
+	        y: $$.y(graph, i),
+	        tooltipGraph: $$.tooltipGraph(graph, i),
+	        shift: $$.shift(graph, i),
+	        stackBy: $$.stackBy(graph, i),
+	        key: $$.key(graph, i),
+	        color: $$.color(graph, i)
+	      };
+	      newGraph.values = $$.values(graph, i).map(function (point, i) {
+	        return {
+	          data: point,
+	          index: i,
+	          graph: newGraph,
+	          key: $$.pkey(point, i),
+	          x: $$.px(point, i),
+	          y: $$.py(point, i),
+	          centered: $$.pcentered(point, i),
+	          color: $$.pcolor(point, i)
+	        };
+	      });
+	      return newGraph;
+	    });
+
+	    stacker.x(function (d) {
+	      return d[orientMap.x];
+	    }).y(function (d) {
+	      return d[orientMap.y];
+	    });
+	    stackNest.entries(graphs).forEach(function (sg, si) {
+	      return stacker.out(buildOut(si))(sg.values);
+	    });
+
+	    return graphs;
+	  }
+
 	  /* Update Function */
 	  var bar = function bar(context) {
 	    var selection = context.selection ? context.selection() : context;
 	    // iterate through each selection element
 	    selection.each(function (d, i) {
+	      var orient = $$.orient(d, i),
+	          orientMap = getOrientMap(orient),
+	          graphs = getGraphs(d, i, orientMap);
 
-	      // set orientation mappings
-	      var orient = {};
-	      if ($$.orient.call(this, d, i) === 'horizontal') {
-	        orient = { rotate: true, px: 'py', py: 'px', x: 'y', y: 'x', w: 'height', h: 'width' };
-	      } else {
-	        orient = { rotate: false, px: 'px', py: 'py', x: 'x', y: 'y', w: 'width', h: 'height' };
-	      }
+	      var padding = $$.padding(d, i),
+	          groupPadding = $$.groupPadding(d, i),
+	          bandwidth = $$.bandwidth(d, i);
 
-	      stacker.x($$[orient.px]).y($$[orient.py]);
+	      bandwidth = (1 - padding) * (bandwidth || getBandwidth(graphs, orientMap));
 
-	      // run each selection datum through the stacker
-	      var stacking = stackNest.entries(d);
-	      stacking.forEach(function (sg, si) {
-	        return stacker.out(buildOut(si))(sg.values);
-	      });
+	      var stacking = stackNest.entries(graphs),
+	          barWidth = bandwidth / stacking.length;
 
-	      // compute bar sizing properties
-	      var bandwidth = (1 - $$.padding.call(this, d, i)) * ($$.bandwidth.call(this, d, i) || getBandwidth(d, orient)),
-	          barWidth = bandwidth / stacking.length,
-	          groupPadding = barWidth * $$.groupPadding.call(this, d, i);
+	      groupPadding = barWidth * groupPadding;
 
 	      // enter update exit bar graph container
-	      var graph = d3.select(this).selectAll('.d2b-bar-graph').data(d, $$.key);
+	      var graph = d3.select(this).selectAll('.d2b-bar-graph').data(graphs, function (d) {
+	        return d.key;
+	      });
 
-	      var graphEnter = graph.enter().append('g').attr('class', 'd2b-bar-graph').style('opacity', 0);
+	      var graphEnter = graph.enter().append('g').attr('class', 'd2b-bar-graph d2b-graph').style('opacity', 0);
 
 	      var graphUpdate = graph.merge(graphEnter).order(),
 	          graphExit = graph.exit();
@@ -1399,38 +1633,36 @@
 	      graphExit.style('opacity', 0).remove();
 
 	      // iterate through graph containers
-	      graphUpdate.each(function (d, i) {
+	      graphUpdate.each(function (d) {
 	        var graph = d3.select(this),
-	            color = $$.color.call(this, d, i),
-	            x = $$[orient.x].call(this, d, i),
-	            _y = $$[orient.y].call(this, d, i),
-	            values = $$.values.call(this, d, i),
-	            tooltipGraph = $$.tooltipGraph.call(this, d, i);
+	            x = d.x,
+	            y = d.y;
 
-	        var shift = $$.shift.call(this, d, i);
+	        var shift = d.shift;
 	        if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
 
 	        // enter update exit bars
-	        var bar = graph.selectAll('.d2b-bar-group').data(values, $$.pkey);
+	        var bar = graph.selectAll('.d2b-bar-group').data(d.values, function (v) {
+	          return v.key;
+	        });
 	        var barEnter = bar.enter().append('g').attr('class', 'd2b-bar-group');
 	        barEnter.append('rect');
 	        var barUpdate = bar.merge(barEnter).order(),
 	            barExit = bar.exit();
 
-	        barUpdate.each(function (d, i) {
-	          var centered = $$.pcentered.call(this, d, i),
-	              barShift = centered ? shift - bandwidth / 4 : shift - bandwidth / 2 + d.__stackIndex__ * barWidth + groupPadding;
-	          d.__basepx__ = x(d.__base__) + barShift;
-	          d.__extentpx__ = [_y(d.__extent__[0]), _y(d.__extent__[1])];
-	          d.__extentpx__.sort(d3.ascending);
+	        barUpdate.each(function (point) {
+	          var barShift = point.centered ? shift - bandwidth / 4 : shift - bandwidth / 2 + point.stackIndex * barWidth + groupPadding;
+	          point.basepx = x(point.base) + barShift;
+	          point.extentpx = [y(point.extent[0]), y(point.extent[1])];
+	          point.extentpx.sort(d3.ascending);
 	        });
 
-	        if (tooltipGraph) tooltipGraph.data(values)[orient.x](function (d, i) {
-	          return x($$[orient.px](d, i)) + shift;
-	        })[orient.y](function (d, i) {
-	          return _y(d.__extent__[1]);
-	        }).color(function (d, i) {
-	          return $$.pcolor(d, i) || color;
+	        if (d.tooltipGraph) d.tooltipGraph.data(d.values)[orientMap.x](function (point) {
+	          return x(point[orientMap.x] + shift);
+	        })[orientMap.y](function (point) {
+	          return y(point.extent[1]);
+	        }).color(function (point) {
+	          return point.color || d.color;
 	        });
 
 	        if (context !== selection) {
@@ -1438,22 +1670,22 @@
 	          barExit = barExit.transition(context);
 	        }
 
-	        barEnter.attr('class', 'd2b-bar-group').style('opacity', 0).call(transformBar, { x: function x(d) {
-	            return d.__basepx__;
-	          }, y: function y(d) {
-	            return _y(0);
-	          } }, orient).select('rect').attr('fill', function (d, i) {
-	          return $$.pcolor.call(this, d, i) || color;
-	        }).attr(orient.w, barWidth - groupPadding * 2).attr(orient.h, 0);
+	        barEnter.attr('class', 'd2b-bar-group').style('opacity', 0).call(transformBar, { x: function x(point) {
+	            return point.basepx;
+	          }, y: function y(point) {
+	            return d.y(0);
+	          } }, orientMap).select('rect').attr('fill', function (point) {
+	          return point.color || d.color;
+	        }).attr(orientMap.w, barWidth - groupPadding * 2).attr(orientMap.h, 0);
 
-	        barUpdate.style('opacity', 1).call(transformBar, { x: function x(d) {
-	            return d.__basepx__;
-	          }, y: function y(d) {
-	            return d.__extentpx__[0];
-	          } }, orient).select('rect').attr('fill', function (d, i) {
-	          return $$.pcolor.call(this, d, i) || color;
-	        }).attr(orient.w, barWidth - groupPadding * 2).attr(orient.h, function (d) {
-	          return d.__extentpx__[1] - d.__extentpx__[0];
+	        barUpdate.style('opacity', 1).call(transformBar, { x: function x(point) {
+	            return point.basepx;
+	          }, y: function y(point) {
+	            return point.extentpx[0];
+	          } }, orientMap).select('rect').attr('fill', function (point) {
+	          return point.color || d.color;
+	        }).attr(orientMap.w, barWidth - groupPadding * 2).attr(orientMap.h, function (d) {
+	          return d.extentpx[1] - d.extentpx[0];
 	        });
 
 	        barExit.style('opacity', 0).remove();
@@ -1463,42 +1695,43 @@
 	    return bar;
 	  };
 
-	  var stacker = stack();
+	  var stacker = stack().values(function (d) {
+	    return d.values;
+	  });
 
 	  var stackNest = d3.nest().key(function (d) {
-	    var key = $$.stackBy(d);
-	    return key !== false && key !== null ? key : d2bid();
+	    return d.stackBy;
 	  });
 
 	  // custom stacker build out that separates the negative and possitive bars
 	  function buildOut(stackIndex) {
 	    var offsets = {};
 	    return function (d, y0, y1, x) {
-	      var dy = y1 - y0,
-	          offset = offsets[x] = offsets[x] || [0, 0];
-	      d.__stackIndex__ = stackIndex;
-	      d.__base__ = x;
-	      if (dy > 0) d.__extent__ = [offset[0], offset[0] += dy];else d.__extent__ = [offset[1], offset[1] += dy];
+	      var offset = offsets[x] = offsets[x] || [0, 0];
+
+	      d.dy = y1 - y0;
+	      d.stackIndex = stackIndex;
+	      d.base = x;
+	      if (d.dy > 0) d.extent = [offset[0], offset[0] += d.dy];else d.extent = [offset[1], offset[1] += d.dy];
 	    };
 	  }
 
 	  // transform bar position
-	  function transformBar(transition, pos, orient) {
+	  function transformBar(transition, pos, orientMap) {
 	    transition.attr('transform', function (d) {
-	      return 'translate(' + [pos[orient.x](d), pos[orient.y](d)] + ')';
+	      return 'translate(' + [pos[orientMap.x](d), pos[orientMap.y](d)] + ')';
 	    });
 	  }
 
 	  // find closes non equal point pixel distance on the base axis
-	  function getBandwidth(data, orient) {
+	  function getBandwidth(graphs, orientMap) {
 	    var xVals = [];
-	    data.forEach(function (graph, graphIndex) {
-	      var x = $$[orient.x].call(data, graph, graphIndex),
-	          values = $$.values.call(data, graph, graphIndex);
+	    graphs.forEach(function (graph) {
+	      var x = graph[orientMap.x],
+	          values = graph.values;
 
-	      values.forEach(function (d, i) {
-	        var px = $$[orient.px].call(graph, d, i);
-	        xVals.push(x(px));
+	      values.forEach(function (point) {
+	        xVals.push(x(point.x));
 	      });
 	    });
 
@@ -1513,36 +1746,60 @@
 	  }
 
 	  /* Inherit from base model */
-	  var model = base(bar, $$).addProp('stack', d3.stack(), null, function (d) {
-	    return stacker.stack(d);
-	  }).addProp('x', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.x;
-	    if (d.domain) $$.x = function () {
-	      return d;
-	    };else $$.x = d;
-	    return bar;
-	  }).addProp('y', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.y;
-	    if (d.domain) $$.y = function () {
-	      return d;
-	    };else $$.y = d;
-	    return bar;
-	  }).addPropFunctor('tooltipGraph', function (d) {
+	  var model = base(bar, $$).addPropFunctor('graphs', function (d) {
+	    return d;
+	  }).addPropFunctor('padding', 0.5).addPropFunctor('groupPadding', 0).addPropFunctor('bandwidth', null)
+	  // graph props
+	  .addScaleFunctor('x', d3.scaleLinear()).addScaleFunctor('y', d3.scaleLinear()).addPropFunctor('tooltipGraph', function (d) {
 	    return d.tooltipGraph;
-	  }).addPropFunctor('orient', 'vertical').addPropFunctor('padding', 0.5).addPropFunctor('groupPadding', 0).addPropFunctor('bandwidth', null).addPropFunctor('shift', null).addPropFunctor('stackBy', null).addPropFunctor('key', function (d) {
+	  }).addPropFunctor('orient', 'vertical').addPropFunctor('shift', null).addPropFunctor('stackBy', function (d, i) {
+	    return i;
+	  }).addPropFunctor('key', function (d) {
 	    return d.label;
 	  }).addPropFunctor('values', function (d) {
 	    return d.values;
-	  }, null, function (d) {
-	    return stacker.values(d);
-	  }).addPropFunctor('color', function (d) {
+	  }, null).addPropFunctor('color', function (d) {
 	    return color(d.label);
-	  }).addPropFunctor('px', function (d) {
+	  })
+	  // point props
+	  .addPropFunctor('px', function (d) {
 	    return d.x;
 	  }).addPropFunctor('py', function (d) {
 	    return d.y;
 	  }).addPropFunctor('pcentered', false).addPropFunctor('pcolor', null).addPropFunctor('pkey', function (d, i) {
 	    return i;
+	  })
+	  // methods
+	  .addMethod('getComputedGraphs', function (context) {
+	    return (context.selection ? context.selection() : context).data().map(function (d, i) {
+	      return getGraphs(d, i);
+	    });
+	  }).addMethod('getVisiblePoints', function (context) {
+	    return (context.selection ? context.selection() : context).data().map(function (d, i) {
+	      var orient = $$.orient(d, i),
+	          orientMap = getOrientMap(orient),
+	          graphs = getGraphs(d, i, orientMap);
+
+	      var extent0 = [].concat.apply([], graphs.map(function (graph) {
+	        return graph.values.map(function (v) {
+	          var point = {};
+	          point['' + orientMap.x] = v.base;
+	          point['' + orientMap.y] = v.extent[0];
+	          point.graph = graph;
+	          return point;
+	        });
+	      }));
+	      var extent1 = [].concat.apply([], graphs.map(function (graph) {
+	        return graph.values.map(function (v) {
+	          var point = {};
+	          point['' + orientMap.x] = v.base;
+	          point['' + orientMap.y] = v.extent[1];
+	          point.graph = graph;
+	          return point;
+	        });
+	      }));
+	      return extent0.concat(extent1);
+	    });
 	  });
 
 	  return bar;
@@ -1582,16 +1839,70 @@
 	function bubblePack () {
 	  var $$ = {};
 
+	  var indicatorSymbol = d3.symbol().size(80);
+
+	  function getPoint(point, i, graph) {
+	    return {
+	      data: point,
+	      index: i,
+	      graph: graph,
+	      x: $$.px(point, i),
+	      y: $$.py(point, i),
+	      color: $$.pcolor(point, i) || graph.color,
+	      symbol: $$.psymbol(point, i) || graph.color,
+	      key: $$.pkey(point, i),
+	      size: $$.psize(point, i),
+	      indicator: $$.pindicator(point, i),
+	      children: ($$.pchildren(point, i) || []).map(function (point, i) {
+	        return getPoint(point, i, graph);
+	      })
+	    };
+	  }
+
+	  function getGraphs(d, i) {
+	    var graphs = $$.graphs(d, i).map(function (graph, i) {
+	      // console.log($$.tendancy)
+	      var newGraph = {
+	        data: graph,
+	        index: i,
+	        tendancy: $$.tendancy(graph, i),
+	        x: $$.x(graph, i),
+	        y: $$.y(graph, i),
+	        tooltipGraph: $$.tooltipGraph(graph, i),
+	        shift: $$.shift(graph, i),
+	        key: $$.key(graph, i),
+	        color: $$.color(graph, i),
+	        symbol: $$.symbol(graph, i)
+	      };
+
+	      newGraph.values = $$.values(graph, i).map(function (point, i) {
+	        return getPoint(point, i, newGraph);
+	      });
+
+	      return newGraph;
+	    });
+
+	    graphs.forEach(function (graph) {
+	      return graph.values.forEach(function (v) {
+	        return setStructure(v, graph.tendancy);
+	      });
+	    });
+
+	    return graphs;
+	  }
+
 	  // bubble pack updater
 	  var bubblePack = function bubblePack(context) {
 	    var transition = context.selection ? context : null,
 	        selection = context.selection ? context.selection() : context,
-	        graph = selection.selectAll('.d2b-bubble-pack-graph').data(function (d) {
-	      return d;
-	    }, $$.key);
+	        graph = selection.selectAll('.d2b-bubble-pack-graph').data(function (d, i) {
+	      return getGraphs(d, i);
+	    }, function (d) {
+	      return d.key;
+	    });
 
 	    // enter graph
-	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-bubble-pack-graph');
+	    var graphEnter = graph.enter().append('g').attr('class', 'd2b-bubble-pack-graph d2b-graph');
 
 	    var graphUpdate = graph.merge(graphEnter).order(),
 	        graphExit = graph.exit();
@@ -1610,59 +1921,64 @@
 	    // iterate through each context element
 	    context.each(function (d, i) {
 	      var selection = d3.select(this),
+	          duration = $$.duration(d, i),
 	          graph = selection.selectAll('.d2b-bubble-pack-graph');
 
 	      selection.on('change', function () {
-	        selection.transition().duration($$.duration).call(bubblePack);
+	        selection.transition().duration(duration).call(bubblePack);
 	      });
+
+	      var maxWidth = 0;
 
 	      // render the bubble packs for each graph
-	      graph.each(function (d, i) {
+	      graph.each(function (graph) {
 	        var el = d3.select(this),
-	            x = $$.x.call(this, d, i),
-	            y = $$.y.call(this, d, i),
-	            color = $$.color.call(this, d, i),
-	            symbol = $$.symbol.call(this, d, i),
-	            tooltipGraph = $$.tooltipGraph.call(this, d, i);
+	            xRange = graph.x.range();
 
-	        d.values.forEach(compute);
+	        maxWidth = Math.max(maxWidth, Math.abs(xRange[0] - xRange[1]));
 
-	        var shift = $$.shift.call(this, d, i);
-	        if (shift === null) shift = x.bandwidth ? x.bandwidth() / 2 : 0;
+	        var shift = graph.shift;
+	        if (shift === null) shift = graph.x.bandwidth ? graph.x.bandwidth() / 2 : 0;
 
-	        $$.point.fill(function (dd, ii) {
-	          return $$.pcolor.call(this, dd, ii) || color;
-	        }).type(function (dd, ii) {
-	          return $$.psymbol.call(this, dd, ii) || symbol;
+	        $$.point.fill(function (point) {
+	          return point.color;
+	        }).type(function (point) {
+	          return point.symbol;
 	        });
 
-	        var addTooltipPoint = tooltipGraph ? tooltipGraph.clear().x(function (d, i) {
-	          return x(d.__x__) + shift;
-	        }).y(function (d, i) {
-	          return y(d.__y__);
-	        }).color(function (d, i) {
-	          return $$.pcolor(d, i) || color;
+	        var addTooltipPoint = graph.tooltipGraph ? graph.tooltipGraph.clear().x(function (point) {
+	          return graph.x(point.x) + shift;
+	        }).y(function (point) {
+	          return graph.y(point.y);
+	        }).color(function (point) {
+	          return point.color;
 	        }).addPoint : null;
 
-	        renderPacks(el, d.values, transition, x, y, shift, selection, addTooltipPoint);
+	        renderPacks(el, graph.values, transition, graph.x, graph.y, shift, selection, addTooltipPoint);
 	      });
-
-	      positionIndicators(selection);
+	      positionIndicators(selection, maxWidth);
 	    });
 
 	    return bubblePack;
 	  };
 
+	  // propagate expanded state to child tree
+	  function propagateExpanded(data, state) {
+	    data.data.expanded = state;
+	    data.children.forEach(function (child) {
+	      return propagateExpanded(child, state);
+	    });
+	  }
+
 	  // Position all bubble indicators to be next to each other.
-	  function positionIndicators(selection) {
-	    var positionx = 0,
-	        positiony = 0,
-	        maxWidth = 300;
+	  function positionIndicators(selection, maxWidth) {
+	    var positionx = 5,
+	        positiony = 5;
 	    selection.selectAll('.d2b-bubble-indicator.d2b-active').attr('transform', function () {
 	      var box = this.getBBox();
 
 	      if (box.width + positionx > maxWidth && positionx > 0) {
-	        positionx = 0;
+	        positionx = 5;
 	        positiony += box.height + 5;
 	      }
 
@@ -1670,12 +1986,6 @@
 	      positionx += box.width + 5;
 	      return translate;
 	    });
-	  }
-
-	  // On chart change (usually a bubble/indicator click) update and dispatch events.
-	  function change(node, d, i, chart) {
-	    if (!d.__children__) return;
-	    d3.select(node).dispatch('change', { bubbles: true, cancelable: true });
 	  }
 
 	  /**
@@ -1694,22 +2004,22 @@
 	      var transform = el.attr('transform');
 
 	      if (!transform) {
-	        el.attr('transform', 'translate(' + (x(d.__parent__ ? d.__parent__.__x__ : d.__x__) + shift + ',') + (y(d.__parent__ ? d.__parent__.__y__ : d.__y__) + ')'));
+	        el.attr('transform', 'translate(' + (x(d.parent ? d.parent.x : d.x) + shift + ',') + (y(d.parent ? d.parent.y : d.y) + ')'));
 	      }
 
-	      if (d.__children__) {
+	      if (d.children.length) {
 	        el.attr('cursor', 'pointer').on('click', function () {
 	          d3.select(this).dispatch('change', { bubbles: true, cancelable: true });
 	        }).on('change', function (d) {
-	          return d.__expanded__ = !d.__expanded__;
+	          return d.data.expanded = !d.data.expanded;
 	        });
 	      } else el.attr('cursor', '').on('click', null);
 
 	      if (trans) el = el.transition(trans);
 
-	      if (d.__expanded__) el.style('opacity', 0).selectAll('*').remove();else el.style('opacity', 1).call($$.point);
+	      if (d.data.expanded) el.style('opacity', 0).selectAll('*').remove();else el.style('opacity', null).call($$.point);
 
-	      el.attr('transform', 'translate(' + (x(d.__x__) + shift) + ', ' + y(d.__y__) + ')');
+	      el.attr('transform', 'translate(' + (x(d.x) + shift) + ', ' + y(d.y) + ')');
 	    });
 	  }
 
@@ -1724,23 +2034,31 @@
 	   */
 	  function renderIndicator(el, trans, x, y, shift, chart) {
 	    el.each(function (d, i) {
-	      var el = d3.select(this).classed('d2b-active', d.__expanded__);
+	      var el = d3.select(this).classed('d2b-active', d.data.expanded);
 
-	      if (!d.__expanded__) return el.selectAll('rect, text').remove();
+	      if (!d.data.expanded) return el.selectAll('rect, text, path').remove();
 
 	      var rect = el.select('rect'),
-	          text = el.select('text');
+	          text = el.select('text'),
+	          path = el.select('path');
 	      if (!rect.size()) rect = el.append('rect');
 	      if (!text.size()) text = el.append('text');
+	      if (!path.size()) path = el.append('path');
 
-	      text.text($$.pindicator.call(this, d, i).substring(0, 5)).attr('x', 5);
+	      text.text(function (d) {
+	        return d.indicator.substring(0, 5);
+	      }).attr('x', 20);
 	      var textBox = text.node().getBBox();
 	      text.attr('y', textBox.height / 1.35);
 	      rect.on('click', function () {
 	        d3.select(this).dispatch('change', { bubbles: true, cancelable: true });
 	      }).on('change', function (d) {
-	        return d.__expanded__ = !d.__expanded__;
-	      }).attr('width', textBox.width + 10).attr('height', textBox.height).style('fill', $$.point.fill()).style('stroke', $$.point.stroke());
+	        d.data.expanded = !d.data.expanded;
+	        if (!d.data.expanded) propagateExpanded(d, false);
+	      }).attr('width', textBox.width + 25).attr('height', textBox.height).style('fill', $$.point.fill()).style('stroke', $$.point.stroke());
+	      path.attr('d', function (d) {
+	        return indicatorSymbol.type(d.symbol)();
+	      }).attr('transform', 'translate(10, 9.5)').style('fill', $$.point.stroke());
 	    });
 	  }
 
@@ -1760,7 +2078,9 @@
 	    var depth = arguments.length <= 8 || arguments[8] === undefined ? 0 : arguments[8];
 
 	    // set pack data
-	    var pack = el.selectAll('.d2b-bubble-pack.d2b-depth-' + depth).data(data, $$.pkey),
+	    var pack = el.selectAll('.d2b-bubble-pack.d2b-depth-' + depth).data(data, function (d) {
+	      return d.key;
+	    }),
 	        packEnter = pack.enter().append('g').attr('class', 'd2b-bubble-pack d2b-depth-' + depth),
 	        packUpdate = pack.merge(packEnter);
 
@@ -1770,13 +2090,16 @@
 	    renderIndicator(packUpdate.select('.d2b-bubble-indicator'), trans, x, y, shift, chart);
 
 	    // update children bubbles if expanded
-	    packUpdate.each(function (d, i) {
+	    packUpdate.each(function (point) {
 	      var el = d3.select(this);
-	      if (d.__children__ && d.__expanded__) {
-	        renderPacks(el, d.__children__, trans, x, y, shift, chart, addTooltipPoint, depth + 1);
+	      var subPacks = el.selectAll('.d2b-bubble-pack');
+	      subPacks = trans ? subPacks.transition(trans) : subPacks;
+
+	      if (point.children.length && point.data.expanded) {
+	        renderPacks(el, point.children, trans, x, y, shift, chart, addTooltipPoint, depth + 1);
 	      } else {
-	        if (addTooltipPoint) addTooltipPoint(d);
-	        el.selectAll('.d2b-bubble-pack').transition(trans).remove().select('.d2b-bubble-point').style('opacity', 0).attr('transform', 'translate(' + (x(d.__x__) + shift) + ', ' + y(d.__y__) + ')');
+	        if (addTooltipPoint) addTooltipPoint(point);
+	        subPacks.remove().select('.d2b-bubble-point').style('opacity', 0).attr('transform', 'translate(' + [x(point.x) + shift, y(point.y)] + ')');
 	      }
 	    });
 
@@ -1786,76 +2109,55 @@
 	  }
 
 	  // Recursively set the data structure starting at root node `d`
-	  function setStructure(d) {
-	    var depth = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+	  function setStructure(d, tendancy) {
+	    var depth = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
 
-	    var children = $$.pchildren(d);
-	    d.__leaves__ = [];
-	    d.__depth__ = depth;
-	    if (children && children.length) {
-	      d.__children__ = children;
-	      children.forEach(function (child) {
-	        setStructure(child, depth + 1);
-	        child.__parent__ = d;
-	        d.__leaves__ = d.__leaves__.concat(child.__leaves__);
-	      });
-	    } else {
-	      d.__x__ = $$.px(d);
-	      d.__y__ = $$.py(d);
-	      d.__size__ = $$.psize(d);
-	      d.__leaves__.push(d);
-	    }
-	  }
-
-	  // Recursively set x, y, size attributes starting at root node `d`
-	  function setAttributes(d) {
-	    d.__x__ = ($$.tendancy.x || $$.tendancy)(d.__leaves__, function (d) {
-	      return d.__x__;
-	    }, function (d) {
-	      return d.__size__;
-	    });
-	    d.__y__ = ($$.tendancy.y || $$.tendancy)(d.__leaves__, function (d) {
-	      return d.__y__;
-	    }, function (d) {
-	      return d.__size__;
-	    });
-	    d.__size__ = d3.sum(d.__leaves__, function (d) {
-	      return d.__size__;
-	    });
-
-	    if (d.__children__ && d.__children__.length) {
-	      d.__children__.forEach(function (child) {
-	        return setAttributes(child);
+	    d.children = d.children || [];
+	    d.leaves = d.children.length ? [] : [d];
+	    d.depth = depth;
+	    if (d.children.length) {
+	      d.children.forEach(function (child) {
+	        setStructure(child, tendancy, depth + 1);
+	        child.parent = d;
+	        d.leaves = d.leaves.concat(child.leaves);
 	      });
 	    }
-	  }
 
-	  // Compute hierarchical structure and render attributes
-	  function compute(d) {
-	    setStructure(d);
-	    setAttributes(d);
+	    d.size = d.size || d3.sum(d.leaves, function (d) {
+	      return d.size;
+	    });
+
+	    d.x = d.x || (tendancy.x || tendancy)(d.leaves, function (d) {
+	      return d.x;
+	    }, function (d) {
+	      return d.size;
+	    });
+	    d.y = d.y || (tendancy.y || tendancy)(d.leaves, function (d) {
+	      return d.y;
+	    }, function (d) {
+	      return d.size;
+	    });
 	  }
 
 	  /* Inherit from base model */
-	  var model = base(bubblePack, $$).addProp('point', point().active(true), null, function (d) {
-	    $$.point.size(function (d) {
-	      return d.__size__ * 100;
-	    }).active(function (d) {
-	      return !!d.__children__;
+	  var model = base(bubblePack, $$).addProp('point', point().size(function (d) {
+	    return d.size * 100;
+	  }), null, function (d) {
+	    $$.point.active(function (d) {
+	      return !!d.children.length;
 	    });
-	  }).addProp('x', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.x;
-	    if (d.domain) $$.x = function () {
-	      return d;
-	    };else $$.x = d;
+	  }).addPropFunctor('duration', 250).addPropFunctor('graphs', function (d) {
+	    return d;
+	  })
+	  // graph props
+	  .addScaleFunctor('x', d3.scaleLinear()).addScaleFunctor('y', d3.scaleLinear()).addPropFunctor('tendancy', mean, function (_) {
+	    if (!arguments.length) return $$.tendancy;
+	    if (_ && _.tendancy) $$.tendancy = function () {
+	      return _;
+	    };else $$.tendancy = functor(_);
+
 	    return bubblePack;
-	  }).addProp('y', d3.scaleLinear(), function (d) {
-	    if (!arguments.length) return $$.y;
-	    if (d.domain) $$.y = function () {
-	      return d;
-	    };else $$.y = d;
-	    return bubblePack;
-	  }).addProp('tendancy', mean).addProp('duration', 250).addPropFunctor('tooltipGraph', function (d) {
+	  }).addPropFunctor('tooltipGraph', function (d) {
 	    return d.tooltipGraph;
 	  }).addPropFunctor('shift', null).addPropFunctor('key', function (d) {
 	    return d.label;
@@ -1865,7 +2167,9 @@
 	    return color(d.label);
 	  }).addPropFunctor('symbol', function (d) {
 	    return d3.symbolCircle;
-	  }).addPropFunctor('px', function (d) {
+	  })
+	  // point props
+	  .addPropFunctor('px', function (d) {
 	    return d.x;
 	  }).addPropFunctor('py', function (d) {
 	    return d.y;
@@ -1875,10 +2179,38 @@
 	    return d.children;
 	  }).addPropFunctor('pcolor', function (d) {
 	    return null;
-	  }).addPropFunctor('psymbol', null).addPropFunctor('pindicator', function (d) {
+	  }).addPropFunctor('psymbol', d3.symbolCircle).addPropFunctor('pindicator', function (d) {
 	    return d.label;
 	  }).addPropFunctor('pkey', function (d, i) {
 	    return i;
+	  })
+	  // methods
+	  .addMethod('getComputedGraphs', function (context) {
+	    return (context.selection ? context.selection() : context).data().map(function (d, i) {
+	      return getGraphs(d, i);
+	    });
+	  }).addMethod('getVisiblePoints', function (context) {
+	    var data = bubblePack.getComputedGraphs(context);
+
+	    function addPoint(point, points, graph) {
+	      if (!point.data.expanded) {
+	        points.push({ x: point.x, y: point.y, graph: graph });
+	      } else {
+	        point.children.forEach(function (point) {
+	          return addPoint(point, points, graph);
+	        });
+	      }
+	    }
+
+	    return data.map(function (graphs) {
+	      return [].concat.apply([], graphs.map(function (graph) {
+	        var points = [];
+	        graph.values.forEach(function (point) {
+	          return addPoint(point, points, graph);
+	        });
+	        return points;
+	      }));
+	    });
 	  });
 
 	  return bubblePack;
@@ -1942,10 +2274,13 @@
 	      planeBox.height = size.height - planeBox.top - planeBox.bottom;
 
 	      // store plane box on the node
-	      this.planeBox = planeBox;
+	      this.__box__ = planeBox;
+
+	      if (transCtx) planeUpdate = planeUpdate.transition(transCtx);
 
 	      // position plane
-	      plane.attr('transform', 'translate(' + planeBox.left + ', ' + planeBox.top + ')');
+	      planeEnter.attr('transform', 'translate(' + planeBox.left + ', ' + planeBox.top + ')');
+	      planeUpdate.attr('transform', 'translate(' + planeBox.left + ', ' + planeBox.top + ')');
 
 	      updateAxis(axes.x, planeBox.width, 0, planeBox.height);
 	      updateAxis(axes.x2, planeBox.width, 0, 0);
@@ -1984,17 +2319,25 @@
 	  .addPropFunctor('axis', function (d) {
 	    return d.axis;
 	  }).addPropFunctor('orient', function (d) {
-	    return d.orient;
-	  }).addPropFunctor('wrapLength', Infinity).addPropFunctor('tickSize', 6).addPropFunctor('showGrid', true).addPropFunctor('label', function (d) {
+	    return d.orient || 'outer';
+	  }).addPropFunctor('wrapLength', function (d) {
+	    return d.wrapLength || Infinity;
+	  }).addPropFunctor('tickSize', function (d) {
+	    return d.tickSize || 6;
+	  }).addPropFunctor('showGrid', function (d) {
+	    return d.showGrid !== null && d.showGrid !== undefined ? d.showGrid : true;
+	  }).addPropFunctor('label', function (d) {
 	    return d.label;
 	  }).addPropFunctor('labelOrient', function (d) {
-	    return d.labelOrient;
+	    return d.labelOrient || 'outer center';
 	  })
-	  // other methods
-	  .addMethod('computedSize', function (_) {
+	  // Method to get the computed box of a specific legend container. This
+	  // method should be used after the plane has been rendered. Either the
+	  // legend SVG node or a d3 selection of the node may be specified.
+	  .addMethod('box', function (_) {
 	    var node = _.node ? _.node() : _;
-	    if (!node) return { width: 0, height: 0 };
-	    return node.planeBox;
+	    if (!node) return null;
+	    return node.__box__;
 	  });
 
 	  return plane;
@@ -2106,10 +2449,10 @@
 	    var info = axis.info = {};
 
 	    info.axis = $$.axis(d, i);
-	    info.orient = $$.orient(d, i) || 'outer';
-	    info.wrapLength = $$.wrapLength(d, i) || Infinity;
+	    info.orient = $$.orient(d, i);
+	    info.wrapLength = $$.wrapLength(d, i);
 	    info.label = $$.label(d, i) || '';
-	    info.labelOrient = $$.labelOrient(d, i) || 'outer center';
+	    info.labelOrient = $$.labelOrient(d, i);
 	    info.tickSize = $$.tickSize(d, i);
 	    info.showGrid = $$.showGrid(d, i);
 	    info.labelOrient1 = info.labelOrient.split(' ')[0];
@@ -2251,13 +2594,14 @@
 	  * model.values()
 	  *
 	  * @param {Object} update - chart update function
-	  * @param {Array} events  - array of event keys to be added to the dispatcher
+	  * @param {Function} legendConfig  - legend config callback function
 	  * @param {Object} $$     - value object
 	  * @return {Object} model - object with model properties and methods
 	  */
 
 	function modelChart (update) {
-	  var $$ = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  var legendConfig = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
+	  var $$ = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
 
 	  // Chart main update function. Usually used as a call from a d3 selection.
@@ -2332,6 +2676,8 @@
 	  // Main build function to build the chart components and call the 'update'
 	  // function for the specific chart.
 	  function build(context, index) {
+	    legendConfig($$.legend);
+
 	    var tools = newTools(context, index);
 
 	    var selection = context.selection ? context.selection() : context,
@@ -2366,6 +2712,12 @@
 	    width -= padding.top + padding.bottom;
 	    height -= padding.left + padding.right;
 
+	    // enter main container
+	    var main = group.selectAll('.d2b-chart-main').data(function (d) {
+	      return [d];
+	    });
+	    var mainEnter = main.enter().append('g').attr('class', 'd2b-chart-main');
+
 	    // enter update exit position d2b-chart-legend
 	    var chartLegend = group.selectAll('.d2b-chart-legend').data(tools.prop($$.legendHidden) ? [] : [datum]);
 
@@ -2398,16 +2750,13 @@
 
 	    // enter update exit main chart container
 	    var mainTranslate = 'translate(' + legendSpacing.left + ', ' + legendSpacing.top + ')';
-	    var main = group.selectAll('.d2b-chart-main').data(function (d) {
-	      return [d];
-	    });
-	    var mainEnter = main.enter().append('g').attr('class', 'd2b-chart-main').attr('transform', mainTranslate);
+	    mainEnter.attr('transform', mainTranslate);
 
 	    main = context.select('.d2b-chart-main').attr('transform', mainTranslate);
 
 	    // Update the chart with the main context (selection or transition),
 	    // inner width, inner height, and a tools object.
-	    update(main, width, height, tools);
+	    update(main, index, width, height, tools);
 
 	    // trigger after update event
 	    selection.dispatch('afterUpdate');
@@ -2922,33 +3271,45 @@
 	function template () {
 
 	  // Configure model and chart properties.
-	  var model = modelChart(update, ['zoomIn', 'zoomOut']).addPropFunctor('interpolate', 'linear');
+	  var model = modelChart(update, buildData, legendConfig).addPropFunctor('interpolate', 'linear').addPropFunctor('items', function (d) {
+	    return d;
+	  });
 
 	  var $$ = model.values();
 	  var chart = model.base();
 
-	  // The legend may be configured here. If the items data needs to be defined
-	  // as something other than the main chart data that can be done here. Also,
-	  // legend click events can be configured for hiding / showing specific chart
-	  // elements.
-	  $$.legend.items(function (d) {
-	    return d;
-	  }).active(true).clickable(true).dblclickable(true);
+	  // Here you can define a legend setter callback. Every time the a new legend
+	  // is set, this callback will be executed for configuration.
+	  function legendConfig(legend) {
+	    legend.items(function (d) {
+	      return d.items;
+	    });
+	  }
 
-	  function update(context, width, height, tools) {
+	  // You may also do initial legend configuration if you don't want it forced
+	  // every time the user sets a new legend.
+	  // $$.legend.active(true);
+
+	  // This function is a data reconstruction method. Use this to build that chart
+	  // data object before the update is executed. This will be the `data` property
+	  // supplied to the update method.
+	  function buildData(data, index) {
+	    return {
+	      items: $$.items(data, index),
+	      interpolate: $$.interpolate(data, index)
+	    };
+	  }
+
+	  function update(context, data, index, width, height, tools) {
 	    // context is simply the main chart container to append content to. It may
 	    // be a d3.selection or a d3.transition
 
 	    // width and height represent the pixel size available for this chart to
 	    // occupy.
 
-	    // tools has several methods to help draw the chart for the current context
-	    // tools.prop($$.interpolate[, this[, args]]) returns the value of the
-	    // specified property, in this case $$.interpolate. Optionaly, `this`
-	    // may be specified as well as an arguments array.
-	    // tools.dispatch('zoomIn'[, this[, args]]) dispatches an event specified by
-	    // a key, in this case 'zoomIn'. Optionaly, `this` may be specified as well
-	    // as an arguments array.
+	    // tools has several helpful properties `tools.selection` outer chart
+	    // selection, `tools.context` outer chart context, `tools.update` update
+	    // method to update the whole chart
 	  }
 
 	  return chart;
@@ -2960,12 +3321,20 @@
 	 */
 	function pie$1 () {
 
-		var model = modelChart(update);
+		var model = modelChart(update, legendConfig);
 		var $$ = model.values();
 		var chart = model.base();
 
 		// configure legend
 		$$.legend.active(true).clickable(true).dblclickable(true);
+
+		function legendConfig(legend) {
+			legend.empty(function (d) {
+				return d.hidden;
+			}).setEmpty(function (d, i, state) {
+				return d.hidden = state;
+			});
+		}
 
 		// pie data layout
 		var layout = d3.pie().sort(null);
@@ -2995,7 +3364,7 @@
 			return d;
 		}).addPropFunctor('donutRatio', 0).addPropFunctor('startAngle', 0).addPropFunctor('endAngle', 2 * Math.PI).addPropFunctor('at', 'center center').addPropFunctor('showPercent', function (d, i) {
 			return d.__percent__ > 0.03;
-		}).addPropFunctor('center', null).addPropFunctor('radius', function (d, w, h) {
+		}).addPropFunctor('center', null).addPropFunctor('radius', function (d, i, w, h) {
 			return Math.min(w, h) / 2;
 		}).addPropFunctor('sort', null).addPropFunctor('color', function (d) {
 			return color(d.label);
@@ -3016,17 +3385,17 @@
 		});
 
 		// update chart
-		function update(context, width, height, tools) {
+		function update(context, index, width, height, tools) {
 			var selection = context.selection ? context.selection() : context,
 			    node = selection.node(),
 			    datum = selection.datum(),
-			    radius = $$.radius.call(node, datum, width, height),
-			    startAngle = $$.startAngle.call(node, datum),
-			    endAngle = $$.endAngle.call(node, datum),
-			    donutRatio = $$.donutRatio.call(node, datum),
-			    at = $$.at.call(node, datum),
-			    values = $$.values.call(node, datum).filter(function (d) {
-				return !d.__empty__;
+			    radius = $$.radius(datum, index, width, height),
+			    startAngle = $$.startAngle(datum, index),
+			    endAngle = $$.endAngle(datum, index),
+			    donutRatio = $$.donutRatio(datum, index),
+			    at = $$.at(datum, index),
+			    values = $$.values(datum, index).filter(function (d) {
+				return !d.hidden;
 			});
 
 			// legend functionality
@@ -3095,7 +3464,7 @@
 				return $$.showPercent.call(this, d.data, i) ? 1 : 0;
 			});
 
-			var coords = chartCoords(node, datum, radius, width, height);
+			var coords = chartCoords(node, datum, index, radius, width, height);
 			chartGroupEnter.attr('transform', 'translate(' + coords.x + ', ' + coords.y + ')');
 			chartGroup.attr('transform', 'translate(' + coords.x + ', ' + coords.y + ')');
 		}
@@ -3103,9 +3472,9 @@
 		// Position the pie chart according to the 'at' string (e.g. 'center left',
 		// 'top center', ..). Unless a `$$.center` function is specified by the user
 		// to return the {x: , y:} coordinates of the pie chart center.
-		function chartCoords(node, datum, radius, width, height) {
-			var coords = $$.center.call(node, datum, width, height, radius),
-			    at = $$.at.call(node, datum, width, height).split(' ');
+		function chartCoords(node, datum, index, radius, width, height) {
+			var coords = $$.center(datum, index, width, height, radius),
+			    at = $$.at(datum, index, width, height).split(' ');
 
 			if (!coords) {
 				at = { x: at[1], y: at[0] };
@@ -3115,10 +3484,11 @@
 						coords.x = radius;
 						break;
 					case 'center':
+					case 'middle':
 						coords.x = width / 2;
 						break;
+					case 'right':
 					default:
-						// right
 						coords.x = width - radius;
 				}
 
@@ -3127,13 +3497,15 @@
 						coords.y = height - radius;
 						break;
 					case 'center':
+					case 'middle':
 						coords.y = height / 2;
 						break;
+					case 'top':
 					default:
-						// top
 						coords.y = radius;
 				}
 			}
+
 			return coords;
 		}
 
@@ -3152,6 +3524,395 @@
 		}
 
 		return chart;
+	};
+
+	function axis () {
+
+	  // Configure model and chart properties.
+	  var model = modelChart(update, legendConfig);
+
+	  var $$ = model.values();
+	  var chart = model.base();
+
+	  model.addProp('plane', plane()).addPropFunctor('x', function (d) {
+	    return {};
+	  }).addPropFunctor('y', function (d) {
+	    return {};
+	  }).addPropFunctor('x2', function (d) {
+	    return {};
+	  }).addPropFunctor('y2', function (d) {
+	    return {};
+	  }).addPropFunctor('tooltipConfig', function (d) {
+	    return d.tooltipConfig;
+	  }).addPropFunctor('groups', function (d) {
+	    return d.groups;
+	  }).addPropFunctor('sets', function (d) {
+	    return d.sets;
+	  }).addPropFunctor('generator', function (d) {
+	    return d;
+	  })
+	  // group functors
+	  .addPropFunctor('groupLabel', function (d) {
+	    return d.label;
+	  }).addPropFunctor('groupColor', function (d) {
+	    return color($$.groupLabel(d));
+	  })
+	  // set functors
+	  .addPropFunctor('setGenerators', function (d) {
+	    return d.generators;
+	  }).addPropFunctor('setGraphs', function (d) {
+	    return d.graphs;
+	  })
+	  // generator functors
+	  .addPropFunctor('generatorKey', function (d) {
+	    return d.name;
+	  })
+	  // graph functors
+	  .addPropFunctor('graphLabel', function (d) {
+	    return d.label;
+	  }).addPropFunctor('graphGroup', function (d) {
+	    return d.group;
+	  }).addPropFunctor('graphColor', function (d) {
+	    return color($$.graphLabel(d));
+	  }).addPropFunctor('graphXType', 'x').addPropFunctor('graphYType', 'y').addPropFunctor('graphTooltipConfig', function (d) {
+	    return d.tooltipConfig;
+	  });
+
+	  // configure legend
+	  $$.legend.active(true).clickable(true).dblclickable(true);
+
+	  // default default axis components
+	  var bandDefault = d3.scaleBand(),
+	      linearDefault = d3.scaleLinear(),
+	      axisDefaults = {
+	    x: {
+	      band: bandDefault.copy(),
+	      linear: linearDefault.copy(),
+	      axis: d3.axisBottom()
+	    },
+	    y: {
+	      band: bandDefault.copy(),
+	      linear: linearDefault.copy(),
+	      axis: d3.axisLeft()
+	    },
+	    x2: {
+	      band: bandDefault.copy(),
+	      linear: linearDefault.copy(),
+	      axis: d3.axisTop()
+	    },
+	    y2: {
+	      band: bandDefault.copy(),
+	      linear: linearDefault.copy(),
+	      axis: d3.axisRight()
+	    }
+	  };
+
+	  // Legend config callback
+	  function legendConfig(legend) {
+	    legend.items(getGroups).empty(function (d) {
+	      return d.data.hidden;
+	    }).setEmpty(function (d, i, state) {
+	      return d.data.hidden = state;
+	    }).label(function (d) {
+	      return d.label;
+	    }).color(function (d) {
+	      return d.color;
+	    });
+	  }
+
+	  function getGroups(d, i) {
+	    var sets = arguments.length <= 2 || arguments[2] === undefined ? getSets(d, i) : arguments[2];
+	    var graphs = arguments.length <= 3 || arguments[3] === undefined ? getAllGraphs(sets) : arguments[3];
+
+	    var graphGroups = graphs.filter(function (graph) {
+	      return !graph.group;
+	    });
+
+	    graphGroups.forEach(function (g) {
+	      g.groupType = 'graph';
+	      g.groupGraphs = [g];
+	    });
+
+	    return ($$.groups(d, i) || []).map(function (group, i) {
+	      var newGroup = {
+	        groupType: 'group',
+	        data: group,
+	        label: $$.groupLabel(group, i),
+	        color: $$.groupColor(group, i)
+	      };
+
+	      newGroup.groupGraphs = graphs.filter(function (graph) {
+	        return newGroup.label === graph.group;
+	      });
+
+	      newGroup.groupGraphs.forEach(function (g) {
+	        g.color = newGroup.color;
+	      });
+
+	      return newGroup;
+	    }).concat(graphGroups);
+	  }
+
+	  function getSets(d, i) {
+	    return $$.sets(d, i).map(function (set, i) {
+	      return {
+	        data: set,
+	        index: i,
+	        generators: $$.setGenerators(set, i).map(function (generator, i) {
+	          return {
+	            data: generator,
+	            index: i,
+	            generator: $$.generator(generator, i),
+	            key: $$.generatorKey(generator, i)
+	          };
+	        }),
+	        graphs: getSetGraphs(set, i)
+	      };
+	    });
+	  }
+
+	  function getSetGraphs(d, i) {
+	    return $$.setGraphs(d, i).map(function (graph, i) {
+	      return {
+	        data: graph,
+	        index: i,
+	        label: $$.graphLabel(graph, i) || '',
+	        xType: $$.graphXType(graph, i) || 'x',
+	        yType: $$.graphYType(graph, i) || 'y',
+	        color: $$.graphColor(graph, i),
+	        group: $$.graphGroup(graph, i),
+	        tooltipConfig: $$.graphTooltipConfig || function () {}
+	      };
+	    });
+	  }
+
+	  function getAllGraphs() {
+	    var sets = arguments.length <= 0 || arguments[0] === undefined ? getSets(d, i) : arguments[0];
+
+	    return [].concat.apply([], sets.map(function (set) {
+	      return set.graphs;
+	    }));
+	  }
+
+	  function propagateHidden(groups) {
+	    groups.forEach(function (group) {
+	      group.groupGraphs.forEach(function (graph) {
+	        return graph.data.hidden = group.data.hidden;
+	      });
+	    });
+	  }
+
+	  function legendMouseover(d, selection) {
+	    var graphs = selection.selectAll('.d2b-graph');
+	    if (!d.groupGraphs.some(function (graph) {
+	      return !graph.data.hidden;
+	    })) return;
+	    graphs.style('opacity', 0.2).filter(function (graph) {
+	      return d.data === graph.data || (d.groupGraphs.map(function (d) {
+	        return d.data;
+	      }) || []).indexOf(graph.data) > -1;
+	    }).style('opacity', '');
+	  }
+
+	  function legendMouseout(d, selection) {
+	    selection.selectAll('.d2b-graph').style('opacity', 1);
+	  }
+
+	  function matchGraph(graph, allGraphs) {
+	    return allGraphs.filter(function (g) {
+	      return g.data === graph || g.data === graph.data;
+	    })[0];
+	  }
+
+	  function setupAxis(data, points, defaults, reverse) {
+	    if (!points.length) return;
+	    if (!data.axis) data.axis = defaults.axis;
+	    if (!data.scale) data.scale = getScale(points, defaults);
+
+	    var domain = data.scale.domain();
+
+	    if (reverse) domain = domain.reverse();
+	    if (!data.scale.bandwidth && data.linearPadding) {
+	      var dist = domain[1] - domain[0];
+	      domain[0] = domain[0] + dist * data.linearPadding[0];
+	      domain[1] = domain[1] + dist * data.linearPadding[1];
+	    }
+
+	    data.scale.domain(domain);
+	    data.axis.scale(data.scale);
+	  }
+
+	  function getScale(points, defaults) {
+	    if (points.some(function (d) {
+	      return isNaN(d);
+	    })) return defaults.band.domain(d3.set(points).values());else return defaults.linear.domain(d3.extent(points));
+	  }
+
+	  function update(context, index, width, height, tools) {
+	    var selection = context.selection ? context.selection() : context,
+	        datum = selection.datum(),
+	        node = selection.node(),
+	        sets = getSets(datum, index),
+	        allGraphs = getAllGraphs(sets),
+	        duration = $$.duration(datum, index),
+	        groups = getGroups(datum, index, sets);
+
+	    propagateHidden(groups);
+
+	    var tooltip = node.tooltip = node.tooltip || tooltipAxis().trackX(true).trackY(false).threshold(50);
+	    tooltip.title(function (points) {
+	      return '' + (points[0].x || points[0].x1);
+	    }).clear();
+
+	    // legend functionality
+	    tools.selection.select('.d2b-chart-legend').on('change', tools.update).selectAll('.d2b-legend-item').on('mouseover', function (d) {
+	      return legendMouseover(d, selection);
+	    }).on('mouseout', function (d) {
+	      return legendMouseout(d, selection);
+	    });
+
+	    // update plane dimensions, width and height
+	    $$.plane.size({ width: width, height: height });
+
+	    var plane = selection.selectAll('.d2b-axis-plane').data([datum]),
+	        planeUpdate = plane,
+	        planeEnter = plane.enter().append('g').attr('class', 'd2b-axis-plane');
+
+	    plane = plane.merge(planeEnter);
+
+	    // enter axis-set wrapper
+	    var wrapper = selection.selectAll('.d2b-axis-wrapper').data([datum]),
+	        wrapperUpdate = wrapper,
+	        wrapperEnter = wrapper.enter().append('g').attr('class', 'd2b-axis-wrapper');
+
+	    wrapperEnter.append('rect').attr('class', 'd2b-axis-background');
+
+	    wrapper = wrapper.merge(wrapperEnter);
+
+	    // enter axis-sets
+	    var set = wrapper.selectAll('.d2b-axis-set').data(sets),
+	        setEnter = set.enter().append('g').attr('class', 'd2b-axis-set'),
+	        setExit = set.exit();
+
+	    set = set.merge(setEnter).order();
+
+	    // queue transitions if context is a transition
+	    if (selection !== context) {
+	      setExit = setExit.transition(context);
+	      wrapperUpdate = wrapperUpdate.transition(context);
+	      planeUpdate = planeUpdate.transition(context);
+	    }
+
+	    // initialze generator and visible point sets
+	    var visible = {
+	      x: [],
+	      x2: [],
+	      y: [],
+	      y2: []
+	    };
+
+	    set.each(function (s, i) {
+	      var el = d3.select(this);
+
+	      this.genUpdate = el.selectAll('.d2b-graph-generator').data(s.generators, function (d) {
+	        return d.key;
+	      });
+
+	      this.genEnter = this.genUpdate.enter().append('g').attr('class', 'd2b-graph-generator').style('opacity', 0);
+
+	      this.genExit = this.genUpdate.exit();
+
+	      this.gen = this.genUpdate.merge(this.genEnter).order();
+
+	      this.gen.each(function (d, i) {
+	        var gen = d3.select(this),
+	            visiblePoints = d.generator.tooltipGraph(function (graph) {
+	          if (i) return null;
+	          var tooltipGraph = tooltip.graph(d2bid());
+	          tooltipGraph.row(function (point) {
+	            var graphLabel = matchGraph(point.graph.data, allGraphs).label;
+	            return graphLabel + ': ' + (point.y || point.y1);
+	          });
+	          matchGraph(graph, allGraphs).tooltipConfig(tooltipGraph);
+	          return tooltipGraph;
+	        }).color(function (graph) {
+	          return matchGraph(graph, allGraphs).color;
+	        }).graphs(s.graphs.map(function (g) {
+	          return g.data;
+	        }).filter(function (g) {
+	          return !g.hidden;
+	        })).getVisiblePoints(gen)[0];
+
+	        if (d.generator.duration) d.generator.duration(duration);
+
+	        visiblePoints.forEach(function (point) {
+	          var graph = matchGraph(point.graph, allGraphs);
+	          visible[graph.xType || 'x'].push(point.x);
+	          visible[graph.yType || 'y'].push(point.y);
+	        });
+	      });
+	    });
+
+	    var xData = $$.x(datum, index, visible.x),
+	        yData = $$.y(datum, index, visible.y),
+	        x2Data = $$.x2(datum, index, visible.x2),
+	        y2Data = $$.y2(datum, index, visible.y2);
+
+	    setupAxis(xData, visible.x, axisDefaults.x);
+	    setupAxis(yData, visible.y, axisDefaults.y, true);
+	    setupAxis(x2Data, visible.x2, axisDefaults.x2);
+	    setupAxis(y2Data, visible.y2, axisDefaults.y2, true);
+
+	    $$.plane.axis(function (d) {
+	      return d.axis;
+	    }).x(xData.axis ? xData : null).y(yData.axis ? yData : null).x2(x2Data.axis ? x2Data : null).y2(y2Data.axis ? y2Data : null);
+
+	    // update plane
+	    planeEnter.call($$.plane);
+	    planeUpdate.call($$.plane);
+
+	    // after plane update, fetch plane box
+	    var planeBox = $$.plane.box(plane);
+
+	    // update the graphs with their generators
+	    set.each(function (s, i) {
+
+	      if (selection !== context) {
+	        this.genUpdate = this.genUpdate.transition(context).style('opacity', 1);
+	        this.genExit.transition(context).style('opacity', 0).remove();
+	        this.genEnter.transition(context).style('opacity', 1);
+	      }
+
+	      this.gen.each(function (d, i) {
+	        var el = d3.select(this);
+	        if (selection !== context) el = el.transition(context);
+
+	        d.generator.x(function (graph, i) {
+	          return matchGraph(graph, allGraphs).xType === 'x2' ? x2Data.scale : xData.scale;
+	        }).y(function (graph, i) {
+	          return matchGraph(graph, allGraphs).yType === 'y2' ? y2Data.scale : yData.scale;
+	        });
+
+	        el.call(d.generator);
+	      });
+
+	      d3.select(this).on('change', tools.update);
+	    });
+
+	    // remaining transitions and exits
+	    setExit.style('opacity', 0).remove();
+
+	    // position wrapper
+	    wrapperEnter.attr('transform', 'translate(' + planeBox.left + ', ' + planeBox.top + ')').select('rect.d2b-axis-background').attr('height', Math.max(0, planeBox.height)).attr('width', Math.max(0, planeBox.width));
+
+	    wrapperUpdate.attr('transform', 'translate(' + planeBox.left + ', ' + planeBox.top + ')').select('rect.d2b-axis-background').attr('height', Math.max(0, planeBox.height)).attr('width', Math.max(0, planeBox.width));
+
+	    // configure tooltip
+	    $$.tooltipConfig(tooltip);
+	    tooltip.svgContainer(wrapper).tracker(wrapper).size(planeBox);
+	  }
+
+	  return chart;
 	};
 
 	exports.symbolMars = mars;
@@ -3187,5 +3948,6 @@
 	exports.omit = omit;
 	exports.chartTemplate = template;
 	exports.chartPie = pie$1;
+	exports.chartAxis = axis;
 
 }));

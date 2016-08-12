@@ -29,7 +29,8 @@
   var plane = d2b.plane().wrapLength(10);
 
   var svg = d3.select('svg');
-	var planeG = svg.style('background', 'gray').append('g');
+  var circle = svg.append('circle').attr('r', 5);
+	var planeG = svg.append('g');
 
   var planeData = {
     padding: null,
@@ -68,16 +69,10 @@
     svg.attr('width', width).attr('height', height);
     planeData.size = {width: width, height: height};
     planeG.call(plane);
+
+    var box = plane.box(planeG);
+    circle.attr('cx', box.left).attr('cy', box.top);
   }
-
-  setTimeout(function () {
-    planeData.x.axis.scale().domain([0, 10])
-    planeG.transition().duration(500).call(plane);
-  }, 2000)
-
-
-
-
 
 </script>
 

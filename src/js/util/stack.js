@@ -48,7 +48,7 @@ export default function () {
         .keys(keys)
         .value((d, k) => d[k] || 0)
         (tvals);
-        
+
     // reassociate the stacked values with the original datum
     datum.forEach((d, i) => {
       d.forEach((val, ind) => {

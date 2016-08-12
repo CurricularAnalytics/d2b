@@ -1,19 +1,56 @@
 import {default as base} from '../model/base.js';
 import {default as color} from '../core/color.js';
 import {default as point} from '../svg/point.js';
+import {default as stack} from '../util/stack.js';
+import {default as id} from '../core/id.js';
 
 // scatter svg generator
 export default function () {
   const $$ = {};
 
+  function getGraphs (d, i) {
+    const graphs = $$.graphs(d, i).map((graph, i) => {
+      const newGraph = {
+        data:          graph,
+        index:         i,
+        x:             $$.x(graph, i),
+        y:             $$.y(graph, i),
+        tooltipGraph:  $$.tooltipGraph(graph, i),
+        shift:         $$.shift(graph, i),
+        stackBy:       $$.stackBy(graph, i),
+        key:           $$.key(graph, i),
+        color:         $$.color(graph, i),
+        symbol:        $$.symbol(graph, i)
+      };
+      newGraph.values = $$.values(graph, i).map((point, i) => {
+        return {
+          data:   point,
+          index:  i,
+          graph:  newGraph,
+          x:      $$.px(point, i),
+          y:      $$.py(point, i),
+          color:  $$.pcolor(point, i),
+          symbol: $$.psymbol(point, i),
+          key:    $$.pkey(point, i),
+          size:   $$.psize(point, i)
+        }
+      });
+      return newGraph;
+    });
+
+    stackNest.entries(graphs).forEach(sg => stacker(sg.values));
+
+    return graphs;
+  }
+
   /* Update Function */
   const scatter = function (context) {
     const selection = context.selection? context.selection() : context;
 
-    const graph = selection.selectAll('.d2b-scatter-graph').data(d => d, $$.key);
+    const graph = selection.selectAll('.d2b-scatter-graph').data((d, i) => getGraphs(d, i), d => d.key);
 
     const graphEnter = graph.enter().append('g')
-        .attr('class', 'd2b-scatter-graph')
+        .attr('class', 'd2b-scatter-graph d2b-graph')
         .style('opacity', 0);
 
     let graphUpdate = graph.merge(graphEnter).order(),
@@ -28,34 +65,24 @@ export default function () {
     graphExit.style('opacity', 0).remove();
 
     graphUpdate.each( function (d, i) {
-      const el = d3.select(this),
-            x = $$.x.call(this, d, i),
-            y = $$.y.call(this, d, i),
-            color = $$.color.call(this, d, i),
-            symbol = $$.symbol.call(this, d, i),
-            values = $$.values.call(this, d, i),
-            tooltipGraph = $$.tooltipGraph.call(this, d, i);
+      const el = d3.select(this), x = d.x, y = d.y;
 
-      let shift = $$.shift.call(this, d, i);
+      let shift = d.shift;
       if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
-      if (tooltipGraph) tooltipGraph
-        .data(values)
-        .x((d, i) => x($$.px(d, i)) + shift)
-        .y((d, i) => y($$.py(d, i)))
-        .color((d, i) => $$.pcolor(d, i) || color);
+      if (d.tooltipGraph) d.tooltipGraph
+        .data(d.values)
+        .x(p => x(p.x) + d.shift)
+        .y(p => y(p.y))
+        .color(p => p.color || d.color);
 
       $$.point
-          .fill( function (dd, ii) {
-            return $$.pcolor.call(this, dd, ii) || color;
-          })
-          .type( function (dd, ii) {
-            return $$.psymbol.call(this, dd, ii) || symbol;
-          })
-          .size($$.psize);
+        .fill(p => p.color || d.color)
+        .type(p => p.symbol || d.symbol)
+        .size(p => p.size);
 
       const point = el.selectAll('.d2b-scatter-point')
-          .data(values, $$.pkey);
+          .data(d.values, p => p.key);
       const pointEnter = point.enter().append('g')
           .attr('class', 'd2b-scatter-point');
 
@@ -86,40 +113,56 @@ export default function () {
   };
 
   function pointTransform (transition, x, y, shift) {
-    transition.attr('transform', function (d, i) {
-      const px = x($$.px.call(this, d, i)) + shift;
-      const py = y($$.py.call(this, d, i));
-      return `translate(${px}, ${py})`;
+    transition.attr('transform', (p, i) => {
+      return `translate(${x(p.x) + shift}, ${y(p.y1)})`;
     })
   }
+
+  const stacker = stack()
+      .values(d => d.values)
+      .y(d => d.y)
+      .x(d => d.x);
+
+  const stackNest = d3.nest().key(d => {
+    const key = d.stackBy;
+    return (key !== false && key !== null)? key : id();
+  });
 
   /* Inherit from base model */
   const model = base(scatter, $$)
     .addProp('point', point().active(true))
-    .addProp('x', d3.scaleLinear(), function (d) {
-      if (!arguments.length) return $$.x;
-      if (d.domain) $$.x = () => d;
-      else $$.x = d;
-      return scatter;
-    })
-    .addProp('y', d3.scaleLinear(), function (d) {
-      if (!arguments.length) return $$.y;
-      if (d.domain) $$.y = () => d;
-      else $$.y = d;
-      return scatter;
-    })
+    .addPropFunctor('graphs', d => d)
+    // graph props
+    .addScaleFunctor('x', d3.scaleLinear())
+    .addScaleFunctor('y', d3.scaleLinear())
     .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
     .addPropFunctor('shift', null)
+    .addPropFunctor('stackBy', null)
     .addPropFunctor('key', d => d.label)
     .addPropFunctor('values', d => d.values)
     .addPropFunctor('color', d => color(d.label))
     .addPropFunctor('symbol', d => d3.symbolCircle)
+    // points props
     .addPropFunctor('px', d => d.x)
     .addPropFunctor('py', d => d.y)
     .addPropFunctor('pcolor', d => null)
     .addPropFunctor('psymbol', null)
     .addPropFunctor('pkey', (d, i) => i)
-    .addPropFunctor('psize', d => 25);
+    .addPropFunctor('psize', d => 25)
+    // methods
+    .addMethod('getComputedGraphs', context => {
+      return (context.selection? context.selection() : context).data().map((d, i) => getGraphs(d, i));
+    })
+    .addMethod('getVisiblePoints', context => {
+      const data = scatter.getComputedGraphs(context);
+      return data.map(graphs => {
+        return [].concat.apply([], graphs.map(graph => {
+          return graph.values.map(v => {
+            return {x: v.x, y: v.y1, graph: graph};
+          });
+        }));
+      });
+    });
 
   return scatter;
 };

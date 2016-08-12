@@ -49,5 +49,6 @@ export {
 
 export {
   chartTemplate,
-  chartPie
+  chartPie,
+  chartAxis
 } from './src/js/chart/chart.js';

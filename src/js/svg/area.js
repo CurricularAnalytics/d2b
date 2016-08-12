@@ -7,14 +7,44 @@ import {default as id} from '../core/id.js';
 export default function () {
   const $$ = {};
 
+  function getGraphs (d, i) {
+    const graphs = $$.graphs(d, i).map((graph, i) => {
+      const newGraph = {
+        data:          graph,
+        index:         i,
+        x:             $$.x(graph, i),
+        y:             $$.y(graph, i),
+        tooltipGraph:  $$.tooltipGraph(graph, i),
+        shift:         $$.shift(graph, i),
+        stackBy:       $$.stackBy(graph, i),
+        key:           $$.key(graph, i),
+        color:         $$.color(graph, i)
+      };
+      newGraph.values = $$.values(graph, i).map((point, i) => {
+        return {
+          data:   point,
+          index:  i,
+          graph:  newGraph,
+          x:      $$.px(point, i),
+          y:      $$.py(point, i)
+        }
+      });
+      return newGraph;
+    });
+
+    stackNest.entries(graphs).forEach(sg => stacker(sg.values));
+
+    return graphs;
+  }
+
   /* Update Function */
   const area = function (context) {
     const selection = context.selection? context.selection() : context;
 
-    const graph = selection.selectAll('.d2b-area-graph').data(d => d, $$.key);
+    const graph = selection.selectAll('.d2b-area-graph').data((d, i) => getGraphs(d, i), d => d.key);
 
     const graphEnter = graph.enter().append('g')
-        .attr('class', 'd2b-area-graph')
+        .attr('class', 'd2b-area-graph d2b-graph')
         .style('opacity', 0);
 
     graphEnter.append('path').attr('class', 'd2b-area');
@@ -30,76 +60,77 @@ export default function () {
       areaUpdate = areaUpdate.transition(context);
     }
 
-    selection.each(function (d, i) {
-      stackNest.entries(d).forEach(sg => stacker(sg.values));
-    });
-
     graphUpdate.style('opacity', 1);
     graphExit.style('opacity', 0).remove();
     areaUpdate
-        .style('fill', $$.color)
+        .style('fill', d => d.color)
         .attr('d', function (d, i) {
-          const x = $$.x.call(this, d, i),
-                y = $$.y.call(this, d, i),
-                values = $$.values.call(this, d, i),
-                color = $$.color.call(this, d, i),
-                tooltipGraph = $$.tooltipGraph.call(this, d, i);
-
-          let shift = $$.shift.call(this, d, i);
+          const x = d.x, y = d.y;
+          let shift = d.shift;
           if (shift === null) shift = (x.bandwidth)? x.bandwidth() / 2 : 0;
 
-          if (tooltipGraph) tooltipGraph
-            .data(values)
-            .x((d, i) => x(d.__x__) + shift)
-            .y((d, i) => y(d.__y1__))
-            .color(color);
+          if (d.tooltipGraph) d.tooltipGraph
+            .data(d.values)
+            .x((d, i) => x(d.x) + shift)
+            .y((d, i) => y(d.y1))
+            .color(d.color);
 
           return $$.area
-            .x((d, i) => x(d.__x__) + shift)
-            .y0((d, i) => y(d.__y0__))
-            .y1((d, i) => y(d.__y1__))
-            (values);
+            .x((d, i) => x(d.x) + shift)
+            .y0((d, i) => y(d.y0))
+            .y1((d, i) => y(d.y1))
+            (d.values);
         });
 
     return area;
   };
 
   const stacker = stack()
-      .out((d, y0, y1, x) => {
-        d.__x__ = x;
-        d.__y0__ = y0;
-        d.__y1__ = y1;
-      });
+      .values(d => d.values)
+      .y(d => d.y)
+      .x(d => d.x);
 
   const stackNest = d3.nest().key(d => {
-    const key = $$.stackBy(d);
+    const key = d.stackBy;
     return (key !== false && key !== null)? key : id();
   });
 
   /* Inherit from base model */
   const model = base(area, $$)
       .addProp('area', d3.area())
-      .addProp('stack', d3.stack(), null, d => stacker.stack(d))
-      .addProp('x', d3.scaleLinear(), function (d) {
-        if (!arguments.length) return $$.x;
-        if (d.domain) $$.x = () => d;
-        else $$.x = d;
-        return area;
-      })
-      .addProp('y', d3.scaleLinear(), function (d) {
-        if (!arguments.length) return $$.y;
-        if (d.domain) $$.y = () => d;
-        else $$.y = d;
-        return area;
-      })
+      .addPropFunctor('graphs', d => d)
+      // graph props
+      .addScaleFunctor('x', d3.scaleLinear())
+      .addScaleFunctor('y', d3.scaleLinear())
       .addPropFunctor('tooltipGraph', d => d.tooltipGraph)
       .addPropFunctor('shift', null)
       .addPropFunctor('stackBy', null)
       .addPropFunctor('key', d => d.label)
-      .addPropFunctor('values', d => d.values, null, d => stacker.values(d))
+      .addPropFunctor('values', d => d.values)
       .addPropFunctor('color', d => color(d.label))
-      .addPropFunctor('px', d => d.x, null, d => stacker.x(d))
-      .addPropFunctor('py', d => d.y, null, d => stacker.y(d));
+      // points props
+      .addPropFunctor('px', d => d.x)
+      .addPropFunctor('py', d => d.y)
+      // methods
+      .addMethod('getComputedGraphs', context => {
+        return (context.selection? context.selection() : context).data().map((d, i) => getGraphs(d, i));
+      })
+      .addMethod('getVisiblePoints', context => {
+        const data = area.getComputedGraphs(context);
+        return data.map(graphs => {
+          const y0s = [].concat.apply([], graphs.map(graph => {
+            return graph.values.map(v => {
+              return {x: v.x, y: v.y0, graph};
+            });
+          }));
+          const y1s = [].concat.apply([], graphs.map(graph => {
+            return graph.values.map(v => {
+              return {x: v.x, y: v.y1, graph};
+            });
+          }));
+          return y0s.concat(y1s);
+        });
+      });
 
   return area;
 };

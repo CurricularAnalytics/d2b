@@ -25,12 +25,12 @@
     // .px(d => d.y)
     // .py(d => d.x)
     // .orient('horizontal')
-    .pkey(d => d.x)
+    .pkey(function (d) {return d.x;})
     // .stack(d3.stack().order(d3.stackOrderDescending))
     .padding(0.25)
     // .offset(x.rangeBand()/2)
     // .bandwidth(x.rangeBand())
-    .stackBy(d => d.stack);
+    // .stackBy(d => d.stack);
 
   var dataOne = [
     {
@@ -101,6 +101,7 @@
   update(dataOne)
 
   function update (data) {
+    console.log(bar.getVisiblePoints(barSvg.datum(data)))
     barSvg.datum(data).transition().call(bar);
   }
 

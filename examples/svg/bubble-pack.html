@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<script src="https://d3js.org/d3.v4.0.0-alpha.29.min.js"></script>
+<script src="../d3.min.js"></script>
 
 <link rel="stylesheet" type="text/css" href="../../../build/d2b.css" />
 <script src="../../../build/d2b.js"></script>
@@ -17,7 +17,9 @@
   var y = d3.scaleLinear().domain([30, 0]).range([0, 500]);
   var yAxis = d3.axisRight().scale(y);
 
-	var bubblePack = d2b.svgBubblePack().x(x).y(y).tendancy(d2b.mean);
+	var bubblePack = d2b.svgBubblePack().x(x).y(y)
+    // .tendancy(d2b.mean)
+    // .psymbol();
 
   var dataOne = [
     {
@@ -79,6 +81,8 @@
   update(dataOne)
 
   function update (data) {
+    console.log(bubblePack.getVisiblePoints(bubblePackSvg.datum(data)))
+
     bubblePackSvg
         .datum(data)
       .transition()
